@@ -1,0 +1,393 @@
+<?php
+
+//-------------------------------------
+// Controller: user_page 
+class UserPageController extends Controller_App {
+
+	//-------------------------------------
+	// Action: index
+	public function act_index () {
+	
+		redirect("page:.view_list");
+	}
+
+	//-------------------------------------
+	// Action: view_list
+	public function act_view_list () {
+		
+		$this->context("c",0);
+		
+		// リスト取得条件の消去
+		if ($_REQUEST["reset"]) {
+		
+			$this->c->input(false,false);
+		}
+		
+		// 入力情報の登録
+		$this->c->input($_REQUEST["c"]);
+		
+		// リスト取得
+		$query =$this->c->query_list(array(
+			"table" =>"user_table",
+			"conditions" =>array(
+				"user_table.DEL_FLG" =>"0",
+			),
+			"order" =>"user_table.KYOKAI_ID ASC",
+			"limit" =>20,
+			"search" =>array(
+				"user_table.KYOKAI_ID" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.KYOKAI_ID"),
+				"user_table.JIGYOSYO_CD_S" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.JIGYOSYO_CD_S"),
+				"user_table.KJ_NM1" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.KJ_NM1"),
+				"user_table.KJ_NM2" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.KJ_NM2"),
+				"user_table.KN_NM1" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.KN_NM1"),
+				"user_table.KN_NM2" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.KN_NM2"),
+				"user_table.SEIBETSU" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.SEIBETSU"),
+				"user_table.BIRTH_YMD" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.BIRTH_YMD"),
+				"user_table.PASSWORD" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.PASSWORD"),
+				"user_table.ROCK_STATUS" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.ROCK_STATUS"),
+				"user_table.COURSE_CD" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.COURSE_CD"),
+				"user_table.JUSIN_STATUS" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.JUSIN_STATUS"),
+				"user_table.ADDRESS" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.ADDRESS"),
+				"user_table.KEN_CD" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.KEN_CD"),
+				"user_table.ZIP" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.ZIP"),
+				"user_table.CITY" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.CITY"),
+				"user_table.ADDRESS1" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.ADDRESS1"),
+				"user_table.ADDRESS2" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.ADDRESS2"),
+				"user_table.MAIL_ADDRESS" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.MAIL_ADDRESS"),
+				"user_table.MB_MAIL_ADDRESS" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.MB_MAIL_ADDRESS"),
+				"user_table.MOBILE_ID" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.MOBILE_ID"),
+				"user_table.MAIL_STATUS" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.MAIL_STATUS"),
+				"user_table.LOGIN_TIME" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.LOGIN_TIME"),
+				"user_table.START_DATE" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.START_DATE"),
+				"user_table.RIYOU_ID" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.RIYOU_ID"),
+				"user_table.STOP_ID" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.STOP_ID"),
+				"user_table.STOP_COMMENT" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.STOP_COMMENT"),
+				"user_table.MEMO" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.MEMO"),
+				"user_table.TOUROKU_MAIL_COUNT" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.TOUROKU_MAIL_COUNT"),
+				"user_table.JYUSIN_MAIL_COUNT" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.JYUSIN_MAIL_COUNT"),
+				"user_table.ANKERT_MAIL_COUNT" =>array(
+						"type" =>'eq',
+						"target" =>"user_table.ANKERT_MAIL_COUNT"),
+			),
+			"sort" =>array(
+				"sort_param_name" =>"sort",
+				"map" =>array(
+					"user_table.KYOKAI_ID" =>"user_table.KYOKAI_ID ASC",
+					"user_table.JIGYOSYO_CD_S" =>"user_table.JIGYOSYO_CD_S ASC",
+					"user_table.KJ_NM1" =>"user_table.KJ_NM1 ASC",
+					"user_table.KJ_NM2" =>"user_table.KJ_NM2 ASC",
+					"user_table.KN_NM1" =>"user_table.KN_NM1 ASC",
+					"user_table.KN_NM2" =>"user_table.KN_NM2 ASC",
+					"user_table.SEIBETSU" =>"user_table.SEIBETSU ASC",
+					"user_table.BIRTH_YMD" =>"user_table.BIRTH_YMD ASC",
+					"user_table.PASSWORD" =>"user_table.PASSWORD ASC",
+					"user_table.ROCK_STATUS" =>"user_table.ROCK_STATUS ASC",
+					"user_table.COURSE_CD" =>"user_table.COURSE_CD ASC",
+					"user_table.JUSIN_STATUS" =>"user_table.JUSIN_STATUS ASC",
+					"user_table.ADDRESS" =>"user_table.ADDRESS ASC",
+					"user_table.KEN_CD" =>"user_table.KEN_CD ASC",
+					"user_table.ZIP" =>"user_table.ZIP ASC",
+					"user_table.CITY" =>"user_table.CITY ASC",
+					"user_table.ADDRESS1" =>"user_table.ADDRESS1 ASC",
+					"user_table.ADDRESS2" =>"user_table.ADDRESS2 ASC",
+					"user_table.MAIL_ADDRESS" =>"user_table.MAIL_ADDRESS ASC",
+					"user_table.MB_MAIL_ADDRESS" =>"user_table.MB_MAIL_ADDRESS ASC",
+					"user_table.MOBILE_ID" =>"user_table.MOBILE_ID ASC",
+					"user_table.MAIL_STATUS" =>"user_table.MAIL_STATUS ASC",
+					"user_table.LOGIN_TIME" =>"user_table.LOGIN_TIME ASC",
+					"user_table.START_DATE" =>"user_table.START_DATE ASC",
+					"user_table.RIYOU_ID" =>"user_table.RIYOU_ID ASC",
+					"user_table.STOP_ID" =>"user_table.STOP_ID ASC",
+					"user_table.STOP_COMMENT" =>"user_table.STOP_COMMENT ASC",
+					"user_table.MEMO" =>"user_table.MEMO ASC",
+					"user_table.TOUROKU_MAIL_COUNT" =>"user_table.TOUROKU_MAIL_COUNT ASC",
+					"user_table.JYUSIN_MAIL_COUNT" =>"user_table.JYUSIN_MAIL_COUNT ASC",
+					"user_table.ANKERT_MAIL_COUNT" =>"user_table.ANKERT_MAIL_COUNT ASC",
+				),
+			),
+			"paging" =>array(
+				"offset_param_name" =>"offset",
+			),
+		));
+		
+		$this->vars["ts"] =DBI::load()->select($query);
+		$this->vars["p"] =DBI::load()->select_pager($query);
+	}
+
+	//-------------------------------------
+	// action .detail
+	public function act_view_detail () {
+		
+		$this->context("c");
+		
+		// idの指定
+		$this->c->id($_REQUEST["id"]);
+		
+		// 登録データの取得
+		$query =$this->c->query_select_one(array(
+			"table" =>"user_table",
+			"conditions" =>array(
+				"user_table.KYOKAI_ID" =>$this->c->id(),
+				"user_table.DEL_FLG" =>"0",
+			),
+		));
+		$input =DBI::load()->select_one($query);
+		
+		// 既存データの取得ができない場合の処理
+		if ( ! $input) {
+				
+			$this->c->id(false);
+		
+			redirect("page:.view_list");
+		}
+		
+		$this->vars["t"] =DBI::load()->select_one($query);
+	}
+
+	//-------------------------------------
+	// action .entry_form
+	public function act_entry_form () {
+		
+		$this->context("c",1,true);
+		
+		// id指定があれば既存のデータを読み込む
+		if ($_REQUEST["id"]) {
+			
+			// idの指定
+			$this->c->id($_REQUEST["id"]);
+			
+			// 既存データの取得
+			$query =$this->c->query_select_one(array(
+				"table" =>"user_table",
+				"conditions" =>array(
+					"user_table.KYOKAI_ID" =>$this->c->id(),
+					"user_table.DEL_FLG" =>"0",
+				),
+			));
+			$input =DBI::load()->select_one($query);
+			
+			// 既存データの取得ができない場合の処理
+			if ( ! $input) {
+				
+				$this->c->id(false);
+				
+				redirect("page:.view_list");
+			}
+			
+			// 既存の情報をフォームへ登録
+			$this->c->input($input);
+		}
+	}
+
+	//-------------------------------------
+	// action .entry_confirm
+	public function act_entry_confirm () {
+		
+		$this->context("c",1,true);
+
+		// 入力情報の登録
+		$this->c->input($_REQUEST["c"]);
+		
+		// 入力チェック
+		$this->c->validate(array(
+		),array(
+		));
+		
+		// 入力情報のチェック確認フラグ
+		$this->c->session("checked",true);
+		
+		// 入力エラー時の処理
+		if ($this->c->errors()) {
+			
+			redirect("page:.entry_form");
+		}
+		
+		$this->vars["t"] =$this->c->input();
+		
+		redirect("page:.entry_exec");
+	}
+
+	//-------------------------------------
+	// action .entry_exec
+	public function act_entry_exec () {
+		
+		$this->context("c",1,true);
+		
+		// 入力情報の登録
+		if ( ! $this->c->errors()
+				&& $this->c->session("checked")
+				&& ! $this->c->session("complete")) {
+			
+			// データの記録
+			$query =$this->c->query_save(array(
+				"table" =>"user_table",
+				"fields" =>array(
+					"user_table.KYOKAI_ID",
+					"user_table.JIGYOSYO_CD_M",
+					"user_table.JIGYOSYO_CD_S",
+					"user_table.KJ_NM1",
+					"user_table.KJ_NM2",
+					"user_table.KN_NM1",
+					"user_table.KN_NM2",
+					"user_table.SEIBETSU",
+					"user_table.BIRTH_YMD",
+					"user_table.PASSWORD",
+					"user_table.ROCK_STATUS",
+					"user_table.JISSI_YEAR",
+					"user_table.COURSE_CD",
+					"user_table.JUSIN_STATUS",
+					"user_table.ADDRESS",
+					"user_table.KEN_CD",
+					"user_table.ZIP",
+					"user_table.CITY",
+					"user_table.ADDRESS1",
+					"user_table.ADDRESS2",
+					"user_table.MAIL_ADDRESS",
+					"user_table.MB_MAIL_ADDRESS",
+					"user_table.MOBILE_ID",
+					"user_table.MAIL_STATUS",
+					"user_table.LOGIN_TIME",
+					"user_table.START_DATE",
+					"user_table.RIYOU_ID",
+					"user_table.STOP_ID",
+					"user_table.STOP_COMMENT",
+					"user_table.MEMO",
+					"user_table.TOUROKU_MAIL_COUNT",
+					"user_table.JYUSIN_MAIL_COUNT",
+					"user_table.ANKERT_MAIL_COUNT",
+					"user_table.ADMIN_ID",
+					"user_table.UPDATE_DATE",
+					"user_table.REG_DATE",
+					"user_table.DEL_FLG",
+				),
+				"conditions" =>array(
+					"user_table.KYOKAI_ID" =>$this->c->id(),
+					"user_table.DEL_FLG" =>"0",
+				),
+			));
+			DBI::load()->save($query);
+			
+			$this->c->session("complete",true);
+		}
+		
+		redirect("page:.view_list");
+	}
+	
+	//-------------------------------------
+	// action .delete_confirm
+	public function act_delete_confirm () {
+		
+		$this->context("c",1,true);
+		
+		// idの指定
+		$this->c->id($_REQUEST["id"]);
+			
+		// 既存のデータを確認
+		$query =$this->c->query_select_one(array(
+			"table" =>"user_table",
+			"conditions" =>array(
+				"user_table.KYOKAI_ID" =>$this->c->id(),
+				"user_table.DEL_FLG" =>"0",
+			),
+		));
+		$input =DBI::load()->select_one($query);
+		
+		// 既存データの確認ができない場合の処理
+		if ( ! $input) {
+		
+			$this->c->id(false);
+				
+			redirect("page:.view_list");
+		}
+		
+		redirect("page:.delete_exec");
+	}
+
+	//-------------------------------------
+	// action .delete_exec
+	public function act_delete_exec () {
+		
+		$this->context("c",1,true);
+		
+		if ($this->c->id()
+				&& ! $this->c->session("complete")) {
+				
+			// データの更新（削除フラグをon）
+			$query =$this->c->query_save(array(
+				"table" =>"user_table",
+				"fields" =>array(
+					"user_table.DEL_FLG" =>"1",
+				),
+				"conditions" =>array(
+					"user_table.KYOKAI_ID" =>$this->c->id(),
+					"user_table.DEL_FLG" =>"0",
+				),
+			));
+			DBI::load()->update($query);
+			
+			$this->c->session("complete",true);
+		}
+		
+		redirect("page:.view_list");
+	}
+}

@@ -1,0 +1,19 @@
+<?php
+
+	ob_start();
+	
+?>	
+	
+
+CREATE TABLE  (
+		)	;
+
+CREATE TABLE  (
+		)	;
+
+<?
+
+	$install =ob_get_clean();
+	
+	registry("Install.sql",$install);
+	

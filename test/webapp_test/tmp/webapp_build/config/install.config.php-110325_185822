@@ -1,0 +1,19 @@
+<?php
+
+	ob_start();
+	
+?>	
+	
+
+-- ユーザーテーブル 
+CREATE TABLE user_table (
+	`KYOKAI_ID` text COMMENT '協会ID(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+
+<?
+
+	$install =ob_get_clean();
+	
+	registry("Install.sql.",$install);
+	

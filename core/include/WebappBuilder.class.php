@@ -1,0 +1,242 @@
+<?php
+
+//-------------------------------------
+// 
+class WebappBuilder {
+	
+	protected $tmp_dir ="";
+	protected $history ="";
+	protected $options =array();
+	
+	//-------------------------------------
+	// 
+	public function webapp_build () {
+		
+		$options =registry("Config.dync.webapp_build");
+		
+		// ロールバックの実行
+		// ?exec=1
+		// &_[report]=1
+		// &_[webapp_build][rollback]=1
+		// &_[webapp_build][history]=U1103281310999 ... HistoryKey
+		// &_[webapp_build][action][create]=1 ... 作成ファイルの削除
+		// &_[webapp_build][action][backup]=1 ... バックアップの復元
+		// &_[webapp_build][force]=1 ... 上書きの許可
+		if ($options["rollback"]) {
+			
+			require_once("WebappBuilder/WebappBuilderRollbackFiles.class.php");
+			$obj =obj("WebappBuilderRollbackFiles");
+			$obj->init($options);
+			$obj->rollback_files();
+		
+		// CSVファイルからSchemaを生成する
+		// ?exec=1
+		// &_[report]=1
+		// &_[webapp_build][schema]=1
+		// &_[webapp_build][force]=1 ... 上書きの許可
+		} elseif ($options["schema"]) {
+			
+			require_once("WebappBuilder/WebappBuilderCreateSchema.class.php");
+			$obj =obj("WebappBuilderCreateSchema");
+			$obj->init($options);
+			$obj->create_schema();
+			
+		// Schemaからソースコードを生成する
+		// ?exec=1
+		// &_[report]=1
+		// &_[webapp_build][deploy]=1
+		// &_[webapp_build][force]=1 ... 上書きの許可
+		} elseif ($options["deploy"]) {
+			
+			require_once("WebappBuilder/WebappBuilderDeployFiles.class.php");
+			$obj =obj("WebappBuilderDeployFiles");
+			$obj->init($options);
+			$obj->deploy_files();
+			
+		// スクリプト構造を解析する
+		// ?exec=1
+		// &_[report]=1
+		// &_[webapp_build][profile]=1
+		// &_[webapp_build][target]=lib ... 指定しなければwebapp_dir
+		// &_[webapp_build][catalog]=class ... class:クラス一覧 func:関数一覧
+		} elseif ($options["profile"]) {
+			
+			require_once("WebappBuilder/WebappBuilderScriptScanner.class.php");
+			$obj =obj("WebappBuilderScriptScanner");
+			$obj->init($options);
+			$obj->profile_system();
+			
+		// Readmeを表示する
+		// ?exec=1
+		// &_[report]=1
+		// &_[webapp_build][readme]=1
+		// &_[webapp_build][page]=about_lib ... 指定しなければabout_lib
+		} elseif ($options["readme"]) {
+			
+			require_once("WebappBuilder/WebappBuilderReadme.class.php");
+			$obj =obj("WebappBuilderReadme");
+			$obj->init($options);
+			$obj->echo_readme();
+		}
+	}
+	
+	//-------------------------------------
+	// モジュール初期化
+	public function init ($options=array()) {
+		
+		$this->options =$options;
+		$this->tmp_dir =$tmp_dir =registry("Path.tmp_dir")."/webapp_build/";
+		$this->history ="U".date("ymdHis").sprintf("%03d",rand(001,999));
+	}	
+	
+	//-------------------------------------
+	// テンプレートファイルの参照
+	protected function arch_template (
+			$src_file, 
+			$dest_file, 
+			$assign_vars=array()) {
+		
+		if ( ! is_readable($src_file)) {
+			
+			return false;
+		}
+		
+		extract($assign_vars,EXTR_REFS);
+		ob_start();
+		include($src_file);
+		$src =ob_get_clean();
+		
+		$src =str_replace('<!?','<?',$src);
+		
+		return $this->deploy_src($dest_file,$src);
+	}
+	
+	//-------------------------------------
+	// 履歴ファイルへの追記
+	protected function append_history ($mode, $src="", $dest="") {
+			
+		// 履歴ファイルへの追記
+		$history_file =$this->tmp_dir."/history/".$this->history;
+		
+		if ( ! is_dir(dirname($history_file))) {
+		
+			mkdir(dirname($history_file),0775,true);
+		}
+		
+		$msg =$mode."\n".$src."\n".$dest."\n";
+		file_put_contents($history_file,$msg,FILE_APPEND);
+	}
+	
+	//-------------------------------------
+	// ファイルのバックアップ
+	protected function backup_file ($dest_file) {
+			
+		$webapp_dir =registry("Path.webapp_dir");
+		$backup_file =preg_replace(
+				'!^'.preg_quote($webapp_dir).'!',$this->tmp_dir."/backup/",$dest_file)
+				.'-'.date("ymd_His");
+		
+		if ( ! is_dir(dirname($backup_file))) {
+		
+			mkdir(dirname($backup_file),0775,true);
+		}
+		
+		rename($dest_file,$backup_file);
+		
+		if (file_exists($backup_file)) {
+					
+			// 履歴ファイルへの追記
+			$this->append_history("backup",$dest_file,$backup_file);
+			
+		} else {
+		
+			report_warning("Backup failur.",array(
+				"dest_file" =>$dest_file,
+				"tmp_dir" =>$this->tmp_dir,
+				"backup_file" =>$backup_file,
+				"tmp_dir_is_writable" =>is_writable($this->tmp_dir),
+				"backup_dir_is_writable" =>is_writable(dirname($backup_file)),
+			));
+			
+			return false;
+		}
+		
+		return true;
+	}
+	
+	//-------------------------------------
+	// ファイルの書き込み
+	protected function deploy_src ($dest_file, $src) {
+		
+		// 既存ファイルのバックアップ
+		if (file_exists($dest_file) && $this->options["force"]) {
+							
+			// 同一性チェック
+			if ($src !== null) {
+			
+				$src_dest =file_get_contents($dest_file);
+				
+				if (crc32($src_dest) == crc32($src)) {
+					
+					report("File not-changed.",array(
+						"dest_file" =>$dest_file,
+					));
+					
+					return true;
+				}
+			}
+		 	
+			// バックアップ
+			if ( ! $this->backup_file($dest_file)) {
+				
+				return false;
+			}
+		}
+		
+		// 既存ファイルのチェック
+		if (file_exists($dest_file)) {
+			
+			ob_start();
+			eval("?>".$src);
+			$r =ob_get_clean();
+			
+			report_warning("Dest File exists",array(
+				"dst_file" =>$dest_file,
+				"same" =>md5(file_get_contents($dest_file)) == md5($src),
+			));
+			return false;
+		}
+		
+		// ディレクトリの作成
+		if ( ! is_dir(dirname($dest_file))) {
+		
+			mkdir(dirname($dest_file),0775,true);
+		}
+		
+		// ファイルの書き込み
+		if (touch($dest_file) 
+				&& chmod($dest_file,0664)
+				&& ($r_writable =is_writable($dest_file))
+				&& ($r_write =file_put_contents($dest_file,$src))) {
+			
+			report("Write-in file successfuly.",array(
+				"dest_file" =>$dest_file,
+			));
+			print "<pre>".htmlspecialchars($src)."</pre>";
+		
+			// 履歴ファイルへの追記
+			$this->append_history("create","",$dest_file);
+		
+		} else {
+			
+			report_warning("Fail to write-into file.",array(
+				"dest_file" =>$dest_file,
+				"r_writable" =>$r_writable,
+				"r_write" =>$r_write,
+			));
+			return false;
+		}
+		
+		return true;
+	}
+}

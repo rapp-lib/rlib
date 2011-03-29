@@ -1,0 +1,37 @@
+{{include file="path:/element/default_header.html"}}
+<h1 class="page_label">製品管理：編集</h1>
+
+<!-- errors_module -->
+{{if $c->errors()}}
+	<div class="errors">
+	{{foreach from=$c->errors() index="input_name" item="error_message"}}
+		<div class="errmsg">{{$error_message}}</div>
+	{{/foreach}}
+	</div>
+{{/if}}
+<!-- /errors_module -->
+
+<!-- entry_module -->
+{{form _page=".entry_confirm" enctype="form/multipart"}}
+<table class="detail">
+<tr>
+	<td class="label"><nobr>製品名</nobr></td>
+	<td class="cell">{{input name="c[Product.name]" type="text"}}</td>
+	<td class="cell">{{$t.}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>値段</nobr></td>
+	<td class="cell">{{input name="c[Product.price]" type="select" option="product_price"}}</td>
+	<td class="cell">{{$t.}}</td>
+</tr>
+<tr>
+	<td class="controll_cell" colspan="2">
+		{{input type="submit" value="確認" class="button"}}
+		{{a _page=".view_list" class="button"}}戻る{{/a}}
+	</td>
+</tr>
+</table>
+{{/form}}
+<!-- /entry_module -->
+
+{{include file="path:/element/default_footer.html"}}

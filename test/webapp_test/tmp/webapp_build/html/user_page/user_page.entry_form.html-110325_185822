@@ -1,0 +1,36 @@
+{{include file="path:/element/default_header.html"}} 
+
+<h1 class="page_label">ユーザーページ：編集</h1>
+
+<!-- errors_module -->
+{{if $c->errors()}}
+	<div class="errors">
+	{{foreach from=$c->errors() index="input_name" item="error_message"}}
+		<div class="errmsg">{{$error_message}}</div>
+	{{/foreach}}
+	</div>
+{{/if}}
+<!-- /errors_module -->
+
+<!-- entry_module -->
+{{form _page=".entry_confirm" enctype="form/multipart"}}
+<table class="detail">
+<tr>
+	<td class="label"><nobr>協会ID</nobr></td>
+	<td class="cell">{{input name="c[user_table.KYOKAI_ID]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>削除フラグ</nobr></td>
+	<td class="cell">{{input name="c[user_table.DEL_FLG]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="controll_cell" colspan="2">
+		{{input type="submit" value="確認" class="button"}}
+		{{a _page=".view_list" class="button"}}戻る{{/a}}
+	</td>
+</tr>
+</table>
+{{/form}}
+<!-- /entry_module -->
+
+{{include file="path:/element/default_footer.html"}} 

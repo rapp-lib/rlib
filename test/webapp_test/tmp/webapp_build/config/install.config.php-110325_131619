@@ -1,0 +1,22 @@
+<?php
+
+	ob_start();
+	
+?>	
+	
+
+CREATE TABLE Product (
+	`name` text COMMENT '製品名(text)',
+	`price` text COMMENT '値段(select:product_price)'	)	;
+
+CREATE TABLE Member (
+	`login_id` text COMMENT 'ログインID(text)',
+	`login_pass` text COMMENT 'パスワード(text)'	)	;
+
+
+<?
+
+	$install =ob_get_clean();
+	
+	registry("Install.sql.",$install);
+	

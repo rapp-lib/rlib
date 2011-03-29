@@ -1,0 +1,87 @@
+{{include file="path:/element/default_header.html"}}
+<h1 class="page_label">製品管理：一覧</h1>
+
+<!-- search_module -->
+{{form _page="." _reset="1"}}
+<table class="detail">
+<tr>
+	<td class="label"><nobr>製品名</nobr></td>
+	<td class="cell">{{input name="c[Product.name]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>値段</nobr></td>
+	<td class="cell">{{input name="c[Product.price]" type="select" options="product_price"}}</td>
+</tr>
+<tr>
+	<td class="controll_cell" colspan="2">
+		{{input type="submit" value="検索" class="button"}}
+		{{a _page="." _reset="1" class="button"}}リセット{{/a}}
+	</td>
+</tr>
+</table>
+{{/form}}
+<!-- /search_module -->
+
+<!-- controll_module -->
+<div class="controll">
+	{{a _page=".entry_form" class="button"}}新規登録{{/a}}
+</div>
+<!-- /controll_module -->
+
+<!-- list_module -->
+<table class="list">
+<tr>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=Product.name" class="sort"}}製品名{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=Product.price" class="sort"}}値段{{/a}}</nobr>
+	</td>
+	<td class="label">
+		&nbsp;
+	</td>
+</tr>
+{{foreach from=$ts item="t"}}
+	<tr>
+		<td class="cell">
+			{{$t.Product.name}}
+		</td>
+		<td class="cell">
+			{{$t.Product.price|select:"product_price"}}
+		</td>
+		<td class="cell menu">
+			<nobr>
+			{{* {{a _page=".view_detail" _id=$t.Product.id class="button"}}詳細{{/a}} *}}
+			{{a _page=".entry_form" _id=$t.Product.id class="button"}}編集{{/a}}
+			{{a _page=".delete_confirm" _id=$t.Product.id class="button"}}削除{{/a}}
+			</nobr>
+		</td>
+	</tr>
+{{/foreach}}
+</table>
+<!-- /list_module -->
+
+<!-- pager_module -->
+<div class="pager">
+<span class="inactive">{{$p.current}} / {{$p.lastpage}}ページを表示中&nbsp;</span>
+{{if $p.prev !== null}}
+	{{a _page="." _query="c[offset]=`$p.prev`"}}前へ{{/a}}
+{{else}}
+	<span class="inactive">前へ</span>
+{{/if}}
+{{foreach from=$p.pages key="index" item="page_offset"}}
+	{{if $index==$p.current}} 
+		{{a _page="." _query="c[offset]=`$page_offset`" class="current"}}{{$index}}{{/a}}
+	{{else}}
+		{{a _page="." _query="c[offset]=`$page_offset`"}}{{$index}}{{/a}}
+	{{/if}}
+{{/foreach}}
+{{if $p.next !== null}}
+	{{a _page="." _query="c[offset]=`$p.next`"}}次へ{{/a}}
+{{else}}
+	<span class="inactive">次へ</span>
+{{/if}}
+</div>
+<!-- /pager_module -->
+
+{{include file="path:/element/default_footer.html"}}

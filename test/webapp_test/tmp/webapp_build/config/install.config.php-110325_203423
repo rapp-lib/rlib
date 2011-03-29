@@ -1,0 +1,268 @@
+<?php
+
+	ob_start();
+	
+?>	
+	
+
+-- 管理者更新ログテーブル 
+CREATE TABLE admin_log (
+	`LOG_ID` text COMMENT 'ログID(int)',
+	`ADMIN_ID` text COMMENT '管理者ID(int)',
+	`KOUSIN_TABLE` text COMMENT '更新対象テーブル(text)',
+	`KOUSIN_INFO` text COMMENT '更新内容(int)',
+	`KOUSIN_TIME` text COMMENT '更新日時(int)'	)	;
+
+-- 管理者ID 
+CREATE TABLE admin_table (
+	`ADMIN_ID` text COMMENT '管理者ID(int)',
+	`LOGIN_ID` text COMMENT '管理者ログインID(text)',
+	`LOGIN_PASSWORD` text COMMENT '管理者パスワード(text)',
+	`KENGEN` text COMMENT '管理者権限(int)',
+	`LOGIN_DATE` text COMMENT '最終ログイン日時(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- アンケートID 
+CREATE TABLE ankert_master (
+	`ANKERT_ID` text COMMENT 'アンケートID(int)',
+	`ANKERT_TYPE` text COMMENT 'アンケート種別(int)',
+	`ANKERT_HISSU_FLG` text COMMENT 'アンケート必須フラグ(int)',
+	`ANKERT_MSG` text COMMENT 'アンケート内容(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 市区町村ID 
+CREATE TABLE city_master (
+	`CITY_ID` text COMMENT '市区町村ID(int)',
+	`KEN_ID` text COMMENT '都道府県ID(int)',
+	`CITY_NAME` text COMMENT '市区町村名(text)'	)	;
+
+-- 検診コースコード 
+CREATE TABLE course_item_table (
+	`COURSE_CODE` text COMMENT '検診コースコード(text)',
+	`ITEM_CD` text COMMENT 'アイテムコード(text)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 健診コースコード 
+CREATE TABLE course_master (
+	`COURSE_CD` text COMMENT '健診コースコード(text)',
+	`COURSE_NAME` text COMMENT '健診コース名称(text)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- アイテムコード 
+CREATE TABLE item_table (
+	`ITEM_CD` text COMMENT 'アイテムコード(text)',
+	`ITEM_NO` text COMMENT 'アイテムNO(int)',
+	`ITEM_TYPE` text COMMENT 'アイテムタイプ(int)',
+	`ITEM_NAME` text COMMENT 'アイテム名称1(text)',
+	`ITEM_NAME_SUB` text COMMENT 'アイテム名称2(text)',
+	`ITEM_INFO` text COMMENT 'アイテム説明(int)',
+	`SEIBETU` text COMMENT '性別(int)',
+	`ITEM_MONEY` text COMMENT '個人負担金(int)',
+	`ADMIN_ID` text COMMENT '最終更新者(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 会場コード 
+CREATE TABLE jigyosyo_kaijyo_table (
+	`KAIJYO_CD` text COMMENT '会場コード(text)',
+	`JIGYOSYO_CD_M` text COMMENT '事業所コード親(text)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 事業所コード親 
+CREATE TABLE jigyosyo_sindan_table (
+	`JIGYOSYO_CD_M` text COMMENT '事業所コード親(text)',
+	`JISSI_YEAR` text COMMENT '実施年度(int)',
+	`JYUSIN_START_DATE` text COMMENT '受診期間開始(int)',
+	`JYUSIN_END_DATE` text COMMENT '受診期間終了(int)',
+	`MOUSIKOMI_START_DATE` text COMMENT '申込期間開始(int)',
+	`MOUSIKOMI_END_DATE` text COMMENT '申込期間終了(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 事業所コード親 
+CREATE TABLE jigyosyo_table (
+	`JIGYOSYO_CD_M` text COMMENT '事業所コード親(text)',
+	`JIGYOSYO_CD_S` text COMMENT '事業所コード子(text)',
+	`JIGYOSYO_NM` text COMMENT '事業所名称(text)',
+	`JIGYOSYO_RNM` text COMMENT '事業所略称(text)',
+	`MAIL_SINKI_MSG` text COMMENT '新規登録テンプレートメッセージ(int)',
+	`WEB_TOP_MSG` text COMMENT '画面ＴＯＰメッセージ(int)',
+	`KENSA_ITIRAN_MSG` text COMMENT '検査項目一覧メッセージ(int)',
+	`TOUROKU_ONE_MSG` text COMMENT '新規登録ＳＴＥＰ１メッセージ(int)',
+	`ADMIN_ID` text COMMENT '最終更新者(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- アイテムコード 
+CREATE TABLE jigyousyo_item_table (
+	`ITEM_CD` text COMMENT 'アイテムコード(text)',
+	`ITEM_NO` text COMMENT 'アイテムNO(int)',
+	`JIGYOSYO_CD_M` text COMMENT '事業所コード親(text)',
+	`SEIBETU` text COMMENT '性別(int)',
+	`MONEY` text COMMENT '個人負担金(int)',
+	`ADMIN_ID` text COMMENT '最終更新者(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 会場コード 
+CREATE TABLE kaijyo_item_table (
+	`KAIJYO_CD` text COMMENT '会場コード(text)',
+	`ITEM_CD` text COMMENT 'アイテムコード(text)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 会場コード 
+CREATE TABLE kaijyo_table (
+	`KAIJYO_CD` text COMMENT '会場コード(text)',
+	`KEN_ID` text COMMENT '都道府県ID(int)',
+	`CITY_ID` text COMMENT '市区町村ID(int)',
+	`KAIJYO_URL` text COMMENT '会場ＵＲＬ(int)',
+	`KAIJYO_NAME` text COMMENT '会場名称(text)',
+	`CITY_NAME` text COMMENT '市町村名(text)',
+	`TRAIN_INFO` text COMMENT '最寄駅情報(int)',
+	`ZIP` text COMMENT '郵便番号(text)',
+	`ADDRESS` text COMMENT '住所(text)',
+	`TEL` text COMMENT '電話番号(text)',
+	`CAR_FLG` text COMMENT '駐車場有無(int)',
+	`SIKYU_FLG` text COMMENT '子宮有無(int)',
+	`CHIBUSA_FLG` text COMMENT '乳房有無(int)',
+	`JYOI_SIKYU_MSG` text COMMENT '女医子宮メッセージ(int)',
+	`JYOI_CHIBUSA_MSG` text COMMENT '女医乳房メッセージ(int)',
+	`ADMIN_ID` text COMMENT '最終更新者(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 都道府県ID 
+CREATE TABLE ken_master (
+	`KEN_ID` text COMMENT '都道府県ID(int)',
+	`KEN_NAME` text COMMENT '都道府県名(text)',
+	`KEN_NAME_KANA` text COMMENT '都道府県よみがな(text)'	)	;
+
+-- メールID 
+CREATE TABLE mail_template_table (
+	`MAIL_ID` text COMMENT 'メールID(int)',
+	`MAIL_INFO` text COMMENT 'メール内容(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- モバイルID 
+CREATE TABLE moblie_master (
+	`MOBILE_ID` text COMMENT 'モバイルID(int)',
+	`MOBILE_SYUBETU` text COMMENT 'モバイル種別(int)',
+	`MOBILE_DOMAIN_NAME` text COMMENT 'ドメイン名(text)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 利用状況ID 
+CREATE TABLE riyou_master (
+	`RIYOU_ID` text COMMENT '利用状況ID(int)',
+	`RIYOU_NAME` text COMMENT '利用状況名(text)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 停止理由ID 
+CREATE TABLE stop_riyuu_master (
+	`STOP_ID` text COMMENT '停止理由ID(int)',
+	`STOP_NAME` text COMMENT '停止理由名(text)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 協会ID 
+CREATE TABLE user_ankert_table (
+	`KYOKAI_ID` text COMMENT '協会ID(int)',
+	`JISSI_YEAR` text COMMENT '実施年度(int)',
+	`ANKERT_ID` text COMMENT 'アンケートID(int)',
+	`ANKERT_SELECT` text COMMENT 'アンケート結果(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 協会ID 
+CREATE TABLE user_item_table (
+	`KYOKAI_ID` text COMMENT '協会ID(int)',
+	`JISSI_YEAR` text COMMENT '実施年度(int)',
+	`ITEM_CD` text COMMENT 'アイテムコード(text)',
+	`ITEM_NO` text COMMENT 'アイテムNO(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- 協会ID 
+CREATE TABLE user_kensin_info_table (
+	`KYOKAI_ID` text COMMENT '協会ID(int)',
+	`JISSI_YEAR` text COMMENT '実施年度(int)',
+	`COURSE_CD` text COMMENT 'コースコード(text)',
+	`KAIJYO_CD` text COMMENT '会場コード(text)',
+	`YOYAKU_DATE` text COMMENT '予約日(int)',
+	`ADMIN_ID` text COMMENT '最終更新者(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+-- ユーザーテーブル 
+CREATE TABLE user_table (
+	`KYOKAI_ID` text COMMENT '協会ID(int)',
+	`JIGYOSYO_CD_M` text COMMENT '事業所コード親(text)',
+	`JIGYOSYO_CD_S` text COMMENT '事業所コード子(text)',
+	`KJ_NM1` text COMMENT '漢字姓(text)',
+	`KJ_NM2` text COMMENT '漢字名(text)',
+	`KN_NM1` text COMMENT 'カナ姓(text)',
+	`KN_NM2` text COMMENT 'カナ名(text)',
+	`SEIBETSU` text COMMENT '性別(int)',
+	`BIRTH_YMD` text COMMENT '生年月日(int)',
+	`PASSWORD` text COMMENT 'パスワード(text)',
+	`ROCK_STATUS` text COMMENT 'ロック状態(int)',
+	`JISSI_YEAR` text COMMENT '実施年度(int)',
+	`COURSE_CD` text COMMENT 'コースコード(text)',
+	`JUSIN_STATUS` text COMMENT '受診状態(int)',
+	`ADDRESS` text COMMENT '住所(text)',
+	`KEN_CD` text COMMENT '都道府県コード(int)',
+	`ZIP` text COMMENT '郵便番号(text)',
+	`CITY` text COMMENT '市町村名(text)',
+	`ADDRESS1` text COMMENT '住所１(text)',
+	`ADDRESS2` text COMMENT '住所２(text)',
+	`MAIL_ADDRESS` text COMMENT 'EMAILｱﾄﾞﾚｽ(text)',
+	`MB_MAIL_ADDRESS` text COMMENT '携帯メールアドレス(text)',
+	`MOBILE_ID` text COMMENT 'モバイルID(int)',
+	`MAIL_STATUS` text COMMENT 'メール受信種別(int)',
+	`LOGIN_TIME` text COMMENT 'ログイン失敗回数(int)',
+	`START_DATE` text COMMENT '利用登録日(int)',
+	`RIYOU_ID` text COMMENT '利用状況ID(int)',
+	`STOP_ID` text COMMENT '受信ナビ停止理由ID(int)',
+	`STOP_COMMENT` text COMMENT '受信ナビ停止コメント(int)',
+	`MEMO` text COMMENT 'メモ(int)',
+	`TOUROKU_MAIL_COUNT` text COMMENT '医療機関登録メール送信回数(int)',
+	`JYUSIN_MAIL_COUNT` text COMMENT '受信日登録メール送信回数(int)',
+	`ANKERT_MAIL_COUNT` text COMMENT 'アンケート催促メール送信回数(int)',
+	`ADMIN_ID` text COMMENT '最終更新者(int)',
+	`UPDATE_DATE` text COMMENT '更新日時(int)',
+	`REG_DATE` text COMMENT '登録日時(int)',
+	`DEL_FLG` text COMMENT '削除フラグ(int)'	)	;
+
+
+<?
+
+	$install =ob_get_clean();
+	
+	registry("Install.sql.",$install);
+	

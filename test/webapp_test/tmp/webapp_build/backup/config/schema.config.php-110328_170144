@@ -1,0 +1,13 @@
+<?php
+	
+	registry(array(
+		'Schema.tables.Comment' =>array('label' =>'コメント'),
+		'Schema.cols.Comment' =>array(
+			'content' =>array('label' =>'内容', 'def' =>'text', 'type' =>'text'),
+			'category' =>array('label' =>'カテゴリ', 'def' =>'text', 'type' =>'select', 'list' =>'comment_category'),
+		),
+		'Schema.controller' =>array(
+			'Comment' =>array('label' =>'管理者ログイン', 'type' =>'login', 'table' =>'', 'account' =>'admin'),
+		),
+	));
+	

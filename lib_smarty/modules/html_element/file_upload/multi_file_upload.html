@@ -1,0 +1,110 @@
+<div style="display:inline;" id="{{$v.ALIAS}}_inc_elm">
+</div>
+<div style="display:none;" id="{{$v.ALIAS}}_tmpl_elm">
+	<div class="{{$v.ALIAS}}_item_elm">
+		<input type="hidden" name="{{$v.DATANAME}}[%{INDEX}]" value="%{code}"/>
+		<input type="hidden" name="_UFM[{{$v.ALIAS}}_%{INDEX}][group]" value="{{$v.GROUP}}"/>
+		<input type="hidden" name="_UFM[{{$v.ALIAS}}_%{INDEX}][var_name]" value="{{$v.DATANAME}}[%{INDEX}]"/>
+		<input type="file" name="{{$v.ALIAS}}_%{INDEX}_file"/>
+		
+		{{if $v.ATTRS.complex}}
+			<input type="hidden" name="_UFM[{{$v.ALIAS}}_%{INDEX}][complex][enable]" value="1"/>
+			{{foreach from=","|explode:$v.ATTRS.complex item="key"}}
+				
+				<input type="text" name="_UFM[{{$v.ALIAS}}_%{INDEX}][complex][{{$key}}]" value="{{'%{'}}{{$key}}}"/>
+			{{/foreach}}
+		{{/if}}
+		
+		<a onclick="window.{{$v.ALIAS}}_onclick_remove(this); return false;" class="button" href="#">削除</a>
+		<a onclick="window.{{$v.ALIAS}}_onclick_append(this); return false;" class="button" href="#">追加</a>
+		
+		<img width="30" height="30" id="img_{{$v.ALIAS}}_%{INDEX}" style="display:none"/>
+		<script> 
+			var img =$("#img_{{$v.ALIAS}}_%{INDEX}");
+			var file ="%{file}";
+			if (file) {
+				img.attr("src",file);
+				img.css("display","inline");
+			}
+		</script>
+	</div>
+</div>
+<script>
+	window.{{$v.ALIAS}}_init ={
+		{{foreach from=$v.CODE key="index" item="data"}}
+			{{$index}}: { 
+			{{if $v.ATTRS.complex}}
+				{{foreach from=$data key="name" item="value"}}
+					{{if $name == "code"}}
+						file: "{{$value|userfile:$v.GROUP}}",
+					{{/if}}
+					{{$name}}: "{{$value}}"
+					{{if ++$c2.$index!=count($data)}},{{/if}}
+				{{/foreach}}
+			{{else}}
+				file: "{{$data|userfile:$v.GROUP}}",
+				code: "{{$data}}"
+			{{/if}}
+			{{if ++$c1._!=count($v.CODE)}},{{/if}}
+		{{/foreach}}
+	};
+</script>
+<!-- ここから定型の処理 -->
+<script>
+$(function(){
+
+	window.{{$v.ALIAS}}_last =0;
+	window.{{$v.ALIAS}}_tmpl =""+$("#{{$v.ALIAS}}_tmpl_elm").html();
+	$("#{{$v.ALIAS}}_tmpl_elm").remove();
+	
+	// 要素の作成（テンプレートのコピー）
+	window.{{$v.ALIAS}}_create_cmd =function (id,code) {
+		
+		if (id == undefined) {
+			id =window.{{$v.ALIAS}}_last+1;
+		}
+		
+		if (code == undefined) {
+			code ={};
+		}
+		
+		if (id > window.{{$v.ALIAS}}_last) {
+			window.{{$v.ALIAS}}_last =id;
+		}
+		
+		// テンプレートの変換
+		var tmpl_inst =window.{{$v.ALIAS}}_tmpl;
+		tmpl_inst =tmpl_inst.replace(/%\{INDEX\}/g,id);
+		
+		for (var i in code) {
+			tmpl_inst =tmpl_inst.replace(new RegExp("/%\{"+i+"\}/g"),code[i]);
+		}
+		
+		tmpl_inst =tmpl_inst.replace(/%\{[^\{]+\}/g,"");
+		
+		return $(tmpl_inst);
+	};
+	
+	// 追加ボタンの処理
+	window.{{$v.ALIAS}}_onclick_append =function (trigger_elm) {
+		var html =window.{{$v.ALIAS}}_create_cmd();
+		$(trigger_elm).parent(".{{$v.ALIAS}}_item_elm").after(html);
+	};
+	
+	// 削除ボタンの処理
+	window.{{$v.ALIAS}}_onclick_remove =function (trigger_elm) {
+		if ($(".{{$v.ALIAS}}_item_elm").length > 1) {
+			$(trigger_elm).parent(".{{$v.ALIAS}}_item_elm").remove();
+		}
+	};
+	
+	// 初期データの展開
+	if (window.{{$v.ALIAS}}_init == undefined || ! window.{{$v.ALIAS}}_init.length) {
+		window.{{$v.ALIAS}}_init[1] ={ code:"" };
+	}console.log(window.{{$v.ALIAS}}_init);
+	for (var index in window.{{$v.ALIAS}}_init) {
+		var html =window.{{$v.ALIAS}}_create_cmd(index,window.{{$v.ALIAS}}_init[index]);
+		$("#{{$v.ALIAS}}_inc_elm").append(html);
+	}
+});
+</script>

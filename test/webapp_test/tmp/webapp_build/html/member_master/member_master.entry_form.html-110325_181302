@@ -1,0 +1,48 @@
+{{include file="path:/element/default_header.html"}} 
+
+<h1 class="page_label">会員管理：編集</h1>
+
+<!-- errors_module -->
+{{if $c->errors()}}
+	<div class="errors">
+	{{foreach from=$c->errors() index="input_name" item="error_message"}}
+		<div class="errmsg">{{$error_message}}</div>
+	{{/foreach}}
+	</div>
+{{/if}}
+<!-- /errors_module -->
+
+<!-- entry_module -->
+{{form _page=".entry_confirm" enctype="form/multipart"}}
+<table class="detail">
+<tr>
+	<td class="label"><nobr>ログインID</nobr></td>
+	<td class="cell">{{input name="c[Member.login_id]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>パスワード</nobr></td>
+	<td class="cell">{{input name="c[Member.login_pass]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>メールアドレス</nobr></td>
+	<td class="cell">{{input name="c[Member.mail]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>件名</nobr></td>
+	<td class="cell">{{input name="c[Member.subject]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>お問い合わせ内容</nobr></td>
+	<td class="cell">{{input name="c[Member.message]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="controll_cell" colspan="2">
+		{{input type="submit" value="確認" class="button"}}
+		{{a _page=".view_list" class="button"}}戻る{{/a}}
+	</td>
+</tr>
+</table>
+{{/form}}
+<!-- /entry_module -->
+
+{{include file="path:/element/default_footer.html"}} 

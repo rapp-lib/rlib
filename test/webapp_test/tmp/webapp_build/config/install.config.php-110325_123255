@@ -1,0 +1,21 @@
+<?php
+
+	ob_start();
+	
+?>	
+	
+		--* 製品DB
+		CREATE TABLE Product ( 
+			name VARCHAR(255), --* 製品名
+			price INT, --* 価格
+			
+			id SERIAL PRIMARY KEY,
+			del_flg INT DEFAULT 0
+		);
+
+<?
+
+	$install =ob_get_clean();
+	
+	registry("Install.sql",$install);
+	

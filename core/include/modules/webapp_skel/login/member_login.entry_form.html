@@ -1,0 +1,34 @@
+<?=$c["header"]?> 
+
+<h1 class="page_label"><?=$c["label"]?></h1>
+
+<!-- errors_module -->
+{{if $c->errors()}}
+	<div class="errors">
+	{{foreach from=$c->errors() index="input_name" item="error_message"}}
+		<div class="errmsg">{{$error_message}}</div>
+	{{/foreach}}
+	</div>
+{{/if}}
+<!-- /errors_module -->
+
+<!-- entry_module -->
+{{form _page=".entry_confirm"}}
+<table class="detail">
+<tr>
+	<td class="label"><nobr>ログインID</nobr></td>
+	<td class="cell">{{input name="c[login_id]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>パスワード</nobr></td>
+	<td class="cell">{{input name="c[login_pass]" type="password"}}</td>
+</tr>
+<td class="controll_cell" colspan="2">
+	{{input type="submit" value="ログイン" class="button"}}
+	{{a _path="/index.html" class="button"}}戻る{{/a}}
+</td>
+</table>
+{{/form}}
+<!-- /entry_module -->
+
+<?=$c["footer"]?> 

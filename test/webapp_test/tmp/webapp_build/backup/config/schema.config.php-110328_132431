@@ -1,0 +1,23 @@
+<?php
+	
+	registry(array(
+		'Schema.cols.table' =>array(
+			'col' =>'other',
+		),
+		'Schema.tables' =>array(
+			'Comment' =>'',
+		),
+		'Schema.cols.Comment' =>array(
+			'content' =>'',
+			'category' =>array(
+				'label' =>'',
+				'def' =>'',
+				'type' =>'',
+				'list' =>'comment_category',
+			),
+		),
+		'Schema.controller' =>array(
+			'Comment' =>'',
+		),
+	));
+	

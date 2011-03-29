@@ -1,0 +1,8 @@
+<input type="hidden" name="{{$v.DATANAME}}" value="{{$v.CODE}}"/>
+<input type="hidden" name="_UFM[{{$v.ALIAS}}][group]" value="{{$v.GROUP}}"/>
+<input type="hidden" name="_UFM[{{$v.ALIAS}}][var_name]" value="{{$v.DATANAME}}"/>
+<input type="file" name="{{$v.ALIAS}}_file"/>
+<input type="checkbox" name="_UFM[{{$v.ALIAS}}][delete]" value="1"/> 削除
+<a href="{{$v.FILE}}" target="_blank" style="display:{{if $v.FILE}}inline{{else}}none{{/if}}">
+<img src="{{$v.FILE}}" width="30" height="30"/>
+</a>

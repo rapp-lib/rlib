@@ -1,0 +1,20 @@
+<?php
+	
+	registry(array(
+		'Schema.tables' =>array(
+			'Comment' =>'',
+		),
+		'Schema.cols.Comment' =>array(
+			'content' =>'',
+			'category' =>array(
+				'label' =>'カテゴリ',
+				'def' =>'text',
+				'type' =>'select',
+				'list' =>'comment_category',
+			),
+		),
+		'Schema.controller' =>array(
+			'Comment' =>'',
+		),
+	));
+	

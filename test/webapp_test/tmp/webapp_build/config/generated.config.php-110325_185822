@@ -1,0 +1,25 @@
+<?php
+	
+	registry(array(
+		
+		// ルーティング
+		"Routing.page_to_path" =>array(
+
+			// ユーザーページ 
+			"user_page.index" =>"/user_page/user_page.index.html",
+			"user_page.view_list" =>"/user_page/user_page.view_list.html",
+			"user_page.view_detail" =>"/user_page/user_page.view_detail.html",
+			"user_page.entry_form" =>"/user_page/user_page.entry_form.html",
+			"user_page.entry_confirm" =>"/user_page/user_page.entry_confirm.html",
+			"user_page.entry_exec" =>"/user_page/user_page.entry_exec.html",
+			"user_page.delete_confirm" =>"/user_page/user_page.delete_confirm.html",
+			"user_page.delete_exec" =>"/user_page/user_page.delete_exec.html",
+		),
+		
+
+		// ラベル
+		"Label.cols.user_table.KYOKAI_ID" =>"協会ID",
+		"Label.cols.user_table.DEL_FLG" =>"削除フラグ",
+		
+	));
+	

@@ -1,0 +1,35 @@
+<?php
+	
+	registry(array(
+		
+		// ルーティング
+		"Routing.page_to_path" =>array(
+
+			// 製品管理 
+			"product_master.view_list" =>"/product_master/product_master.view_list.html",
+			"product_master.index" =>"/product_master/product_master.index.html",
+			"product_master.view_detail" =>"/product_master/product_master.view_detail.html",
+			"product_master.entry_form" =>"/product_master/product_master.entry_form.html",
+			"product_master.entry_confirm" =>"/product_master/product_master.entry_confirm.html",
+			"product_master.entry_exec" =>"/product_master/product_master.entry_exec.html",
+			"product_master.delete_confirm" =>"/product_master/product_master.delete_confirm.html",
+			"product_master.delete_exec" =>"/product_master/product_master.delete_exec.html",
+
+			// 会員ログイン 
+			"member_login.index" =>"/member_login/member_login.index.html",
+			"member_login.entry_form" =>"/member_login/member_login.entry_form.html",
+			"member_login.entry_confirm" =>"/member_login/member_login.entry_confirm.html",
+			"member_login.logout" =>"/member_login/member_login.logout.html",
+		),
+		
+
+		// member認証
+		"Auth.access_only.member" =>array(
+			"index",
+		),
+
+		// ラベル
+		"Label.cols.Product.name" =>"製品名",
+		"Label.cols.Product.price" =>"値段",
+	));
+	

@@ -1,0 +1,19 @@
+<?php
+
+	ob_start();
+	
+?>	
+	
+
+-- コメント 
+CREATE TABLE Comment (
+	`content` text COMMENT '内容(text)',
+	`category` text COMMENT 'カテゴリ(select:comment_category)'	)	;
+
+
+<?
+
+	$install =ob_get_clean();
+	
+	registry("Install.sql.",$install);
+	

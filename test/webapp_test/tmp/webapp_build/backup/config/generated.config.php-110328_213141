@@ -1,0 +1,27 @@
+<?php
+	
+	registry(array(
+		
+		// ルーティング
+		"Routing.page_to_path" =>array(
+
+			// 管理者ログイン 
+			"Comment.index" =>"/Comment/Comment.index.html",
+			"Comment.entry_form" =>"/Comment/Comment.entry_form.html",
+			"Comment.entry_confirm" =>"/Comment/Comment.entry_confirm.html",
+			"Comment.logout" =>"/Comment/Comment.logout.html",
+		),
+		
+
+		// admin認証
+		"Auth.access_only.admin" =>array(
+		),
+
+		// ラベル
+		"Label.cols.Comment.content" =>"内容",
+		"Label.cols.Comment.category" =>"カテゴリ",
+		
+		// admin認証エラー
+		"Label.errmsg.user.admin_login_failed" =>"IDまたはPassが誤っています",
+	));
+	

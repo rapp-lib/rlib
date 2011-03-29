@@ -1,0 +1,11 @@
+<?php
+	
+	registry(array(
+		'Schema.tables' =>array(
+			'Comment' =>'',
+		),
+		'Schema.controller' =>array(
+			'Comment' =>'',
+		),
+	));
+	

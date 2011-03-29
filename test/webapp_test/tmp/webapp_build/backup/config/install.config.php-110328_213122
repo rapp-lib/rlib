@@ -1,0 +1,14 @@
+<?php
+
+	ob_start();
+	
+?>	
+	
+
+
+<?
+
+	$install =ob_get_clean();
+	
+	registry("Install.sql.",$install);
+	

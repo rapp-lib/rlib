@@ -1,0 +1,84 @@
+<?=$c["header"]?> 
+
+<h1 class="page_label"><?=$c["label"]?>：一覧</h1>
+
+<!-- search_module -->
+{{form _page="." _reset="1"}}
+<table class="detail">
+<? foreach ($t["fields_3"] as $tc): ?>
+<tr>
+	<td class="label"><nobr><?=$tc['label']?></nobr></td>
+	<td class="cell">{{input name="c[<?=$tc['name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}</td>
+</tr>
+<? endforeach; ?>
+<tr>
+	<td class="controll_cell" colspan="2">
+		{{input type="submit" value="検索" class="button"}}
+		{{a _page="." _reset="1" class="button"}}リセット{{/a}}
+	</td>
+</tr>
+</table>
+{{/form}}
+<!-- /search_module -->
+
+<!-- controll_module -->
+<div class="controll">
+	{{a _page=".entry_form" class="button"}}新規登録{{/a}}
+</div>
+<!-- /controll_module -->
+
+<!-- list_module -->
+<table class="list">
+<tr>
+<? foreach ($t["fields_5"] as $tc): ?>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=<?=$tc['name']?>" class="sort"}}<?=$tc['label']?>{{/a}}</nobr>
+	</td>
+<? endforeach; ?>
+	<td class="label">
+		&nbsp;
+	</td>
+</tr>
+{{foreach from=$ts item="t"}}
+	<tr>
+<? foreach ($t["fields_5"] as $tc): ?>
+		<td class="cell">
+			{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}
+		</td>
+<? endforeach; ?>
+		<td class="cell menu">
+			<nobr>
+			{{* {{a _page=".view_detail" _id=$t.Product.id class="button"}}詳細{{/a}} *}}
+			{{a _page=".entry_form" _id=$t.Product.id class="button"}}編集{{/a}}
+			{{a _page=".delete_confirm" _id=$t.Product.id class="button"}}削除{{/a}}
+			</nobr>
+		</td>
+	</tr>
+{{/foreach}}
+</table>
+<!-- /list_module -->
+
+<!-- pager_module -->
+<div class="pager">
+<span class="inactive">{{$p.current}} / {{$p.lastpage}}ページを表示中&nbsp;</span>
+{{if $p.prev !== null}}
+	{{a _page="." _query="c[offset]=`$p.prev`"}}前へ{{/a}}
+{{else}}
+	<span class="inactive">前へ</span>
+{{/if}}
+{{foreach from=$p.pages key="index" item="page_offset"}}
+	{{if $index==$p.current}} 
+		{{a _page="." _query="c[offset]=`$page_offset`" class="current"}}{{$index}}{{/a}}
+	{{else}}
+		{{a _page="." _query="c[offset]=`$page_offset`"}}{{$index}}{{/a}}
+	{{/if}}
+{{/foreach}}
+{{if $p.next !== null}}
+	{{a _page="." _query="c[offset]=`$p.next`"}}次へ{{/a}}
+{{else}}
+	<span class="inactive">次へ</span>
+{{/if}}
+</div>
+<!-- /pager_module -->
+
+<?=$c["footer"]?> 

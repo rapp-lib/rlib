@@ -1,0 +1,378 @@
+{{include file="path:/element/default_header.html"}} 
+
+<h1 class="page_label">ユーザーページ：一覧</h1>
+
+<!-- search_module -->
+{{form _page="." _reset="1"}}
+<table class="detail">
+<tr>
+	<td class="label"><nobr>協会ID</nobr></td>
+	<td class="cell">{{input name="c[user_table.KYOKAI_ID]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>事業所コード子</nobr></td>
+	<td class="cell">{{input name="c[user_table.JIGYOSYO_CD_S]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>漢字姓</nobr></td>
+	<td class="cell">{{input name="c[user_table.KJ_NM1]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>漢字名</nobr></td>
+	<td class="cell">{{input name="c[user_table.KJ_NM2]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>カナ姓</nobr></td>
+	<td class="cell">{{input name="c[user_table.KN_NM1]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>カナ名</nobr></td>
+	<td class="cell">{{input name="c[user_table.KN_NM2]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>性別</nobr></td>
+	<td class="cell">{{input name="c[user_table.SEIBETSU]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>生年月日</nobr></td>
+	<td class="cell">{{input name="c[user_table.BIRTH_YMD]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>パスワード</nobr></td>
+	<td class="cell">{{input name="c[user_table.PASSWORD]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>ロック状態</nobr></td>
+	<td class="cell">{{input name="c[user_table.ROCK_STATUS]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>コースコード</nobr></td>
+	<td class="cell">{{input name="c[user_table.COURSE_CD]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>受診状態</nobr></td>
+	<td class="cell">{{input name="c[user_table.JUSIN_STATUS]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>住所</nobr></td>
+	<td class="cell">{{input name="c[user_table.ADDRESS]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>都道府県コード</nobr></td>
+	<td class="cell">{{input name="c[user_table.KEN_CD]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>郵便番号</nobr></td>
+	<td class="cell">{{input name="c[user_table.ZIP]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>市町村名</nobr></td>
+	<td class="cell">{{input name="c[user_table.CITY]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>住所１</nobr></td>
+	<td class="cell">{{input name="c[user_table.ADDRESS1]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>住所２</nobr></td>
+	<td class="cell">{{input name="c[user_table.ADDRESS2]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>EMAILｱﾄﾞﾚｽ</nobr></td>
+	<td class="cell">{{input name="c[user_table.MAIL_ADDRESS]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>携帯メールアドレス</nobr></td>
+	<td class="cell">{{input name="c[user_table.MB_MAIL_ADDRESS]" type="text"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>モバイルID</nobr></td>
+	<td class="cell">{{input name="c[user_table.MOBILE_ID]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>メール受信種別</nobr></td>
+	<td class="cell">{{input name="c[user_table.MAIL_STATUS]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>ログイン失敗回数</nobr></td>
+	<td class="cell">{{input name="c[user_table.LOGIN_TIME]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>利用登録日</nobr></td>
+	<td class="cell">{{input name="c[user_table.START_DATE]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>利用状況ID</nobr></td>
+	<td class="cell">{{input name="c[user_table.RIYOU_ID]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>受信ナビ停止理由ID</nobr></td>
+	<td class="cell">{{input name="c[user_table.STOP_ID]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>受信ナビ停止コメント</nobr></td>
+	<td class="cell">{{input name="c[user_table.STOP_COMMENT]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>メモ</nobr></td>
+	<td class="cell">{{input name="c[user_table.MEMO]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>医療機関登録メール送信回数</nobr></td>
+	<td class="cell">{{input name="c[user_table.TOUROKU_MAIL_COUNT]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>受信日登録メール送信回数</nobr></td>
+	<td class="cell">{{input name="c[user_table.JYUSIN_MAIL_COUNT]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="label"><nobr>アンケート催促メール送信回数</nobr></td>
+	<td class="cell">{{input name="c[user_table.ANKERT_MAIL_COUNT]" type="int"}}</td>
+</tr>
+<tr>
+	<td class="controll_cell" colspan="2">
+		{{input type="submit" value="検索" class="button"}}
+		{{a _page="." _reset="1" class="button"}}リセット{{/a}}
+	</td>
+</tr>
+</table>
+{{/form}}
+<!-- /search_module -->
+
+<!-- controll_module -->
+<div class="controll">
+	{{a _page=".entry_form" class="button"}}新規登録{{/a}}
+</div>
+<!-- /controll_module -->
+
+<!-- list_module -->
+<table class="list">
+<tr>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.KYOKAI_ID" class="sort"}}協会ID{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.JIGYOSYO_CD_S" class="sort"}}事業所コード子{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.KJ_NM1" class="sort"}}漢字姓{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.KJ_NM2" class="sort"}}漢字名{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.KN_NM1" class="sort"}}カナ姓{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.KN_NM2" class="sort"}}カナ名{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.SEIBETSU" class="sort"}}性別{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.BIRTH_YMD" class="sort"}}生年月日{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.PASSWORD" class="sort"}}パスワード{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.ROCK_STATUS" class="sort"}}ロック状態{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.COURSE_CD" class="sort"}}コースコード{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.JUSIN_STATUS" class="sort"}}受診状態{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.ADDRESS" class="sort"}}住所{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.KEN_CD" class="sort"}}都道府県コード{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.ZIP" class="sort"}}郵便番号{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.CITY" class="sort"}}市町村名{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.ADDRESS1" class="sort"}}住所１{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.ADDRESS2" class="sort"}}住所２{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.MAIL_ADDRESS" class="sort"}}EMAILｱﾄﾞﾚｽ{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.MB_MAIL_ADDRESS" class="sort"}}携帯メールアドレス{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.MOBILE_ID" class="sort"}}モバイルID{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.MAIL_STATUS" class="sort"}}メール受信種別{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.LOGIN_TIME" class="sort"}}ログイン失敗回数{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.START_DATE" class="sort"}}利用登録日{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.RIYOU_ID" class="sort"}}利用状況ID{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.STOP_ID" class="sort"}}受信ナビ停止理由ID{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.STOP_COMMENT" class="sort"}}受信ナビ停止コメント{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.MEMO" class="sort"}}メモ{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.TOUROKU_MAIL_COUNT" class="sort"}}医療機関登録メール送信回数{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.JYUSIN_MAIL_COUNT" class="sort"}}受信日登録メール送信回数{{/a}}</nobr>
+	</td>
+	<td class="label">
+		<nobr>{{a _page="." _query="c[sort]=user_table.ANKERT_MAIL_COUNT" class="sort"}}アンケート催促メール送信回数{{/a}}</nobr>
+	</td>
+	<td class="label">
+		&nbsp;
+	</td>
+</tr>
+{{foreach from=$ts item="t"}}
+	<tr>
+		<td class="cell">
+			{{$t.user_table.KYOKAI_ID}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.JIGYOSYO_CD_S}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.KJ_NM1}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.KJ_NM2}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.KN_NM1}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.KN_NM2}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.SEIBETSU}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.BIRTH_YMD}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.PASSWORD}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.ROCK_STATUS}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.COURSE_CD}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.JUSIN_STATUS}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.ADDRESS}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.KEN_CD}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.ZIP}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.CITY}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.ADDRESS1}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.ADDRESS2}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.MAIL_ADDRESS}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.MB_MAIL_ADDRESS}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.MOBILE_ID}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.MAIL_STATUS}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.LOGIN_TIME}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.START_DATE}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.RIYOU_ID}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.STOP_ID}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.STOP_COMMENT}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.MEMO}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.TOUROKU_MAIL_COUNT}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.JYUSIN_MAIL_COUNT}}
+		</td>
+		<td class="cell">
+			{{$t.user_table.ANKERT_MAIL_COUNT}}
+		</td>
+		<td class="cell menu">
+			<nobr>
+			{{* {{a _page=".view_detail" _id=$t.Product.id class="button"}}詳細{{/a}} *}}
+			{{a _page=".entry_form" _id=$t.Product.id class="button"}}編集{{/a}}
+			{{a _page=".delete_confirm" _id=$t.Product.id class="button"}}削除{{/a}}
+			</nobr>
+		</td>
+	</tr>
+{{/foreach}}
+</table>
+<!-- /list_module -->
+
+<!-- pager_module -->
+<div class="pager">
+<span class="inactive">{{$p.current}} / {{$p.lastpage}}ページを表示中&nbsp;</span>
+{{if $p.prev !== null}}
+	{{a _page="." _query="c[offset]=`$p.prev`"}}前へ{{/a}}
+{{else}}
+	<span class="inactive">前へ</span>
+{{/if}}
+{{foreach from=$p.pages key="index" item="page_offset"}}
+	{{if $index==$p.current}} 
+		{{a _page="." _query="c[offset]=`$page_offset`" class="current"}}{{$index}}{{/a}}
+	{{else}}
+		{{a _page="." _query="c[offset]=`$page_offset`"}}{{$index}}{{/a}}
+	{{/if}}
+{{/foreach}}
+{{if $p.next !== null}}
+	{{a _page="." _query="c[offset]=`$p.next`"}}次へ{{/a}}
+{{else}}
+	<span class="inactive">次へ</span>
+{{/if}}
+</div>
+<!-- /pager_module -->
+
+{{include file="path:/element/default_footer.html"}} 
