@@ -1,5 +1,0 @@
-RewriteEngine On
-RewriteBase /
-
-RewriteCond %{REQUEST_URI} (\.html?|/|^)$
-RewriteRule ^(.*)$ /rlib.git/test/webapp_test/html/.index.php?__REQUEST_URI__=%{REQUEST_URI}&%{QUERY_STRING} [L]
