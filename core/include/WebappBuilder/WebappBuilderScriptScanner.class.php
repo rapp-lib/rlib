@@ -23,28 +23,20 @@ class WebappBuilderScriptScanner extends WebappBuilder {
 	// PHPシステムの構造解析
 	public function profile_system () {
 		
-		$this->root =$this->options["target"]
-				? $this->options["target"]
-				: registry("Path.webapp_dir");
-		$catalog =$this->options["catalog"]
-				? $this->options["catalog"]
-				: "class";
+		$root_dir =$this->options["target"];
 		
-		if ($this->root == "lib") {
+		if ( ! $root_dir || $root_dir == "webapp") {
 			
-			$this->root =RLIB_ROOT_DIR;
+			$root_dir =registry("Path.webapp_dir");
+		
+		} elseif ($root_dir == "lib") {
+			
+			$root_dir =RLIB_ROOT_DIR;
 		}
 		
-		$this->profile_dir($this->root);
+		$this->profile_dir($root_dir);
 		
-		if ($catalog == "class") {
-		
-			print $this->get_class_catalog();
-		
-		} elseif ($catalog == "function") {
-		
-			print $this->get_function_catalog();
-		}
+		print $this->get_catalog_html($root_dir);
 	}
 	
 	//-------------------------------------
@@ -147,7 +139,7 @@ class WebappBuilderScriptScanner extends WebappBuilder {
 			}
 			
 			// 関数定義
-			if (preg_match('!^\s*(public|protected|private)?\s+function\s+(\S+)\s*\('
+			if (preg_match('!^\s*(public|protected|private)?\s+function\s+((?:&\s*)?[_a-zA-Z0-9]+)\s*\('
 					.'(.*?)(\)\s*\{)?\s*$!',$line,$match)) {
 					
 				$st_func =trim($match[2]);
@@ -179,68 +171,18 @@ class WebappBuilderScriptScanner extends WebappBuilder {
 		
 		$str =(array)$this->str;
 		uasort($str,array($this,"sort_by_file"));
+		
 		return $str;
 	}
 	
 	//-------------------------------------
-	// 解析結果の関数一覧をHTMLで取得
-	public function get_function_catalog () {
+	// 解析結果のクラス/関数一覧をHTMLで取得
+	public function get_catalog_html ($root_dir="") {
 		
 		$str =$this->get_result();
 		$str_globals =(array)$str["GLOBALS"]["func"];
-		$str =array();
-		$last_dir ="";
 		
-		foreach ($str_globals as $func_name => $func_info) {
-		
-			$file_name =preg_replace('!^'.preg_quote($this->root).'!','',$func_info["file"]);
-			$str[$file_name][$func_name] =$func_info;
-		}
-	
-		ob_start();
-		
-?>	
-<html>
-<head>
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-</head>
-<body style="background-color:#eeeeee;">
-
-<div style="background-color:#ffffff; border:1px solid #aaaaaa; margin:2px; padding:7px; margin:7px;">
-	Function Catalog<br/>
-	<? foreach ($str as $file_name => $func_list): ?>
-		<br/>&nbsp;<?=preg_replace('!^'.preg_quote($this->root).'!','',$file_name)?><br/>
-		<? foreach ($func_list as $func_name => $func_info): ?>
-			&nbsp;&nbsp;&nbsp;<a href="#<?=$func_name?>"><?=$func_name?></a><br/>
-		<? endforeach; ?>
-	<? endforeach; ?>
-</div>
-
-
-<? foreach ($str as $file_name => $func_list): ?>
-	<div style="background-color:#ffffff; border:1px solid #aaaaaa; margin:2px; padding:7px; margin:7px;">
-	<b><font color="#0000aa"> <?=$file_name?></font></b><br/>
-	<br/>
-	<? foreach ($func_list as $func_name => $func_info): ?>
-		<a name="<?=$func_name?>"></a><br/>
-		<font color="#00aa00"> // <?=$func_info["desc"]?> [L<?=$func_info["line"]?>]</font><br/>
-		&nbsp;&nbsp;<b><font color="#aa0000"><?=$func_name?></font></b> (<?=$func_info["arg"]?>)<br/>
-		<br/>
-	<? endforeach; ?>	
-	</div>
-<? endforeach; ?>
-</body>
-</html>
-<?
-
-		return ob_get_clean();
-	}
-	
-	//-------------------------------------
-	// 解析結果のClass一覧をHTMLで取得
-	public function get_class_catalog () {
-		
-		$str =$this->get_result();
+		// クラス一覧の作成
 		$last_dir ="";
 		
 		foreach ($str as $c_name => $c_info) {
@@ -254,33 +196,53 @@ class WebappBuilderScriptScanner extends WebappBuilder {
 				
 				if ($f_info["access"] == "protected" 
 						|| $f_info["access"] == "private") {
+						
 					unset($str[$c_name]["func"][$fname]);
 				}
 			}
 		}
 		
+		// 関数一覧作成
+		$str_func =array();
+		
+		foreach ($str_globals as $func_name => $func_info) {
+		
+			$file_name =preg_replace('!^'.preg_quote($root_dir).'!','',$func_info["file"]);
+			$str_func[$file_name][$func_name] =$func_info;
+		}
+	
 		ob_start();
 		
 ?>	
 <html>
 <head>
+<title>Class/Function Catalog</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 </head>
 <body style="background-color:#eeeeee;">
 
 <div style="background-color:#ffffff; border:1px solid #aaaaaa; margin:2px; padding:7px; margin:7px;">
-	Class Catalog<br/>
+	<h2>Class Catalog</h2>
 	<? foreach ($str as $class_name => $class_info): ?>
 		<? $cur_dir =dirname($class_info["file"]); ?>
 		<? $same_dir =$last_dir==$cur_dir; ?>
 		<? $last_dir =$cur_dir; ?>
 		<? if ( ! $same_dir): ?>
-			<br/>&nbsp;<?=preg_replace('!^'.preg_quote($this->root).'!','',$cur_dir)?><br/>
+			<br/>&nbsp;<?=preg_replace('!^'.preg_quote($root_dir).'!','',$cur_dir)?><br/>
 		<? endif; ?>
 			&nbsp;&nbsp;&nbsp;<a href="#<?=$class_name?>"><?=$class_name?></a><br/>
 	<? endforeach; ?>
 </div>
 
+<div style="background-color:#ffffff; border:1px solid #aaaaaa; margin:2px; padding:7px; margin:7px;">
+	<h2>Function Catalog</h2>
+	<? foreach ($str_func as $file_name => $func_list): ?>
+		<br/>&nbsp;<?=preg_replace('!^'.preg_quote($root_dir).'!','',$file_name)?><br/>
+		<? foreach ($func_list as $func_name => $func_info): ?>
+			&nbsp;&nbsp;&nbsp;<a href="#<?=$func_name?>"><?=$func_name?></a><br/>
+		<? endforeach; ?>
+	<? endforeach; ?>
+</div>
 
 <? foreach ($str as $class_name => $class_info): ?>
 	<div style="background-color:#ffffff; border:1px solid #aaaaaa; margin:2px; padding:7px; margin:7px;<?
@@ -288,12 +250,25 @@ class WebappBuilderScriptScanner extends WebappBuilder {
 	<a name="<?=$class_name?>"></a>
 	<font color="#00aa00"> // <?=$class_info["desc"]?></font><br/>
 	<b><font color="#0000aa"> <?=$class_name?></font></b> 
-	(<?=preg_replace('!^'.preg_quote($this->root).'!','',dirname($class_info["file"]))?>)<br/>
+	(<?=preg_replace('!^'.preg_quote($root_dir).'!','',dirname($class_info["file"]))?>)<br/>
 	<? if ($class_info["extends"]): ?>
 		&nbsp;&nbsp;<font color="#888888">extends <b><?=$class_info["extends"]?></b></font><br/>
 	<? endif; ?>
 	<br/>
 	<? foreach ((array)$class_info["func"] as $func_name => $func_info): ?>
+		<font color="#00aa00"> // <?=$func_info["desc"]?> [L<?=$func_info["line"]?>]</font><br/>
+		&nbsp;&nbsp;<b><font color="#aa0000"><?=$func_name?></font></b> (<?=$func_info["arg"]?>)<br/>
+		<br/>
+	<? endforeach; ?>	
+	</div>
+<? endforeach; ?>
+
+<? foreach ($str_func as $file_name => $func_list): ?>
+	<div style="background-color:#ffffff; border:1px solid #aaaaaa; margin:2px; padding:7px; margin:7px;">
+	<b><font color="#0000aa"> <?=$file_name?></font></b><br/>
+	<br/>
+	<? foreach ($func_list as $func_name => $func_info): ?>
+		<a name="<?=$func_name?>"></a><br/>
 		<font color="#00aa00"> // <?=$func_info["desc"]?> [L<?=$func_info["line"]?>]</font><br/>
 		&nbsp;&nbsp;<b><font color="#aa0000"><?=$func_name?></font></b> (<?=$func_info["arg"]?>)<br/>
 		<br/>

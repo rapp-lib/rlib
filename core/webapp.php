@@ -166,6 +166,17 @@
 	}
 	
 	//-------------------------------------
+	// 出力と同時に終了
+	function clean_output_shutdown ($output) {
+		
+		registry("Report.buffer_enable");
+		ob_end_clean();
+		print $output;
+		
+		shutdown_webapp("clean_output");
+	}
+	
+	//-------------------------------------
 	// URL書き換え機能
 	function output_rewrite_var ($name=null, $value=null) {
 	

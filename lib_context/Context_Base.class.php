@@ -1,20 +1,4 @@
 <?php
-/*
-	// 1. fieldsについて各Keyの指定なければ同名の値をinputから取得
-	// 2. idが設定されていなければconditionsを消去
-	$query =$this->c->query_save(array(
-		"table" =>"Product",
-		"fields" =>array(
-			"Product.name",
-			"Product.price",
-		),
-		"conditions" =>array(
-			"Product.id" =>$this->c->id(),
-			"Product.del_flg" =>"0",
-		),
-	));
-	DBI::load()->save($query);
-*/
 
 //-------------------------------------
 //
@@ -87,22 +71,45 @@ class Context_Base {
 	
 	//-------------------------------------
 	// 
-	public function query_save ($query=array()) {
+	public function get_fields ($fields) {
 	
-		// fields決定
-		foreach ($query["fields"] as $k => $v) {
+		// fields補完
+		foreach ($fields as $k => $v) {
 			
 			if (is_numeric($k)) {
 				
-				$query["fields"][$v] =$this->input((string)$v);
-				unset($query["fields"][$k]);
+				$fields[$v] =$this->input((string)$v);
+				unset($fields[$k]);
 			}
 		}
+		
+		return $fields;
+	}
+	
+	//-------------------------------------
+	// 
+	public function query_save ($query=array()) {
+	
+		// fields決定
+		$query["fields"] =$this->get_fields($query["fields"]);
 		
 		// 更新用の条件設定
 		if ( ! $this->id()) {
 			
 			unset($query["conditions"]);
+		}
+		
+		return $query;
+	}
+	
+	//-------------------------------------
+	// 
+	public function query_delete ($query=array()) {
+		
+		// 更新用の条件確認
+		if ( ! $this->id()) {
+			
+			$query["conditions"][] ="0=1";
 		}
 		
 		return $query;
@@ -161,6 +168,10 @@ class Context_Base {
 			if ($value) {
 			
 				$query["order"] =$value;
+			
+			} elseif ($setting["default"]) {
+			
+				$query["order"] =$setting["default"];
 			}
 			
 			unset($query["sort"]);
@@ -180,6 +191,10 @@ class Context_Base {
 					&& is_numeric($this->input((string)$setting["limit_param_name"]))) {
 					
 				$query["limit"] =(int)$this->input((string)$setting["limit_param_name"]);
+			
+			} elseif ($setting["limit"]) {
+				
+				$query["limit"] =(int)$setting["limit"];
 			}
 			
 			unset($query["paging"]);

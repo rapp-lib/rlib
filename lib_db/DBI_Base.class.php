@@ -1,71 +1,4 @@
 <?php
-/*
-	Sample:
-		
-		// 接続
-		DBI::load()->connect(array(
-			'driver' => 'mysql',
-			'persistent' => false,
-			'host' => 'localhost',
-			'login' => 'root',
-			'password' => 'pass',
-			'database' => 'rlib2_test',
-			'prefix' => '',
-		));
-		
-		// INSERT
-		$r =DBI::load()->insert(array(
-			'table' => "member",
-			'alias' => "Member",
-			'fields' => array(
-				"Member.name" =>"Toyosawa_NEW",
-			),
-		));
-		var_dump($r);
-		print "<hr/>";
-		
-		// UPDATE
-		$r =DBI::load()->update(array(
-			'table' => "member",
-			'alias' => "Member",
-			'fields' => array(
-				"Member.name" =>"NEW_RECORD",
-			),
-			'conditions' => array(
-				"Member.name LIKE" =>"%_NEW",
-			),
-		));
-		var_dump($r);
-		print "<hr/>";
-		
-		// SELECT
-		$r =DBI::load()->exec(DBI::load()->st_select(array(
-			'table' => "member",
-			'alias' => "Member",
-			'fields' => array(
-				"Member.*",
-			),
-			'conditions' => array(
-				"Member.id >" =>"2", 
-			),
-			'limit' => null,
-			'offset' => null,
-			'joins' => array(),
-			'order' => null,
-			'group' => null,
-		)));
-		var_dump($r);
-		print "<hr/>";
-		
-		// DELETE
-		DBI::load()->delete(array(
-			'table' => "member",
-			'alias' => "Member",
-			'conditions' => array(
-				"Member.name LIKE" =>"%_NEW",
-			),
-		));
-*/
 
 //-------------------------------------
 // DBI実装
@@ -107,6 +40,48 @@ class DBI_Base extends DBI {
 	public function __call ($func ,$args) {
 	
 		return call_user_func_array(array($this->ds,$func),$args);
+	}
+	
+	//-------------------------------------
+	// トランザクションのBegin
+	public function begin() {
+		
+		if ( ! $this->ds->_transactionStarted
+				&& $this->ds->execute($this->ds->_commands['begin'])) {
+		
+			$this->ds->_transactionStarted =true;
+			return true;
+		}
+		
+		return false;
+	}
+	
+	//-------------------------------------
+	// トランザクションのCommit
+	public function commit() {
+		
+		if ($this->ds->_transactionStarted
+				&& $this->ds->execute($this->ds->_commands['commit'])) {
+		
+			$this->ds->_transactionStarted =false;
+			return true;
+		}
+		
+		return false;
+	}
+	
+	//-------------------------------------
+	// トランザクションのRollback
+	public function rollback() {
+		
+		if ($this->ds->_transactionStarted
+				&& $this->ds->execute($this->ds->_commands['rollback'])) {
+		
+			$this->ds->_transactionStarted =false;
+			return true;
+		}
+		
+		return false;
 	}
 	
 	//-------------------------------------
@@ -322,12 +297,27 @@ class DBI_Base extends DBI {
 	//-------------------------------------
 	// Query実行(DELETE)
 	public function delete ($query) {
+		
+		if ( ! $query["conditions"]) {
+			
+			report_error("Delete query has no conditions.",array(
+				"query" =>$query,
+			));
+		}
+		
+		// table:(table,alias)構造の展開
+		if (is_array($query["table"])) {
+		
+			list($query["table"],$query["alias"]) =$query["table"];
+		}
 	
 		$st =$this->st_delete($query);
+		
 		$result =$this->exec($st,"execute",array(
 			"Type" =>"delete",
 			"Query" =>$query,
 		));
+		
 		return $result;
 	}
 	
@@ -348,6 +338,43 @@ class DBI_Base extends DBI {
 		);
 		$query =array_merge($default_query,$query);
 		
+		// table:(table,alias)構造の展開
+		if (is_array($query["table"])) {
+		
+			list($query["table"],$query["alias"]) =$query["table"];
+		}
+		
+		foreach ($query["joins"] as $k => $v) {
+			
+			// joins.0:(table,conditions,type)構造の展開
+			if (isset($v[0])) {
+				
+				$query["joins"][$k]["table"] =$v[0];
+				unset($query["joins"][$k][0]);
+				
+				if (isset($v[1])) {
+					
+					$query["joins"][$k]["conditions"] =$v[1];
+					unset($query["joins"][$k][1]);
+				}
+				
+				if (isset($v[2])) {
+					
+					$query["joins"][$k]["type"] =$v[2];
+					unset($query["joins"][$k][2]);
+				}
+			}
+			
+			// table:(table,alias)構造の展開
+			if (is_array($query["joins"][$k]["table"])) {
+				
+				list(
+					$query["joins"][$k]["table"],
+					$query["joins"][$k]["alias"]
+				) =$query["joins"][$k]["table"];
+			}
+		}
+		
 		// conditions
 		$query["conditions"] =$this->ds->conditions($query["conditions"],true,false);
 		
@@ -364,10 +391,15 @@ class DBI_Base extends DBI {
 			'fields' => array(),
 			'conditions' => array(),
 			'table' => null,
-			'alias' => $query["table"],
 			'joins' => null,
 		);
 		$query =array_merge($default_query,$query);
+		
+		// table:(table,alias)構造の展開
+		if (is_array($query["table"])) {
+		
+			list($query["table"],$query["alias"]) =$query["table"];
+		}
 		
 		// fields
 		$update_fields =array();
@@ -400,10 +432,16 @@ class DBI_Base extends DBI {
 		
 		$default_query =array(
 			'table' => null,
-			'fields' => array(),
 			'alias' => $query["table"],
+			'fields' => array(),
 		);
 		$query =array_merge($default_query,$query);
+		
+		// table:(table,alias)構造の展開
+		if (is_array($query["table"])) {
+		
+			list($query["table"],$query["alias"]) =$query["table"];
+		}
 		
 		// fields, values
 		$insert_fields =array();
@@ -442,7 +480,6 @@ class DBI_Base extends DBI {
 		
 		$default_query =array(
 			'table' => null,
-			'alias' => $query["table"],
 			'conditions' => array(),
 		);
 		$query =array_merge($default_query,$query);

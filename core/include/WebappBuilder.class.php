@@ -90,6 +90,18 @@ class WebappBuilder {
 	}	
 	
 	//-------------------------------------
+	// ファイルの作成
+	protected function touch_kindly ($filename) {
+		
+		if ( ! file_exists(dirname($filename))) {
+			
+			mkdir(dirname($filename),0775,true);
+		}
+		
+		return @touch($filename) && @chmod($filename,0664);
+	}
+	
+	//-------------------------------------
 	// テンプレートファイルの参照
 	protected function arch_template (
 			$src_file, 
@@ -118,13 +130,11 @@ class WebappBuilder {
 		// 履歴ファイルへの追記
 		$history_file =$this->tmp_dir."/history/".$this->history;
 		
-		if ( ! is_dir(dirname($history_file))) {
+		if ($this->touch_kindly($history_file)) {
 		
-			mkdir(dirname($history_file),0775,true);
+			$msg =$mode."\n".$src."\n".$dest."\n";
+			file_put_contents($history_file,$msg,FILE_APPEND);
 		}
-		
-		$msg =$mode."\n".$src."\n".$dest."\n";
-		file_put_contents($history_file,$msg,FILE_APPEND);
 	}
 	
 	//-------------------------------------
@@ -136,12 +146,10 @@ class WebappBuilder {
 				'!^'.preg_quote($webapp_dir).'!',$this->tmp_dir."/backup/",$dest_file)
 				.'-'.date("ymd_His");
 		
-		if ( ! is_dir(dirname($backup_file))) {
+		if ($this->touch_kindly($backup_file)) {
 		
-			mkdir(dirname($backup_file),0775,true);
+			rename($dest_file,$backup_file);
 		}
-		
-		rename($dest_file,$backup_file);
 		
 		if (file_exists($backup_file)) {
 					
@@ -188,7 +196,7 @@ class WebappBuilder {
 		 	
 			// バックアップ
 			if ( ! $this->backup_file($dest_file)) {
-				
+			
 				return false;
 			}
 		}
@@ -196,26 +204,16 @@ class WebappBuilder {
 		// 既存ファイルのチェック
 		if (file_exists($dest_file)) {
 			
-			ob_start();
-			eval("?>".$src);
-			$r =ob_get_clean();
-			
 			report_warning("Dest File exists",array(
 				"dst_file" =>$dest_file,
 				"same" =>md5(file_get_contents($dest_file)) == md5($src),
 			));
+			
 			return false;
 		}
 		
-		// ディレクトリの作成
-		if ( ! is_dir(dirname($dest_file))) {
-		
-			mkdir(dirname($dest_file),0775,true);
-		}
-		
 		// ファイルの書き込み
-		if (touch($dest_file) 
-				&& chmod($dest_file,0664)
+		if (($r_touch =$this->touch_kindly($dest_file))
 				&& ($r_writable =is_writable($dest_file))
 				&& ($r_write =file_put_contents($dest_file,$src))) {
 			
@@ -231,6 +229,7 @@ class WebappBuilder {
 			
 			report_warning("Fail to write-into file.",array(
 				"dest_file" =>$dest_file,
+				"r_touch" =>$r_touch,
 				"r_writable" =>$r_writable,
 				"r_write" =>$r_write,
 			));

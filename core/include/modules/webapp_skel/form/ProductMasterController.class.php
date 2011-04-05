@@ -55,6 +55,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				&& $this->c->session("checked")
 				&& ! $this->c->session("complete")) {
 			
+<? if ($t["virtual"]): ?>
 			// メールの送信
 			obj("BasicMailer")->send_mail(array(
 				"to" =>"test@example.com",
@@ -65,7 +66,16 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				// 		."/app/mail/<?=$c["name"]?>_mail.php"),
 				// "template_options" =>$this->c->input(),
 			));
-			
+<? else: ?>
+			// データの記録
+			$fields =$this->c->get_fields(array(
+<? foreach ($t["fields"] as $tc): ?>
+				"<?=$tc['name']?>",
+<? endforeach; ?>
+			));
+			Model::load("<?=str_camelize($t["name"])?>")->save_<?=str_underscore($t["name"])?>($fields);
+<? endif; ?>
+
 			$this->c->session("complete",true);
 		}
 	}

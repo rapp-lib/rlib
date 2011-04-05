@@ -28,14 +28,6 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		
 		// リスト取得
 		$query =$this->c->query_list(array(
-			"table" =>"<?=$t['name']?>",
-			"conditions" =>array(
-<? if ($t['del_flg']): ?>
-				"<?=$t['del_flg']?>" =>"0",
-<? endif; ?>
-			),
-			"order" =>"<?=$t['pkey']?> ASC",
-			"limit" =>20,
 			"search" =>array(
 <? foreach ($t["fields_3"] as $tc): ?>
 				"<?=$tc['name']?>" =>array(
@@ -45,6 +37,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			),
 			"sort" =>array(
 				"sort_param_name" =>"sort",
+				"default" =>"<?=$t['pkey']?> ASC",
 				"map" =>array(
 <? foreach ($t["fields_3"] as $tc): ?>
 					"<?=$tc['name']?>" =>"<?=$tc['name']?> ASC",
@@ -52,12 +45,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				),
 			),
 			"paging" =>array(
+				"limit" =>20,
 				"offset_param_name" =>"offset",
 			),
 		));
-		
-		$this->vars["ts"] =DBI::load()->select($query);
-		$this->vars["p"] =DBI::load()->select_pager($query);
+		list($this->vars["ts"] ,$this->vars["p"])
+				=Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>_list($query);
 	}
 
 	//-------------------------------------
@@ -70,16 +63,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		$this->c->id($_REQUEST["id"]);
 		
 		// 登録データの取得
-		$query =$this->c->query_select_one(array(
-			"table" =>"<?=$t['name']?>",
-			"conditions" =>array(
-				"<?=$t['pkey']?>" =>$this->c->id(),
-<? if ($t['del_flg']): ?>
-				"<?=$t['del_flg']?>" =>"0",
-<? endif; ?>
-			),
-		));
-		$input =DBI::load()->select_one($query);
+		$input =Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>($this->c->id());
 		
 		// 既存データの取得ができない場合の処理
 		if ( ! $input) {
@@ -105,16 +89,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			$this->c->id($_REQUEST["id"]);
 			
 			// 既存データの取得
-			$query =$this->c->query_select_one(array(
-				"table" =>"<?=$t['name']?>",
-				"conditions" =>array(
-					"<?=$t['pkey']?>" =>$this->c->id(),
-<? if ($t['del_flg']): ?>
-					"<?=$t['del_flg']?>" =>"0",
-<? endif; ?>
-				),
-			));
-			$input =DBI::load()->select_one($query);
+			$input =Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>($this->c->id());
 			
 			// 既存データの取得ができない場合の処理
 			if ( ! $input) {
@@ -169,21 +144,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				&& ! $this->c->session("complete")) {
 			
 			// データの記録
-			$query =$this->c->query_save(array(
-				"table" =>"<?=$t['name']?>",
-				"fields" =>array(
+			$fields =$this->c->get_fields(array(
 <? foreach ($t["fields"] as $tc): ?>
-					"<?=$tc['name']?>",
+				"<?=$tc['name']?>",
 <? endforeach; ?>
-				),
-				"conditions" =>array(
-					"<?=$t['pkey']?>" =>$this->c->id(),
-<? if ($t['del_flg']): ?>
-					"<?=$t['del_flg']?>" =>"0",
-<? endif; ?>
-				),
 			));
-			DBI::load()->save($query);
+			Model::load("<?=str_camelize($t["name"])?>")->save_<?=str_underscore($t["name"])?>($fields,$this->c->id());
 			
 			$this->c->session("complete",true);
 		}
@@ -201,16 +167,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		$this->c->id($_REQUEST["id"]);
 			
 		// 既存のデータを確認
-		$query =$this->c->query_select_one(array(
-			"table" =>"<?=$t['name']?>",
-			"conditions" =>array(
-				"<?=$t['pkey']?>" =>$this->c->id(),
-<? if ($t['del_flg']): ?>
-				"<?=$t['del_flg']?>" =>"0",
-<? endif; ?>
-			),
-		));
-		$input =DBI::load()->select_one($query);
+		$input =Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>($this->c->id());
 		
 		// 既存データの確認ができない場合の処理
 		if ( ! $input) {
@@ -232,22 +189,8 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		if ($this->c->id()
 				&& ! $this->c->session("complete")) {
 				
-			// データの更新（削除フラグをon）
-			$query =$this->c->query_save(array(
-				"table" =>"<?=$t['name']?>",
-				"fields" =>array(
-<? if ($t['del_flg']): ?>
-					"<?=$t['del_flg']?>" =>"1",
-<? endif; ?>
-				),
-				"conditions" =>array(
-					"<?=$t['pkey']?>" =>$this->c->id(),
-<? if ($t['del_flg']): ?>
-					"<?=$t['del_flg']?>" =>"0",
-<? endif; ?>
-				),
-			));
-			DBI::load()->update($query);
+			// データの削除
+			Model::load("<?=str_camelize($t["name"])?>")->delete_<?=str_underscore($t["name"])?>($this->c->id());
 			
 			$this->c->session("complete",true);
 		}

@@ -10,7 +10,7 @@ class WebappBuilderReadme extends WebappBuilder {
 		
 		$page =$this->options["page"]
 				? $this->options["page"]
-				: "about_lib";
+				: "index";
 			
 		$module =load_module("readme",$page,true);
 		

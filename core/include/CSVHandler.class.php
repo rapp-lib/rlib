@@ -231,8 +231,13 @@ class CSVHandler {
 				
 				$csv_data_tmp[$k] =$csv_data[$v];
 			}
+			
 			$csv_data =$csv_data_tmp;
+			
+			ksort($csv_data);
 		}
+			
+		$csv_data =array_values($csv_data);
 		
 		for ($i=0; $i< count($csv_data); $i++) {
 		

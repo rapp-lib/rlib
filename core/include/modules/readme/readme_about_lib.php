@@ -6,8 +6,8 @@
 
 		ob_start();
 ?>
-README about r3 Library
-	v1.0 110328 Y.Toyosawa
+README about_lib
+	v1.0 110329 Y.Toyosawa
 
 --------------------------------------------------------------------------
 [目次]
@@ -26,7 +26,7 @@ README about r3 Library
 
 	[自動生成]
 	
-		[自動生成.1]CSVファイルからSchemaを生成する
+		[自動生成.1]CSV/A5ERファイルからSchemaを生成する
 			WebappBuilder-CreateSchema機能の使用方法の説明
 			
 		[自動生成.2]Schemaからソースコードを生成する
@@ -152,12 +152,13 @@ README about r3 Library
 [自動生成]
 
 -------------------------------------
-[自動生成.1]CSVファイルからSchemaを生成する
+[自動生成.1]CSV/A5ERファイルからSchemaを生成する
 
 手順：
-	(1) /config/schema.config.csvファイルを読み込む
-	(2) URLへアクセス
-	(3) /config/schema.config.phpを生成する
+	(1) "/config/schema.config.csv"ファイルを読み込む
+	(2) ファイルがなければ"/config/schema.config.a5er"ファイルを読み込む
+	(3) URLへアクセス
+	(4) /config/schema.config.phpを生成する
 
 URL：
 	?exec=1
@@ -165,6 +166,10 @@ URL：
 	&_[webapp_build][schema]=1
 	&_[webapp_build][force]=1 ... 既存のファイルの上書きを許可
 
+A5ERの場合：
+	・論理名、物理名、型定義から推測されるTYPE、pkey情報のみ取り出します。
+	・テーブル定義は大まかにしか再現しないのでA5M2で生成してください。
+	
 CSVのサンプル：
 	#tables	table	col	label	def	type	other
 		Comment		コメント			
@@ -196,12 +201,13 @@ Schemaの指定方法：
 		pkey: IDに使用する列名
 		del_flg: 削除フラグに使用する列名
 		reg_date: 行頭録日付に使用する列名
+		[virtual: DB上のテーブルとModelを配置しない設定]
 		
 	Schema.cols.<テーブル名>.<列名>
 		label: ラベル
 		type: IDに使用する短縮列名
 		[list: 選択肢名]
-		[def: SQL定義に使用するデータ型名]
+		[def.type: SQL定義に使用するデータ型名]
 		
 	Schema.controller.<コントローラ名>
 		label: ラベル
@@ -275,7 +281,7 @@ URL：
 	?exec=1
 	&_[report]=1
 	&_[webapp_build][readme]=1
-	&_[webapp_build][page]=about_lib ... ページ名（Default: about_lib）
+	&_[webapp_build][page]=about_lib ... ページ名（Default: index）
 
 --------------------------------------------------------------------------
 [機能概要]
@@ -602,7 +608,7 @@ API：
 	・rule（入力チェック条件/lib_context）
 	
 		Context::validate()の第2引数から入力チェック条件を生成
-		条件はregistryの"Validate.n.type"設定でも記述可能
+		条件はregistryの"Validate.rules.n.type"設定でも記述可能
 		
 	・smarty_plugin（Smartyプラグイン/lib_smarty）
 		

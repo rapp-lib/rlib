@@ -37,14 +37,13 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 			$this->$method_name($c);
 		}
 		
-		// Listの構築
 		foreach ((array)$this->tables as $t_name => $t) {
 		
 			foreach ((array)$t["cols"] as $tc_name => $tc) {
 				
 				if ($tc["list"]) {
 	
-					// Controllerの構築
+					// Listの構築
 					$src =find_include_path(
 							"modules/webapp_skel/list/ProductPriceList.class.php");
 					$dest =registry("Path.webapp_dir")
@@ -52,15 +51,30 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 					$this->arch_template($src,$dest,array("t" =>$t, "tc" =>$tc));
 				}
 			}
+			
+			if ( ! $t["virtual"]) {
+				
+				// Modelの構築
+				$src =find_include_path(
+						"modules/webapp_skel/model/ProductModel.class.php");
+				$dest =registry("Path.webapp_dir")
+						."/app/model/".str_camelize($t["name"])."Model.class.php";
+				$this->arch_template($src,$dest,array("t" =>$t));
+			}
 		}
 		
 		// configの構築
-		foreach (array("generated","install") as $key) {
+		foreach (array(
+			"routing.config.php",
+			"label.config.php",
+			"ayth.config.php",
+			"install.sql",
+		) as $key) {
 		
 			$src =find_include_path(
-					"modules/webapp_skel/config/".$key.".config.php");
+					"modules/webapp_skel/config/".$key);
 			$dest =registry("Path.webapp_dir")
-					."/config/".$key.".config.php";
+					."/config/_".$key;
 			$this->arch_template($src,$dest,array(
 					"s" =>registry("Schema"), 
 					"ts"=>$this->tables,
@@ -196,7 +210,7 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				
 				$t["cols"][$tc["name"]] =$tc;
 				
-				if ( ! in_array($tc_name,$syskeys)) {
+				if ( ! in_array($tc_name,$syskeys) && $tc['type'] != "key") {
 					
 					$t["fields"][$tc["name"]] =$tc;
 					
@@ -224,34 +238,30 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 			}
 			
 			$t_def =& $this->tables_def[$t_name];
-			$t_def =is_array($t["def"]) || ! $t["def"]
-					? (array)$t["def"] 
-					: array("table"=>$t["def"]);
-			$t_def["table"] =$t_def["table"] 
-					? $t_def["table"]
-					: $t_name;
+			$t_def =(array)$t["def"];
+			$t_def["table"] =$t_name;
+			$t_def["pkey"] =preg_replace(
+					'!^'.preg_quote($t_name).'\.!',
+					'',$t["pkey"]);
 			
 			foreach ((array)$t["cols"] as $tc_name => $tc) {
 			
 				$tc_name =preg_replace('!^'.preg_quote($t_name).'\.!', '', $tc_name);
 				
 				$tc_def =& $this->tables_def[$t_name]["cols"][$tc_name];
-				$tc_def =is_array($tc["def"]) || ! $tc["def"]
-						? (array)$tc["def"] 
-						: array("type"=>$t["def"]);
+				$tc_def =(array)$tc["def"];
 				$tc_def["name"] =$tc_def["name"]
 						? $tc_def["name"]
 						: $tc_name;
 				$tc_def["comment"] =$tc_def["comment"]
 						? $tc_def["comment"]
 						: $tc["label"]."(".$tc["type"].($tc["list"] ? ":".$tc["list"] : "").")";
-				if ( ! $tc_def["type"]) {
-				
-					$tc_def["type"] ="text";
-				}
 			}
 		}
+			
+		report("Fetched table-schema.",array(
+			"tables" =>$this->tables,
+			"tables_def" =>$this->tables_def,
+		));
 	}
-	
-	
 }

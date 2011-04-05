@@ -48,9 +48,9 @@
 <? endforeach; ?>
 		<td class="cell menu">
 			<nobr>
-			{{* {{a _page=".view_detail" _id=$t.Product.id class="button"}}詳細{{/a}} *}}
-			{{a _page=".entry_form" _id=$t.Product.id class="button"}}編集{{/a}}
-			{{a _page=".delete_confirm" _id=$t.Product.id class="button"}}削除{{/a}}
+			{{* {{a _page=".view_detail" _id=$t.<?=$t['pkey']?> class="button"}}詳細{{/a}} *}}
+			{{a _page=".entry_form" _id=$t.<?=$t['pkey']?> class="button"}}編集{{/a}}
+			{{a _page=".delete_confirm" _id=$t.<?=$t['pkey']?> class="button"}}削除{{/a}}
 			</nobr>
 		</td>
 	</tr>
