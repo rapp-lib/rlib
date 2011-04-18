@@ -148,9 +148,12 @@
 		// 配列指定（value）
 		} elseif (is_array($value)) {
 			
-			foreach ($value as $a_name => $a_value) {
+			if ( ! $escape || is_array($ref)) {
 			
-				array_registry($ref,$a_name,$a_value,$escape);
+				foreach ($value as $a_name => $a_value) {
+				
+					array_registry($ref,$a_name,$a_value,$escape);
+				}
 			}
 		
 		// 値の設定
@@ -158,4 +161,29 @@
 		
 			$ref =$value;	
 		}
+	}
+
+	//-------------------------------------
+	// 配列をJSON文字列に変換する
+	function array_to_json ($entry) {
+		
+		$json ="";
+		
+		if (is_array($entry)) {
+		
+			$inner_item =array();
+			
+			foreach ($entry as $k => $v) {
+				
+				$inner_item[] =$k.":".array_to_json($v);
+			}
+			
+			$json .="{".implode(",\n",$inner_item)."}";
+		
+		} else {
+			
+			$json ="'".str_replace("'","\\'",(string)$entry)."'";
+		}
+		
+		return $json;
 	}

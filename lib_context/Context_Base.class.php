@@ -76,7 +76,7 @@ class Context_Base {
 		// fields補完
 		foreach ($fields as $k => $v) {
 			
-			if (is_numeric($k)) {
+			if (is_numeric($k) && ! preg_match('![^a-zA-Z0-9\._]!',$v)) {
 				
 				$fields[$v] =$this->input((string)$v);
 				unset($fields[$k]);
@@ -241,11 +241,11 @@ class Context_Base {
 				
 					$error =$key." : 必ず入力してください";
 				}
-				report($key);report($error);
+				
 				$this->errors($key,$error);
 				
 			} else {
-			
+				report($key);report($error);
 				$this->errors($key,false);
 			}
 		}
@@ -253,11 +253,11 @@ class Context_Base {
 		// その他のチェック
 		$rules =array_merge(
 				(array)registry("Validate.rules"),
-				(array)$extra_rules[$key]);
+				(array)$extra_rules);
 		
 		foreach ($rules as $rule) {
 			
-			if ( ! $rules["target"] || ! $rules["type"]) {
+			if ( ! $rule["target"] || ! $rule["type"]) {
 				
 				report_error("Rule is-not valid.",array(
 					"type" =>$rule["type"],
@@ -267,7 +267,7 @@ class Context_Base {
 				));
 			}
 			
-			$key =$rules["target"];
+			$key =$rule["target"];
 			$value =$this->input($key);
 			
 			if ($this->errors($key)) {
@@ -305,7 +305,7 @@ class Context_Base {
 				$this->errors($key,$error);
 				
 			} else {
-			
+				report($key);report($error);
 				$this->errors($key,false);
 			}
 		}

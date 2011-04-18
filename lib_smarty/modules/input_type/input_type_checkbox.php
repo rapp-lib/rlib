@@ -1,25 +1,6 @@
 <?php
 
 	function input_type_checkbox ($params, $preset_value, $postset_value, $template) {
-			
-		if (strlen($params["options"])) {
-		
-			$list_options =obj("ListOptions")->get_instance($params["options"]);
-			
-			foreach ($list_options->options() as $k => $v) {
-			
-				if ($list_options->is_selected($k)) {
-					
-					$preset_value =$k;
-				
-				} else {
-				
-					$params['subvalue'] =$k;
-				}
-			}
-			
-			unset($params['options']);
-		}
 		
 		if ( ! strlen($preset_value)) {
 		

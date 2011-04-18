@@ -76,9 +76,10 @@
 		
 		$v["HTML"] =$smarty->fetch($template,null,null,false,array("v"=>$v));
 		
+		// テンプレート変数へのアサイン
 		if ($assign) {
 			
-			$ref =& ref_array($this->_tpl_vars,$assign);
+			$ref =& ref_array($template->_tpl_vars,$assign);
 			$ref =$v;
 		}
 		

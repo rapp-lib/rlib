@@ -6,11 +6,11 @@
 		
 			return 'error: value attribute required.';
 		}
-		
+		$op_keys =array();
 		$attr_html ="";
 		
 		if ((isset($postset_value) && $preset_value == $postset_value)
-			|| ( ! isset($postset_value) && $params["checked"] )) {
+				|| ( ! isset($postset_value) && $params["checked"] )) {
 			
 			$params['checked'] ="checked";
 			

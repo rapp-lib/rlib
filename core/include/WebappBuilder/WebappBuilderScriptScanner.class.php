@@ -248,7 +248,8 @@ class WebappBuilderScriptScanner extends WebappBuilder {
 	<div style="background-color:#ffffff; border:1px solid #aaaaaa; margin:2px; padding:7px; margin:7px;<?
 			?><? if ($class_info["abstract"]): ?> background-color: #eeeeee;<? endif; ?>">
 	<a name="<?=$class_name?>"></a>
-	<font color="#00aa00"> // <?=$class_info["desc"]?></font><br/>
+	<font color="#00aa00"> // <?=$class_info["desc"]?></font>
+		<?=$this->get_code_link($class_info["file"],$class_info["line"],"[L".$class_info["line"]."]")?><br/>
 	<b><font color="#0000aa"> <?=$class_name?></font></b> 
 	(<?=preg_replace('!^'.preg_quote($root_dir).'!','',dirname($class_info["file"]))?>)<br/>
 	<? if ($class_info["extends"]): ?>
@@ -256,7 +257,8 @@ class WebappBuilderScriptScanner extends WebappBuilder {
 	<? endif; ?>
 	<br/>
 	<? foreach ((array)$class_info["func"] as $func_name => $func_info): ?>
-		<font color="#00aa00"> // <?=$func_info["desc"]?> [L<?=$func_info["line"]?>]</font><br/>
+		<font color="#00aa00"> // <?=$func_info["desc"]?></font>
+			<?=$this->get_code_link($func_info["file"],$func_info["line"],"[L".$func_info["line"]."]")?><br/>
 		&nbsp;&nbsp;<b><font color="#aa0000"><?=$func_name?></font></b> (<?=$func_info["arg"]?>)<br/>
 		<br/>
 	<? endforeach; ?>	
@@ -269,7 +271,8 @@ class WebappBuilderScriptScanner extends WebappBuilder {
 	<br/>
 	<? foreach ($func_list as $func_name => $func_info): ?>
 		<a name="<?=$func_name?>"></a><br/>
-		<font color="#00aa00"> // <?=$func_info["desc"]?> [L<?=$func_info["line"]?>]</font><br/>
+		<font color="#00aa00"> // <?=$func_info["desc"]?></font>
+			<?=$this->get_code_link($func_info["file"],$func_info["line"],"[L".$func_info["line"]."]")?><br/>
 		&nbsp;&nbsp;<b><font color="#aa0000"><?=$func_name?></font></b> (<?=$func_info["arg"]?>)<br/>
 		<br/>
 	<? endforeach; ?>	
@@ -280,5 +283,21 @@ class WebappBuilderScriptScanner extends WebappBuilder {
 <?
 
 		return ob_get_clean();
+	}
+	
+	//-------------------------------------
+	//
+	protected function get_code_link ($file,$line=1,$caption="[CODE]") {
+		
+		$url =url(file_to_url(registry("Path.html_dir")),array(
+			"exec" =>"1",
+			"_[webapp_build][readme]" =>"1",
+			"_[webapp_build][page]" =>"code_viewer",
+			"_[webapp_build][file]" =>$file,
+		),sprintf("L%04d",$line));
+		
+		$html ='<a href="'.$url.'" target="_blank">'.$caption.'</a>';
+		
+		return $html;
 	}
 }

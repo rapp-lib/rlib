@@ -65,6 +65,9 @@ class BasicMailer {
 			"from" =>true,
 		));
 		
+		// SMTPへ送信元のパラメータを付加
+		$options["send_options"][] ="-f ".$options["from"];
+		
 		$mailer =Mail::factory($options["send_mode"],$options["send_options"]);
 		
 		if ( ! $this->error_check($mailer)) {
@@ -77,8 +80,8 @@ class BasicMailer {
 		$fromname =mb_encode_mimeheader($options["fromname"]);
 		$subject =mb_encode_mimeheader($options["subject"]);
 		
-		$from =strlen($options["fromname"]) 
-				? $options["fromname"]."<".$options["from"].">" 
+		$from =strlen($fromname) 
+				? $fromname."<".$options["from"].">" 
 				: $options["from"];
 			
 		$mime =new Mail_Mime("\n");
@@ -125,7 +128,6 @@ class BasicMailer {
 		
 		// HEADERS部取得
 		$headers =$mime->headers(array(
-			"To" =>$options["to"],
 			"From" =>$from,
 			"Subject" =>$subject
 		));

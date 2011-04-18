@@ -285,7 +285,7 @@ class SmartyExtended extends Smarty {
 						
 						$url_params .=$param_name.'='.$value.'&';
 					
-					} elseif ($type == 'form' && $type == "button") {
+					} elseif ($type == 'form' || $type == "button") {
 					
 						$hidden_input_html .='<input type="hidden" name="'.
 								$param_name.'" value="'.$value.'"/>';
@@ -335,44 +335,129 @@ class SmartyExtended extends Smarty {
 	}
 
 	//-------------------------------------
-	// wrapperタグの処理
-	public function smarty_block_wrapper ($params, $content, $smarty, &$repeat) {
+	// select系のタグの構築（select/radioselect/checklistタグで使用）
+	public function input_type_select_family (
+			$params, 
+			$preset_value, 
+			$postset_value, 
+			& $template) {
 		
-		// 開始タグ処理
-		if ($repeat) {
+		$selected_value =isset($postset_value)
+				? $postset_value
+				: $preset_value;
+		
+		$op_keys =array(
+			"type",
+			"name",
+			"assign", // 指定した名前で部品のアサイン
+			"options", // List名の指定
+			"options_param", // ListOptions::optionsの引数
+			"parent_id", // 連動対象の要素のID
+			"parents_param", // ListOptions::parentsの引数
+			"zerooption", // 非選択要素を先頭に追加
+		);
+		$attr_html ="";
+		
+		// id属性の補完
+		$params["id"] =$params["id"]
+				? $params["id"]
+				: sprintf("ELM%09d",mt_rand());
+		
+		foreach ($params as $key => $value) {
 			
-		// 終了タグ処理
-		} else {
+			if ( ! in_array($key,$op_keys)) {
 			
-			$wrapper_name =isset($params["name"])
-					? $params["name"]
-					: $this->get_wrapper_name();
+				$attr_html .=' '.$key.'="'.$value.'"';
+			}
+		}
+		
+		$list_options =obj("ListOptions")->get_instance($params["options"]);
+		$options =$list_options->options($params["options_param"]);
+		
+		if (isset($params["zerooption"])) {
+		
+			$options =array("" =>$params["zerooption"]) + $options;
+		}
+		
+		$html =array(
+			"full" =>"",
+			"head" =>"",
+			"foot" =>"",
+			"options" =>array(),
+		);
+		
+		if ($params["type"] == "select") {
+					
+			$html["head"] ='<select name="'.$params["name"].'"'.$attr_html.'>'."\n";
+			$html["foot"] ='</select>';
 			
-			$wrapped_content =$content;
-			$wrapper_file_find ="wrapper/".$wrapper_name.".wrapper.html";
-			$wrapper_file_found =find_include_path($wrapper_file_find);
-			
-			if ($wrapper_name && $wrapper_file_found) {
+			foreach ($options as $option_value => $option_label) {
 				
-				$this->_tpl_vars["_WRAPPER"] =$params;
-				$this->_tpl_vars["_WRAPPER"]["_CONTENT"] =$content;
-				$wrapped_content =$this->fetch("file:".$wrapper_file);
-				unset($this->_tpl_vars["_WRAPPER"]);
-			
-			} else {
-				
-				report_warning('Wrapper file "'.$wrapper_file_find.
-						'" is-not found.');
+				$selected =(string)$option_value == (string)$selected_value;
+				$html["options"][$option_value] ='<option'
+						.' value="'.$option_value.'"'
+						.($selected ? ' selected="selected"' : '')
+						.'>'.$option_label.'</option>'."\n";
 			}
 			
-			return $wrapped_content;
+			// 親要素との連動
+			if ($params["parent_id"]) {
+				
+				$parents =$list_options->parents($params["parents_param"]);
+				
+				$html["foot"] .='<script>'
+						.'select_sync_parent("'.$params['id'].'",'
+						.'"'.$params['parent_id'].'",'
+						.array_to_json($parents).');</script>';
+			}
+			
+		} elseif ($params["type"] == "radioselect") {
+		
+			$html["head"] ='';
+			$html["foot"] ='';
+			
+			foreach ($options as $option_value => $option_label) {
+				
+				$checked =(string)$option_value == (string)$selected_value;
+				$html["options"][$option_value] =
+						'<nobr><label>'.'<input type="radio"'
+						.' name="'.$params["name"].'"'
+						.' value="'.$option_value.'"'.$attr_html
+						.($checked ? ' checked="checked"' : '')
+						.'>'.$option_label.'</label></nobr>'."\n";
+			}
+			
+		} elseif ($params["type"] == "checklist") {
+		
+			$selected_value =is_array($selected_value)
+					? $selected_value
+					: array();
+		
+			$html["head"] ='';
+			$html["foot"] ='';
+			
+			foreach ($options as $option_value => $option_label) {
+				
+				$checked =in_array($option_value,$selected_value);
+				$html["options"][$option_value] =
+						'<nobr><label>'.'<input type="checkbox"'
+						.' name="'.$params["name"].'['.$option_value.']'.'"'
+						.' value="'.$option_value.'"'.$attr_html
+						.($checked ? ' checked="checked"' : '')
+						.'>'.$option_label.'</label></nobr>'."\n";
+			}
 		}
-	}
-	
-	//-------------------------------------
-	// ラッパーテンプレート名の取得
-	protected function get_wrapper_name () {
-	
-		return "default";
+		
+		
+		$html["full"] =$html["head"].implode("",$html["options"]).$html["foot"];
+		
+		// テンプレート変数へのアサイン
+		if ($params["assign"]) {
+			
+			$ref =& ref_array($template->_tpl_vars,$params["assign"]);
+			$ref =$html;
+		}
+		
+		return $html["full"];
 	}
 }

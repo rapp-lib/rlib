@@ -6,6 +6,7 @@ class DBI_Base extends DBI {
 
 	protected $name ="";
 	protected $ds =null;
+	private $desc_cache =array();
 	
 	//-------------------------------------
 	// 初期化
@@ -88,7 +89,12 @@ class DBI_Base extends DBI {
 	// テーブル構造解析
 	public function desc ($table_name) {
 		
-		return $this->ds->describe($table_name);
+		if ( ! $this->desc_cache[$table_name]) {
+			
+			$this->desc_cache[$table_name] =$this->ds->describe($table_name);
+		}
+		
+		return $this->desc_cache[$table_name];
 	}
 	
 	//-------------------------------------
@@ -157,8 +163,9 @@ class DBI_Base extends DBI {
 			foreach ((array)$result as $k1 => $v1) {
 				
 				foreach ((array)$v1 as $k2 => $v2) {
-					
-					$result_copy[$k1.".".$k2] =& $result[$k1][$k2];
+				
+					$key =is_numeric($k1) ? $k2 : $k1.".".$k2;
+					$result_copy[$key] =& $result[$k1][$k2];
 				}
 			}
 			
@@ -176,7 +183,8 @@ class DBI_Base extends DBI {
 					
 					foreach ((array)$v2 as $k3 => $v3) {
 						
-						$result_copy[$k1][$k2.".".$k3] =& $result[$k1][$k2][$k3];
+						$key =is_numeric($k2) ? $k3 : $k2.".".$k3;
+						$result_copy[$k1][$key] =& $result[$k1][$k2][$k3];
 					}
 				}
 			}
@@ -217,6 +225,10 @@ class DBI_Base extends DBI {
 		
 		$query["fields"] =array("COUNT(*) AS count");
 		
+		unset($query["limit"]);
+		unset($query["offset"]);
+		unset($query["order"]);
+		
 		$st =$this->st_select($query);
 		$result =$this->exec($st,"fetchRow",array(
 			"Type" =>"select_count",
@@ -241,6 +253,7 @@ class DBI_Base extends DBI {
 		unset($query["offset"]);
 		unset($query["limit"]);
 		unset($query["slider"]);
+		unset($query["order"]);
 		
 		$st =$this->st_select($query);
 		$result =$this->exec($st,"fetchRow",array(
@@ -248,7 +261,7 @@ class DBI_Base extends DBI {
 			"Query" =>$query,
 		));
 		
-		$count =(int)$result["0.count"];
+		$count =(int)$result["count"];
 		$pager =$limit
 				? $this->build_pager($offset,$limit,$count,$slider)
 				: null;
@@ -339,14 +352,20 @@ class DBI_Base extends DBI {
 		$query =array_merge($default_query,$query);
 		
 		// table:(table,alias)構造の展開
-		if (is_array($query["table"])) {
+		if (is_array($query["table"]) && $query["table"][0]) {
 		
 			list($query["table"],$query["alias"]) =$query["table"];
+		}
+			
+		// サブクエリの解決
+		if (is_array($query["table"])) {
+			
+			$query["table"] ='('.$this->st_select($query["table"]).')';
 		}
 		
 		foreach ($query["joins"] as $k => $v) {
 			
-			// joins.0:(table,conditions,type)構造の展開
+			// joins.N:(table,conditions,type)構造の展開
 			if (isset($v[0])) {
 				
 				$query["joins"][$k]["table"] =$v[0];
@@ -366,13 +385,46 @@ class DBI_Base extends DBI {
 			}
 			
 			// table:(table,alias)構造の展開
-			if (is_array($query["joins"][$k]["table"])) {
+			if (is_array($query["joins"][$k]["table"])
+					&& $query["joins"][$k]["table"][0]) {
 				
 				list(
 					$query["joins"][$k]["table"],
 					$query["joins"][$k]["alias"]
 				) =$query["joins"][$k]["table"];
 			}
+			
+			// サブクエリの解決
+			if (is_array($query["joins"][$k]["table"])) {
+				
+				$query["joins"][$k]["table"] 
+						='('.$this->st_select($query["joins"][$k]["table"]).')';
+			}
+		}
+		
+		// Postgres向けに全てのfieldsのaliasを"AS TTT__AAA"に設定する
+		if (get_class($this->ds) == "DboPostgres") {
+			
+			// aliasの取得
+			$aliases =array();
+			$alias_name =$query["alias"] 
+					? $query["alias"] 
+					: $query["table"];
+			$aliases[$alias_name] =array(
+					"table" =>$query["table"], 
+					"alias" =>$alias_name);
+			
+			foreach ($query["joins"] as $join_query) {
+			
+				$alias_name =$join_query["alias"] 
+						? $join_query["alias"] 
+						: $join_query["table"];
+				$aliases[$alias_name] =array(
+						"table" =>$join_query["table"], 
+						"alias" =>$alias_name);
+			}
+			
+			$query["fields"] =$this->rename_fields_for_postgres($query["fields"],$aliases);
 		}
 		
 		// conditions
@@ -405,6 +457,13 @@ class DBI_Base extends DBI {
 		$update_fields =array();
 		
 		foreach ($query["fields"] as $k => $v) {
+		
+			// Postgresならばfieldsのaliasを削除
+			if (get_class($this->ds) == "DboPostgres"
+					&& preg_match('!^(?:[^\.]+\.)([^\.]+)$!',$k,$match)) {
+					
+				$k =$match[1];
+			}
 			
 			if ($v === null) {
 				
@@ -412,8 +471,15 @@ class DBI_Base extends DBI {
 				continue; 
 			}
 			
-			$update_fields[] =$this->ds->name($k)
-					." = ".$this->ds->value($v, "string", false);
+			if (is_numeric($k)) {
+			
+				$update_fields[] =$v;
+			
+			} else {
+			
+				$update_fields[] =$this->ds->name($k)
+						." = ".$this->ds->value($v, "string", false);
+			}
 		}
 		
 		$query["fields"] =implode(", ",$update_fields);
@@ -659,5 +725,92 @@ class DBI_Base extends DBI {
 				: null;
 				
 		return $pager;
+	}
+	
+	//-------------------------------------
+	// Postgres向けに全てのfieldsのaliasを設定する
+	private function rename_fields_for_postgres ($raw_fields,$aliases) {
+		
+		$fields =array();
+		$field_pattern_tfa ='!^\s*(?:([_\w\*]+)\.)?([_\w\*]+)(?:\s+AS\s+([_\w\*]+))?\s*$!i';
+		$field_pattern_other ='!^(.*?)\s+AS\s+([_\w\*]+)\s*$!i';
+		
+		// aliasに対する実fieldの一覧取得
+		foreach ($aliases as $i => $alias) {
+			
+			$aliases[$i]["desc"] =$this->desc($alias["table"]);
+		}
+		
+		// fieldsの変換
+		foreach ($raw_fields as $field) {
+			
+			$field_error =false;
+			
+			// 文字列以外の型
+			if ( ! is_string(field)) {
+				
+				$fields[] =$field;
+			
+			// "TTT.FFF AS AAA"形式の処理
+			} elseif (preg_match($field_pattern_tfa,$field,$match)) {
+			
+				list(,$_t,$_f,$_a) =$match;
+				
+				// TTT.FFF
+				if ($_t && $_f && $_t!="*" && $_f!="*") {
+				
+					$fields[] ='"'.$_t.'".'.'"'.$_f
+							.'" AS "'.$_t.'__'.($_a ? $_a : $_f).'"';
+					
+				// FFF
+				} elseif ( ! $_t && $_f && $_f!="*") {
+				
+					foreach ($aliases as $_rt => $alias) {
+					
+						foreach ($alias["desc"] as $_rf => $_df) {
+						
+							if ($_rf == $_f) {
+							
+								$fields[] ='"'.$_rt.'".'.'"'.$_f
+										.'" AS "'.$_rt.'__'.($_a ? $_a : $_f).'"';
+								break 2;
+							}
+						}
+					}
+					
+				// TTT.*
+				} elseif ($_t && $_f && $_t!="*" && $_f=="*") {
+				
+					foreach ($aliases[$_t]["desc"] as $_rf => $_df) {
+					
+						$fields[] ='"'.$_t.'".'.'"'.$_rf.'" AS "'.$_t.'__'.$_rf.'"';
+					}
+					
+				// *
+				} elseif (( ! $_t || $_t=="*") && $_f && $_f=="*") {
+				
+					foreach ($aliases as $_rt => $alias) {
+					
+						foreach ($alias["desc"] as $_rf => $_df) {
+						
+							$fields[] ='"'.$_rt.'".'.'"'.$_rf.'" AS "'.$_rt.'__'.$_rf.'"';
+						}
+					}
+				}
+				
+			// "... AS AAA"形式の処理
+			} elseif (preg_match($field_pattern_other,$field,$match)) {
+				
+				$fields[] =$field;
+							
+			} else {
+			
+				report_warning('Invalid Query-field.',array(
+					"field" =>$field,
+				));
+			}
+		}
+		
+		return $fields;
 	}
 }

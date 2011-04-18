@@ -105,6 +105,8 @@ class Controller_Base extends SmartyExtended {
 	public function after_act () {
 	
 		$this->_tpl_vars =$this->vars;
+		$this->_tpl_vars["_REQUEST"] =$_REQUEST;
+		$this->_tpl_vars["_REGISTRY"] =registry(null);
 		
 		foreach ($this->contexts as $var_name => $context) {
 			

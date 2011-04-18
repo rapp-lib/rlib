@@ -155,15 +155,18 @@ README about_lib
 [自動生成.1]CSV/A5ERファイルからSchemaを生成する
 
 手順：
-	(1) "/config/schema.config.csv"ファイルを読み込む
-	(2) ファイルがなければ"/config/schema.config.a5er"ファイルを読み込む
-	(3) URLへアクセス
-	(4) /config/schema.config.phpを生成する
+	(1-1) "/config/schema.config.a5er"ファイルを読み込む
+	(1-2) URLへアクセス
+	(1-3) "/config/schema.config.csv"を生成する
+	(2-1) "/config/schema.config.csv"ファイルを読み込む
+	(2-2) URLへアクセス
+	(2-3) "/config/schema.config.php"を生成する
 
 URL：
 	?exec=1
 	&_[report]=1
 	&_[webapp_build][schema]=1
+	&_[webapp_build][mode]=a5er ... "a5er"ならばa5er→csv生成を行う
 	&_[webapp_build][force]=1 ... 既存のファイルの上書きを許可
 
 A5ERの場合：
@@ -332,6 +335,8 @@ URL：
 	
 	（２）自動生成
 	
+		・DB設計が込み入っていればE5M2でER図作成
+		・E5ERファイルからSchemaCSVを生成（[自動生成.1]参照）
 		・SchemaCSVを書き換えてSchema生成（[自動生成.1]参照）
 			・SchemaCSV ... "config/schema.config.csv"のCSVファイル
 			・Schema ... "config/schema.config.php"のregistry設定
@@ -392,11 +397,11 @@ URL：
 
 主な機能：
 	
-	・DB接続の管理
-	・SQLクエリの発行
-	・配列形態のSQLクエリの解釈
+	・DB接続の管理/SQLクエリの発行（DBI）
+	・SQLクエリの組み立て補助、管理（Model）
+	・配列形態のSQLクエリの解釈（CakeDatasource）
 
-API：
+API（DBI）：
 
 	・DBI::load($name)
 		
@@ -517,16 +522,63 @@ API：
 	・DBI::last_insert_id($table_name, $pkey)
 		
 		LAST_INSERT_IDの取得
+
+API（Model）：
+
+	・Model::load($name) => Model
+		
+		Modelインスタンスを得る
+		Model_Appを拡張してSQLの発行手続きを集約するクラスを作成する
+		name省略でModel_Appを得る
+		
+	・Model::merge_query($query1, $query2) => $query
+		
+		クエリの統合（上書きを避けつつ右を優先）
+		
+	・Model::convert_to_hashlist($ts, $key_name, $value_name) => $list
+		
+		$tsから指定した列の値でKV配列を得る
+		Keyに$key_name要素、Valueに$value_name要素を指定する
+		
+	・Model::group_by($ts, $key) => $gts
+	
+		特定要素でのグルーピング
+		連番になっている$tsの添え字を$key要素の値に書き換える
+		
+	・Model::merge_grouped_children(
+			$ts1, 
+			$ts2,
+			$parent_key,
+			$child_key, 
+			$children_name="children") => $ts1
+		
+		下位要素を特定要素でのグルーピングして統合
+		（１）$ts1の$parent_key要素：$ts2の$child_key要素で照合する
+		（２）$ts1の$children_name要素として照合された$ts2のアイテムを追加
 	
 -------------------------------------
 [機能詳細.3]Smartyテンプレート拡張機能
 
 主な機能：
 	
-	・Smartyテンプレートを解釈する機能
-	・ControllerとSmartyをつなぐ機能
-	・Contextを生成する機能
+	・Smartyテンプレートを解釈する機能（SmartyExtended）
+	・ControllerとSmartyをつなぐ機能（Controller_Base）
+	・Contextを生成する機能（Controller_Base::context）
 
+テンプレート変数：
+	
+	・$this(Controller)->value("VarName",Value)で設定した変数
+		"$VarName"で取得できます。
+	
+	・$_REQUEST変数
+		"$_REQUEST.VarName"で取得できます。
+	
+	・registry値
+		"$_REGISTRY.VarName"で取得できます。
+	
+	・Contextオブジェクト（$this->c等）
+		"$this->c"であれば"$c"でオブジェクトが取得できます。
+	
 主なSmarty拡張：
 
 	・{{include file="path:/element/xxx.html"}}{{/a}}
@@ -559,7 +611,60 @@ API：
 		
 		UserFileManagerでアップロードしたファイルのURLをコードから計算する
 		パラメータにGroup名を渡すことも可能
+
+input要素一覧：
+	Smartyのinputタグはtype属性で動作が個別に変化する
+	
+	・text系（text/textarea/password）
+		ほぼHTML標準のinput要素ですが、valueの値が入力値に合わせて変動する
+		nameのみ必須
 		
+	・hidden系（hidden/submit/reset/image）
+		ほぼHTML標準のinput要素で、valueの値は指定値で固定となる
+		name/valueが必須
+		
+	・checkbox系（checkbox/radio）
+		name/value属性が一致するものに自動的にchecked属性が付与される
+		name/valueが必須
+		
+	・select系（select/radio_select/checklist）
+		単一/複数選択要素で、options属性でリストを取るのが特徴
+		name/optionsが必須
+		
+		options="<List名>"
+			List名は"MobileProfileList"クラスに関連づけるならば"mobile_profile"とする
+			
+		options_param
+			ListOptions::optionsの引数
+		
+		parent_id
+			連動対象の要素のID（HTML上のID）
+			この機能を使用する際にはListOptions::parents()で得られる親との対象を使用
+		
+		parents_param
+			ListOptions::parentsの引数
+			
+		zerooption="<非選択要素のラベル>"	
+			「選択してください」など非選択要素のラベルを空要素で先頭に追加します
+		
+		assign="アサイン変数名"
+			指定した変数名でhead/foot/optionsの各HTML要素の部品を含む配列をアサインする
+		
+	・date系（date）
+		
+		range="<開始年>~<終了年>"
+			開始終了の年数を絶対（例：1980~）と相対（例：-5~+10）の指定が可能
+			
+		value="<初期選択日付>"
+			初期選択値の日付文字列を指定
+			
+		format="<配置指定>"
+			配置の変更が可能。標準で"{$l}{$y}{$m}{$d}{$hf}{$if}{$sf}"の年月日指定
+			"{$l}"は自動整形用のヘッダ情報追加
+			"{$y}"は年指定のプルダウンを追加
+			"{$yp}"は年指定のプルダウンで、要素に「年」のようにを接尾辞をつけて追加
+			"{$yf}"は年固定とするためのhidden要素の追加
+			
 -------------------------------------
 [機能詳細.4]入力/セッション管理機能
 
@@ -572,31 +677,61 @@ API：
 
 API：
 	・Context::session($values)
-	・Context::session($key, [$value])
+	・Context::session($key, [$value]) => $value
 		
 		セッション変数のRead/Writeを行う
 		
 		
 	・Context::input($values)
-	・Context::input($key, [$value])
+	・Context::input($key, [$value]) => $value
 		
 		input内の一連のデータを一意に特定する情報を保存しておく
 		query系機能ではこの設定に従ってSQLの組み立てを行う
 		※値はセッション変数（"__id"）に保存される
 		
 	・Context::errors($values)
-	・Context::errors($key, [$value])
-	
-	・Context::id([$id])
+	・Context::errors($key, [$value]) => $value
+		
+		Context::validateで設定されたエラーを取得
+		エラーの個別設定も可能
+		※値はセッション変数（"__errors"）に保存される
+		
+	・Context::id([$id]) => $id
 		
 		input内の一連のデータを一意に特定する情報を保存しておく
 		query系機能ではこの設定に従ってSQLの組み立てを行う
 		※値はセッション変数（"__id"）に保存される
 		
-	・Context::validate($required, $rules)
-	・Context::query_select_one($query)
-	・Context::query_list($query)
-	・Context::query_save($query)
+	・Context::validate($required,$rules)
+		
+		指定したルールで入力チェックを実施、errorsを設定する
+		入力チェック記述例：
+		
+			// 入力型エラーチェック（システム共通）
+			registry("Validate.rules",array(
+				array("target" =>"Comment.content", "type" =>"length", "max" =>256),
+			));
+			
+			$this->c->validate(array(
+				// 必須入力チェックする項目名を列挙
+				"Comment.content", 
+				"Comment.author",
+			),array(
+				// 入力型エラーチェック（画面個別指定）
+				array("target" =>"Comment.content", "type" =>"mail"),
+			));
+	
+	・Context::get_fields($fields) => $fields
+		
+		fieldsに指定された名前のinput項目でfields要素を補完
+		
+	・Context::query_list($query) => $query
+		
+		"search","sort","paging"のクエリを解釈してSQLクエリを生成
+		
+	・Context::query_select_one($query) ※非推奨
+	・Context::query_save($query) ※非推奨
+	・Context::query_delete($query) ※非推奨
 	
 -------------------------------------
 [機能詳細.5]各種拡張モジュール

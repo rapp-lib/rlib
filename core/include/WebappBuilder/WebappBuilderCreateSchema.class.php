@@ -16,31 +16,34 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 				$_SERVER["REQUEST_URI"]."?".$_SERVER["QUERY_STRING"]);
 		
 		$dest_file =registry("Path.webapp_dir")."/config/schema.config.php";
-		$src_file_find_csv =registry("Path.webapp_dir")."/config/schema.config.csv";
 		$src_file_find_a5er =registry("Path.webapp_dir")."/config/schema.config.a5er";
+		$src_file_find_csv =registry("Path.webapp_dir")."/config/schema.config.csv";
+		$src_file_find =($this->options["src"] == "a5er")
+				? $src_file_find_a5er
+				: $src_file_find_csv;
+		$src_file =find_include_path($src_file_find);
 		
-		if ($src_file =find_include_path($src_file_find_csv)) {
+		if ( ! $src_file) {
+			
+			report_warning("Schema-source-file is-not found.",array(
+				"src_file_find" =>$src_file_find,
+			));
+		
+		} elseif ($this->options["src"] == "a5er") {
+		
+			$src =$this->load_schema_a5er($src_file);
+			return $this->deploy_src($src_file_find_csv,$src);
+		
+		} else {
 		
 			$src =$this->load_schema_csv($src_file);
 			return $this->deploy_src($dest_file,$src);
 		
-		} elseif ($src_file =find_include_path($src_file_find_a5er)) {
-		
-			$src =$this->load_schema_a5er($src_file);
-			return $this->deploy_src($dest_file,$src);
-		
-		} else {
-			
-			report_warning("Schema-source-file is-not found.",array(
-				"src_file_find_csv" =>$src_file_find_csv,
-				"src_file_find_a5er" =>$src_file_find_a5er,
-			));
-			print "<pre>".htmlspecialchars($src)."</pre>";
 		}
 	}
 	
 	//-------------------------------------
-	// A5ERファイルを読み込んでSchemaのコードを生成する
+	// A5ERファイルを読み込んでSchemaCSVを生成する
 	protected function load_schema_a5er ($filename) {
 		
 		$st_cat ='';
@@ -73,12 +76,12 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 				if ($line_name == "PName") {
 				
 					$t =$line_value;
-					$s["Schema.tables.".$t] =array();
+					$s["Schema.tables"][$t] =array();
 					
 				// テーブル論理名
 				} elseif ($line_name == "LName") {
 				
-					$s["Schema.tables.".$t]["label"] =$line_value;
+					$s["Schema.tables"][$t]["label"] =$line_value;
 					
 				// フィールド
 				} elseif ($line_name == "Field") {
@@ -93,18 +96,18 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 						$comment
 					) =$line_values;
 					
-					$s["Schema.cols.".$t][$pname]["label"] =$lname 
+					$s["Schema.cols"][$t][$pname]["label"] =$lname 
 						? $lname
 						: preg_replace('!\(.+$!','',$comment);
 					
 					list(
-						$s["Schema.cols.".$t][$pname]["type"],
-						$s["Schema.cols.".$t][$pname]["def.type"]
+						$s["Schema.cols"][$t][$pname]["type"],
+						$s["Schema.cols"][$t][$pname]["def.type"]
 					) =$this->convert_sql_type($sql_type);
 					
 					if (strlen($keytype) && $keytype=="0") {
 					
-						$s["Schema.tables.".$t]["pkey"] =$pname;
+						$s["Schema.tables"][$t]["pkey"] =$pname;
 					}
 					
 				// インデックス
@@ -118,15 +121,45 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 		
 		report("Schema A5ER loaded.",array("schema" =>$s));
 		
-		// スクリプト生成
-		$g =new ScriptGenerator;
-		$g->node("root",array("p",array(
-			array("c","Schama created from a5er-file."),
-			array("v",array("c","registry",array(
-				array("a",$this->get_array_script_node($s)),
-			)))
-		)));
-		return $g->get_script();
+		// CSV生成
+		$csv =new CSVHandler($tempnam=tempnam("/tmp","php_tmpfile-"),"w");
+		
+		// ラベル行
+		$csv->write_line(array(
+			'#tables','table','col','label','def','type','other',
+		));
+		
+		foreach ($s["Schema.tables"] as $table_name => $table) {
+			
+			// テーブル開始行
+			$csv->write_line(array(
+				'',
+				$table_name,
+				'',
+				$table["label"],
+				'',
+				'',
+				($table["pkey"] ? 'pkey='.$table["pkey"] : ''),
+			));
+			
+			foreach ($s["Schema.cols"][$table_name] as $col_name => $col) {
+			
+				// カラム行
+				$csv->write_line(array(
+					'',
+					'',
+					$col_name,
+					$col["label"],
+					$col["def.type"],
+					$col["type"],
+					'',
+				));				
+			}
+			
+			$csv->write_line(array());
+		}
+		
+		return file_get_contents($tempnam);
 	}
 	
 	//-------------------------------------

@@ -36,3 +36,75 @@
 		
 		return $string;
 	}
+	
+	//-------------------------------------
+	// 文字列に配列要素をマッピング
+	function str_template_array (
+			$str, 
+			$arr,
+			$pattern='!\{\$([\._a-zA-Z0-9:]+)\}!e') {
+		
+		return preg_replace($pattern,'ref_array($arr,"$1")',$str);
+	}
+	
+	//-------------------------------------
+	// データの難読化
+	function encrypt_string (
+			$target, 
+			$key=7, 
+			$chartable="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+				
+		$map =str_split($chartable);
+	
+		$crc =sprintf('%02d',abs(crc32($target))%100);
+		$target =$target.$crc;
+		$target =str_split($target);
+		
+		srand($key);
+		
+		foreach ($target as $i => $c) {
+		
+			shuffle($map);
+			$target[$i] =$map[strpos($chartable,$c)];
+		}
+		
+		$target =implode("",$target);
+		
+		return $target;
+	}
+	
+	//-------------------------------------
+	// データの難読復号化
+	function decrypt_string (
+			$target, 
+			$key=7, 
+			$chartable="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+		
+		$map =str_split($chartable);
+		
+		$target =str_split($target);
+		
+		srand($key);
+		
+		foreach ($target as $i => $c) {
+		
+			shuffle($map);
+			$target[$i] =$chartable[strpos(implode("",$map),$c)];
+		}
+		
+		$target =implode("",$target);
+		
+		if (preg_match('!^(.*?)(..)$!',$target,$match)) {
+		
+			$target =$match[1];
+			$crc_check =$match[2];
+			$crc =sprintf('%02d',abs(crc32($target))%100);
+			
+			if ($crc_check == $crc) {
+			
+				return $target;
+			}
+		}
+		
+		return null;
+	}

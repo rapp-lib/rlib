@@ -64,8 +64,12 @@
 		spl_autoload_register("load_class");
 		set_error_handler("error_handler",E_ALL^E_NOTICE);
 		set_exception_handler('exception_handler');
+		
+		// セッションの開始
+		ini_set("session.cookie_httponly",true);
+		ini_set("session.cookie_secure",$_SERVER['HTTPS']);
 		session_start();
-		session_regenerate_id();
+		session_regenerate_id(true);
 		
 		// Dync継続
 		if ($dync_key =registry("Config.dync_key")) {
@@ -169,9 +173,45 @@
 	// 出力と同時に終了
 	function clean_output_shutdown ($output) {
 		
-		registry("Report.buffer_enable");
+		registry("Report.buffer_enable",true);
 		ob_end_clean();
-		print $output;
+		
+		// download
+		if (is_array($output) && $output["download"]) {
+		
+			$download_filename =$output["download"];
+			
+			if ( ! $download_filename) {
+				
+				if (is_array($output) && $output["file"]) {
+					
+					$download_filename =basename($output["file"]);
+					
+				} else {
+				
+					$download_filename ="noname";
+				}
+			}
+			
+			header("Content-Disposition: attachment; filename=".$download_filename);
+			header("Content-Type: application/octet-stream");
+		}
+		
+		// output
+		if (is_string($output)) {
+			
+			echo $output;
+		
+		// data
+		} elseif (is_array($output) && $output["data"]) {
+			
+			echo $output["data"];
+		
+		// file
+		} elseif (is_array($output) && $output["file"]) {
+			
+			readfile($output["file"]);
+		}
 		
 		shutdown_webapp("clean_output");
 	}
@@ -209,7 +249,7 @@
 		
 		$funcs =& ref_globals('shutdown_webapp_function');
 		
-		foreach ((array)$funcs as $func) {
+		foreach (array_reverse((array)$funcs) as $func) {
 			
 			call_user_func_array($func,array(
 				$cause,
@@ -254,7 +294,7 @@
 	
 	//-------------------------------------
 	//
-	function redirect ($url) {
+	function redirect ($url, $params=array()) {
 		
 		if (preg_match('!^page:(.*)$!',$url,$match)) {
 			
@@ -270,15 +310,18 @@
 			}
 		}
 		
+		$url =url($url,array_merge((array)$params,(array)output_rewrite_var()));
+		
 		if (get_webapp_dync("report")) {
 			
 			print tag("a",array("href"=>$url),
-					'<div style="padding:20px;background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
-					.'Redirect ... '.url($url,output_rewrite_var()).'</div>');
+					'<div style="padding:20px;'
+					.'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
+					.'Redirect ... '.$url.'</div>');
 			
 		} else {
 		
-			header("Location: ".url($url,output_rewrite_var()));
+			header("Location: ".$url);
 		}
 		
 		shutdown_webapp("redirect");
@@ -288,24 +331,7 @@
 	// 稼働状態の確認
 	function get_webapp_dync ($flg="report") {
 		
-		if (strpos($_SERVER["HTTP_USER_AGENT"],"DYNC_AVATAR") !== false) {
-			
-			// DYNC
-			return true;
-			
-		} else {
-		
-			if ($flg && registry("Config.dync.".$flg)) {
-				
-				// 仮想DYNC
-				return true;
-				
-			} else {
-				
-				// 稼働中
-				return false;
-			}
-		}
+		return $flg && registry("Config.dync.".$flg);
 	}
 	
 	//-------------------------------------
@@ -313,4 +339,23 @@
 	function label ($name) {
 		
 		return (string)registry("Label.".$name);
+	}
+	
+	//-------------------------------------
+	// ファイルを作成する
+	function create_file ($filename, $mode=0644) {
+		
+		if ( ! file_exists(dirname($filename))) {
+			
+			mkdir(dirname($filename),0755,true);
+		}
+		
+		if (fclose(fopen($filename,"w"))) {
+			
+			return $filename;
+			
+		} else {
+		
+			return null;
+		}
 	}

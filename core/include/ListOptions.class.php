@@ -40,6 +40,14 @@ class ListOptions {
 	// オプション取得
 	public function options ($param=array()) { 
 		
+		if ( ! is_array($this->config["options"])) {
+			
+			report_error("List-options is not defined.",array(
+				"name" =>$this->name,
+				"config" =>$this->config,
+			));
+		}
+		
 		return (array)$this->config["options"]; 
 	}
 	
@@ -53,9 +61,17 @@ class ListOptions {
 	}
 	
 	//-------------------------------------
-	// 選択肢状態の取得
-	public function is_selected ($key) { 
+	// 親要素との対応取得
+	public function parents ($param=array()) { 
 		
-		return false; 
+		if ( ! is_array($this->config["parents"])) {
+			
+			report_error("List-parents is not defined.",array(
+				"name" =>$this->name,
+				"config" =>$this->config,
+			));
+		}
+		
+		return (array)$this->config["options"]; 
 	}
 }

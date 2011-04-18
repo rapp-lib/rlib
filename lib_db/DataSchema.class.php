@@ -2,7 +2,7 @@
 
 //-------------------------------------
 // DataSchema
-class DataSchema extends BasicClass {
+class DataSchema {
 	
 	
 	//-------------------------------------

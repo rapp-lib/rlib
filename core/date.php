@@ -34,6 +34,9 @@
 			$w =abs($y+floor($y/4)+floor($h/4)-2*$h+floor(13*($m+1)/5)+$d)%7;
 			$longdate["w"] =abs($w-1)%7;
 			
+			$wj_list =array("日","月","火","水","木","金","土");
+			$longdate["W"] =$wj_list[$longdate["w"]];
+			
 			return $longdate;
 		}
 		
