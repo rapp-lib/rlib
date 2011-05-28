@@ -37,20 +37,21 @@
 	-------------------------------------
 	□サンプルコード（メール送信）:
 		
+		// テンプレートファイルの内容でメール送信
 		obj("BasicMailer")->send_mail(array(
 			"to" =>"toyosawa@sharingseed.co.jp",
 			"from" =>"dev@sharingseed.info",
-			"subject" =>"TestMail-",
-			"message" =>"TestMail",
+			"template_file" =>"./mail/default_mail.php",
 		));
 
 	-------------------------------------
 	□サンプルコード（一斉配信の予約と送信）:
 		
+		// 1時間後に5件の配信を予約
 		for ($i=0; $i<5; $i++) {
-		
+			
 			obj("BasicMailer")->queue_mail(array(
-				"time_to_send" =>time()+1*60*60, // 1時間後に送信
+				"time_to_send" =>time()+1*60*60, // 
 				"to" =>"toyosawa@sharingseed.co.jp",
 				"from" =>"dev@sharingseed.info",
 				"subject" =>"TestQueuedMail-".$i,
@@ -58,12 +59,14 @@
 			));
 		}
 		
+		// DBに登録されているメールを全件順次配信
 		obj("BasicMailer")->send_queued_mail(array(
 		));
 
 	-------------------------------------
 	□サンプルコード（メール受信起動）:
-	
+		
+		// 標準入力からMTAの受信データを読み込んでパース
 		$received_mail =obj("BasicMailer")->receive_mail(array(
 		));
 */
