@@ -44,6 +44,13 @@ class DBI_Base extends DBI {
 	}
 	
 	//-------------------------------------
+	// 最後のSQLエラーを取得
+	public function get_last_error () {
+		
+		return $this->ds->lastError();
+	}
+	
+	//-------------------------------------
 	// トランザクションのBegin
 	public function begin() {
 		
@@ -149,7 +156,7 @@ class DBI_Base extends DBI {
 		
 		if ($this->ds->error) {
 			
-			report_error('SQL Error',array(
+			report_warning('SQL Error',array(
 				"Statement" =>$st,
 				"Error" =>$this->ds->error,
 			));
@@ -157,7 +164,7 @@ class DBI_Base extends DBI {
 		
 		// 階層構造の変更（$a[Alias][Key] => $a[Alias.Key]）
 		if ($command == "fetchRow") {
-		
+			
 			$result_copy =array();
 			
 			foreach ((array)$result as $k1 => $v1) {
@@ -791,7 +798,7 @@ class DBI_Base extends DBI {
 				
 					foreach ($aliases as $_rt => $alias) {
 					
-						foreach ($alias["desc"] as $_rf => $_df) {
+						foreach ((array)$alias["desc"] as $_rf => $_df) {
 						
 							$fields[] ='"'.$_rt.'".'.'"'.$_rf.'" AS "'.$_rt.'__'.$_rf.'"';
 						}

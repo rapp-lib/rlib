@@ -148,7 +148,8 @@
 							}
 						}
 						
-						$html .=param_name($k).'="'.htmlentities($v,ENT_QUOTES,"UTF-8").'" ';
+						$v =str_replace(array("\r\n","\n",'"'),array(" "," ",'&quot;'),$v);
+						$html .=param_name($k).'="'.$v.'" ';
 					}
 				}
 			}

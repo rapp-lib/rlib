@@ -321,8 +321,7 @@ class SmartyExtended extends Smarty {
 			} elseif ($type == 'button') {
 			
 				$html .='<form method="post" action="'.$dest_url.'"'.$attr_html.'>';
-				$html .='<input type="submit" value="'.$content.'" />';
-				$html .=$content.'</form>';
+				$html .='<input type="submit" value="'.$content.'" /></form>';
 				
 			} elseif ($type == 'a') {
 			

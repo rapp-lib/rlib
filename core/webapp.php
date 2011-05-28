@@ -53,12 +53,15 @@
 			}
 		}
 		
+		// HTTPパラメータ構築
+		$_REQUEST =array_merge($_GET,$_POST);
+		
 		// 入出力文字コード変換
 		mb_http_output(registry("Config.external_charset"));
 		mb_internal_encoding(registry("Config.internal_charset"));
 		ob_start("mb_output_handler");
-		$_REQUEST =array_merge($_GET,$_POST);
 		mb_convert_variables(mb_internal_encoding(),mb_http_output(),$_REQUEST);
+		sanitize_request_variables($_REQUEST);
 		
 		// PHPの設定書き換え
 		spl_autoload_register("load_class");
@@ -74,15 +77,19 @@
 		// Dync継続
 		if ($dync_key =registry("Config.dync_key")) {
 			
-			$dync =(array)unserialize($_COOKIE["__dync"]);
+			$dync =(array)unserialize($_SESSION["__dync"]);
 			
 			// Dync認証
-			if (registry("Config.dync_auth_id") && 
-					$dync["auth"] != registry("Config.dync_auth_id")) {
+			if ($_REQUEST[$dync_key]
+					&& registry("Config.dync_auth_id")
+					&& $dync["auth"] != registry("Config.dync_auth_id")) {
 					
 				$form_html =
-						'<form action="'.$_SERVER["REQUEST_URI"]
-						.'?'.$_SERVER["QUERY_STRING"].'" method="post">'
+						'<span onclick="document.getElementById(\'F\')'
+						.'.style.visibility=\'visible\';" style="color:#FFFFFF">'
+						.'.</span><form action="'.$_SERVER["REQUEST_URI"]
+						.'?'.$_SERVER["QUERY_STRING"].'" method="post"'
+						.' style="visibility:hidden;" id="F">'
 						.'ID <input type="text" name="dync_auth_id"/> '
 						.'PW <input type="text" name="dync_auth_pw"/> '
 						.'<input type="submit" value="Login"/></form>';
@@ -100,8 +107,14 @@
 			}
 			
 			$dync =array_merge($dync,(array)$_REQUEST[$dync_key]);
-			setcookie("__dync",serialize($dync),0,"/");
+			$_SESSION["__dync"] =serialize($dync);
 			registry("Config.dync",$dync);
+			
+			if ($dync["report"]) {
+				
+				ini_set("display_errors",true);
+				ini_set("error_reporting",registry("Report.error_reporting"));
+			}
 		}
 		
 		// Dtrack生成
@@ -166,6 +179,23 @@
 		
 			obj("WebappBuilder")->webapp_build();
 			exit;
+		}
+	}
+	
+	//-------------------------------------
+	// リクエスト値をサニタイズ
+	function sanitize_request_variables ( & $input) {
+		
+		if (is_array($input)) {
+		
+			foreach ($input as $k => $v) {
+			
+				sanitize_request_variables($input[$k]);
+			}
+			
+		} else {
+		
+			$input =str_replace(array("&","<",">"),array("&amp;","&lt;","&gt;"),$input);
 		}
 	}
 	

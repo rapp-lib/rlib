@@ -560,6 +560,9 @@ class DboMysql extends DboMysqlBase {
 		}
 
 		if (!empty($config['encoding'])) {
+			if (function_exists("mysql_set_charset")) {
+				mysql_set_charset($config['encoding']);
+			}
 			$this->setEncoding($config['encoding']);
 		}
 

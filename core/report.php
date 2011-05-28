@@ -298,3 +298,32 @@
 		$options["errno"] =E_USER_ERROR;
 		report($message,$params,$options);
 	}
+	
+	//-------------------------------------
+	//
+	function raise_exception ($message) { 
+		
+		$e =new Exception_App;
+		$e->message($message);
+		
+		throw $e;
+	}
+
+//-------------------------------------
+//
+class Exception_App extends Exception {
+	
+	protected $message;
+
+	//-------------------------------------
+	//
+	public function message ($message=null) {
+		
+		if ($message !== null) {
+		
+			$this->message =$message;
+		}
+		
+		return $this->message;
+	}
+}

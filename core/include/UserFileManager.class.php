@@ -261,7 +261,7 @@ class UserFileManager {
 					."-".date("ymdHis")
 					."-".sprintf('%09d',mt_rand(1,mt_getrandmax()));
 			$code =$key.$ext;
-			$dest_filename =$upload_dir.$key.$ext;
+			$dest_filename =$upload_dir."/".$key.$ext;
 			
 			// 既存ファイル衝突チェック
 			if (file_exists($dest_filename)) {

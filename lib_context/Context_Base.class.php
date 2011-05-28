@@ -233,7 +233,7 @@ class Context_Base {
 				
 					$error =$errmsg_label;
 					
-				} elseif ($col_label =label("col.".$key)) {
+				} elseif ($col_label =label("cols.".$key)) {
 				
 					$error =$col_label." : 必ず入力してください";
 					
@@ -245,7 +245,7 @@ class Context_Base {
 				$this->errors($key,$error);
 				
 			} else {
-				report($key);report($error);
+			
 				$this->errors($key,false);
 			}
 		}
@@ -293,19 +293,19 @@ class Context_Base {
 				
 					$error =$errmsg_label;
 					
-				} elseif ($col_label =label("col.".$key)) {
+				} elseif ($col_label =label("cols.".$key)) {
 				
 					$error =$col_label." : ".$result;
 					
 				} else {
 				
-					$error =$key." : ".$result;
+					$error =$result;
 				}
 				
 				$this->errors($key,$error);
 				
 			} else {
-				report($key);report($error);
+				
 				$this->errors($key,false);
 			}
 		}

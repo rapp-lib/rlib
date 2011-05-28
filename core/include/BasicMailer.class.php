@@ -1,72 +1,93 @@
 <?php
+		
+/*
+	-------------------------------------
+	□メール送信用 options:
+		・to/from/subject/messageの指定は必須
+		・template_fileとtemplate_optionsでテンプレートファイル読み込み
+		・fromnameでfromの日本語名をつけられる
+		・attach_files配列内にfilenameとdata_file（またはdata）を指定可能
+		・error_handlerで配信エラー時に呼び出す関数を登録
+		※テンプレートファイルの書式
+			・先頭にto/from/subjectを「subject: ***」形式で指定
+			・ファイルの内容はPHPとしてパースされる
+			・各項目記述の後、空行を開けて、以降にmessageを記述
+		
+	-------------------------------------
+	□メール一斉配信予約用テーブル構成: 
+		CREATE TABLE mail_queue (
+		  id bigint(20) NOT NULL default '0',
+		  create_time datetime NOT NULL default '0000-00-00 00:00:00',
+		  time_to_send datetime NOT NULL default '0000-00-00 00:00:00',
+		  sent_time datetime default NULL,
+		  id_user bigint(20) NOT NULL default '0',
+		  ip varchar(20) NOT NULL default 'unknown',
+		  sender varchar(50) NOT NULL default '',
+		  recipient text NOT NULL,
+		  headers text NOT NULL,
+		  body longtext NOT NULL,
+		  try_sent tinyint(4) NOT NULL default '0',
+		  delete_after_send tinyint(1) NOT NULL default '1',
+		  PRIMARY KEY  (id),
+		  KEY id (id),
+		  KEY time_to_send (time_to_send),
+		  KEY id_user (id_user)
+		);
 
+	-------------------------------------
+	□サンプルコード（メール送信）:
+		
+		obj("BasicMailer")->send_mail(array(
+			"to" =>"toyosawa@sharingseed.co.jp",
+			"from" =>"dev@sharingseed.info",
+			"subject" =>"TestMail-",
+			"message" =>"TestMail",
+		));
+
+	-------------------------------------
+	□サンプルコード（一斉配信の予約と送信）:
+		
+		for ($i=0; $i<5; $i++) {
+		
+			obj("BasicMailer")->queue_mail(array(
+				"time_to_send" =>time()+1*60*60, // 1時間後に送信
+				"to" =>"toyosawa@sharingseed.co.jp",
+				"from" =>"dev@sharingseed.info",
+				"subject" =>"TestQueuedMail-".$i,
+				"message" =>"TestQueuedMail".$i,
+			));
+		}
+		
+		obj("BasicMailer")->send_queued_mail(array(
+		));
+
+	-------------------------------------
+	□サンプルコード（メール受信起動）:
+	
+		$received_mail =obj("BasicMailer")->receive_mail(array(
+		));
+*/
 
 //-------------------------------------
 // PEARメール送受信クラス
 class BasicMailer {
 	
-	protected $default_options =array();
-	
 	protected $email_regex_pattern ='/(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|"[^\\\\\x80-\xff\n\015"]*(?:\\\\[^\x80-\xff][^\\\\\x80-\xff\n\015"]*)*")(?:\.(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|"[^\\\\\x80-\xff\n\015"]*(?:\\\\[^\x80-\xff][^\\\\\x80-\xff\n\015"]*)*"))*@(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|\[(?:[^\\\\\x80-\xff\n\015\[\]]|\\\\[^\x80-\xff])*\])(?:\.(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|\[(?:[^\\\\\x80-\xff\n\015\[\]]|\\\\[^\x80-\xff])*\]))*/';
 	
 	//-------------------------------------
-	// 初期化
-	public function __construct ($options=array()) {
-		
-		$this->default_options =$this->check_options($options,array(
-			"send_mode" =>"mail",
-			"send_options" =>array(),
-			"receive_mode" =>"stdin",
-			"receive_option" =>array(),
-		),array(
-		));
-	}
-	
-	//-------------------------------------
 	// メール送信
-	// Dep: Pear/Mail/mime.php
 	// Dep: Pear/Mail.php
 	public function send_mail ($options=array()) {
 		
-		/*
-			options:
-			・to/from/subject/messageの指定は必須
-			・template_fileとtemplate_optionsでテンプレートファイル読み込み
-			・fromnameでfromの日本語名をつけられる
-			・attach_files配列内にfilenameとdata_file（またはdata）を指定可能
-		*/
-		
-		mb_language("japanese");
-		mb_internal_encoding("UTF-8");
-		
-		// PEARメール送信機能読み込み
 		require_once("Mail.php");
-		require_once("Mail/mime.php");
 		
-		// テンプレートファイルの読み込み
-		if ($options["template_file"] 
-				&& file_get_contents($options["template_file"])) {
-			
-			extract($options["template_options"],EXTR_SKIP);
-			ob_start();
-			include($options["template_file"]);
-			$template_text =ob_get_clean();
-			
-			$options =$this->parse_mail_template($template_text,$options);
-		}
+		$options =$this->check_options_to_send($options);
 		
 		$options =$this->check_options($options,array(
-			"fromname" =>"",
-			"attach_files" =>array(),
+			"send_mode" =>"mail",
+			"send_options" =>array(),
 		),array(
-			"to" =>true,
-			"subject" =>true,
-			"message" =>true,
-			"from" =>true,
 		));
-		
-		// SMTPへ送信元のパラメータを付加
-		$options["send_options"][] ="-f ".$options["from"];
 		
 		$mailer =Mail::factory($options["send_mode"],$options["send_options"]);
 		
@@ -75,66 +96,22 @@ class BasicMailer {
 			report_error("Create mail-object failur");
 		}
 		
-		// コード変換
-		$message =mb_convert_encoding($options["message"],"JIS","UTF-8");
-		$fromname =mb_encode_mimeheader($options["fromname"]);
-		$subject =mb_encode_mimeheader($options["subject"]);
-		
-		$from =strlen($fromname) 
-				? $fromname."<".$options["from"].">" 
-				: $options["from"];
-			
-		$mime =new Mail_Mime("\n");
-		
-		// 本文登録
-		$mime->setTxtBody($message);
-		
-		// 添付ファイル登録
-		foreach ($options["attach_files"] as $attach_file) {
-		
-			if ( ! $attach_file["filename"]) {
-				
-				continue;
-			}
-			
-			$filename =mb_encode_mimeheader($attach_file["filename"]);
-			$mimetype =$attach_file["mimetype"]
-					? $attach_file["mimetype"]
-					: "application/octet-stream";
-					
-			if ($attach_file["data"]) {
-			
-				$mime->addAttachment(
-						$attach_file["data"],
-						$mimetype,
-						$filename,
-						false);
-			
-			} elseif (file_exists($attach_file["data_file"])) {
-					
-				$mime->addAttachment(
-						$attach_file["data_file"],
-						$mimetype,
-						$filename,
-						true);
-			}
-		}
-		
-		// BODY部取得
-		$body =$mime->get(array(
-			"head_charset" => "ISO-2022-JP",
-			"text_charset" => "ISO-2022-JP"
-		));
-		
-		// HEADERS部取得
-		$headers =$mime->headers(array(
-			"From" =>$from,
-			"Subject" =>$subject
-		));
-		
-		$result =$mailer->send($options["to"],$headers,$body);
+		// 配信実行
+		$result =$mailer->send(
+				$options["to"],
+				$options["mime_headers"],
+				$options["mime_body"]);
 		$is_success =$this->error_check($result);
 		
+		// 送信後処理
+		if ($options["callback"]
+				&& is_callable($options["callback"])) {
+			
+			$options["result"] =$is_success;
+			call_user_func($options["callback"],$options);
+		}
+			
+		// 配信成功をレポート
 		if ($is_success) {
 			
 			$trunc_message =$options["message"];
@@ -157,6 +134,53 @@ class BasicMailer {
 	}
 	
 	//-------------------------------------
+	// 一括メール送信予約
+	// Dep: Pear/Mail_Queue.php
+	public function queue_mail ($options=array()) {
+		
+		$options =$this->check_options_to_send($options);
+		$options =$this->check_options_to_queue($options);
+		$options =$this->check_options($options,array(
+			"time_to_send" =>time(),
+		),array(
+		));
+		
+		$result =$options["mail_queue"]->put(
+				$options["from"], 
+				$options["to"], 
+				$options["mime_headers"], 
+				$options["mime_body"],
+				$options["time_to_send"]-time());
+				
+		return is_numeric($result)
+				? $result
+				: null;
+	}
+	
+	//-------------------------------------
+	// 予約済みの一括メール配信
+	// Dep: Pear/Mail_Queue.php
+	public function send_queued_mail ($options=array()) {
+		
+		$options =$this->check_options_to_queue($options);
+		$options =$this->check_options($options,array(
+			"limit" =>MAILQUEUE_ALL,
+			"offset" =>MAILQUEUE_START,
+			"try" =>MAILQUEUE_TRY,
+			"callback" =>null,
+		),array(
+		));
+		
+		$result =$options["mail_queue"]->sendMailsInQueue(
+				$options["limit"],
+				$options["offset"],
+				$options["try"],
+				$options["callback"]);
+		
+		return $result === true;
+	}
+	
+	//-------------------------------------
 	// メール受信
 	// Dep: Pear/Mail/mimeDecode.php
 	public function receive_mail (array $options=array()) {
@@ -165,6 +189,8 @@ class BasicMailer {
 		require_once("Mail/mimeDecode.php");
 		
 		$options =$this->check_options($options,array(
+			"receive_mode" =>"stdin",
+			"receive_option" =>array(),
 		),array(
 		));
 		
@@ -307,14 +333,6 @@ class BasicMailer {
 		
 		$errors =array();
 		
-		foreach ($this->default_options as $k => $v) {
-			
-			if (is_null($options[$k])) {
-				
-				$options[$k] =$v;
-			}
-		}
-		
 		foreach ($default_values as $k => $v) {
 			
 			if (is_null($options[$k])) {
@@ -335,6 +353,128 @@ class BasicMailer {
 			
 			report_error('CheckOption-failur: '.decorate_value($errors));
 		}
+		
+		return $options;
+	}
+	
+	//-------------------------------------
+	// メール送信用のOption構築
+	// Dep: Pear/Mail/mime.php
+	protected function check_options_to_send ($options=array()) {
+		
+		require_once("Mail/mime.php");
+		
+		mb_language("japanese");
+		mb_internal_encoding("UTF-8");
+		
+		// テンプレートファイルの読み込み
+		if ($options["template_file"] 
+				&& file_get_contents($options["template_file"])) {
+			
+			extract($options["template_options"],EXTR_SKIP);
+			ob_start();
+			include($options["template_file"]);
+			$template_text =ob_get_clean();
+			
+			$options =$this->parse_mail_template($template_text,$options);
+		}
+		
+		$options =$this->check_options($options,array(
+			"fromname" =>"",
+			"attach_files" =>array(),
+		),array(
+			"to" =>true,
+			"subject" =>true,
+			"message" =>true,
+			"from" =>true,
+		));
+		
+		// SMTPへ送信元のパラメータを付加
+		$options["send_options"][] ="-f ".$options["from"];
+		
+		// コード変換
+		$message =mb_convert_encoding($options["message"],"JIS","UTF-8");
+		$fromname =mb_encode_mimeheader($options["fromname"], "ISO-2022-JP", "B", "\n");
+		$subject =mb_encode_mimeheader($options["subject"], "ISO-2022-JP", "B", "\n");
+		
+		$from =strlen($fromname) 
+				? $fromname."<".$options["from"].">" 
+				: $options["from"];
+			
+		$mime =new Mail_Mime("\n");
+		
+		// 本文登録
+		$mime->setTxtBody($message);
+		
+		// 添付ファイル登録
+		foreach ($options["attach_files"] as $attach_file) {
+		
+			if ( ! $attach_file["filename"]) {
+				
+				continue;
+			}
+			
+			$filename =mb_encode_mimeheader($attach_file["filename"]);
+			$mimetype =$attach_file["mimetype"]
+					? $attach_file["mimetype"]
+					: "application/octet-stream";
+					
+			if ($attach_file["data"]) {
+			
+				$mime->addAttachment(
+						$attach_file["data"],
+						$mimetype,
+						$filename,
+						false);
+			
+			} elseif (file_exists($attach_file["data_file"])) {
+					
+				$mime->addAttachment(
+						$attach_file["data_file"],
+						$mimetype,
+						$filename,
+						true);
+			}
+		}
+		
+		// BODY部取得
+		$options["mime_body"] =$mime->get(array(
+			"head_charset" => "ISO-2022-JP",
+			"text_charset" => "ISO-2022-JP"
+		));
+		
+		// HEADERS部取得
+		$options["mime_headers"] =$mime->headers(array(
+			"From" =>$from,
+			"Subject" =>$subject
+		));
+		
+		return $options;
+	}
+	
+	//-------------------------------------
+	// メール一斉配信用のOption構築
+	// Dep: Pear/Mail/Queue.php
+	protected function check_options_to_queue ($options=array()) {
+	
+		require_once("Mail/Queue.php");
+		
+		$options =$this->check_options($options,array(
+			"send_mode" =>"mail",
+			"send_options" =>array(),
+			
+			"table" =>"mail_queue",
+			"db_options" =>array(),
+		),array(
+		));
+		
+		$options["db_options"]['type'] ="dbi";
+		$options["db_options"]['mail_table'] =$options['table'];
+		$options["send_options"]['driver'] =$options["send_mode"];
+		
+		$options["mail_queue"] =& new Mail_Queue(
+				$options["db_options"], 
+				$options["send_options"]);
 		
 		return $options;
 	}
