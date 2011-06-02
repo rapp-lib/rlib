@@ -82,7 +82,7 @@ class Controller_Base extends SmartyExtended {
 			
 			$fid =strlen($_REQUEST[$fid_name])
 					? $_REQUEST[$fid_name]
-					: sprintf("%09d",mt_rand(1,mt_getrandmax()));
+					: sprintf("%09d",mt_rand(1,999999999));
 			
 			$sname .=":".$fid;
 			

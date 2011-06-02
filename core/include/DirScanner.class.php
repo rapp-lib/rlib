@@ -20,7 +20,9 @@ class DirScanner {
 				
 				} else {
 					
-					$realpath =$this->path_normalize($path.'/'.$filename);
+					$realpath =realpath($path.'/'.$filename);
+					$realpath =str_replace('\\',"/",$realpath);
+					$realpath =preg_replace('!^[^/]*(/.*?)/?$!','$1',$realpath);
 					
 					if (is_link($realpath)) {
 						
@@ -49,17 +51,6 @@ class DirScanner {
 		}
 		
 		return (array)$dirlist;
-	}
-	
-	//-------------------------------------
-	// パス文字列正規化
-	private function path_normalize ($path_str) {
-		
-		$path_str =realpath($path_str);
-		$path_str =str_replace('\\',"/",$path_str);
-		$path_str =preg_replace('!^[^/]*(/.*?)/?$!','$1',$path_str);
-		
-		return $path_str;
 	}
 }
 	

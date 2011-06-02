@@ -4,6 +4,7 @@
 	-------------------------------------
 	□メール送信用 options:
 		・to/from/subject/messageの指定は必須
+		・cc/bccの指定も可能
 		・template_fileとtemplate_optionsでテンプレートファイル読み込み
 		・fromnameでfromの日本語名をつけられる
 		・attach_files配列内にfilenameとdata_file（またはdata）を指定可能
@@ -12,6 +13,7 @@
 			・先頭にto/from/subjectを「subject: ***」形式で指定
 			・ファイルの内容はPHPとしてパースされる
 			・各項目記述の後、空行を開けて、以降にmessageを記述
+		※to/cc/bccの名前を設定することは出来ません
 		
 	-------------------------------------
 	□メール一斉配信予約用テーブル構成: 
@@ -385,6 +387,9 @@ class BasicMailer {
 		$options =$this->check_options($options,array(
 			"fromname" =>"",
 			"attach_files" =>array(),
+			"headers" =>array(),
+			"cc" =>null,
+			"bcc" =>null,
 		),array(
 			"to" =>true,
 			"subject" =>true,
@@ -395,12 +400,11 @@ class BasicMailer {
 		// SMTPへ送信元のパラメータを付加
 		$options["send_options"][] ="-f ".$options["from"];
 		
-		// コード変換
 		$message =mb_convert_encoding($options["message"],"JIS","UTF-8");
-		$fromname =mb_encode_mimeheader($options["fromname"], "ISO-2022-JP", "B", "\n");
 		$subject =mb_encode_mimeheader($options["subject"], "ISO-2022-JP", "B", "\n");
 		
-		$from =strlen($fromname) 
+		$fromname =mb_encode_mimeheader($options["fromname"], "ISO-2022-JP", "B", "\n");
+		$from =strlen($options["fromname"]) 
 				? $fromname."<".$options["from"].">" 
 				: $options["from"];
 			
@@ -440,17 +444,21 @@ class BasicMailer {
 			}
 		}
 		
+		$headers =(array)$options["headers"];
+		$headers["From"] =$from;
+		$headers["Subject"] =$subject;
+		$headers["Bcc"] =$options["bcc"];
+		$headers["Cc"] =$options["cc"];
+		$headers =array_filter($headers,"strlen");
+		
 		// BODY部取得
 		$options["mime_body"] =$mime->get(array(
-			"head_charset" => "ISO-2022-JP",
-			"text_charset" => "ISO-2022-JP"
+			"head_charset" =>"ISO-2022-JP",
+			"text_charset" =>"ISO-2022-JP"
 		));
 		
 		// HEADERS部取得
-		$options["mime_headers"] =$mime->headers(array(
-			"From" =>$from,
-			"Subject" =>$subject
-		));
+		$options["mime_headers"] =$mime->headers($headers);
 		
 		return $options;
 	}
