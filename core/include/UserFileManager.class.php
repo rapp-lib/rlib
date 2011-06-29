@@ -286,7 +286,8 @@ class UserFileManager {
 			}
 			
 			$result =is_uploaded_file($resource["tmp_name"])
-					&& move_uploaded_file($resource["tmp_name"],$dest_filename);
+					&& move_uploaded_file($resource["tmp_name"],$dest_filename)
+					&& chmod($dest_filename,0664);
 			
 			// アップロード可否確認
 			if ( ! $result) {
@@ -328,7 +329,6 @@ class UserFileManager {
 				clean_output_shutdown("<UserFileManager UPLOADED ".$code.">");
 			}
 			
-			
 			if ($request["complex"]) {
 				
 				$overwrite_target_var =$request["complex"];
@@ -353,7 +353,7 @@ class UserFileManager {
 		$upload_dir =($group && $upload_dirs["group"][$group])
 				? $upload_dirs["group"][$group]
 				: $upload_dirs["default"];
-		$filename =$upload_dir.$code;
+		$filename =$upload_dir."/".$code;
 		
 		return $filename && file_exists($filename) && ! is_dir($filename)
 				? $filename

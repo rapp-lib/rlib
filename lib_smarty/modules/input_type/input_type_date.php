@@ -11,7 +11,7 @@
 			"type",
 			"name",
 			"range", // 年の範囲指定（例："1970~+5"）
-			"format", // y/m/d/h/i/sについて「{$y}{$yp}{$yf}」のように指定する
+			"format", // y/m/d/h/i/sについて「{%y}{%yp}{%yf}」のように指定する
 			"assign", // 部品をアサインするテンプレート変数名
 		);
 		$attr_html ="";
@@ -99,7 +99,7 @@
 		
 		$html["full"] =$params["format"]
 				? $params["format"]
-				: '{$l}{$y}{$m}{$d}{$hf}{$if}{$sf}';
+				: '{%l}{%y}{%m}{%d}{%hf}{%if}{%sf}';
 		$html["full"] =str_template_array($html["full"],$html);
 		
 		// テンプレート変数へのアサイン

@@ -29,12 +29,26 @@ class LayoutRequestArray {
 			
 				$date_str ="";
 				
-				if ($values["y"]) {
+				if ($values["y"] || $values["m"] || $values["d"]) {
 					
 					$date_str .=(int)$values["y"].'/'. (int)$values["m"]."/".(int)$values["d"];
 				}
 				
-				$date_str .=' '.(int)$values["h"].':'. (int)$values["i"].":".(int)$values["s"];
+				if ($date_str) {
+				
+					$date_str .=' ';
+				}
+				
+				if ($values["h"] || $values["i"]) {
+				
+					$date_str .=(int)$values["h"].':'. (int)$values["i"];
+				
+					if ($values["s"]) {
+						
+						$date_str .=":".(int)$values["s"];
+					}
+				}
+				
 				$values =$date_str;
 				
 			// layout指定

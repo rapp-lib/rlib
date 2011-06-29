@@ -2,7 +2,7 @@
 
 //-------------------------------------
 // List: <?=$tc["list"]?> 
-class <?=str_camelize($tc["list"])?>List extends ListOptions {
+class <?=str_camelize($tc["list"])?>List extends List_App {
 	
 	//-------------------------------------
 	// オプション取得

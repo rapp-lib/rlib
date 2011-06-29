@@ -42,7 +42,7 @@
 	function str_template_array (
 			$str, 
 			$arr,
-			$pattern='!\{\$([\._a-zA-Z0-9:]+)\}!e') {
+			$pattern='!\{%([\._a-zA-Z0-9:]+)\}!e') {
 		
 		return preg_replace($pattern,'ref_array($arr,"$1")',$str);
 	}

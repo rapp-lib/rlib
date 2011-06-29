@@ -2,7 +2,7 @@
 
 //-------------------------------------
 // 選択肢表現クラス
-class ListOptions {
+class List_Base {
 	
 	protected $name;
 	protected $config;
@@ -20,7 +20,7 @@ class ListOptions {
 				
 			$cache[$name] =class_exists($class_name)
 					? new $class_name
-					: new ListOptions;
+					: new self;
 			
 			$cache[$name]->init($name,$config);
 		}

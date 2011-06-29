@@ -38,14 +38,19 @@
 	// 相対Page指定の解決
 	function relative_page ($page) {
 	
-		if (preg_match('!^([^\.]*?)(\.?)([^\.]*?)$!',$page,$match)) {
+		if (preg_match('!^([^\.]+)?(?:\.([^\.]+))?$!',$page,$match)) {
 		
 			$page ="";
-			$page .=$match[1] ? $match[1]
-					: registry("Request.controller_name");
+			$page .=$match[1] ? $match[1] : registry("Request.controller_name");
 			$page .=".";
-			$page .=$match[3] ? $match[3]
-					: registry("Request.action_name");
+			$page .=$match[2] ? $match[2] : "index";
+		
+		} elseif ($page == ".") {
+		
+			$page ="";
+			$page .=registry("Request.controller_name");
+			$page .=".";
+			$page .=registry("Request.action_name");
 		}
 		
 		return $page;

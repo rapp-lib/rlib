@@ -175,9 +175,11 @@ A5ERの場合：
 	
 CSVのサンプル：
 	#tables	table	col	label	def	type	other
-		Comment		コメント			
+		Comment		コメント		pkey=id|del_flg=del_flg
 			content	内容	text	text	
 			category	カテゴリ	text	select	list=comment_category
+			id	ID	integer		def.key=primary	
+			del_flg	削除フラグ	integer		def.default=0
 	#	このように#で始まる行はコメントです
 	#controller	controller	label	type	table	account	other
 		comment_master	コメント管理	master	Comment		

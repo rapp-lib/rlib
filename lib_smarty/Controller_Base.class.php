@@ -9,18 +9,21 @@ class Controller_Base extends SmartyExtended {
 	protected $action_name;
 	protected $vars;
 	protected $contexts;
+	protected $parent;
 	
 	//-------------------------------------
 	// 
 	public function __construct (
 			$controller_name,
-			$action_name) {
+			$action_name,
+			$parent=null) {
 			
 		parent::__construct();
 		
 		$this->controller_name =$controller_name;
 		$this->action_name =$action_name;
-		$this->vars =array();
+		$this->parent =$parent;
+		$this->vars =& $this->_tpl_vars;
 		$this->contexts =array();
 	}
 	
@@ -49,8 +52,10 @@ class Controller_Base extends SmartyExtended {
 			$class_name="Context_App") {
 			
 		$context =new $class_name;
-		$this->contexts[$var_name] =$context;
+		
 		$this->$var_name =$context;
+		$this->contexts[$var_name] =$context;
+		$this->vars[$var_name] =$context;
 		
 		$page_code =str_underscore($var_name)
 				.":".str_underscore($this->controller_name)
@@ -95,24 +100,12 @@ class Controller_Base extends SmartyExtended {
 	//-------------------------------------
 	// 
 	public function before_act () {
-	
-		// ファイルアップロード
-		obj("UserFileManager")->fetch_file_upload_request();
 	}
 	
 	//-------------------------------------
 	// 
 	public function after_act () {
-	
-		$this->_tpl_vars =$this->vars;
-		$this->_tpl_vars["_REQUEST"] =$_REQUEST;
-		$this->_tpl_vars["_REGISTRY"] =registry(null);
 		
-		foreach ($this->contexts as $var_name => $context) {
-			
-			$this->_tpl_vars[$var_name] =$context;
-		}
-		
-		array_extract($this->_tpl_vars);
+		array_extract($this->vars);
 	}
 }

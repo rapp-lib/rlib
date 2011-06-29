@@ -88,7 +88,7 @@ class Context_Base {
 	
 	//-------------------------------------
 	// 
-	public function query_save ($query=array()) {
+	public function query_save_DELETED ($query=array()) {
 	
 		// fields決定
 		$query["fields"] =$this->get_fields($query["fields"]);
@@ -104,7 +104,7 @@ class Context_Base {
 	
 	//-------------------------------------
 	// 
-	public function query_delete ($query=array()) {
+	public function query_delete_DELETED ($query=array()) {
 		
 		// 更新用の条件確認
 		if ( ! $this->id()) {
@@ -205,7 +205,7 @@ class Context_Base {
 	
 	//-------------------------------------
 	// 
-	public function query_select_one ($query=array()) {
+	public function query_select_one_DELETED ($query=array()) {
 		
 		// 選択条件の確認
 		if ( ! $this->id()) {
@@ -220,7 +220,33 @@ class Context_Base {
 	// 入力値のチェックロジックの実効
 	public function validate (
 			$required=array(), 
-			$extra_rules=array()) {
+			$extra_rules=array(),
+			$groups=array()) {
+		
+		$rules =array_merge(
+				(array)registry("Validate.rules"),
+				(array)$extra_rules);
+		
+		// Group.X.Table.col形式の入力値の要素を適用対象とする
+		foreach ($groups as $group_name) {
+			
+			$grouped_input =(array)$this->input($group_name);
+			
+			foreach (array_keys($grouped_input) as $index) {
+				
+				// requiredの範囲拡張
+				foreach ($required_copy=$required as $v) {
+					
+					$required[] =$group_name.".".$index.".".$v;
+				}
+				
+				// rulesの範囲拡張
+				foreach ($rules_copy=$rules as $k => $v) {
+					
+					$required[$group_name.".".$index.".".$k] =$v;
+				}
+			}
+		}
 		
 		// Requiredチェック
 		foreach ($required as $key) {
@@ -251,10 +277,6 @@ class Context_Base {
 		}
 		
 		// その他のチェック
-		$rules =array_merge(
-				(array)registry("Validate.rules"),
-				(array)$extra_rules);
-		
 		foreach ($rules as $rule) {
 			
 			if ( ! $rule["target"] || ! $rule["type"]) {

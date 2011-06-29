@@ -27,7 +27,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		$this->c->input($_REQUEST["c"]);
 		
 		// リスト取得
-		$query =$this->c->query_list(array(
+		$list_setting =array(
 			"search" =>array(
 <? foreach ($t["fields_3"] as $tc): ?>
 				"<?=$tc['name']?>" =>array(
@@ -50,7 +50,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			),
 		));
 		list($this->vars["ts"] ,$this->vars["p"])
-				=Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>_list($query);
+				=Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>_list($list_setting,$this->c->input());
 	}
 
 	//-------------------------------------
@@ -63,17 +63,15 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		$this->c->id($_REQUEST["id"]);
 		
 		// 登録データの取得
-		$input =Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>($this->c->id());
+		$this->vars["t"] =Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>($this->c->id());
 		
 		// 既存データの取得ができない場合の処理
-		if ( ! $input) {
+		if ( ! $this->vars["t"]) {
 				
 			$this->c->id(false);
 		
 			redirect("page:.view_list");
 		}
-		
-		$this->vars["t"] =DBI::load()->select_one($query);
 	}
 
 	//-------------------------------------

@@ -25,28 +25,33 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 
 	//-------------------------------------
 	// Read: <?=$t["label"]?> 一覧取得
-	public function get_<?=str_underscore($t["name"])?>_all ($query=array()) {
+	public function get_<?=str_underscore($t["name"])?>_all () {
 	
 		// 条件を指定して要素を取得
-		$query =$this->merge_query($query, array(
+		$query =array(
 			"table" =>"<?=$t["name"]?>",
 			"conditions" =>array(
 <? if ($t['del_flg']): ?>
 				"<?=$t['del_flg']?>" =>"0",
 <? endif; ?>
 			),
-		));
+<? if ($t['reg_date']): ?>
+			"order" =>"<?=$t['reg_date']?>",
+<? endif; ?>
+			
+		);
 		$ts =DBI::load()->select($query);
-		$p =DBI::load()->select_pager($query);
 		
-		return array($ts,$p);
+		return $ts;
 	}
 
 	//-------------------------------------
 	// Read: <?=$t["label"]?> 一覧ページ取得
-	public function get_<?=str_underscore($t["name"])?>_list ($query) {
-	
+	public function get_<?=str_underscore($t["name"])?>_list ($list_setting, $input) {
+		
 		// 条件を指定して要素を取得
+		$query =$this->get_list_query($list_setting, $input);
+		
 		$query =$this->merge_query($query, array(
 			"table" =>"<?=$t["name"]?>",
 			"conditions" =>array(
@@ -68,7 +73,11 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 		// IDの指定があれば更新
 		if ($id) {
 			
-			$query =$this->merge_query($query, array(
+<? if ($t['update_date']): ?>
+			$fields["<?=$t['update_date']?>"] =date('Y/m/d H:i:s');
+			
+<? endif; ?>
+			$query =array(
 				"fields" =>$fields,
 				"table" =>"<?=$t["name"]?>",
 				"conditions" =>array(
@@ -77,7 +86,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 					"<?=$t['del_flg']?>" =>"0",
 <? endif; ?>
 				),
-			));
+			);
 			$r =DBI::load()->update($query);
 			
 			return $r;
@@ -85,10 +94,18 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 		// IDの指定がなければ新規登録
 		} else {
 			
-			$query =$this->merge_query($query, array(
+<? if ($t['reg_date']): ?>
+			$fields["<?=$t['reg_date']?>"] =date('Y/m/d H:i:s');
+			
+<? endif; ?>
+<? if ($t['del_flg']): ?>
+			$fields["<?=$t['del_flg']?>"] ="0";
+			
+<? endif; ?>
+			$query =array(
 				"fields" =>$fields,
 				"table" =>"<?=$t["name"]?>",
-			));
+			);
 			$r =DBI::load()->insert($query);
 			
 			return $r;
@@ -105,6 +122,9 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 			"table" =>"<?=$t['name']?>",
 			"fields" =>array(
 				"<?=$t['del_flg']?>" =>"1",
+<? if ($t['update_date']): ?>
+				"<?=$t['update_date']?>" =>date('Y/m/d H:i:s'),
+<? endif; ?>
 			),
 			"conditions" =>array(
 				"<?=$t['pkey']?>" =>$id,

@@ -181,7 +181,7 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 		
 			$t["name"] =$t_name;
 			
-			$syskeys =array("pkey","reg_date","del_flg");
+			$syskeys =array("pkey","reg_date","del_flg","update_date");
 			
 			foreach ($syskeys as $key) {
 				
@@ -210,7 +210,9 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				
 				$t["cols"][$tc["name"]] =$tc;
 				
-				if ( ! in_array($tc_name,$syskeys) && $tc['type'] != "key") {
+				if ( ! in_array($tc_name,$syskeys) 
+						&& $tc['type'] != "key"
+						&& $tc['type'] != "") {
 					
 					$t["fields"][$tc["name"]] =$tc;
 					

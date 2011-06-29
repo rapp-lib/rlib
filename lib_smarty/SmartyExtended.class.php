@@ -14,12 +14,10 @@ class SmartyExtended extends Smarty {
 		
 		$this->left_delimiter ='{{';
 		$this->right_delimiter ='}}';
-		$this->default_template_handler_func
-				=array($this,"default_template_handler");
 		$this->plugins_dir[] ="modules/smarty_plugin/";
 		$this->cache_dir =$cache_dir;
 		$this->compile_dir =$cache_dir;
-		
+				
 		if ( ! file_exists($cache_dir) 
 				&& is_writable(dirname($cache_dir))) {
 			
@@ -35,78 +33,95 @@ class SmartyExtended extends Smarty {
 	}
 	
 	//-------------------------------------
-	// registered Smarty::$default_template_handler_func
-	public function default_template_handler (
-			$resource_type, 
-			$resource_name, 
-			&$template_source, 
-			&$template_timestamp, 
-			&$smarty) {
+	// widgetリソース解決
+	public function resolve_resource_widget ($resource_name, $load=false) {
+	
+		// テンプレートファイル名の解決
+		$file =page_to_file($resource_name);
 		
-		if ($resource_type == 'page') {
-			
-			$file =page_to_file($resource_name);
-			
-			if ($file) {
-			
-				$resource_name =$file;
-				
-			} else {
-			
-				report_error("Smarty Template page is-not routed.",array(
-					"page" =>$resource_name,
-				));
-			}
+		// Widget名の解決
+		list($widget_name, $action_name) =explode('.',$resource_name,2);
+		$widget_class_name =str_camelize($widget_name)."Widget";
+		$action_method_name ="act_".$action_name;
+		
+		// テンプレートファイルの対応がない場合のエラー
+		if ( ! $file) {
+		
+			report_error("Smarty Template page is-not routed.",array(
+				"page" =>$resource_name,
+			));
 		}
 		
-		if ($resource_type == 'path') {
-			
-			$file =registry("Path.html_dir")."/".$resource_name;
-			
-			if ($file) {
-			
-				$resource_name =$file;
-			
-			} else {
-			
-				report_error("Smarty Template path is-not routed.",array(
-					"path" =>$resource_name,
-				));
-			}
+		// テンプレートファイルが読み込めない場合のエラー
+		if ( ! is_file($file) || ! is_readable($file)) {
+		
+			report_error('Smarty Template file is-not found.',array(
+				"path" =>$resource_name,
+				"file" =>$file,
+			));
 		}
 		
-		if ($resource_type == 'module') {
-			
-			$file_find ="modules/html_element/".$resource_name;
-			$file =find_include_path($file_find);
-			
-			if ($file) {
-			
-				$resource_name =$file;
-			
-			} else {
-			
-				report_error("Smarty Template path is-not routed.",array(
-					"path" =>$resource_name,
-					"file" =>$file_find,
-				));
-			}
+		// Widget起動エラー
+		if ( ! class_exists($widget_class_name)
+				|| is_callable(array($widget_class,$action_method_name))) {
+		
+			report_error("Widget startup failur.",array(
+				"page" =>$resource_name,
+				"widget_class_name" =>$widget_class_name,
+				"action_method_name" =>$action_method_name,
+			));
 		}
 		
-		if (is_file($resource_name) && is_readable($resource_name)) {
+		// Widget処理の起動
+		if ( ! $load) {
+		
+			$widget_class =new $widget_class_name($widget_name,$action_name,$this);
+			$widget_class->before_act();
+			$widget_class->$action_method_name();
+			$widget_class->after_act();
 			
-			$template_source =file_get_contents($resource_name);
-			$template_timestamp =time();
-			
-			return true;
+			$this->_tpl_vars["widget"] =$widget_class->_tpl_vars;
 		}
 		
-		report_error('Smarty Template file is-not found.',array(
-			"type" =>$resource_type,
-			"file" =>$resource_name,
-		));
+		return $file;
+	}
+	
+	//-------------------------------------
+	// pathリソース解決
+	public function resolve_resource_path ($resource_name, $load=false) {
+	
+		$file =path_to_file($resource_name);
 		
-		return false;
+		// テンプレートファイルが読み込めない場合のエラー
+		if ( ! is_file($file) || ! is_readable($file)) {
+		
+			report_error('Smarty Template file is-not found.',array(
+				"path" =>$resource_name,
+				"file" =>$file,
+			));
+		}
+		
+		return $file;
+	}
+	
+	//-------------------------------------
+	// moduleリソース解決
+	public function resolve_resource_module ($resource_name, $load=false) {
+	
+		$file_find ="modules/html_element/".$resource_name;
+		$file =find_include_path($file_find);
+		
+		// テンプレートファイルが読み込めない場合のエラー
+		if ( ! $file || ! is_file($file) || ! is_readable($file)) {
+		
+			report_error('Smarty Template file is-not found.',array(
+				"module" =>$resource_name,
+				"file_find" =>$file_find,
+				"file" =>$file,
+			));
+		}
+		
+		return $file;
 	}
 	
 	//-------------------------------------
@@ -145,8 +160,9 @@ class SmartyExtended extends Smarty {
 	//-------------------------------------
 	// overwrite Smarty::_smarty_include
     public function _smarty_include ($params) {
-		
-		// $params["smarty_include_tpl_file"]
+	
+		// $file =$params["smarty_include_tpl_file"];
+		// $vars =$params["smarty_include_vars"];
 		return parent::_smarty_include($params);
 	}
 	
@@ -347,6 +363,7 @@ class SmartyExtended extends Smarty {
 		
 		$op_keys =array(
 			"type",
+			"id",
 			"name",
 			"assign", // 指定した名前で部品のアサイン
 			"options", // List名の指定
@@ -387,7 +404,8 @@ class SmartyExtended extends Smarty {
 		
 		if ($params["type"] == "select") {
 					
-			$html["head"] ='<select name="'.$params["name"].'"'.$attr_html.'>'."\n";
+			$html["head"] ='<select id="'.$params["id"].'"'
+					.' name="'.$params["name"].'"'.$attr_html.'>'."\n";
 			$html["foot"] ='</select>';
 			
 			foreach ($options as $option_value => $option_label) {
@@ -397,17 +415,6 @@ class SmartyExtended extends Smarty {
 						.' value="'.$option_value.'"'
 						.($selected ? ' selected="selected"' : '')
 						.'>'.$option_label.'</option>'."\n";
-			}
-			
-			// 親要素との連動
-			if ($params["parent_id"]) {
-				
-				$parents =$list_options->parents($params["parents_param"]);
-				
-				$html["foot"] .='<script>'
-						.'select_sync_parent("'.$params['id'].'",'
-						.'"'.$params['parent_id'].'",'
-						.array_to_json($parents).');</script>';
 			}
 			
 		} elseif ($params["type"] == "radioselect") {
@@ -423,7 +430,7 @@ class SmartyExtended extends Smarty {
 						.' name="'.$params["name"].'"'
 						.' value="'.$option_value.'"'.$attr_html
 						.($checked ? ' checked="checked"' : '')
-						.'>'.$option_label.'</label></nobr>'."\n";
+						.'>'.$option_label.'</label></nobr></span>'."\n";
 			}
 			
 		} elseif ($params["type"] == "checklist") {
@@ -447,6 +454,28 @@ class SmartyExtended extends Smarty {
 			}
 		}
 		
+			
+		// 親要素との連動
+		if ($params["parent_id"]) {
+			
+			$parents =$list_options->parents($params["parents_param"]);
+			
+			if ($params["type"] == "radioselect" || $params["type"] == "checklist") {
+				
+				foreach ($html["options"] as $k => $v) {
+				
+					$html["options"][$k] ='<span class="_listitem">'.$v.'</span>';
+				}
+				
+				$html["head"] ='<span id="'.$params["id"].'">'.$html["head"];
+				$html["foot"] =$html["foot"].'</span>';
+			}
+				
+			$html["foot"] .='<script>'
+					.'select_sync_parent("'.$params['id'].'",'
+					.'"'.$params['parent_id'].'",'
+					.array_to_json($parents).',"'.$params["type"].'");</script>';
+		}
 		
 		$html["full"] =$html["head"].implode("",$html["options"]).$html["foot"];
 		

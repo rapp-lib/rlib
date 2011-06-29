@@ -148,12 +148,14 @@
 		// 配列指定（value）
 		} elseif (is_array($value)) {
 			
-			if ( ! $escape || is_array($ref)) {
-			
-				foreach ($value as $a_name => $a_value) {
+			if ( ! is_array($ref)) {
 				
-					array_registry($ref,$a_name,$a_value,$escape);
-				}
+				$ref =array();
+			}
+			
+			foreach ($value as $a_name => $a_value) {
+			
+				array_registry($ref,$a_name,$a_value,$escape);
 			}
 		
 		// 値の設定
@@ -167,23 +169,24 @@
 	// 配列をJSON文字列に変換する
 	function array_to_json ($entry) {
 		
-		$json ="";
+		require_once("Services/JSON.php");
 		
-		if (is_array($entry)) {
+		$agent =new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
 		
-			$inner_item =array();
-			
-			foreach ($entry as $k => $v) {
-				
-				$inner_item[] =$k.":".array_to_json($v);
-			}
-			
-			$json .="{".implode(",\n",$inner_item)."}";
-		
-		} else {
-			
-			$json ="'".str_replace("'","\\'",(string)$entry)."'";
-		}
+		$json =$agent->encodeUnsafe($entry);
 		
 		return $json;
+	}
+
+	//-------------------------------------
+	// JSON文字列を配列に変換する
+	function json_to_array ($json) {
+		
+		require_once("Services/JSON.php");
+		
+		$agent =new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+		
+		$entry =$agent->decode($json);
+		
+		return $entry;
 	}
