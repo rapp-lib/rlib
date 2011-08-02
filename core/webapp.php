@@ -25,7 +25,9 @@
 			
 			// Dtrack機能設定
 			"Config.dtrack_key" =>null,
-			"Config.dtrack_bind_session" =>false,
+			
+			// セッションID再生成機能設定
+			"Config.session_id_regenerate" =>true,
 			
 			// webapp_dir内のinclude_path設定
 			"Config.webapp_include_path" =>array(
@@ -69,10 +71,33 @@
 		set_exception_handler('exception_handler');
 		
 		// セッションの開始
+		ini_set("session.cookie_lifetime",0);
 		ini_set("session.cookie_httponly",true);
 		ini_set("session.cookie_secure",$_SERVER['HTTPS']);
 		session_start();
-		session_regenerate_id(true);
+			
+		// セッションID再生成
+		if (registry("Config.session_id_regenerate")) {
+		
+			$current_session_id =session_id();
+			
+			if ($deleted_session_id =$_SESSION["__deleted_session_id"]) {
+			
+				// 破棄対象セッションの削除実施
+				session_id($deleted_session_id);
+				session_start();
+				$_SESSION =array();
+				session_destroy();
+				
+				// セッションの再会
+				session_id($current_session_id);
+				session_start();
+			}
+			
+			session_regenerate_id();
+			
+			$_SESSION["__deleted_session_id"] =$current_session_id;
+		}
 		
 		// Dync継続
 		if ($dync_key =registry("Config.dync_key")) {
@@ -139,13 +164,6 @@
 			
 			registry("Config.dtrack_match",$dtrack_match ? 1 : 0);
 			
-			// 変更前のDtrackのSession情報を予め読み込む
-			if ($dtrack_match && registry("Config.dtrack_bind_session")) {
-				
-				session_name(session_name()."".$dtrack_value);
-				session_start();
-			}
-			
 			// Dtrackの変更と登録
 			$dtrack_value =sprintf('%07d',rand(1,9999999));
 			setcookie("__dtrack",$dtrack_value,0,"/");
@@ -153,13 +171,6 @@
 			
 			output_rewrite_var(registry("Config.dtrack_key"),$dtrack_value);
 			registry("Config.dtrack",$dtrack_value);
-			
-			// SessionをDtrackに依存して生成させる
-			if (registry("Config.dtrack_bind_session")) {
-				
-				session_name(session_name()."".$dtrack_value);
-				session_start();
-			}
 		}
 		
 		// include_pathの設定
@@ -176,7 +187,7 @@
 		
 		// WebappBuild機能
 		if (get_webapp_dync("webapp_build") && $_REQUEST["exec"]) {
-		
+			
 			obj("WebappBuilder")->webapp_build();
 			exit;
 		}

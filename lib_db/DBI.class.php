@@ -5,6 +5,7 @@
 class DBI {
 
 	protected static $instance =array();
+	protected static $default_connection ="default";
 	
 	//-------------------------------------
 	// インスタンスの読み込み
@@ -12,7 +13,7 @@ class DBI {
 		
 		if ( ! $name) {
 			
-			$name ="default";
+			$name =self::$default_connection;
 		}
 		
 		if ($class === null) {
@@ -38,5 +39,17 @@ class DBI {
 		}
 		
 		return self::$instance[$name];
+	}
+	
+	//-------------------------------------
+	// デフォルトで読み込まれるインスタンスの切り替え
+	public static function change ($name=null) {
+		
+		if ($name !== null) {
+		
+			self::$default_connection =$name;
+		}
+		
+		return self::$default_connection;
 	}
 }

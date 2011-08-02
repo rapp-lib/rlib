@@ -6,6 +6,7 @@ class DBI_Base extends DBI {
 
 	protected $name ="";
 	protected $ds =null;
+	protected $transaction_started =false;
 	private $desc_cache =array();
 	
 	//-------------------------------------
@@ -51,45 +52,15 @@ class DBI_Base extends DBI {
 	}
 	
 	//-------------------------------------
-	// トランザクションのBegin
-	public function begin() {
+	// テーブル一覧を取得
+	public function desc_tables () {
 		
-		if ( ! $this->ds->_transactionStarted
-				&& $this->ds->execute($this->ds->_commands['begin'])) {
-		
-			$this->ds->_transactionStarted =true;
-			return true;
+		if ( ! $this->desc_cache["__TABLES__"]) {
+			
+			$this->desc_cache["__TABLES__"] =$this->ds->listSources();
 		}
 		
-		return false;
-	}
-	
-	//-------------------------------------
-	// トランザクションのCommit
-	public function commit() {
-		
-		if ($this->ds->_transactionStarted
-				&& $this->ds->execute($this->ds->_commands['commit'])) {
-		
-			$this->ds->_transactionStarted =false;
-			return true;
-		}
-		
-		return false;
-	}
-	
-	//-------------------------------------
-	// トランザクションのRollback
-	public function rollback() {
-		
-		if ($this->ds->_transactionStarted
-				&& $this->ds->execute($this->ds->_commands['rollback'])) {
-		
-			$this->ds->_transactionStarted =false;
-			return true;
-		}
-		
-		return false;
+		return $this->desc_cache["__TABLES__"];
 	}
 	
 	//-------------------------------------
@@ -160,10 +131,21 @@ class DBI_Base extends DBI {
 				"Statement" =>$st,
 				"Error" =>$this->ds->error,
 			));
+			
+			// トランザクション起動中であれば例外発行
+			if ($this->transaction_started) {
+				
+				throw new Exception();
+			}
 		}
 		
 		// 階層構造の変更（$a[Alias][Key] => $a[Alias.Key]）
 		if ($command == "fetchRow") {
+			
+			if ($this->ds->lastNumRows() == 0) {
+				
+				$result =array();
+			}
 			
 			$result_copy =array();
 			
@@ -181,6 +163,11 @@ class DBI_Base extends DBI {
 		
 		// 階層構造の変更（$a[n][Alias][Key] => $a[n][Alias.Key]）
 		if ($command == "fetchAll") {
+			
+			if ($this->ds->lastNumRows() == 0) {
+				
+				$result =array();
+			}
 			
 			$result_copy =array();
 			
@@ -200,6 +187,51 @@ class DBI_Base extends DBI {
 		}
 		
 		return $result;
+	}
+	
+	//-------------------------------------
+	// トランザクションのBegin
+	public function begin() {
+		
+		if ( ! $this->transaction_started) {
+		
+			$this->exec($this->ds->_commands['begin']);
+			$this->transaction_started =true;
+			
+			return true;
+		}
+		
+		return false;
+	}
+	
+	//-------------------------------------
+	// トランザクションのCommit
+	public function commit() {
+		
+		if ($this->transaction_started) {
+		
+			$this->exec($this->ds->_commands['commit']);
+			$this->transaction_started =false;
+			
+			return true;
+		}
+		
+		return false;
+	}
+	
+	//-------------------------------------
+	// トランザクションのRollback
+	public function rollback() {
+		
+		if ($this->transaction_started) { 
+			
+			$this->exec($this->ds->_commands['rollback']);
+			$this->transaction_started =false;
+			
+			return true;
+		}
+		
+		return false;
 	}
 	
 	//-------------------------------------
@@ -520,7 +552,7 @@ class DBI_Base extends DBI {
 		$insert_fields =array();
 		$insert_values =array();
 		
-		foreach ($query["fields"] as $k => $v) {
+		foreach ((array)$query["fields"] as $k => $v) {
 		
 			if (strpos($k,".") !== false) {
 				
@@ -819,5 +851,115 @@ class DBI_Base extends DBI {
 		}
 		
 		return $fields;
+	}
+	
+	//-------------------------------------
+	// DBDumpの生成
+	public function create_dump ($filename, $compress=false) {
+		
+		$info =$this->ds->config;
+		
+		$cmd ="";
+		
+		if ($info["driver"] == "postgres") {
+			
+			// パスワードは"~/.pgpass"で設定する必要があります
+			// 設定は"HOST:PORT:DBNAME:USER:PASS"の形式
+			$cmd ="pg_dump -c";
+			if ($info["host"]) { $cmd .=" -h ".$info["host"]; }
+			if ($info["port"]) { $cmd .=" -P ".$info["port"]; }
+			if ($info["login"]) { $cmd .=" -U ".$info["login"]; }
+			if ($info["database"]) { $cmd .=" -D ".$info["database"]; }
+			$cmd .=' | gzip -c9 > "'.$filename.'"';
+			
+		} elseif ($info["driver"] == "mysql" || $info["driver"] == "mysqli") {
+			
+			$cmd ="mysqldump";
+			if ($info["encoding"]) { $cmd .=" --default-character-set=".$info["encoding"]; }
+			if ($info["host"]) { $cmd .=" -h ".$info["host"]; }
+			if ($info["port"]) { $cmd .=" -P ".$info["port"]; }
+			if ($info["login"]) { $cmd .=" -u".$info["login"]; }
+			if ($info["password"]) { $cmd .=" -p".$info["password"]; }
+			if ($info["database"]) { $cmd .=" ".$info["database"]; }
+			$cmd .=' 1> "'.$filename.'"';
+		
+		} else {
+			
+			report_error("DB driver ".$info["driver"]." is not support DBI::create_dump");
+		}
+		
+		exec($cmd,$output,$return_var);
+		$result = ! $return_var;
+		
+		// 圧縮する
+		if ($compress && $result) {
+			
+			$cmd_gzip ='gzip -cf "'.$filename.'" > "'.$filename.'"';
+			exec($cmd_gzip,$output,$return_var);
+			$result = ! $return_var;
+		}
+		
+		$report_params =array("cmd"=>$cmd);
+		$result 
+				? report('Dump create successfly',$report_params)
+				: report_warning('Dump create failur',$report_params);
+		
+		return $result;
+	}
+	
+	//-------------------------------------
+	// DBDumpのリストア
+	public function restore_dump ($filename, $compress=false) {
+		
+		$info =$this->ds->config;
+		
+		// 解凍する
+		if ($compress) {
+			
+			$cmd_gzip ='gzip -cdf "'.$filename.'" > "'.$filename.'"';
+			exec($cmd_gzip,$output,$return_var);
+			$result = ! $return_var;
+		}
+		
+		$cmd ="";
+		
+		if ($info["driver"] == "postgres") {
+			
+			// パスワードは"~/.pgpass"で設定する必要があります
+			// 設定は"HOST:PORT:DBNAME:USER:PASS"の形式
+			$cmd ='psql';
+			if ($info["host"]) { $cmd .=" -h ".$info["host"]; }
+			if ($info["port"]) { $cmd .=" -P ".$info["port"]; }
+			if ($info["login"]) { $cmd .=" -U ".$info["login"]; }
+			if ($info["database"]) { $cmd .=" ".$info["database"]; }
+			$cmd .=' < "'.$filename.'" 2>&1';
+			
+		} elseif ($info["driver"] == "mysql" || $info["driver"] == "mysqli") {
+			
+			$cmd ='mysql';
+			if ($info["encoding"]) { $cmd .=" --default-character-set=".$info["encoding"]; }
+			if ($info["host"]) { $cmd .=" -h ".$info["host"]; }
+			if ($info["port"]) { $cmd .=" -P ".$info["port"]; }
+			if ($info["login"]) { $cmd .=" -u".$info["login"]; }
+			if ($info["password"]) { $cmd .=" -p".$info["password"]; }
+			if ($info["database"]) { $cmd .=" ".$info["database"]; }
+			$cmd .=' < "'.$filename.'" 2>&1';
+		
+		} else {
+			
+			report_error("DB driver ".$info["driver"]." is not support DBI::restore_dump");
+		}
+		
+		exec($cmd,$output,$return_var);
+		$result = ! $return_var;
+		
+		$report_params =array(
+				"cmd"=>$cmd,
+				"output"=>$output);
+		$result 
+				? report('Dump restore successfly',$report_params)  
+				: report_warning('Dump restore failur',$report_params) ;
+		
+		return $return_var;
 	}
 }

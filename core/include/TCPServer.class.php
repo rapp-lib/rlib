@@ -22,6 +22,15 @@ class TCPServer {
 		$this->sock_table =array();
 		$this->server_sock =null;
 	}
+	//-------------------------------------
+	// 初期化
+	public function __destruct () {
+		
+		if ($this->server_sock) {
+			
+			$this->end_loop();
+		}
+	}
 	
 	//-------------------------------------
 	// 接続待ち受けループ開始
@@ -42,7 +51,8 @@ class TCPServer {
 		if (socket_bind($this->server_sock, $this->host, $this->port) === false){
 		
 			$this->debug_state("ERROR","SERVER",
-					"socket_bind Failed...".socket_strerror(socket_last_error()));
+					"socket_bind Failed (".$this->host.":".$this->port
+					.")...".socket_strerror(socket_last_error()));
 			exit;
 		}
 	
@@ -152,11 +162,18 @@ class TCPServer {
 	// 接続待ち受けループ終了
 	public function end_loop () {
 		
+		foreach ($this->sock_table as $sock) {
+		
+			socket_close($sock["sock"]);
+		}
+		
 		socket_close($this->server_sock);
 			
 		$this->debug_state("END","SERVER");
 				
 		$this->handler->on_end();
+		
+		$this->server_sock =null;
 	}
 	
 	//-------------------------------------

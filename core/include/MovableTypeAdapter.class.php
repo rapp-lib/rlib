@@ -1,50 +1,94 @@
 <?php
 
 /*
-サンプルコード
+●サンプルコード
 -------------------------------------
-	$mt =new MovableTypeAdapter("./cache/");
-	$mt->load_blog("sample_01","../sample_01/vk.xml");
-	$mt->get_blog_data("sample_01");
+$mt =new MovableTypeAdapter("./cache/");
+$mt->load_blog("sample_01","../sample_01/vk.xml");
+$blog_data =$mt->get_blog_data("sample_01");
 
 
-Movabletype4カスタムテンプレート（vk.xml）
+●ブログデータサンプル
 -------------------------------------
-	<$mt:HTTPContentType type="application/atom+xml"$><?xml version="1.0" encoding="<$mt:PublishCharset$>"?>
-	<root>
-	
-	 <value name="blog_info">
-	  <value name="title"><$mt:BlogName remove_html="1" encode_xml="1"$></value>
-	  <value name="link"><$mt:BlogName remove_html="1" encode_xml="1"$></value>
-	  <value name="update"><mt:Entries lastn="1"><$mt:EntryModifiedDate utc="1" format="%Y/%m/%d %H:%M:%S"$></mt:Entries></value>
-	 </value>
-	 
-	<mt:Entries lastn="1000">
-	 <value name="entries" index="[]" type="array">
-	  <value name="title"><$mt:EntryTitle remove_html="1" encode_xml="1"$></value>
-	  <value name="link"><$mt:EntryPermalink encode_xml="1"$></value>
-	  <value name="update"><$mt:EntryModifiedDate utc="1" format="%Y/%m/%d %H:%M:%S"$></value>
-	  
-	  <mt:EntryCategories>
-	   <value name="categories" index="[]"><$mt:CategoryLabel encode_xml="1"$></value>
-	  </mt:EntryCategories>
-	  
-	  <mt:EntryIfTagged><mt:EntryTags>
-	   <value name="tags" index="[]"><$mt:TagName normalize="1" encode_xml="1"$></value>
-	  </mt:EntryTags></mt:EntryIfTagged>
-	  
-	  <value name="custom_fields" type="array">
-	   <mt:EntryCustomFields> 
-	    <value name="<mt:CustomFieldName />"><mt:CustomFieldValue /></value>
-	   </mt:EntryCustomFields>
-	  </value>
-	  
-	  <value name="content_short"><$mt:EntryBody encode_xml="1"$></value>
-	  <value name="content"><$mt:EntryBody encode_xml="1"$><$mt:EntryMore encode_xml="1"$></value>
-	 </value>
+$blog_data : array(
+	"blog_info" =>array(
+		"title" =>"メニュー",
+		"update" =>1234567,
+		"category_labels" =>array(
+			"japanese" =>"和食",
+			"steak" =>"ステーキ",
+		),
+		"custom_field_labels" =>array(
+			"cf_1" =>"追加テキスト1",
+			"cf_2" =>"追加テキスト2",
+		),
+	),
+	"entries" =>array(
+		"123" =>array(
+			"title" =>"メニュー",
+			"update" =>1234567,
+			"content_short" =>"...",
+			"content" =>"...",
+			"categories" =>array(
+				"japanese",
+			),
+			"tags" =>array(
+				"TestTag1",
+			),
+			"custom_fields" =>array(
+				"cf_1" =>"testtest",
+				"cf_2" =>"Hello world.",
+			),
+		),
+	),
+);
+
+
+●Movabletype4カスタムテンプレート（vk.xml）
+-------------------------------------
+<$mt:HTTPContentType type="application/atom+xml"$><?xml version="1.0" encoding="<$mt:PublishCharset$>"?>
+<root>
+ <value name="blog_info">
+  <value name="title"><$mt:BlogName remove_html="1" encode_xml="1"$></value>
+  <value name="update" type="timestamp"><mt:Entries lastn="1"><$mt:EntryModifiedDate utc="1" format="%Y/%m/%d %H:%M:%S"$></mt:Entries></value>
+  <value name="category_labels" type="array">
+   <mt:Categories show_empty="1" none="0">
+    <value name="<$mt:CategoryBasename encode_xml="1"$>"><$mt:CategoryLabel encode_xml="1"$></value>
+   </mt:Categories>
+  </value>
+  <mt:Entries lastn="1">
+   <value name="custom_field_labels" type="array">
+    <mt:EntryCustomFields> 
+     <value name="<mt:CustomFieldBasename encode_xml="1"/>"><mt:CustomFieldName encode_xml="1"/></value>
+    </mt:EntryCustomFields>
+   </value>
+  </mt:Entries>
+ </value>
+ <value name="entries" type="array">
+  <mt:Entries lastn="9999">
+   <value name="<$mt:EntryID encode_xml="1"$>" type="array">
+    <value name="title"><$mt:EntryTitle remove_html="1" encode_xml="1"$></value>
+    <value name="link"><$mt:EntryPermalink encode_xml="1"$></value>
+    <value name="update" type="timestamp"><$mt:EntryModifiedDate utc="1" format="%Y/%m/%d %H:%M:%S"$></value>  
+    <mt:EntryCategories>
+     <value name="categories" index="[]"><$mt:CategoryBasename encode_xml="1"$></value>
+    </mt:EntryCategories>
+    <value name="tags" type="array">
+     <mt:EntryIfTagged><mt:EntryTags>
+      <value name="<$mt:TagID encode_xml="1"$>"><$mt:TagName normalize="1" encode_xml="1"$></value>
+     </mt:EntryTags></mt:EntryIfTagged>
+    </value>
+    <value name="custom_fields" type="array">
+     <mt:EntryCustomFields> 
+      <value name="<mt:CustomFieldBasename encode_xml="1"/>"><mt:CustomFieldValue encode_xml="1"/></value>
+     </mt:EntryCustomFields>
+    </value>
+    <value name="content_short"><$mt:EntryBody encode_xml="1"$></value>
+    <value name="content"><$mt:EntryBody encode_xml="1"$><$mt:EntryMore encode_xml="1"$></value>
+   </value>
 	</mt:Entries>
-	
-	</root>
+ </value>
+</root>
 */
 
 //-------------------------------------
@@ -93,7 +137,13 @@ class MovableTypeAdapter {
 			return unserialize(file_get_contents($vkxml_values_cache));
 		}
 		
-		$_xml =@simplexml_load_file($vkxml_file);
+		$_xml =simplexml_load_file($vkxml_file);
+		
+		if ($_xml === null) {
+			
+			return null;
+		}
+		
 		$values =$this->fetch_vkxml_node($_xml);
 		
 		copy($vkxml_file,$vkxml_file_cache);
@@ -123,6 +173,10 @@ class MovableTypeAdapter {
 			} elseif ($type == "int") {
 				
 				$value =(int)$value;
+				
+			} elseif ($type == "timestamp") {
+				
+				$value =strtotime($value);
 				
 			} elseif ($type == "array" && ! is_array($value)) {
 				

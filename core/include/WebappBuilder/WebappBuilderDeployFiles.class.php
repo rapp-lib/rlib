@@ -257,7 +257,7 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 						: $tc_name;
 				$tc_def["comment"] =$tc_def["comment"]
 						? $tc_def["comment"]
-						: $tc["label"]."(".$tc["type"].($tc["list"] ? ":".$tc["list"] : "").")";
+						: $tc["label"];
 			}
 		}
 			

@@ -77,6 +77,22 @@ class WebappBuilder {
 			$obj =obj("WebappBuilderReadme");
 			$obj->init($options);
 			$obj->echo_readme();
+			
+		// DBの状態を書き換える
+		// ?exec=1
+		// &_[report]=1
+		// &_[webapp_build][datastate]=1
+		// &_[webapp_build][dsname]=default ... 指定しなければdefault
+		// &_[webapp_build][filename]=test01 ... 使用するファイル名
+		// &_[webapp_build][create_dump]=1 ... ダンプ作成
+		// &_[webapp_build][restore_dump]=1 ... ダンプ読み込み
+		// &_[webapp_build][restore_ds]=1 ... CSV読み込み
+		} elseif ($options["datastate"]) {
+			
+			require_once("WebappBuilder/WebappBuilderDataState.class.php");
+			$obj =obj("WebappBuilderDataState");
+			$obj->init($options);
+			$obj->fetch_datastate();
 		}
 	}
 	

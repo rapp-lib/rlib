@@ -77,7 +77,9 @@ HistoryKey<input type="text" value="" name="_[webapp_build][history]"/>
 <?
 		$text =ob_get_clean();
 		$text =str_replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;",$text);
-		$text =str_replace("\n","<br/>",$text);
+		$text =preg_replace('!>\n!',"BREAK",$text);
+		$text =preg_replace('!\n!',"<br/>",$text);
+		$text =preg_replace('!BREAK!',">\n",$text);
 		
 		if (preg_match_all('!<br/>(?:-|\s)+<br/>(\[[^\]]+\])!',$text,$matches,PREG_SET_ORDER)) {
 			

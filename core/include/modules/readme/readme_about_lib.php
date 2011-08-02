@@ -524,6 +524,11 @@ API（DBI）：
 	・DBI::last_insert_id($table_name, $pkey)
 		
 		LAST_INSERT_IDの取得
+			
+	・DBI::create_dump($dump_filename)
+	・DBI::restore_dump($dump_filename)
+		
+		ダンプデータの作成とリストア
 
 API（Model）：
 
