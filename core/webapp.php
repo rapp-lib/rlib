@@ -61,7 +61,7 @@
 		// 入出力文字コード変換
 		mb_http_output(registry("Config.external_charset"));
 		mb_internal_encoding(registry("Config.internal_charset"));
-		ob_start("mb_output_handler");
+		ob_start("mb_output_handler_impl");
 		mb_convert_variables(mb_internal_encoding(),mb_http_output(),$_REQUEST);
 		sanitize_request_variables($_REQUEST);
 		
@@ -191,6 +191,15 @@
 			obj("WebappBuilder")->webapp_build();
 			exit;
 		}
+	}
+	
+	//-------------------------------------
+	// ob_filter
+	function mb_output_handler_impl ($html) {
+	
+		$html =mb_convert_encoding($html,mb_http_output(),mb_internal_encoding());
+				
+		return $html;
 	}
 	
 	//-------------------------------------

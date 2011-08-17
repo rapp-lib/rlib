@@ -350,13 +350,6 @@ class DBI_Base extends DBI {
 	// Query実行(DELETE)
 	public function delete ($query) {
 		
-		if ( ! $query["conditions"]) {
-			
-			report_error("Delete query has no conditions.",array(
-				"query" =>$query,
-			));
-		}
-		
 		// table:(table,alias)構造の展開
 		if (is_array($query["table"])) {
 		
