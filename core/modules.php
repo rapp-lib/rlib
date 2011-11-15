@@ -166,6 +166,11 @@
 		
 		$check =& ref_globals("check_loaded");
 		
+		if ( ! isset($check[$type][$path])) {
+			
+			$check[$type][$path] =false;
+		}
+		
 		if ($flg === null) {
 			
 			if ($report_error && $check[$type][$path]) {
@@ -190,7 +195,7 @@
 		
 		static $cache =array();
 		
-		if ( ! $cache[$class_name]) {
+		if ( ! isset($cache[$class_name])) {
 			
 			$cache[$class_name] =new $class_name;
 		}

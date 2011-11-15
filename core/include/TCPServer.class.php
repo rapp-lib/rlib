@@ -22,6 +22,7 @@ class TCPServer {
 		$this->sock_table =array();
 		$this->server_sock =null;
 	}
+	
 	//-------------------------------------
 	// 初期化
 	public function __destruct () {
@@ -84,6 +85,8 @@ class TCPServer {
 			
 			$read_socks =array();
 			
+			$this->handler->on_idle(null);
+				
 			foreach ($this->sock_table as $sock => $dummy) {
 				
 				$this->handler->on_idle($sock);

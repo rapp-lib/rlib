@@ -3,7 +3,54 @@
 //-------------------------------------
 // 
 class Model_Base extends Model {
+	
+	protected static $instance =array();
+	
+	//-------------------------------------
+	// インスタンスのファクトリ
+	public static function load ($name=null) {
+		
+		$name =$name
+				? $name."Model"
+				: "Model_App";
+		
+		if ( ! self::$instance[$name]) {
+			
+			self::$instance[$name] =new $name;
+		}
+		
+		return self::$instance[$name];
+	}
 
+	//-------------------------------------
+	// 配列形式のカラムをunserialize
+	public function unserialize_fields ($ts, $field_names) {
+		
+		$field_names =is_array($field_names)
+				? $field_names
+				: array($field_names);
+				
+		foreach ($field_names as $field_name) {
+			
+			if (isset($ts[$field_names])) {
+			
+				$ts[$field_names] =unserialize($ts);
+			
+			} else {
+			
+				foreach ($ts as $t_index => $t) {
+				
+					if (isset($ts[$t_index][$field_names])) {
+						
+						$ts[$t_index][$field_names] =unserialize($t);
+					}
+				}
+			}
+		}
+		
+		return $ts;
+	}
+	
 	//-------------------------------------
 	// クエリの統合（上書きを避けつつ右を優先）
 	public function merge_query ($query1, $query2) {
@@ -128,7 +175,7 @@ class Model_Base extends Model {
 					$part_query =call_user_func_array($module,array(
 						$name,
 						$target,
-						$this->input((string)$name),
+						$input[(string)$name],
 						$setting,
 						$this,
 					));
@@ -154,7 +201,7 @@ class Model_Base extends Model {
 		if ($list_setting["sort"]) {
 		
 			$setting =$list_setting["sort"];
-			$key =$this->input((string)$setting["sort_param_name"]);
+			$key =$input[(string)$setting["sort_param_name"]];
 			$value =$setting["map"][$key];
 			
 			if ($value) {
@@ -175,15 +222,15 @@ class Model_Base extends Model {
 			$setting =$list_setting["paging"];
 			
 			if ($setting["offset_param_name"]
-					&& is_numeric($this->input((string)$setting["offset_param_name"]))) {
+					&& is_numeric($input[(string)$setting["offset_param_name"]])) {
 					
-				$query["offset"] =(int)$this->input((string)$setting["offset_param_name"]);
+				$query["offset"] =(int)$input[(string)$setting["offset_param_name"]];
 			}
 			
 			if ($setting["limit_param_name"]
-					&& is_numeric($this->input((string)$setting["limit_param_name"]))) {
+					&& is_numeric($input[(string)$setting["limit_param_name"]])) {
 					
-				$query["limit"] =(int)$this->input((string)$setting["limit_param_name"]);
+				$query["limit"] =(int)$input[(string)$setting["limit_param_name"]];
 			
 			} elseif ($setting["limit"]) {
 				

@@ -91,10 +91,13 @@
 	function file_to_url ($file) {
 	
 		$pattern ='!^'.preg_quote(registry('Path.document_root_dir')).'/?!';
+		$document_root_url =registry('Path.document_root_url')
+				? registry('Path.document_root_url')
+				: "/";
 		$url =preg_match($pattern,$file) 
-				? preg_replace($pattern,"/",$file) 
+				? preg_replace($pattern,$document_root_url,$file) 
 				: null;
-				
+		
 		return $url;
 	}
 	

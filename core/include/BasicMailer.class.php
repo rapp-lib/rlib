@@ -221,8 +221,14 @@ class BasicMailer {
 		// HEAD部解析
 		foreach ((array)$decoded->headers as $k => $v) {
 		
-			$maildata[strtolower($k)] =mb_convert_encoding(
-					mb_decode_mimeheader($this->getRawHeader($v)),'UTF-8','JIS');
+			$maildata[strtolower($k)] =mb_decode_mimeheader($v);
+		}
+		
+		// from抽出
+		if ($maildata["from"]) {
+			
+			$from_mail_parts =$this->extract_email($maildata["from"]);
+			$maildata["from"] =$from_mail_parts[0];
 		}
 		
 		// BODY部解析
@@ -294,22 +300,31 @@ class BasicMailer {
 	
 	//-------------------------------------
 	// 本文解析
-	protected function decode_body (&$decoded, &$maildata, $is_message=false) {
+	protected function decode_body (&$obj, &$maildata, $is_message=false) {
 		
-		if ($decoded->body) {
+		if ($obj->body) {
 			
 			// 本文
-			if ($is_message && strtolower($decoder->ctype_primary)=='text') {
-			
-				$maildata["message"] =&$decoder->body;
+			if ($obj->ctype_primary=='text') {
+				
+				if ($obj->ctype_secondary == 'plain') {
+				
+					$maildata["message"] 
+							.=trim(mb_convert_encoding($obj->body,'UTF-8','JIS'));
+				
+				} else {
+				
+					$maildata["message_".$obj->ctype_secondary] 
+							.=trim(mb_convert_encoding($obj->body,'UTF-8','JIS'));
+				}
 				
 			// 添付ファイル
 			} else {
 			
 				$maildata["attach_files"][] =array(
-					'mimetype'=>$decoder->ctype_primary.'/'.$decoder->ctype_secondary,
-					'filename'=>$decoder->ctype_parameters['name'],
-					'data'=>&$decoder->body,
+					'mimetype'=>$obj->ctype_primary.'/'.$obj->ctype_secondary,
+					'filename'=>$obj->ctype_parameters['name'],
+					'data'=>$obj->body,
 				);
 			}
 		}

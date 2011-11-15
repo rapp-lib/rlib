@@ -2,6 +2,7 @@
 		
 /*
 	
+	-------------------------------------
 	○パラメータについて
 			
 		[_REQUEST] _UFM[ALIAS]
@@ -27,6 +28,7 @@
 			<UserFileManager UPLOADED ${code}> ... アップロード成功
 			
 			
+	-------------------------------------
 	○Sample1（<input type="file">での実現方法）
 		
 		<input type="hidden" name="DATANAME" value="CODE"/>
@@ -36,6 +38,7 @@
 		<input type="checkbox" name="_UFM[ALIAS][delete]" value="1"/>
 		
 		
+	-------------------------------------
 	○Sample2（jquery.upload.jsでの実現方法）
 		
 		<input type="hidden" name="DATANAME" value="CODE" id="ALIAS_code"/>
@@ -62,6 +65,7 @@
 		</script>
 		
 		
+	-------------------------------------
 	○Sample3（可変数アップロード）
 		
 		<div style="display:inline;" id="ALIAS_inc_elm">
@@ -121,6 +125,7 @@
 		</script>
 	
 	
+	-------------------------------------
 	○Sample4（<input type="file">にてJSでの削除方法）
 		
 		<input type="hidden" name="DATANAME" value="CODE" id="ALIAS_code"/>
@@ -130,6 +135,7 @@
 		<a onclick="$('#ALIAS_code').attr('value','')">[Delete]</a>
 		
 		
+	-------------------------------------
 	○HTML上でのサンプルパラメータについて
 		
 		GROUP ... アップロード先の振り分けに使用します（省略可能）
@@ -137,6 +143,13 @@
 		DATANAME ... _REQUESTに使用する名前（配列またはドット参照可能）
 		CODE ... アップロード済みファイルの値
 		UPLOAD_SCRIPT_URL ... Ajaxアップロードの受け取りURL
+
+
+	-------------------------------------
+	□サンプルコード（フォーム以外からのファイルアップロード）:
+		
+		$code =obj("UserFileManager")->upload_file("./target.csv");
+		
 */
 
 //-------------------------------------
@@ -154,7 +167,13 @@ class UserFileManager {
 			return self::$uploaded;
 		}
 		
+		if ( ! isset($_REQUEST["_UFM"])) {
+			
+			return;
+		}
+		
 		$requests =$_REQUEST["_UFM"];
+		
 		self::$uploaded =array();
 			
 		foreach ((array)$requests as $request_index => $request) {
@@ -183,10 +202,7 @@ class UserFileManager {
 			$name_ref =str_replace(']','',$name_ref);
 			$overwrite_target_var =& ref_array($_REQUEST,$name_ref);
 			
-			$upload_dirs =registry("UserFileManager.upload_dir");
-			$upload_dir =($group && $upload_dirs["group"][$group])
-					? $upload_dirs["group"][$group]
-					: $upload_dirs["default"];
+			$upload_dir =$this->get_upload_dir($group);
 			
 			$allow_exts =registry("UserFileManager.allow_ext");
 			$allow_ext =($group && $allow_exts["group"][$group])
@@ -210,19 +226,43 @@ class UserFileManager {
 				continue;
 			}
 			
+			// アップロードファイルがない
+			if ( ! is_uploaded_file($resource["tmp_name"])) {
+			
+				report("No file to upload.",array(
+					"request_index" =>$request_index,
+					"group" =>$group,
+					"upload_dir" =>$upload_dir,
+					"resource" =>$resource,
+					"request" =>$request,
+				));
+				
+				continue;
+			}
+			
 			// 拡張子の確認
+			$ext ="";
+			
 			if ($allow_ext) {
 				
-				$ext =preg_match('!\.[a-zA-Z0-9]!',$resource["name"],$match)
+				$ext =preg_match('!\.[^\.]+$!',$resource["name"],$match)
 						? $match[0]
 						: "";
 				
-				if ( ! in_array($ext,$allow_ext)) {
+				if ( ! in_array(str_replace('.','',strtolower($ext)),$allow_ext)) {
 								
 					if ($request["shutdown"]) {
 					
 						clean_output_shutdown("<UserFileManager ERROR ext_error>");
 					}
+				
+					report_warning("File upload error. ext not-allowed.",array(
+						"request_index" =>$request_index,
+						"group" =>$group,
+						"upload_dir" =>$upload_dir,
+						"target_file" =>$resource["name"],
+						"ext" =>$ext,
+					));
 					
 					self::$uploaded[$request_index] =array(
 						"error" =>"ext_error",
@@ -257,9 +297,7 @@ class UserFileManager {
 				continue;
 			}
 			
-			$key =($group ? $group : "default")
-					."-".date("ymdHis")
-					."-".sprintf('%09d',mt_rand(1,mt_getrandmax()));
+			$key =$this->get_blank_key($group);
 			$code =$key.$ext;
 			$dest_filename =$upload_dir."/".$key.$ext;
 			
@@ -285,8 +323,7 @@ class UserFileManager {
 				continue;
 			}
 			
-			$result =is_uploaded_file($resource["tmp_name"])
-					&& move_uploaded_file($resource["tmp_name"],$dest_filename)
+			$result =move_uploaded_file($resource["tmp_name"],$dest_filename)
 					&& chmod($dest_filename,0664);
 			
 			// アップロード可否確認
@@ -344,8 +381,20 @@ class UserFileManager {
 	}
 	
 	//-------------------------------------
-	// 
+	// アップロード済みのファイルがあればそのファイル名を取得
 	public function get_filename ($code, $group=null) {
+			
+		$upload_dir =$this->get_upload_dir($group);
+		$filename =$upload_dir."/".$code;
+		
+		return $filename && file_exists($filename) && ! is_dir($filename)
+				? $filename
+				: null;
+	}
+	
+	//-------------------------------------
+	// アップロードディレクトリを取得
+	public function get_upload_dir ($group=null) {
 		
 		$group =preg_replace('![^-_0-9a-zA-Z]!','_',$group);
 				
@@ -353,11 +402,87 @@ class UserFileManager {
 		$upload_dir =($group && $upload_dirs["group"][$group])
 				? $upload_dirs["group"][$group]
 				: $upload_dirs["default"];
+		
+		return $upload_dir;
+	}
+	
+	//-------------------------------------
+	// 新規のアップロードファイルのコードを生成
+	public function get_blank_key ($group=null) {
+		
+		$key =($group ? $group : "default")
+				."-".date("ymdHis")
+				."-".sprintf('%09d',mt_rand(1,mt_getrandmax()));
+		
+		return $key;
+	}
+	
+	//-------------------------------------
+	// 指定したデータをアップロード
+	public function upload_data ($data, $code=null, $group=null) {
+		
+		$code =$code
+				? $code
+				: $this->get_blank_key($group);
+		$upload_dir =$this->get_upload_dir($group);
 		$filename =$upload_dir."/".$code;
 		
-		return $filename && file_exists($filename) && ! is_dir($filename)
-				? $filename
+		$dir_writable =$upload_dir 
+				&& is_dir($upload_dir)
+				&& is_writable($upload_dir);
+		
+		// 保存先ディレクトリチェック
+		if ( ! $dir_writable) {
+		
+			report_warning("File upload error. upload_dir is not writable.",array(
+				"group" =>$group,
+				"upload_dir" =>$upload_dir,
+				"filename" =>$filename,
+			));
+			
+			return null;
+		}
+		
+		// 既存ファイル衝突チェック
+		if (file_exists($filename)) {
+		
+			report_warning("File upload error. File already exists.",array(
+				"group" =>$group,
+				"upload_dir" =>$upload_dir,
+				"filename" =>$filename,
+			));
+			
+			return null;
+		}
+	
+		$result =file_put_contents($filename,$data)
+				&& chmod($filename,0664);
+		
+		return $result
+				? $code
 				: null;
+	}
+	
+	//-------------------------------------
+	// 指定したファイルをアップロード
+	public function upload_file ($target_file, $code=null, $group=null) {
+		
+		if ( ! file_exists($target_file)
+				|| ! is_readable($target_file)
+				|| is_dir($target_file)) {
+		
+			report_warning("File upload error. Target file is-not readable.",array(
+				"group" =>$group,
+				"upload_dir" =>$upload_dir,
+				"filename" =>$filename,
+			));
+			
+			return null;
+		}
+		
+		$data =file_get_contents($target_file);
+		
+		return $this->upload_data($data,$code,$group);
 	}
 }
 	

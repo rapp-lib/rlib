@@ -435,10 +435,15 @@ class SmartyExtended extends Smarty {
 			
 		} elseif ($params["type"] == "checklist") {
 		
-			$selected_value =is_array($selected_value)
-					? $selected_value
-					: array();
-		
+			if (is_string($selected_value)) {
+				
+				$selected_value =unserialize($selected_value);
+			
+			} elseif ( ! is_array($selected_value)) {
+				
+				$selected_value =(array)$selected_value;
+			}
+			
 			$html["head"] ='';
 			$html["foot"] ='';
 			
@@ -453,7 +458,6 @@ class SmartyExtended extends Smarty {
 						.'>'.$option_label.'</label></nobr>'."\n";
 			}
 		}
-		
 			
 		// 親要素との連動
 		if ($params["parent_id"]) {
@@ -484,6 +488,8 @@ class SmartyExtended extends Smarty {
 			
 			$ref =& ref_array($template->_tpl_vars,$params["assign"]);
 			$ref =$html;
+			
+			return null;
 		}
 		
 		return $html["full"];

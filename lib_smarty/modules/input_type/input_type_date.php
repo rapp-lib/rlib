@@ -25,14 +25,7 @@
 		}
 		
 		// 初期選択値の組み立て
-		$d =getdate();
-		
-		foreach (array("year" =>"y","mon" =>"m","mday" =>"d",
-				"hours" =>"h","minutes" =>"i","second" =>"s") as $k => $v) {
-		
-			$d[$v] =$d[$k]; 
-			unset($d[$k]);
-		}
+		$d =longdate(date('Y/m/d H:i:s'));
 		
 		if ($postset_value_d =longdate($postset_value)) {
 			
@@ -61,25 +54,25 @@
 				.' name="_LRA['.$html["alias"].'][var_name]"'
 				.' value="'.$html["name"].'"/>';
 		$html["y"] =input_type_date_get_select(
-				$params['name']."[y]",$d["y"],range($y1,$y2),$attr_html,"");
+				$params['name']."[y]",$d["Y"],range($y1,$y2),$attr_html,""); 
 		$html["m"] =input_type_date_get_select(
 				$params['name']."[m]",$d["m"],range(1,12),$attr_html,"");
 		$html["d"] =input_type_date_get_select(
 				$params['name']."[d]",$d["d"],range(1,31),$attr_html,"");
 		$html["h"] =input_type_date_get_select(
-				$params['name']."[h]",$d["h"],range(0,23),$attr_html,"");
+				$params['name']."[h]",$d["H"],range(0,23),$attr_html,"");
 		$html["i"] =input_type_date_get_select(
 				$params['name']."[i]",$d["i"],range(0,59),$attr_html,"");
 		$html["s"] =input_type_date_get_select(
 				$params['name']."[s]",$d["s"],range(0,59),$attr_html,"");
 		$html["yp"] =input_type_date_get_select(
-				$params['name']."[y]",$d["y"],range($y1,$y2),$attr_html,"年");
+				$params['name']."[y]",$d["Y"],range($y1,$y2),$attr_html,"年");
 		$html["mp"] =input_type_date_get_select(
 				$params['name']."[m]",$d["m"],range(1,12),$attr_html,"月");
 		$html["dp"] =input_type_date_get_select(
 				$params['name']."[d]",$d["d"],range(1,31),$attr_html,"日");
 		$html["hp"] =input_type_date_get_select(
-				$params['name']."[h]",$d["h"],range(0,23),$attr_html,"時");
+				$params['name']."[h]",$d["H"],range(0,23),$attr_html,"時");
 		$html["ip"] =input_type_date_get_select(
 				$params['name']."[i]",$d["i"],range(0,59),$attr_html,"分");
 		$html["sp"] =input_type_date_get_select(
@@ -118,7 +111,6 @@
 		$html .='<select name="'.$name.'"'.$attrs.'>';
 		
 		foreach ($list as $v) {
-		
 			$selected =((int)$v == (int)$value);
 			$html .='<option value="'.$v.'"'
 					.($selected ? ' selected="selected"' :'')

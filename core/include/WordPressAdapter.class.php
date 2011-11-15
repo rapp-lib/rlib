@@ -44,7 +44,7 @@ class WordPressAdapter {
 	
 	//-------------------------------------
 	// 初期化
-	public function WordpressConnection ($options=array()) {
+	public function WordPressAdapter ($options=array()) {
 		
 		if ($options["db_connection"]) {
 		
@@ -102,17 +102,9 @@ class WordPressAdapter {
 				meta_key = "_wp_attached_file"
 		',$this->con);
 		
-		$termsdata =array();
-		$terms_name_data =array();
-		$taxonomydata =array();
-		$taxonomy_name_data =array();
-		
-		while ($data = mysql_fetch_array($result)) {
+		while ($data = mysql_fetch_array($result,MYSQL_ASSOC)) {
 		
 			$metadata[$data['post_id']][$data['meta_key']] =$data['meta_value'];
-			$termsdata[$data['term_id']]=$data['name'];
-			$taxonomydata[$data['term_taxonomy_id']]=$termsdata[$data['term_id']];
-			$taxonomy_name_data[$termsdata[$data['term_id']]]=$data['term_taxonomy_id'];
 			
 			// 添付ファイルの参照を記録
 			if ($data['meta_key'] == "_wp_attachment_metadata") {
@@ -124,6 +116,29 @@ class WordPressAdapter {
 			
 				$attached[$data['post_id']] =$data['meta_value'];
 			}
+		}
+		
+		$termsdata =array();
+		$terms_name_data =array();
+		$taxonomydata =array();
+		$taxonomy_name_data =array();
+		
+		// Taxonomy情報の取得
+		$result = mysql_query('
+			SELECT 
+				object_id,
+				taxonomy,
+				name
+			FROM '.$post_table_prefix.'_term_relationships AS TR
+			JOIN '.$post_table_prefix.'_term_taxonomy AS TT
+			JOIN '.$post_table_prefix.'_terms AS T
+			WHERE TR.term_taxonomy_id = TT.term_taxonomy_id
+			AND TT.term_id = T.term_id
+		',$this->con);
+		
+		while ($data = mysql_fetch_array($result,MYSQL_ASSOC)) {
+		
+			$termsdata[$data['object_id']][$data['taxonomy']][] =$data['name'];
 		}
 
 		// ポスト情報の構築
@@ -142,7 +157,7 @@ class WordPressAdapter {
 				post_type != "page"
 		',$this->con);
 		
-		while ($data = mysql_fetch_array($result)) {
+		while ($data = mysql_fetch_array($result,MYSQL_ASSOC)) {
 			
 			foreach ($meta_keys as $meta_key) {
 			
@@ -165,7 +180,7 @@ class WordPressAdapter {
 			$postdata[$key] =$data;
 			$postdata[$key]["BID"]=$post_table;
 			$postdata[$key]["meta"] =$metadata[$data['ID']];
-			$postdata[$key]["tag"] = $data['term_taxonomy_id'];
+			$postdata[$key]["term"] =$termsdata[$data['ID']];
 		}
 		
 		return $postdata;

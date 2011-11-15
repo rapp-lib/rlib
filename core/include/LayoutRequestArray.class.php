@@ -8,6 +8,11 @@ class LayoutRequestArray {
 	// 
 	public function fetch_request_array () {
 		
+		if ( ! isset($_REQUEST["_LRA"])) {
+			
+			return;
+		}
+		
 		$requests =$_REQUEST["_LRA"];
 			
 		foreach ((array)$requests as $request_index => $request) {

@@ -1,6 +1,7 @@
 <?php
 
-	
+/*	<MOD 11115 Y.Toyosawa DEPLECATED:Cakeとの競合のため>
+
 	//-------------------------------------
 	// 
 	function h ($text) {
@@ -30,7 +31,7 @@
 		
 		return htmlspecialchars($text);
 	}
-	
+*/	
 	//-------------------------------------
 	// URLの組み立て
 	function url ($base_url=null, $params=null, $anchor=null) {
@@ -89,7 +90,7 @@
 		
 		if ( ! is_string($name)) {
 			
-			return h($name);
+			return htmlspecialchars($name);
 		}
 		
 		$html .='<'.$name.' ';

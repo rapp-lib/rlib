@@ -7,7 +7,8 @@
 		$date_pattern ='!^((\d*)[-/](\d*)[-/](\d*))?\D*((\d+):(\d+)(:(\d+)?))?!';
 		$longdate =array();
 		
-		if (strlen($date_string) && preg_match($date_pattern,$date_string, $match)) {
+		if (strlen($date_string) 
+				&& preg_match($date_pattern,$date_string, $match)) {
 			
 			$longdate =array(
 				"y" =>sprintf('%04d',$match[2]),

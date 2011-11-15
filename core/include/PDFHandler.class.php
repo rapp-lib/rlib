@@ -106,9 +106,9 @@ class PDFHandler {
 	
 	//-------------------------------------
 	// PDFファイルの出力
-	public function output ($filename=null) {
+	public function output ($filename=null, $dest=null) {
 		
-		return $this->pdf->output($filename);
+		return $this->pdf->output($filename,$dest);
 	}
 	
 	//-------------------------------------

@@ -367,6 +367,60 @@ class DBI_Base extends DBI {
 	}
 	
 	//-------------------------------------
+	// SQL組み立て（JOIN句）
+	public function st_joins ($joins) {
+		
+		if (is_array($joins)) {
+			
+			foreach ($joins as $k => $v) {
+				
+				if (is_array($v)) {
+				
+					// joins.N:(table,conditions,type)構造の展開
+					if (isset($v[0])) {
+						
+						$joins[$k]["table"] =$v[0];
+						unset($joins[$k][0]);
+						
+						if (isset($v[1])) {
+							
+							$joins[$k]["conditions"] =$v[1];
+							unset($joins[$k][1]);
+						}
+						
+						if (isset($v[2])) {
+							
+							$joins[$k]["type"] =$v[2];
+							unset($joins[$k][2]);
+						}
+					}
+					
+					// table:(table,alias)構造の展開
+					if (is_array($joins[$k]["table"])
+							&& $joins[$k]["table"][0]) {
+						
+						list(
+							$joins[$k]["table"],
+							$joins[$k]["alias"]
+						) =$joins[$k]["table"];
+					}
+					
+					// サブクエリの解決
+					if (is_array($joins[$k]["table"])) {
+						
+						$joins[$k]["table"] 
+								='('.$this->st_select($joins[$k]["table"]).')';
+					}
+				
+					$joins[$k] =$this->ds->buildJoinStatement($joins[$k]);
+				}
+			}
+		}
+		
+		return $joins;
+	}
+	
+	//-------------------------------------
 	// SQL組み立て（SELECT）
 	public function st_select ($query) {
 		
@@ -485,6 +539,15 @@ class DBI_Base extends DBI {
 			list($query["table"],$query["alias"]) =$query["table"];
 		}
 		
+		// alias
+		if ( ! $query["alias"]) {
+			
+			$query["alias"] =$query["table"];
+		}
+		
+		// joins
+		$query["joins"] =$this->st_joins($query["joins"]);
+		
 		// fields
 		$update_fields =array();
 		
@@ -500,13 +563,15 @@ class DBI_Base extends DBI {
 			if ($v === null) {
 				
 				$update_fields[] =$this->ds->name($k)." = NULL"; 
-				continue; 
-			}
 			
-			if (is_numeric($k)) {
+			} elseif (is_numeric($k)) {
 			
 				$update_fields[] =$v;
 			
+			} elseif (is_array($v)) {
+				
+				$update_fields[] =$this->ds->value(serialize($v), "string", false);
+				
 			} else {
 			
 				$update_fields[] =$this->ds->name($k)
@@ -560,6 +625,11 @@ class DBI_Base extends DBI {
 				}
 			}
 			
+			if (is_array($v)) {
+				
+				$v =serialize($v);
+			}
+			
 			$insert_fields[] =$this->ds->name($k);
 			$insert_values[] =$this->ds->value($v, "string", false);
 		}
@@ -577,10 +647,21 @@ class DBI_Base extends DBI {
 	public function st_delete ($query) {
 		
 		$default_query =array(
+			'alias' => null,
+			'joins' => null,
 			'table' => null,
 			'conditions' => array(),
 		);
 		$query =array_merge($default_query,$query);
+		
+		// alias
+		if ( ! $query["alias"]) {
+			
+			$query["alias"] =$query["table"];
+		}
+		
+		// joins
+		$query["joins"] =$this->st_joins($query["joins"]);
 		
 		// conditions
 		$query["conditions"] =$this->ds->conditions($query["conditions"]);

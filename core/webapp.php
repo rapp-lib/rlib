@@ -27,7 +27,7 @@
 			"Config.dtrack_key" =>null,
 			
 			// セッションID再生成機能設定
-			"Config.session_id_regenerate" =>true,
+			"Config.session_id_regenerate" =>false,
 			
 			// webapp_dir内のinclude_path設定
 			"Config.webapp_include_path" =>array(
@@ -242,8 +242,17 @@
 					$download_filename ="noname";
 				}
 			}
-			
+					
 			header("Content-Disposition: attachment; filename=".$download_filename);
+		}
+		
+		// content_type
+		if (is_array($output) && $output["content_type"]) {
+			
+			header("Content-Type: ".$output["content_type"]);
+		
+		} elseif (is_array($output) && $output["download"]) {
+		
 			header("Content-Type: application/octet-stream");
 		}
 		

@@ -48,7 +48,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				"limit" =>20,
 				"offset_param_name" =>"offset",
 			),
-		));
+		);
 		list($this->vars["ts"] ,$this->vars["p"])
 				=Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>_list($list_setting,$this->c->input());
 	}
