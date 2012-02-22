@@ -24,6 +24,9 @@ README index
 <a href="<?=file_to_url(registry("Path.html_dir"))?>?exec=1&_[webapp_build][readme]=1&_[webapp_build][page]=code_viewer&_[webapp_build][file]=//webapp" target="_blank">6.Webapp内ファイル一覧</a>
 
 <a href="<?=file_to_url(registry("Path.html_dir"))?>?exec=1&_[webapp_build][readme]=1&_[webapp_build][page]=datastate" target="_blank">7.DBデータ管理</a>
+
+<a href="<?=file_to_url(registry("Path.html_dir"))?>?exec=1&_[webapp_build][readme]=1&_[webapp_build][page]=changelog" target="_blank">8.ライブラリの更新履歴</a>
+
 <?
 		$text =ob_get_clean();
 		$text =str_replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;",$text);

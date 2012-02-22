@@ -18,7 +18,6 @@
 		}
 		
 		$op_keys =array(
-			"subvalue"
 		);
 		$attr_html ="";
 		
@@ -31,18 +30,13 @@
 		}
 		
 		$html ='';
-		
-		if (isset($params['subvalue'])) {
-			
-			$html .=(
-				'<input'
-				.' type="hidden"'
-				.' name="'.$params['name'].'"'
-				.' value="'.$params['subvalue'].'"'
-				.' />'."\n"
-			);
-		}
-		
+		$html .=(
+			'<input'
+			.' type="hidden"'
+			.' name="'.$params['name'].'"'
+			.' value=""'
+			.' />'."\n"
+		);
 		$html .=(
 			'<input'
 			.' type="checkbox"'

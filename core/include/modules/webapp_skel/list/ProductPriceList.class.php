@@ -9,9 +9,9 @@ class <?=str_camelize($tc["list"])?>List extends List_App {
 	public function options () {
 	
 		return array(
-			"1" =>"No.1",
-			"2" =>"No.2",
-			"3" =>"No.3",
+			"1" =>"Sample1",
+			"2" =>"Sample2",
+			"3" =>"Sample3",
 		);
 	}
 }

@@ -176,7 +176,7 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 	// 
 	protected function fetch_table_schema () {
 		
-		// DB構造構築
+		// テーブルごとに処理
 		foreach ((array)registry("Schema.tables") as $t_name => $t) {
 		
 			$t["name"] =$t_name;
@@ -192,15 +192,32 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				}
 			}
 			
+			// カラムごとに処理
 			foreach ((array)registry("Schema.cols.".$t_name) as $tc_name => $tc) {
 				
 				$tc["name"] =$t_name.".".$tc_name;
 				
-				if ($tc['list']) {
+				// データ表現別のオプション付加
+				if ($tc['type'] == "date") {
 					
-					$tc['modifier'] ='|select:"'.$tc['list'].'"';
-					$tc['input_option'] =' options="'.$tc['list'].'"';
-					$tc['search_input_option'] =' zerooption="--全て--"';
+					$tc['modifier'] ='|date:"Y/m/d"';
+				}
+				
+				if ($tc['type'] == "textarea") {
+					
+					$tc['modifier'] ='|nl2br';
+					$tc['input_option'] =' cols="40" rows="5"';
+				}
+				
+				if ($tc['type'] == "text") {
+				
+					$tc['input_option'] =' size="40"';
+				}
+				
+				if ($tc['type'] == "password") {
+					
+					$tc['modifier'] ='|hidetext';
+					$tc['input_option'] =' size="40"';
 				}
 				
 				if ($tc['type'] == "file") {
@@ -208,23 +225,31 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 					$tc['modifier'] ='|userfile';
 				}
 				
-				$t["cols"][$tc["name"]] =$tc;
+				if ($tc['type'] == "select" || $tc['type'] == "radioselect") {
+					
+					$tc['modifier'] ='|select:"'.$tc['list'].'"';
+					$tc['input_option'] =' options="'.$tc['list'].'"';
+				}
 				
+				if ($tc['type'] == "checklist") {
+					
+					$tc['modifier'] ='|select:"'.$tc['list'].'"|@implode:" "';
+					$tc['input_option'] =' options="'.$tc['list'].'"';
+				}
+				
+				// DB上のカラムに対応するcolsに登録
+				if ($tc['def']['type'] != "" && $tc['def']['type'] != "virtual") {
+				
+					$t["cols"][$tc["name"]] =$tc;
+				}
+				
+				// 入力用のfieldsに登録
 				if ( ! in_array($tc_name,$syskeys) 
 						&& $tc['type'] != "key"
+						&& $tc['type'] != "virtual"
 						&& $tc['type'] != "") {
 					
 					$t["fields"][$tc["name"]] =$tc;
-					
-					if ($counter[$tc_name][3]++<=3) {
-						
-						$t["fields_3"][$tc["name"]] =$tc;
-					}
-					
-					if ($counter[$tc_name][5]++<=3) {
-						
-						$t["fields_5"][$tc["name"]] =$tc;
-					}
 				}
 			}
 			
@@ -244,7 +269,7 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 			$t_def["table"] =$t_name;
 			$t_def["pkey"] =preg_replace(
 					'!^'.preg_quote($t_name).'\.!',
-					'',$t["pkey"]);
+					'', $t["pkey"]);
 			
 			foreach ((array)$t["cols"] as $tc_name => $tc) {
 			
@@ -265,5 +290,56 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 			"tables" =>$this->tables,
 			"tables_def" =>$this->tables_def,
 		));
+	}
+	
+	//-------------------------------------
+	// fieldsを用途ごとにフィルタリングする
+	// $type: search sort input save list detail csv
+	public function filter_fields ($fields, $type) {
+		
+		foreach ($fields as $tc_name => $tc) {
+		
+			if ($type == "search"
+					&& ($tc["type"] == "textarea"
+					|| $tc["type"] == "file"
+					|| $tc["type"] == "password")) {
+				
+				unset($fields[$tc_name]);
+			}
+			
+			if ($type == "sort"
+					&& ($tc["type"] == "textarea"
+					|| $tc["type"] == "file"
+					|| $tc["type"] == "password")) {
+				
+				unset($fields[$tc_name]);
+			}
+			
+			if ($type == "list" 
+					&& ($tc["type"] == "textarea"
+					|| $tc["type"] == "file"
+					|| $tc["type"] == "password")) {
+				
+				unset($fields[$tc_name]);
+			}
+			
+			if ($type == "save" 
+					&& (false)) {
+				
+				unset($fields[$tc_name]);
+			}
+		}
+		
+		if ($type == "search" || $type == "sort") {
+			
+			$fields =array_slice($fields,0,3);
+		}
+			
+		if ($type == "list") {
+			
+			$fields =array_slice($fields,0,6);
+		}
+		
+		return $fields;
 	}
 }

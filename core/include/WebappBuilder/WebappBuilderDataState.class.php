@@ -8,17 +8,14 @@ class WebappBuilderDataState extends WebappBuilder {
 	// DBの状態を設定する
 	public function fetch_datastate () {
 		
-		// 指定しなければdefault
-		$connection =DBI::change($this->options["connection"]);
-		
 		// DBのダンプデータを作成する
 		if ($this->options["create_dump"]) {
 			
 			$dump_file =tempnam("/tmp","php_tmpfile-");
-			DBI::load()->create_dump($dump_file);
+			dbi()->create_dump($dump_file);
 			
 			clean_output_shutdown(array(
-				"download" =>"dump-".$connection."-".date("Ymd").".sql",
+				"download" =>"dump-".date("Ymd").".sql",
 				"file" =>$dump_file,
 			));
 		}
@@ -27,7 +24,7 @@ class WebappBuilderDataState extends WebappBuilder {
 		if ($this->options["restore_dump"]) {
 			
 			$dump_file =$_FILES["dump_sql"]["tmp_name"];
-			DBI::load()->restore_dump($dump_file,0);
+			dbi()->restore_dump($dump_file,0);
 		}
 		
 		// CSVファイルを読み込んでデータの操作を行う
@@ -57,15 +54,15 @@ class WebappBuilderDataState extends WebappBuilder {
 		// DBデータ構造読み込み
 		$schema =array();
 		
-		foreach (DBI::load()->desc_tables() as $t) {
+		foreach (dbi()->desc_tables() as $t) {
 			
-			foreach (DBI::load()->desc($t) as $k => $col_info) {
+			foreach (dbi()->desc($t) as $k => $col_info) {
 			
 				$schema[$t]["label"][] =$k;
 				$schema[$t]["label_comment"][] =$col_info["comment"];
 			}
 			
-			foreach (DBI::load()->select(array("table"=>$t)) as $index => $data) {
+			foreach (dbi()->select(array("table"=>$t)) as $index => $data) {
 				
 				foreach ($data as $k => $v) {
 					
@@ -182,22 +179,22 @@ class WebappBuilderDataState extends WebappBuilder {
 		}
 		
 		// データ更新
-		DBI::load()->begin();
+		dbi()->begin();
 		
 		try {
 			
 			// データの削除と登録
 			foreach ($schema as $t => $table_info) {
 				
-				DBI::load()->delete(array("table" =>$t, "conditions"=>"1=1"));
+				dbi()->delete(array("table" =>$t, "conditions"=>"1=1"));
 			
 				foreach ((array)$table_info["data"] as $fields) {
 				
-					DBI::load()->insert(array("table" =>$t, "fields" =>$fields));
+					dbi()->insert(array("table" =>$t, "fields" =>$fields));
 				}
 			}
 			
-			DBI::load()->commit();
+			dbi()->commit();
 		
 			report("Datastate-CSV restore successfuly",array(
 					"schema" =>$schema));
@@ -206,7 +203,7 @@ class WebappBuilderDataState extends WebappBuilder {
 			
 		} catch (Exception $e) {
 		
-			DBI::load()->rollback();
+			dbi()->rollback();
 			
 			report_warning("Datastate-CSV restore aborted",array(
 					"schema" =>$schema));

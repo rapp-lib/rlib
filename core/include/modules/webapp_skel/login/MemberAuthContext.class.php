@@ -24,10 +24,6 @@ class <?=str_camelize($c["account"])?>AuthContext extends Context_App {
 	// ログイン処理
 	public function login ($login_id, $login_pass) {
 		
-		$accounts =array(
-			"test" =>array("id" =>1, "pass" =>"pass"),
-		);
-		
 		// 既にログインされていれば情報を削除
 		if ($this->id()) {
 			
@@ -35,6 +31,10 @@ class <?=str_camelize($c["account"])?>AuthContext extends Context_App {
 		}
 		
 		// ログインID/パスワードチェック
+		$accounts =array(
+			"test" =>array("id" =>1, "pass" =>"pass"),
+		);
+		
 		if ($login_id && $login_pass && $accounts[$login_id]
 				&& $login_pass == $accounts[$login_id]["pass"]) {
 				

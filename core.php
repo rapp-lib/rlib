@@ -1,7 +1,7 @@
 <?php
 
 	define('RLIB_ROOT_DIR',dirname(__FILE__));
-	define('LIBVER',110325);
+	define('LIBVER',111116);
 	
 	foreach (glob(RLIB_ROOT_DIR."/core/*.php") as $filename) {
 		

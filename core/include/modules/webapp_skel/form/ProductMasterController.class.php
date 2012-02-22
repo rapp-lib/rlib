@@ -69,11 +69,11 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 <? else: ?>
 			// データの記録
 			$fields =$this->c->get_fields(array(
-<? foreach ($t["fields"] as $tc): ?>
+<? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
 				"<?=$tc['name']?>",
 <? endforeach; ?>
 			));
-			Model::load("<?=str_camelize($t["name"])?>")->save_<?=str_underscore($t["name"])?>($fields);
+			model("<?=str_camelize($t["name"])?>")->save($fields);
 <? endif; ?>
 
 			$this->c->session("complete",true);

@@ -3,7 +3,7 @@
 	
 	//-------------------------------------
 	// 標準レポートハンドラ
-	function error_handler (
+	function std_error_handler (
 			$errno, 
 			$errstr, 
 			$errfile=null, 
@@ -27,7 +27,7 @@
 	
 	//-------------------------------------
 	// 標準例外ハンドラ
-	function exception_handler ($e) {
+	function std_exception_handler ($e) {
 	
 		report($e->getMessage(),array(),array(
 			"type" =>"exception_handler",

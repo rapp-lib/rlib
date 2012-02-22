@@ -2,8 +2,12 @@
 
 	function smarty_modifier_options ($list_name, $param=null) {
 		
-		$list_options =obj("ListOptions")->get_instance($list_name);
+		$args =func_get_args();
+		$list_name =array_shift($args);
+		$params =$args;
 		
-		return $list_options->options($param);
+		$list_options =get_list($list_name);
+		
+		return $list_options->options($params);
 	}
 	

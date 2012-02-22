@@ -2,7 +2,7 @@
 
 //-------------------------------------
 // DBI実装
-class DBI_Base extends DBI {
+class DBI_Base {
 
 	protected $name ="";
 	protected $ds =null;
@@ -26,8 +26,8 @@ class DBI_Base extends DBI {
 					.'dbo_'.$connect_info["driver"].'.php');
 		}
 		
-		$this->ds =ConnectionManager::getInstance()
-				->create($this->name,$connect_info);
+		ConnectionManager::create($this->name,$connect_info);
+		$this->ds =ConnectionManager::getDataSource($this->name);
 	}
 	
 	//-------------------------------------
@@ -287,23 +287,26 @@ class DBI_Base extends DBI {
 		
 		$offset =$query["offset"];
 		$limit =$query["limit"];
-		$slider =$query["slider"];
+		$paging_slider =$query["paging_slider"];
 		
 		unset($query["offset"]);
 		unset($query["limit"]);
-		unset($query["slider"]);
+		unset($query["paging_slider"]);
 		unset($query["order"]);
+		
+		if ( ! $limit) {
+			
+			return null;
+		}
 		
 		$st =$this->st_select($query);
 		$result =$this->exec($st,"fetchRow",array(
 			"Type" =>"select_pager",
 			"Query" =>$query,
 		));
-		
 		$count =(int)$result["count"];
-		$pager =$limit
-				? $this->build_pager($offset,$limit,$count,$slider)
-				: null;
+		
+		$pager =$this->build_pager($offset,$limit,$count,$paging_slider);
 		
 		return $pager;
 	}
@@ -411,7 +414,14 @@ class DBI_Base extends DBI {
 						$joins[$k]["table"] 
 								='('.$this->st_select($joins[$k]["table"]).')';
 					}
-				
+					
+					// 標準JOIN方式をINNERからLEFTに変更
+					if ( ! isset($joins[$k]["type"]) 
+							&& registry("DBI.statement.default_join_type")) {
+						
+						$joins[$k]["type"] =registry("DBI.statement.default_join_type");
+					}
+					
 					$joins[$k] =$this->ds->buildJoinStatement($joins[$k]);
 				}
 			}
@@ -442,51 +452,6 @@ class DBI_Base extends DBI {
 		
 			list($query["table"],$query["alias"]) =$query["table"];
 		}
-			
-		// サブクエリの解決
-		if (is_array($query["table"])) {
-			
-			$query["table"] ='('.$this->st_select($query["table"]).')';
-		}
-		
-		foreach ($query["joins"] as $k => $v) {
-			
-			// joins.N:(table,conditions,type)構造の展開
-			if (isset($v[0])) {
-				
-				$query["joins"][$k]["table"] =$v[0];
-				unset($query["joins"][$k][0]);
-				
-				if (isset($v[1])) {
-					
-					$query["joins"][$k]["conditions"] =$v[1];
-					unset($query["joins"][$k][1]);
-				}
-				
-				if (isset($v[2])) {
-					
-					$query["joins"][$k]["type"] =$v[2];
-					unset($query["joins"][$k][2]);
-				}
-			}
-			
-			// table:(table,alias)構造の展開
-			if (is_array($query["joins"][$k]["table"])
-					&& $query["joins"][$k]["table"][0]) {
-				
-				list(
-					$query["joins"][$k]["table"],
-					$query["joins"][$k]["alias"]
-				) =$query["joins"][$k]["table"];
-			}
-			
-			// サブクエリの解決
-			if (is_array($query["joins"][$k]["table"])) {
-				
-				$query["joins"][$k]["table"] 
-						='('.$this->st_select($query["joins"][$k]["table"]).')';
-			}
-		}
 		
 		// Postgres向けに全てのfieldsのaliasを"AS TTT__AAA"に設定する
 		if (get_class($this->ds) == "DboPostgres") {
@@ -512,6 +477,15 @@ class DBI_Base extends DBI {
 			
 			$query["fields"] =$this->rename_fields_for_postgres($query["fields"],$aliases);
 		}
+			
+		// サブクエリの解決
+		if (is_array($query["table"])) {
+			
+			$query["table"] ='('.$this->st_select($query["table"]).')';
+		}
+		
+		// joins
+		$query["joins"] =$this->st_joins($query["joins"]);
 		
 		// conditions
 		$query["conditions"] =$this->ds->conditions($query["conditions"],true,false);
@@ -566,11 +540,12 @@ class DBI_Base extends DBI {
 			
 			} elseif (is_numeric($k)) {
 			
-				$update_fields[] =$v;
+				$update_fields[] =$this->ds->name($k)." = ".$v;
 			
 			} elseif (is_array($v)) {
 				
-				$update_fields[] =$this->ds->value(serialize($v), "string", false);
+				$update_fields[] =$this->ds->name($k)
+						." = ".$this->ds->value(serialize($v), "string", false);
 				
 			} else {
 			
@@ -820,13 +795,25 @@ class DBI_Base extends DBI {
 	public function build_slider ($pager ,$slider){
 			
 		$pager['pages_slider'] =array();
+		
+		$start =1;
+		$prev_set =null;
+		$next_set =$slider+1;
+		$current =$pager['current'];
+		$pages_count =count($pager['pages']);
+		
+		if ($current+ceil($slider/2) >= $pages_count) {
+		
+			$start =$pages_count - $slider + 1;
 			
-		for ($i=$pager['current']-$slider; $i<$pager['current']+$slider+1; $i++) {
+		} elseif ($current-floor($slider/2) > 0) {
+		
+			$start =$current - floor($slider/2);
+		}
+		
+		for ($i=$start; $i<$start+$slider; $i++) {
 			
-			if (isset ($pager['pages'][$i])) {
-			
-				$pager['pages_slider'][$i] =$pager['pages'][$i];
-			}
+			$pager['pages_slider'][$i] =$pager['pages'][$i];
 		}
 		
 		$pager['slider_prev'] =isset($pager['pages'][$pager['current']-$slider-1])
@@ -837,6 +824,8 @@ class DBI_Base extends DBI {
 				? $pager['pages'][$pager['current']+$slider+1]
 				: null;
 				
+		$pager['pages'] =$pager['pages_slider'];
+			
 		return $pager;
 	}
 	

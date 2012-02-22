@@ -2,7 +2,7 @@
 
 //-------------------------------------
 // 
-class Model_Base extends Model {
+class Model_Base {
 	
 	protected static $instance =array();
 	
@@ -20,35 +20,6 @@ class Model_Base extends Model {
 		}
 		
 		return self::$instance[$name];
-	}
-
-	//-------------------------------------
-	// 配列形式のカラムをunserialize
-	public function unserialize_fields ($ts, $field_names) {
-		
-		$field_names =is_array($field_names)
-				? $field_names
-				: array($field_names);
-				
-		foreach ($field_names as $field_name) {
-			
-			if (isset($ts[$field_names])) {
-			
-				$ts[$field_names] =unserialize($ts);
-			
-			} else {
-			
-				foreach ($ts as $t_index => $t) {
-				
-					if (isset($ts[$t_index][$field_names])) {
-						
-						$ts[$t_index][$field_names] =unserialize($t);
-					}
-				}
-			}
-		}
-		
-		return $ts;
 	}
 	
 	//-------------------------------------
@@ -88,68 +59,6 @@ class Model_Base extends Model {
 		}
 		
 		return $query1;
-	}
-		
-	//-------------------------------------
-	// 特定要素でのグルーピング
-	public function group_by ($ts, $key) {
-		
-		$gts =array();
-		
-		foreach ($ts as $index => $t) {
-			
-			$gts[$t[$key]][$index] =$t;
-		}
-		
-		return $gts;
-	}
-	
-	//-------------------------------------
-	// 下位の要素の統合
-	public function merge_children (
-			$ts, 
-			$children, 
-			$key, 
-			$children_name="children") {
-			
-		foreach ($ts as $index => $t) {
-			
-			$ts[$index][$children_name] =$children[$t[$key]];
-		}
-		
-		return $ts;
-	}
-		
-	//-------------------------------------
-	// 下位要素を特定要素でのグルーピングして統合
-	public function merge_grouped_children (
-			$ts1, 
-			$ts2,
-			$parent_key,
-			$child_key, 
-			$children_name="children") {
-		
-		$gts2 =$this->group_by($ts2,$parent_key);
-		$ts1 =$this->merge_children($ts1,$gts2,$child_key,$children_name);
-		
-		return $ts1;
-	}
-		
-	//-------------------------------------
-	// 指定した列の値でKV配列を得る
-	public function convert_to_hashlist (
-			$ts,
-			$key_name,
-			$value_name) {
-		
-		$list =array();
-		
-		foreach ($ts as $t) {
-			
-			$list[$t[$key_name]] =$t[$value_name];
-		}
-		
-		return $list;
 	}
 		
 	//-------------------------------------
@@ -241,5 +150,202 @@ class Model_Base extends Model {
 		}
 		
 		return $query;
+	}
+
+	//-------------------------------------
+	// 配列形式のカラムをunserialize
+	public function unserialize_fields_DELETE (
+			& $ts, 
+			$field_names) {
+		
+		$field_names =is_array($field_names)
+				? $field_names
+				: array($field_names);
+				
+		foreach ($field_names as $field_name) {
+			
+			if (isset($ts[$field_names])) {
+			
+				$ts[$field_names] =unserialize($ts);
+			
+			} else {
+			
+				foreach ($ts as $t_index => $t) {
+				
+					if (isset($ts[$t_index][$field_names])) {
+						
+						$ts[$t_index][$field_names] =unserialize($t);
+					}
+				}
+			}
+		}
+	}
+		
+	//-------------------------------------
+	// 特定要素でのグルーピング
+	public function group_by (
+			& $ts, 
+			$key,
+			$reduce_key=null) {
+		
+		$gts =array();
+		
+		foreach ($ts as $index => $t) {
+			
+			$gts[$t[$key]][$index] =$reduce_key
+					? $t[$reduce_key]
+					: $t;
+		}
+		
+		return $gts;
+	}
+	
+	//-------------------------------------
+	// 下位の要素の統合
+	public function merge_children (
+			& $ts, 
+			$children, 
+			$key, 
+			$children_name="children") {
+			
+		foreach ($ts as $index => $t) {
+			
+			$ts[$index][$children_name] =$children[$t[$key]];
+		}
+	}
+		
+	//-------------------------------------
+	// 下位要素を特定要素でグルーピングして統合
+	public function merge_grouped_children (
+			& $ts1, 
+			$ts2,
+			$parent_key,
+			$child_key, 
+			$children_name,
+			$reduce_key=null) {
+		
+		$gts2 =$this->group_by($ts2,$parent_key,$reduce_key);
+		$this->merge_children($ts1,$gts2,$child_key,$children_name);
+	}
+		
+	//-------------------------------------
+	// 指定した列の値で配列を得る
+	public function convert_to_hashlist (
+			& $ts,
+			$key_name,
+			$value_name=null) {
+		
+		$list =array();
+		
+		foreach ($ts as $t) {
+			
+			if ($value_name) {
+			
+				$list[$t[$key_name]] =$t[$value_name];
+				
+			} else {
+			
+				$list[] =$t[$key_name];
+			}
+		}
+		
+		return $list;
+	}
+
+	//-------------------------------------
+	// 親要素への変更を子要素へ反映
+	public function affect_assoc (
+			$id, 
+			$values=null,
+			$options=array()) {
+		
+		$ds =$options["ds"];
+		$table =$options["table"];
+		$parent_key =$options["parent_key"];
+		$child_key =$options["child_key"];
+		
+		// 子要素を全て削除
+		$query =array(
+			"table" =>$table,
+			"conditions" =>array(
+				$parent_key =>$id,
+			),
+		);
+		dbi($ds)->delete($query);
+		
+		// 子要素の登録
+		foreach ($values as $value) {
+			
+			if ( ! $value) {
+				
+				continue;
+			}
+			
+			// valueは値として、指定の列に登録（Bridge）
+			if ($child_key) {
+			
+				$fields =array(
+					$parent_key =>$id,
+					$child_key =>$value,
+				);
+			
+			// valueは値のセットとして、すべて登録（HasMany）
+			} else {
+				
+				$fields =$value;
+				$fields[$parent_key] =$id;
+			}
+			
+			$query =array(
+				"table" =>$table,
+				"fields" =>$fields, 
+			);
+			dbi($ds)->insert($query);
+		}
+	}
+
+	//-------------------------------------
+	// 親要素に関連する子要素を取り込む
+	public function merge_assoc (
+			& $ts,
+			$options=array()) {
+		
+		$ds =$options["ds"];
+		$table =$options["table"];
+		$parent_key =$options["parent_key"];
+		$child_key =$options["child_key"];
+		$parent_key_origin =$options["parent_key_origin"];
+		$children_key_origin =$options["children_key_origin"];
+		
+		if ( ! $ts) {
+			
+			return;
+		}
+		
+		if ( ! is_numeric(array_pop(array_keys($ts)))) {
+			
+			return $this->merge_assoc($ts_copy =array(0=> & $ts),$options);
+		}
+		
+		$parent_ids =$this->convert_to_hashlist(
+				$ts,
+				$parent_key_origin);
+		
+		// Bridgeの取得
+		$query =array(
+			"table" =>$table,
+			"conditions" =>array(
+				$parent_key =>$parent_ids,
+			),
+		);
+		$ts_bridge =dbi($ds)->select($query);
+		
+		$this->merge_grouped_children(
+				$ts, 
+				$ts_bridge,
+				$parent_key,
+				$parent_key_origin, 
+				$children_key_origin,
+				$child_key);
 	}
 }

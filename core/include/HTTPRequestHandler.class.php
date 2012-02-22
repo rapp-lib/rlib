@@ -101,6 +101,9 @@ class HTTPRequest_Curl {
 		$this->set_option(CURLOPT_SSLVERSION,3);
 		$this->set_option(CURLOPT_SSL_VERIFYPEER,false);
 		$this->set_option(CURLOPT_SSL_VERIFYHOST,false);
+		
+		// 100-continue対策
+		$this->options[CURLOPT_HTTPHEADER][] ='Expect:';
 	}
 	
 	//-------------------------------------

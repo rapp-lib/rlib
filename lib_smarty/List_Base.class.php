@@ -38,7 +38,7 @@ class List_Base {
 	
 	//-------------------------------------
 	// オプション取得
-	public function options ($param=array()) { 
+	public function options ($params=array()) { 
 		
 		if ( ! is_array($this->config["options"])) {
 			
@@ -53,9 +53,9 @@ class List_Base {
 	
 	//-------------------------------------
 	// オプション選択
-	public function select ($key=null) {
+	public function select ($key=null, $params=array()) {
 	
-		$options =$this->options();
+		$options =$this->options($params);
 		
 		return $options[$key];
 	}

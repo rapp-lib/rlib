@@ -12,6 +12,8 @@
 			"name",
 			"range", // 年の範囲指定（例："1970~+5"）
 			"format", // y/m/d/h/i/sについて「{%y}{%yp}{%yf}」のように指定する
+				// 日付の表示： format="{%l}{%yp}{%mp}{%dp}{%datefix}{%datepick}"
+				// 時刻の表示： format="{%l}{%hp}{%ip}{%datefix}"
 			"assign", // 部品をアサインするテンプレート変数名
 		);
 		$attr_html ="";
@@ -25,7 +27,7 @@
 		}
 		
 		// 初期選択値の組み立て
-		$d =longdate(date('Y/m/d H:i:s'));
+		$d ="";
 		
 		if ($postset_value_d =longdate($postset_value)) {
 			
@@ -36,14 +38,30 @@
 			$d =$preset_value_d;
 		}
 		
+		// 年指定の範囲の設定
 		$range =$params["range"]
 				? $params["range"]
-				: "-5~+5";
+				: "2007~+5";
 		list($y1,$y2) =input_type_date_parse_range($range);
+		
+		if ($d && $d["Y"]) {
+			
+			if ($y1 > $d["Y"]) {
+				
+				$y1 =$d["Y"];
+			
+			} elseif ($y2 < $d["Y"]) {
+				
+				$y2 =$d["Y"];
+			}
+		}
 		
 		// HTML組み立て
 		$html =array();
 		$html["alias"] =sprintf("LRA%09d",mt_rand());
+		$html["elm_id"] ='ELM_'.$html["alias"];
+		$html["head"] ='<span id="'.$html["elm_id"].'">';
+		$html["foot"] ='</span>';
 		$html["l"] ='<input type="hidden"'
 				.' name="_LRA['.$html["alias"].'][name]"'
 				.' value="'.$params['name'].'"/>'
@@ -53,6 +71,8 @@
 				.'<input type="hidden"'
 				.' name="_LRA['.$html["alias"].'][var_name]"'
 				.' value="'.$html["name"].'"/>';
+		
+		// 数値のみ
 		$html["y"] =input_type_date_get_select(
 				$params['name']."[y]",$d["Y"],range($y1,$y2),$attr_html,""); 
 		$html["m"] =input_type_date_get_select(
@@ -65,6 +85,8 @@
 				$params['name']."[i]",$d["i"],range(0,59),$attr_html,"");
 		$html["s"] =input_type_date_get_select(
 				$params['name']."[s]",$d["s"],range(0,59),$attr_html,"");
+		
+		// 年月日表記を含むもの
 		$html["yp"] =input_type_date_get_select(
 				$params['name']."[y]",$d["Y"],range($y1,$y2),$attr_html,"年");
 		$html["mp"] =input_type_date_get_select(
@@ -77,6 +99,8 @@
 				$params['name']."[i]",$d["i"],range(0,59),$attr_html,"分");
 		$html["sp"] =input_type_date_get_select(
 				$params['name']."[s]",$d["s"],range(0,59),$attr_html,"秒");
+		
+		// 固定Hidden入力
 		$html["yf"] ='<input type="hidden"'
 				.' name="'.$params['name'].'[y]'.'"'.' value="1970"/>';
 		$html["mf"] ='<input type="hidden"'
@@ -90,10 +114,20 @@
 		$html["sf"] ='<input type="hidden"'
 				.' name="'.$params['name'].'[s]'.'"'.' value="0"/>';
 		
-		$html["full"] =$params["format"]
+		// JS：日付の誤り訂正
+		$html["datefix"] ='<script>/*<!--*/ rui.require("rui.datefix",function(){'
+				.'rui.Datefix.fix_dateselect("#'.$html["elm_id"].'"); });'
+				.' /*-->*/</script>';
+				
+		// JS：日付選択カレンダーポップUI
+		$html["datepick"] .='<script>/*<!--*/ rui.require("jquery.datepick",function(){'
+				.'rui.Datepick.impl_dateselect("#'.$html["elm_id"].'",{yearRange:"'.$y1.':'.$y2.'"}); });'
+				.' /*-->*/</script>';
+		
+		$format =$params["format"]
 				? $params["format"]
-				: '{%l}{%y}{%m}{%d}{%hf}{%if}{%sf}';
-		$html["full"] =str_template_array($html["full"],$html);
+				: '{%l}{%yp}{%mp}{%dp}{%datefix}{%datepick}';
+		$html["full"] =$html["head"].str_template_array($format,$html).$html["foot"];
 		
 		// テンプレート変数へのアサイン
 		if ($params["assign"]) {
@@ -109,9 +143,11 @@
 	
 		$html ="";
 		$html .='<select name="'.$name.'"'.$attrs.'>';
+		$html .='<option value=""></option>';
 		
 		foreach ($list as $v) {
-			$selected =((int)$v == (int)$value);
+		
+			$selected =(strlen($value) && (int)$v == (int)$value);
 			$html .='<option value="'.$v.'"'
 					.($selected ? ' selected="selected"' :'')
 					.'>'.$v.$postfix.'</option>';

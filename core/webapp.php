@@ -23,17 +23,18 @@
 			"Config.dync_auth_id" =>"e77989ed21758e78331b20e477fc5582",
 			"Config.dync_auth_pw" =>"547d913f6ee96d283eb4d50aea20acc1",
 			
-			// Dtrack機能設定
-			"Config.dtrack_key" =>null,
-			
-			// セッションID再生成機能設定
-			"Config.session_id_regenerate" =>false,
+			// セッション設定
+			"Config.session_start_function" =>"std_session_start",
 			
 			// webapp_dir内のinclude_path設定
 			"Config.webapp_include_path" =>array(
 				"app",
+				"app/include",
 				"app/controller",
 				"app/context",
+				"app/list",
+				"app/model",
+				"app/widget",
 			),
 			
 			// ライブラリ読み込み設定
@@ -44,7 +45,7 @@
 			),
 			
 			// レポート出力設定
-			"Report.error_reporting" =>E_ALL^E_NOTICE,
+			"Report.error_reporting" =>E_ALL&~E_NOTICE,
 		);
 		
 		foreach ($registry_defaultset as $k => $v) {
@@ -67,42 +68,56 @@
 		
 		// PHPの設定書き換え
 		spl_autoload_register("load_class");
-		set_error_handler("error_handler",E_ALL^E_NOTICE);
-		set_exception_handler('exception_handler');
+		set_error_handler("std_error_handler",E_ALL);
+		set_exception_handler('std_exception_handler');
+		
+		// session_start
+		call_user_func(registry("Config.session_start_function"));
+		
+		// Dync機能の有効化
+		start_dync();
+		
+		// include_pathの設定
+		foreach ((array)registry("Config.webapp_include_path") as $k => $v) {
+			
+			add_include_path(registry("Path.webapp_dir")."/".$v);
+		}
+		
+		// ライブラリの読み込み
+		foreach ((array)registry("Config.load_lib") as $k => $v) {
+			
+			load_lib($v);
+		}
+		
+		// WebappBuild機能
+		if (get_webapp_dync("webapp_build") && $_REQUEST["exec"]) {
+			
+			obj("WebappBuilder")->webapp_build();
+			exit;
+		}
+	}
+	
+	//-------------------------------------
+	// std_session_start
+	function std_session_start () {
 		
 		// セッションの開始
 		ini_set("session.cookie_lifetime",0);
 		ini_set("session.cookie_httponly",true);
 		ini_set("session.cookie_secure",$_SERVER['HTTPS']);
-		session_start();
-			
-		// セッションID再生成
-		if (registry("Config.session_id_regenerate")) {
 		
-			$current_session_id =session_id();
-			
-			if ($deleted_session_id =$_SESSION["__deleted_session_id"]) {
-			
-				// 破棄対象セッションの削除実施
-				session_id($deleted_session_id);
-				session_start();
-				$_SESSION =array();
-				session_destroy();
-				
-				// セッションの再会
-				session_id($current_session_id);
-				session_start();
-			}
-			
-			session_regenerate_id();
-			
-			$_SESSION["__deleted_session_id"] =$current_session_id;
-		}
+		session_cache_limiter('nocache');
+		session_start();
+	}
+	
+	//-------------------------------------
+	// start_dync
+	function start_dync () {
 		
 		// Dync継続
 		if ($dync_key =registry("Config.dync_key")) {
 			
-			$dync =(array)unserialize($_SESSION["__dync"]);
+			$dync =(array)unserialize($_COOKIE["__dync"]);
 			
 			// Dync認証
 			if ($_REQUEST[$dync_key]
@@ -132,7 +147,7 @@
 			}
 			
 			$dync =array_merge($dync,(array)$_REQUEST[$dync_key]);
-			$_SESSION["__dync"] =serialize($dync);
+			setcookie("__dync",serialize($dync),0,"/");
 			registry("Config.dync",$dync);
 			
 			if ($dync["report"]) {
@@ -140,56 +155,6 @@
 				ini_set("display_errors",true);
 				ini_set("error_reporting",registry("Report.error_reporting"));
 			}
-		}
-		
-		// Dtrack生成
-		if ($dtrack_key =registry("Config.dtrack_key")) {
-			
-			// Dtrack整合チェック
-			$dtrack_param =$_REQUEST[$dtrack_key];
-			$dtrack_value =$dtrack_param
-					? $dtrack_param
-					: sprintf('%07d',rand(1,9999999));
-			$dtrack_match = ! $dtrack_param || $dtrack_param == $_COOKIE["__dtrack"];
-			
-			// GETリクエスト運用（リロード等）対策にURLの整合性で再チェック
-			$dtrack_url =$_SERVER["REQUEST_URI"].'?'.$_SERVER["QUERY_STRING"];
-			
-			if ($_GET[$dtrack_key] && ! $dtrack_match 
-					&& $dtrack_url == $_COOKIE["__dtrack_url"]) {
-				
-				$dtrack_value =$dtrack_param =$_COOKIE["__dtrack"];
-				$dtrack_match =true;
-			}
-			
-			registry("Config.dtrack_match",$dtrack_match ? 1 : 0);
-			
-			// Dtrackの変更と登録
-			$dtrack_value =sprintf('%07d',rand(1,9999999));
-			setcookie("__dtrack",$dtrack_value,0,"/");
-			setcookie("__dtrack_url",$dtrack_url,0,"/");
-			
-			output_rewrite_var(registry("Config.dtrack_key"),$dtrack_value);
-			registry("Config.dtrack",$dtrack_value);
-		}
-		
-		// include_pathの設定
-		foreach ((array)registry("Config.webapp_include_path") as $k => $v) {
-			
-			add_include_path(registry("Path.webapp_dir")."/".$v);
-		}
-		
-		// ライブラリの読み込み
-		foreach ((array)registry("Config.load_lib") as $k => $v) {
-			
-			load_lib($v);
-		}
-		
-		// WebappBuild機能
-		if (get_webapp_dync("webapp_build") && $_REQUEST["exec"]) {
-			
-			obj("WebappBuilder")->webapp_build();
-			exit;
 		}
 	}
 	

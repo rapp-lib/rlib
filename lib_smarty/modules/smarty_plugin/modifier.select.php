@@ -1,9 +1,14 @@
 <?php
-
-	function smarty_modifier_select ($key, $list_name, $param=null) {
+	
+	function smarty_modifier_select () {
 		
-		$list_options =obj("ListOptions")->get_instance($list_name);
+		$args =func_get_args();
+		$key =array_shift($args);
+		$list_name =array_shift($args);
+		$params =$args;
 		
-		return $list_options->select($key,$param);
+		$list_options =get_list($list_name);
+		
+		return $list_options->select($key,$params);	
 	}
 	

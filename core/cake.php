@@ -2,7 +2,7 @@
 	
 	//-------------------------------------
 	// CakePHPライブラリの読み込み
-	function load_cake () {
+	function load_cake ($cake_dir=null) {
 		
 		// 既にCakeライブラリを読み込んでいるため、スキップ
 		if (defined('CAKE_PHP')) {
@@ -10,9 +10,9 @@
 			return;
 		
 		// 指定されたCakeライブラリを使用
-		} elseif (registry("Path.cake_dir")) {
+		} elseif ($cake_dir) {
 		
-			define('ROOT', registry("Path.cake_dir"));
+			define('ROOT', $cake_dir);
 			
 			define('APP_DIR', 'app');
 			define('DS', DIRECTORY_SEPARATOR);
@@ -33,12 +33,16 @@
 			require_once LIBS . 'set.php';
 			require_once LIBS . 'cache.php';
 			Configure::getInstance();
-			require_once CAKE . 'dispatcher.php';
-		
-			require_once(LIBS.'/model/model.php');
 			restore_error_handler();
+			require_once CAKE . 'dispatcher.php';
 			
-			define("CAKE_PHP",registry("Path.cake_dir"));
+			define("_LIBS",dirname(__FILE__)."/cake/");
+			require_once(_LIBS.'/model/connection_manager.php');
+			require_once(_LIBS.'/model/datasources/dbo_source.php');
+			
+			require_once(LIBS.'/model/model.php');
+			
+			define("CAKE_PHP",$cake_dir);
 			
 		// Datasource機能のみ抽出した最小版Cakeの使用
 		} else {

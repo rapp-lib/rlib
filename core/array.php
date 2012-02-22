@@ -95,6 +95,34 @@
 			$name =$match[1];
 		}
 		
+		// 値の取得
+		if ($value === null) {
+			
+			// 参照を解決（値で参照）
+			if ($name === false) {
+			
+				$ref =$arr;
+				
+			} elseif ($escape) {
+				
+				$ref =$arr[$name];
+				
+			} else {
+				
+				$ref =ref_array($arr, $name);
+			}
+			
+			// 必須エラー
+			if ($must_def && $ref === null) {
+				
+				report_error("Registry must-be defined.",array(
+					"name" =>$name
+				));
+			}
+			
+			return $ref;
+		}
+		
 		// 参照解決
 		if ($name === false) {
 		
@@ -109,20 +137,8 @@
 			$ref =& ref_array($arr, $name);
 		}
 		
-		// 値の取得
-		if ($value === null) {
-			
-			return $ref;
-		
-		// 必須エラー
-		} elseif ($must_def && $ref === null) {
-			
-			report_error("Registry must-be defined.",array(
-				"name" =>$name
-			));
-		
 		// 消去（value=false）
-		} elseif ($value === false) {
+		if ($value === false) {
 		
 			if ($name === false) {
 			

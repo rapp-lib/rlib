@@ -2,6 +2,6 @@
 
 -- <?=$ts[$t_name]["label"]?> 
 DROP TABLE IF EXISTS <?=$t_name?>;
-<?=DBI::load()->st_init_schema(array("table_def"=>$table_def));?>
+<?=dbi()->st_init_schema(array("table_def"=>$table_def));?>
 
 <? endforeach; ?>

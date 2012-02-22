@@ -367,10 +367,15 @@ class SmartyExtended extends Smarty {
 			"name",
 			"assign", // 指定した名前で部品のアサイン
 			"options", // List名の指定
-			"options_param", // ListOptions::optionsの引数
+			"options_params", // List::optionsの引数
 			"parent_id", // 連動対象の要素のID
-			"parents_param", // ListOptions::parentsの引数
-			"zerooption", // 非選択要素を先頭に追加
+			"parents_params", // List::parentsの引数
+			
+			// Checklist以外
+			"zerooption", // 先頭の非選択要素の指定
+			
+			// Selectのみ
+			"nozerooption", // 非選択要素を自動的に追加しない指定
 		);
 		$attr_html ="";
 		
@@ -381,18 +386,35 @@ class SmartyExtended extends Smarty {
 		
 		foreach ($params as $key => $value) {
 			
+			if (preg_match('!options_param_(\d+)!',$key,$match)) {
+				
+				$params["options_params"][$match[1]] =$value;
+			}
+			
+			if (preg_match('!parents_param_(\d+)!',$key,$match)) {
+				
+				$params["parents_params"][$match[1]] =$value;
+			}
+			
 			if ( ! in_array($key,$op_keys)) {
 			
 				$attr_html .=' '.$key.'="'.$value.'"';
 			}
 		}
 		
-		$list_options =obj("ListOptions")->get_instance($params["options"]);
-		$options =$list_options->options($params["options_param"]);
+		$list_options =get_list($params["options"]);
+		$options =$list_options->options($params["options_params"]);
 		
-		if (isset($params["zerooption"])) {
+		// 空白選択の挿入(Checklist以外)
+		if ($params["type"] != "checklist" && isset($params["zerooption"])) {
 		
 			$options =array("" =>$params["zerooption"]) + $options;
+		
+		// Select要素には空白要素を自動挿入
+		} elseif ($params["type"] == "select" 
+				&& ! isset($params["nozerooption"])) {
+		
+			$options =array("" =>"") + $options;
 		}
 		
 		$html =array(
@@ -449,9 +471,11 @@ class SmartyExtended extends Smarty {
 			
 			foreach ($options as $option_value => $option_label) {
 				
-				$checked =in_array($option_value,$selected_value);
+				$checked =in_array($option_value,(array)$selected_value);
 				$html["options"][$option_value] =
-						'<nobr><label>'.'<input type="checkbox"'
+						'<input type="hidden" name="'.$params['name']
+						.'['.$option_value.']" value="" />'."\n"
+						.'<nobr><label>'.'<input type="checkbox"'
 						.' name="'.$params["name"].'['.$option_value.']'.'"'
 						.' value="'.$option_value.'"'.$attr_html
 						.($checked ? ' checked="checked"' : '')
@@ -462,7 +486,7 @@ class SmartyExtended extends Smarty {
 		// 親要素との連動
 		if ($params["parent_id"]) {
 			
-			$parents =$list_options->parents($params["parents_param"]);
+			$parents =$list_options->parents($params["parents_params"]);
 			
 			if ($params["type"] == "radioselect" || $params["type"] == "checklist") {
 				
@@ -475,10 +499,10 @@ class SmartyExtended extends Smarty {
 				$html["foot"] =$html["foot"].'</span>';
 			}
 				
-			$html["foot"] .='<script>'
-					.'select_sync_parent("'.$params['id'].'",'
-					.'"'.$params['parent_id'].'",'
-					.array_to_json($parents).',"'.$params["type"].'");</script>';
+					
+			$html["foot"] .='<script>/*<!--*/ rui.require("rui.syncselect",function(){ '
+					.'rui.syncselect("'.$params['id'].'",'.'"'.$params['parent_id'].'",'
+					.array_to_json($parents).',"'.$params["type"].'"); }); /*-->*/</script>';
 		}
 		
 		$html["full"] =$html["head"].implode("",$html["options"]).$html["foot"];

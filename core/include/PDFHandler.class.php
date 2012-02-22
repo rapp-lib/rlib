@@ -172,7 +172,7 @@ class PDFHandler {
 		// フォントの読み込み
 		if ( ! $this->font_loaded[$options["font"]]) {
 		
-			$this->pdf->AddMBFont($options["font"], 'SJIS');
+			$this->pdf->AddMBFont($options["font"], 'UNIJIS');
 			$this->font_loaded[$options["font"]] =true;
 		}
 		
@@ -196,7 +196,7 @@ class PDFHandler {
 			$result =$this->pdf->MultiCell(
 					$options["w"],
 					$options["h"],
-					mb_convert_encoding($options["text"],"SJIS","UTF-8"),
+					mb_convert_encoding($options["text"],"UTF-16","UTF-8"),
 					$options["border"],
 					$options["align"]);
 					
@@ -206,7 +206,7 @@ class PDFHandler {
 			$result =$this->pdf->Cell(
 					$options["w"],
 					$options["h"],
-					mb_convert_encoding($options["text"],"SJIS","UTF-8"),
+					mb_convert_encoding($options["text"],"UTF-16","UTF-8"),
 					$options["border"],
 					0,
 					$options["align"]);

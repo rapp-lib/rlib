@@ -13,9 +13,9 @@
 <!-- /errors_module -->
 
 <!-- entry_module -->
-{{form _page=".entry_confirm" enctype="form/multipart"}}
+{{form _page=".entry_confirm" enctype="multipart/form-data"}}
 <table class="detail">
-<? foreach ($t["fields"] as $tc): ?>
+<? foreach ($this->filter_fields($t["fields"],"input") as $tc): ?>
 <tr>
 	<td class="label"><nobr><?=$tc['label']?></nobr></td>
 	<td class="cell">{{input name="c[<?=$tc['name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?>}}</td>

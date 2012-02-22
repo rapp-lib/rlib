@@ -6,7 +6,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 
 	//-------------------------------------
 	// Read: <?=$t["label"]?> ID指定で1件取得
-	public function get_<?=str_underscore($t["name"])?> ($id) {
+	public function get_by_id ($id) {
 	
 		// 要素の取得
 		$query =array(
@@ -18,14 +18,14 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 			),
 		);
-		$t =DBI::load()->select_one($query);
+		$t =dbi()->select_one($query);
 		
 		return $t;
 	}
 
 	//-------------------------------------
 	// Read: <?=$t["label"]?> 一覧取得
-	public function get_<?=str_underscore($t["name"])?>_all () {
+	public function get_all () {
 	
 		// 条件を指定して要素を取得
 		$query =array(
@@ -40,14 +40,14 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 			
 		);
-		$ts =DBI::load()->select($query);
+		$ts =dbi()->select($query);
 		
 		return $ts;
 	}
 
 	//-------------------------------------
 	// Read: <?=$t["label"]?> 一覧ページ取得
-	public function get_<?=str_underscore($t["name"])?>_list ($list_setting, $input) {
+	public function get_list ($list_setting, $input) {
 		
 		// 条件を指定して要素を取得
 		$query =$this->get_list_query($list_setting, $input);
@@ -60,15 +60,15 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 			),
 		));
-		$ts =DBI::load()->select($query);
-		$p =DBI::load()->select_pager($query);
+		$ts =dbi()->select($query);
+		$p =dbi()->select_pager($query);
 		
 		return array($ts,$p);
 	}
 
 	//-------------------------------------
 	// Write: <?=$t["label"]?> 保存
-	public function save_<?=str_underscore($t["name"])?> ($fields, $id=null) {
+	public function save ($fields, $id=null) {
 		
 		// IDの指定があれば更新
 		if ($id) {
@@ -87,7 +87,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 				),
 			);
-			$r =DBI::load()->update($query);
+			$r =dbi()->update($query);
 			
 			return $r;
 		
@@ -106,7 +106,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 				"fields" =>$fields,
 				"table" =>"<?=$t["name"]?>",
 			);
-			$r =DBI::load()->insert($query);
+			$r =dbi()->insert($query);
 			
 			return $r;
 		}
@@ -114,7 +114,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 
 	//-------------------------------------
 	// Write: <?=$t["label"]?> 削除
-	public function delete_<?=str_underscore($t["name"])?> ($id) {
+	public function delete ($id) {
 	
 <? if ($t['del_flg']): ?>
 		// 要素の削除フラグをon
@@ -131,7 +131,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 				"<?=$t['del_flg']?>" =>"0",
 			),
 		);
-		$r =DBI::load()->update($query);
+		$r =dbi()->update($query);
 <? else: ?>
 		// 要素の削除
 		$query =array(
@@ -140,7 +140,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 				"<?=$t["name"]?>.id" =>$id,
 			),
 		);
-		$r =DBI::load()->delete($query);
+		$r =dbi()->delete($query);
 <? endif; ?>
 		
 		return $r;

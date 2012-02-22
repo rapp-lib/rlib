@@ -29,7 +29,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		// リスト取得
 		$list_setting =array(
 			"search" =>array(
-<? foreach ($t["fields_3"] as $tc): ?>
+<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
 				"<?=$tc['name']?>" =>array(
 						"type" =>'eq',
 						"target" =>"<?=$tc['name']?>"),
@@ -39,7 +39,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				"sort_param_name" =>"sort",
 				"default" =>"<?=$t['pkey']?> ASC",
 				"map" =>array(
-<? foreach ($t["fields_3"] as $tc): ?>
+<? foreach ($this->filter_fields($t["fields"],"sort") as $tc): ?>
 					"<?=$tc['name']?>" =>"<?=$tc['name']?> ASC",
 <? endforeach; ?>
 				),
@@ -50,7 +50,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			),
 		);
 		list($this->vars["ts"] ,$this->vars["p"])
-				=Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>_list($list_setting,$this->c->input());
+				=model("<?=str_camelize($t["name"])?>")->get_list($list_setting,$this->c->input());
 	}
 
 	//-------------------------------------
@@ -63,7 +63,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		$this->c->id($_REQUEST["id"]);
 		
 		// 登録データの取得
-		$this->vars["t"] =Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>($this->c->id());
+		$this->vars["t"] =model("<?=str_camelize($t["name"])?>")->get_by_id($this->c->id());
 		
 		// 既存データの取得ができない場合の処理
 		if ( ! $this->vars["t"]) {
@@ -87,7 +87,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			$this->c->id($_REQUEST["id"]);
 			
 			// 既存データの取得
-			$input =Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>($this->c->id());
+			$input =model("<?=str_camelize($t["name"])?>")->get_by_id($this->c->id());
 			
 			// 既存データの取得ができない場合の処理
 			if ( ! $input) {
@@ -143,11 +143,11 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			
 			// データの記録
 			$fields =$this->c->get_fields(array(
-<? foreach ($t["fields"] as $tc): ?>
+<? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
 				"<?=$tc['name']?>",
 <? endforeach; ?>
 			));
-			Model::load("<?=str_camelize($t["name"])?>")->save_<?=str_underscore($t["name"])?>($fields,$this->c->id());
+			model("<?=str_camelize($t["name"])?>")->save($fields,$this->c->id());
 			
 			$this->c->session("complete",true);
 		}
@@ -165,7 +165,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		$this->c->id($_REQUEST["id"]);
 			
 		// 既存のデータを確認
-		$input =Model::load("<?=str_camelize($t["name"])?>")->get_<?=str_underscore($t["name"])?>($this->c->id());
+		$input =model("<?=str_camelize($t["name"])?>")->get_by_id($this->c->id());
 		
 		// 既存データの確認ができない場合の処理
 		if ( ! $input) {
@@ -188,7 +188,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				&& ! $this->c->session("complete")) {
 				
 			// データの削除
-			Model::load("<?=str_camelize($t["name"])?>")->delete_<?=str_underscore($t["name"])?>($this->c->id());
+			model("<?=str_camelize($t["name"])?>")->delete($this->c->id());
 			
 			$this->c->session("complete",true);
 		}

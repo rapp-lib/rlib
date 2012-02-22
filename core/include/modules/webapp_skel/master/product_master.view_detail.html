@@ -4,7 +4,7 @@
 
 <!-- show_module -->
 <table class="detail">
-<? foreach ($t["fields"] as $tc): ?>
+<? foreach ($this->filter_fields($t["fields"],"detail") as $tc): ?>
 <tr>
 	<td class="label"><nobr><?=$tc['label']?></nobr></td>
 	<td class="cell">{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}</td>

@@ -10,51 +10,65 @@
 		if (strlen($date_string) 
 				&& preg_match($date_pattern,$date_string, $match)) {
 			
-			$longdate =array(
-				"y" =>sprintf('%04d',$match[2]),
-				"m" =>sprintf('%02d',$match[3]),
-				"d" =>sprintf('%02d',$match[4]),
-				"h" =>sprintf('%02d',$match[6]),
-				"i" =>sprintf('%02d',$match[7]),
-				"s" =>sprintf('%02d',$match[9])
-			);
+			$longdate =array();
+			$longdate["T"] =($match[1]?"date":"").($match[5]?"time":"");
+			
+			if ($match[1]) {
+				$longdate["y"] =sprintf('%04d',$match[2]);
+				$longdate["m"] =sprintf('%02d',$match[3]);
+				$longdate["d"] =sprintf('%02d',$match[4]);
+			}
+			if ($match[5]) {
+				$longdate["h"] =sprintf('%02d',$match[6]);
+				$longdate["i"] =sprintf('%02d',$match[7]);
+				$longdate["s"] =sprintf('%02d',$match[9]);
+			}
 		} else  {
 			
 			return array();
 		}
 		
-		// ２ケタ表記の年の解決
-		if ($longdate["y"] < 50) {
+		// 日付に関わる変換
+		if ($longdate["T"] == "date" || $longdate["T"] == "datetime") {
 		
-			$longdate["y"] +=2000;
+			// ２ケタ表記の年の解決
+			if ($longdate["y"] < 50) {
 			
-		} elseif ($longdate["y"] < 100) {
-		
-			$longdate["y"] +=1900;
+				$longdate["y"] +=2000;
+				
+			} elseif ($longdate["y"] < 100) {
+			
+				$longdate["y"] +=1900;
+			}
+			
+			// 和暦（X）
+			$longdate["X"] =get_japanese_year(
+					$longdate["y"],$longdate["m"],$longdate["d"],"X");
+			
+			// X00表記の和暦（x）
+			$longdate["x"] =get_japanese_year(
+					$longdate["y"],$longdate["m"],$longdate["d"],"x");
+			
+			// 0-6表記の曜日計算（w）
+			$longdate["w"] =get_weekday($longdate["y"],$longdate["m"],$longdate["d"],"w");
+			
+			// 日本語短縮表記の曜日（W）
+			$longdate["W"] =get_weekday($longdate["y"],$longdate["m"],$longdate["d"],"W");
+			
+			// date関数標準表記に変換
+			$longdate["Y"] =$longdate["y"];
+			$longdate["y"] =sprintf("%02d", $longdate["y"]%100);
+			$longdate["M"] =get_date_m($longdate["m"]);
+			$longdate["n"] =(int)($longdate["m"]);
+			$longdate["j"] =(int)($longdate["d"]);
 		}
 		
-		// 和暦（X）
-		$longdate["X"] =get_japanese_year(
-				$longdate["y"],$longdate["m"],$longdate["d"],"X");
+		// 時刻に関わる変換
+		if ($longdate["T"] == "time" || $longdate["T"] == "datetime") {
 		
-		// X00表記の和暦（x）
-		$longdate["x"] =get_japanese_year(
-				$longdate["y"],$longdate["m"],$longdate["d"],"x");
-		
-		// 0-6表記の曜日計算（w）
-		$longdate["w"] =get_weekday($longdate["y"],$longdate["m"],$longdate["d"],"w");
-		
-		// 日本語短縮表記の曜日（W）
-		$longdate["W"] =get_weekday($longdate["y"],$longdate["m"],$longdate["d"],"W");
-		
-		// date関数標準表記に変換
-		$longdate["Y"] =$longdate["y"];
-		$longdate["y"] =sprintf("%02d", $longdate["y"]%100);
-		$longdate["M"] =get_date_m($longdate["m"]);
-		$longdate["n"] =(int)($longdate["m"]);
-		$longdate["j"] =(int)($longdate["d"]);
-		$longdate["H"] =$longdate["h"];
-		$longdate["h"] =(int)($longdate["h"]);
+			$longdate["H"] =$longdate["h"];
+			$longdate["h"] =(int)($longdate["h"]);
+		}
 		
 		return $longdate;
 	}

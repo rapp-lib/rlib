@@ -32,29 +32,36 @@ class LayoutRequestArray {
 			// 日付指定
 			if ($request["mode"] == "date") {
 			
-				$date_str ="";
+				$date_is_set =($values["y"] || $values["m"] || $values["d"]);
+				$date_str =(int)$values["y"].'/'. (int)$values["m"]."/".(int)$values["d"];
 				
-				if ($values["y"] || $values["m"] || $values["d"]) {
+				$time_is_set =(strlen($values["h"]) || strlen($values["i"]));
+				$time_str =(int)$values["h"].':'. (int)$values["i"];
+				
+				$time_str .=$time_is_set && $values["s"]
+						? ":".(int)$values["s"]
+						: "";
+				
+				// Datetime
+				if ($date_is_set && $time_is_set) {
 					
-					$date_str .=(int)$values["y"].'/'. (int)$values["m"]."/".(int)$values["d"];
+					$values =$date_str." ".$time_str;
+				
+				// Date
+				} elseif ($date_is_set) {
+					
+					$values =$date_str;
+				
+				// Time
+				} elseif ($time_is_set) {
+					
+					$values =$time_str;	
+				
+				// 不正値
+				} else {
+				
+					$values =null;
 				}
-				
-				if ($date_str) {
-				
-					$date_str .=' ';
-				}
-				
-				if ($values["h"] || $values["i"]) {
-				
-					$date_str .=(int)$values["h"].':'. (int)$values["i"];
-				
-					if ($values["s"]) {
-						
-						$date_str .=":".(int)$values["s"];
-					}
-				}
-				
-				$values =$date_str;
 				
 			// layout指定
 			} elseif ($layout =$request["layout"]) {

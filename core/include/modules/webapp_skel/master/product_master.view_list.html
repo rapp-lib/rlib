@@ -5,7 +5,7 @@
 <!-- search_module -->
 {{form _page="." _reset="1"}}
 <table class="detail">
-<? foreach ($t["fields_3"] as $tc): ?>
+<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
 <tr>
 	<td class="label"><nobr><?=$tc['label']?></nobr></td>
 	<td class="cell">{{input name="c[<?=$tc['name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}</td>
@@ -26,37 +26,6 @@
 	{{a _page=".entry_form" class="button"}}新規登録{{/a}}
 </div>
 <!-- /controll_module -->
-
-<!-- list_module -->
-<table class="list">
-<tr>
-<? foreach ($t["fields_5"] as $tc): ?>
-	<td class="label">
-		<nobr>{{a _page="." _query="c[sort]=<?=$tc['name']?>" class="sort"}}<?=$tc['label']?>{{/a}}</nobr>
-	</td>
-<? endforeach; ?>
-	<td class="label">
-		&nbsp;
-	</td>
-</tr>
-{{foreach from=$ts item="t"}}
-	<tr>
-<? foreach ($t["fields_5"] as $tc): ?>
-		<td class="cell">
-			{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}
-		</td>
-<? endforeach; ?>
-		<td class="cell menu">
-			<nobr>
-			{{* {{a _page=".view_detail" _id=$t.<?=$t['pkey']?> class="button"}}詳細{{/a}} *}}
-			{{a _page=".entry_form" _id=$t.<?=$t['pkey']?> class="button"}}編集{{/a}}
-			{{a _page=".delete_confirm" _id=$t.<?=$t['pkey']?> class="button"}}削除{{/a}}
-			</nobr>
-		</td>
-	</tr>
-{{/foreach}}
-</table>
-<!-- /list_module -->
 
 <!-- pager_module -->
 <div class="pager">
@@ -80,5 +49,38 @@
 {{/if}}
 </div>
 <!-- /pager_module -->
+
+<!-- list_module -->
+<div class="list_wrap">
+<table class="list">
+<tr>
+	<td class="label">
+		&nbsp;
+	</td>
+<? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
+	<td class="label">
+		<nobr><?=$tc['label']?></nobr>
+	</td>
+<? endforeach; ?>
+</tr>
+{{foreach from=$ts item="t"}}
+	<tr>
+		<td class="cell menu">
+			<nobr>
+			{{* {{a _page=".view_detail" _id=$t.<?=$t['pkey']?> class="button"}}詳細{{/a}} *}}
+			{{a _page=".entry_form" _id=$t.<?=$t['pkey']?> class="button"}}編集{{/a}}
+			{{a _page=".delete_confirm" _id=$t.<?=$t['pkey']?> class="button"}}削除{{/a}}
+			</nobr>
+		</td>
+<? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
+		<td class="cell">
+			{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}
+		</td>
+<? endforeach; ?>
+	</tr>
+{{/foreach}}
+</table>
+</div>
+<!-- /list_module -->
 
 <?=$c["footer"]?> 

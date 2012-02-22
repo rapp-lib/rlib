@@ -92,6 +92,8 @@ class Context_Base {
 			$required=array(), 
 			$extra_rules=array(),
 			$groups=array()) {
+			
+		$this->errors(false,false);
 		
 		$rules =array_merge(
 				(array)registry("Validate.rules"),
@@ -139,10 +141,6 @@ class Context_Base {
 				}
 				
 				$this->errors($key,$error);
-				
-			} else {
-			
-				$this->errors($key,false);
 			}
 		}
 		
@@ -162,6 +160,7 @@ class Context_Base {
 			$key =$rule["target"];
 			$value =$this->input($key);
 			
+			// 必須チェックエラー等既にエラー判定の項目はスキップ
 			if ($this->errors($key)) {
 				
 				continue;
@@ -195,10 +194,6 @@ class Context_Base {
 				}
 				
 				$this->errors($key,$error);
-				
-			} else {
-				
-				$this->errors($key,false);
 			}
 		}
 	}
@@ -283,6 +278,11 @@ class Context_Base {
 			} elseif ($setting["limit"]) {
 				
 				$query["limit"] =(int)$setting["limit"];
+			}
+			
+			if ($setting["slider"]) {
+			
+				$query["paging_slider"] =$setting["slider"];
 			}
 			
 			unset($query["paging"]);
