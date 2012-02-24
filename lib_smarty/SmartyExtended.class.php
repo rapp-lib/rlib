@@ -9,6 +9,8 @@ class SmartyExtended extends Smarty {
 	//-------------------------------------
 	// 初期化
 	public function __construct () {
+			
+		parent::__construct();
 		
 		$cache_dir =registry("Path.tmp_dir").'/smarty_cache/';
 		
@@ -35,28 +37,39 @@ class SmartyExtended extends Smarty {
 	//-------------------------------------
 	// widgetリソース解決
 	public function resolve_resource_widget ($resource_name, $load=false) {
-	
-		// テンプレートファイル名の解決
-		$file =page_to_file($resource_name);
 		
-		// Widget名の解決
-		list($widget_name, $action_name) =explode('.',$resource_name,2);
-		$widget_class_name =str_camelize($widget_name)."Widget";
-		$action_method_name ="act_".$action_name;
+		if (preg_match('!^/!',$resource_name)) {
+			
+			$path =$resource_name;
+			$page =path_to_page($path);
+		
+		} else {
+			
+			$page =$resource_name;
+			$path =page_to_path($path);
+		}
 		
 		// テンプレートファイルの対応がない場合のエラー
-		if ( ! $file) {
+		if ( ! $page || ! $path) {
 		
 			report_error("Smarty Template page is-not routed.",array(
-				"page" =>$resource_name,
+				"widget" =>$resource_name,
 			));
 		}
+		
+		// テンプレートファイル名の解決
+		$file =page_to_file($page);
+		
+		// Widget名の解決
+		list($widget_name, $action_name) =explode('.',$page,2);
+		$widget_class_name =str_camelize($widget_name)."Widget";
+		$action_method_name ="act_".$action_name;
 		
 		// テンプレートファイルが読み込めない場合のエラー
 		if ( ! is_file($file) || ! is_readable($file)) {
 		
 			report_error('Smarty Template file is-not found.',array(
-				"path" =>$resource_name,
+				"widget" =>$resource_name,
 				"file" =>$file,
 			));
 		}
@@ -66,7 +79,7 @@ class SmartyExtended extends Smarty {
 				|| is_callable(array($widget_class,$action_method_name))) {
 		
 			report_error("Widget startup failur.",array(
-				"page" =>$resource_name,
+				"widget" =>$resource_name,
 				"widget_class_name" =>$widget_class_name,
 				"action_method_name" =>$action_method_name,
 			));
@@ -74,12 +87,12 @@ class SmartyExtended extends Smarty {
 		
 		// Widget処理の起動
 		if ( ! $load) {
-		
-			$widget_class =new $widget_class_name($widget_name,$action_name,$this);
+			
+			$widget_class =obj($widget_class_name);
+			$widget_class->init($widget_name,$action_name,$this);
 			$widget_class->before_act();
 			$widget_class->$action_method_name();
 			$widget_class->after_act();
-			
 			$this->_tpl_vars["widget"] =$widget_class->_tpl_vars;
 		}
 		

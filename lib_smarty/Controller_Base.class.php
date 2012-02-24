@@ -1,6 +1,5 @@
 <?php
 
-
 //-------------------------------------
 // 
 class Controller_Base extends SmartyExtended {
@@ -14,16 +13,27 @@ class Controller_Base extends SmartyExtended {
 	//-------------------------------------
 	// 
 	public function __construct (
-			$controller_name,
-			$action_name,
+			$controller_name="",
+			$action_name="",
 			$parent=null) {
 			
 		parent::__construct();
+		
+		$this->init($controller_name,$action_name,$parent);
+	}
+	
+	//-------------------------------------
+	// 
+	public function init (
+			$controller_name="",
+			$action_name="",
+			$parent=null) {
 		
 		$this->controller_name =$controller_name;
 		$this->action_name =$action_name;
 		$this->parent =$parent;
 		$this->vars =& $this->_tpl_vars;
+		$this->vars =array();
 		$this->contexts =array();
 	}
 	
