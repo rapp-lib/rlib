@@ -57,7 +57,35 @@ class List_Base {
 	
 		$options =$this->options($params);
 		
-		return $options[$key];
+		// Serializeされた文字列であれば配列に変換する
+		if (is_string($key) && $key_unserialized =unserialize($key)) {
+			
+			$key =$key_unserialized;
+		}
+		
+		// 単一選択
+		if (is_string($key)) {
+		
+			return $options[$key];
+		}
+		
+		// KEY=>0/1形式の配列での複数選択
+		if (is_array($key)) {
+			
+			$selected =array();
+			
+			foreach ($key as $k => $v) {
+				
+				if ($v) {
+				
+					$selected[$k] =$options[$k];
+				}
+			}
+			
+			return $selected;
+		}
+		
+		return null;
 	}
 	
 	//-------------------------------------

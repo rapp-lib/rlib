@@ -17,23 +17,23 @@
 		
 	-------------------------------------
 	□メール一斉配信予約用テーブル構成: 
-		CREATE TABLE mail_queue (
-		  id bigint(20) NOT NULL default '0',
-		  create_time datetime NOT NULL default '0000-00-00 00:00:00',
-		  time_to_send datetime NOT NULL default '0000-00-00 00:00:00',
-		  sent_time datetime default NULL,
-		  id_user bigint(20) NOT NULL default '0',
-		  ip varchar(20) NOT NULL default 'unknown',
-		  sender varchar(50) NOT NULL default '',
-		  recipient text NOT NULL,
-		  headers text NOT NULL,
-		  body longtext NOT NULL,
-		  try_sent tinyint(4) NOT NULL default '0',
-		  delete_after_send tinyint(1) NOT NULL default '1',
-		  PRIMARY KEY  (id),
-		  KEY id (id),
-		  KEY time_to_send (time_to_send),
-		  KEY id_user (id_user)
+		CREATE TABLE MailQueue (
+			id bigint(20) NOT NULL default '0',
+			create_time datetime NOT NULL default '0000-00-00 00:00:00',
+			time_to_send datetime NOT NULL default '0000-00-00 00:00:00',
+			sent_time datetime default NULL,
+			id_user bigint(20) NOT NULL default '0',
+			ip varchar(20) NOT NULL default 'unknown',
+			sender varchar(50) NOT NULL default '',
+			recipient text NOT NULL,
+			headers text NOT NULL,
+			body longtext NOT NULL,
+			try_sent tinyint(4) NOT NULL default '0',
+			delete_after_send tinyint(1) NOT NULL default '1',
+			PRIMARY KEY  (id),
+			KEY id (id),
+			KEY time_to_send (time_to_send),
+			KEY id_user (id_user)
 		);
 
 	-------------------------------------
@@ -49,11 +49,11 @@
 	-------------------------------------
 	□サンプルコード（一斉配信の予約と送信）:
 		
-		// 1時間後に5件の配信を予約
+		// 5件の配信を予約
 		for ($i=0; $i<5; $i++) {
 			
 			obj("BasicMailer")->queue_mail(array(
-				"time_to_send" =>time()+1*60*60, // 
+				"time_to_send" =>time()+1*60*60, // 1時間後に配信
 				"to" =>"toyosawa@sharingseed.co.jp",
 				"from" =>"dev@sharingseed.info",
 				"subject" =>"TestQueuedMail-".$i,
@@ -63,6 +63,12 @@
 		
 		// DBに登録されているメールを全件順次配信
 		obj("BasicMailer")->send_queued_mail(array(
+			"limit" =>MAILQUEUE_ALL, // 全件同時配信
+			"send_mode" =>"smtp", // SMTPサーバを明示的に指定
+			"send_options" =>array(
+				"host" =>"210.188.236.3",
+				"port" =>"25",
+			),
 		));
 
 	-------------------------------------
@@ -143,6 +149,7 @@ class BasicMailer {
 	// Dep: Pear/Mail_Queue.php
 	public function queue_mail ($options=array()) {
 		
+		// DB接続はContainer拡張でDBIを使用しています
 		$options =$this->check_options_to_send($options);
 		$options =$this->check_options_to_queue($options);
 		$options =$this->check_options($options,array(
@@ -171,7 +178,7 @@ class BasicMailer {
 		$options =$this->check_options($options,array(
 			"limit" =>MAILQUEUE_ALL,
 			"offset" =>MAILQUEUE_START,
-			"try" =>MAILQUEUE_TRY,
+			"try" =>3,
 			"callback" =>null,
 		),array(
 		));
@@ -489,7 +496,7 @@ class BasicMailer {
 			"send_mode" =>"mail",
 			"send_options" =>array(),
 			
-			"table" =>"mail_queue",
+			"table" =>"MailQueue",
 			"db_options" =>array(),
 		),array(
 		));

@@ -88,12 +88,17 @@
 
 	//-------------------------------------
 	// ファイル名からURLを得る
-	function file_to_url ($file) {
-	
+	function file_to_url ($file, $full_url=false) {
+		
 		$pattern ='!^'.preg_quote(registry('Path.document_root_dir')).'/?!';
-		$document_root_url =registry('Path.document_root_url')
-				? registry('Path.document_root_url')
-				: "";
+		$document_root_url =registry('Path.document_root_url');
+		$document_root_url =preg_replace('!/$!','',$document_root_url);
+		
+		if ( ! $full_url) {
+			
+			$document_root_url =preg_replace('!^https?://[^/]+/!','',$document_root_url);
+		}
+		
 		$url =preg_match($pattern,$file) 
 				? preg_replace($pattern,$document_root_url."/",$file) 
 				: null;
@@ -103,10 +108,10 @@
 	
 	//-------------------------------------
 	// PageからURLを得る（主にRedirectやHREFに使用）
-	function path_to_url ($page) {
+	function path_to_url ($page, $full_url=false) {
 	
 		$file =path_to_file($page);
-		$url =file_to_url($file);
+		$url =file_to_url($file,$full_url);
 		
 		return $url;
 	}
@@ -126,11 +131,11 @@
 	
 	//-------------------------------------
 	// PageからURLを得る（主にRedirectやHREFに使用）
-	function page_to_url ($page) {
+	function page_to_url ($page, $full_url=false) {
 	
 		$page =relative_page($page);
 		$file =page_to_file($page);
-		$url =file_to_url($file);
+		$url =file_to_url($file,$full_url);
 		
 		return $url;
 	}

@@ -111,7 +111,9 @@ class WebappBuilder {
 		
 		if ( ! file_exists(dirname($filename))) {
 			
+			$old_umask =umask(0);
 			mkdir(dirname($filename),0775,true);
+			umask($old_umask);
 		}
 		
 		return @touch($filename) && @chmod($filename,0664);
@@ -191,6 +193,22 @@ class WebappBuilder {
 	//-------------------------------------
 	// ファイルの書き込み
 	protected function deploy_src ($dest_file, $src) {
+		
+		// 自動展開機能がOFFであれば設定によらず勝手にファイルの上書きを行わない
+		if ( ! registry("Config.auto_deploy")) {
+			
+			$replace_pattern ='!^'.preg_quote(registry("Path.webapp_dir"),'!').'!';
+			
+			if ( ! preg_match($replace_pattern,$dest_file)) {
+				
+				return false;
+			}
+			
+			$dest_file =preg_replace(
+					$replace_pattern,
+					$this->tmp_dir."/deploy/".$this->history."/",
+					$dest_file);
+		}
 		
 		// 既存ファイルのバックアップ
 		if (file_exists($dest_file) && $this->options["force"]) {

@@ -8,6 +8,8 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 	// Read: <?=$t["label"]?> ID指定で1件取得
 	public function get_by_id ($id) {
 	
+		$this->assert("<?=$t["name"]?>",$id,"read");
+	
 		// 要素の取得
 		$query =array(
 			"table" =>"<?=$t["name"]?>",
@@ -72,6 +74,8 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 		
 		// IDの指定があれば更新
 		if ($id) {
+	
+			$this->assert("<?=$t["name"]?>",$id,"write");
 			
 <? if ($t['update_date']): ?>
 			$fields["<?=$t['update_date']?>"] =date('Y/m/d H:i:s');
@@ -115,6 +119,8 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 	//-------------------------------------
 	// Write: <?=$t["label"]?> 削除
 	public function delete ($id) {
+	
+		$this->assert("<?=$t["name"]?>",$id,"delete");
 	
 <? if ($t['del_flg']): ?>
 		// 要素の削除フラグをon

@@ -64,6 +64,15 @@ class OAuthHandler {
 		
 	//-------------------------------------
 	// 
+	public function get_agent ($service, $params=array()) {
+		
+		$class_name ="OAuthAgent_".$service;		
+		require_once(dirname(__FILE__)."/OAuthHandler/".$class_name.".class.php");
+		return new $class_name($this, $params);
+	}
+		
+	//-------------------------------------
+	// 
 	public function oauth_request (
 			$url,
 			$params,
@@ -98,7 +107,8 @@ class OAuthHandler {
 		
 			$headers[] ='Content-Type: application/x-www-form-urlencoded';
 			
-			$response =obj("HTTPRequestHandler")->request($url,array(
+			$request_handler =new HTTPRequestHandler;
+			$response =$request_handler->request($url,array(
 				"headers" =>$headers,
 				"post" =>$query_parameter_string,
 			));
@@ -108,7 +118,8 @@ class OAuthHandler {
 			$url .='?'.$query_parameter_string;
 			$headers[] = $this->build_oauth_header($params);
 
-			$response =obj("HTTPRequestHandler")->request($url,array(
+			$request_handler =new HTTPRequestHandler;
+			$response =$request_handler->request($url,array(
 				"headers" =>$headers,
 			));
 		}
@@ -139,18 +150,27 @@ class OAuthHandler {
 
 			// Turn params array into an array of "key=value" strings
 			$kvpairs = array();
+			
 			foreach ($params as $k => $v) {
+				
 				if ($excludeOauthParams && substr($k, 0, 5) == 'oauth') {
+					
 					continue;
 				}
+				
 				if (is_array($v)) {
+					
 					// If two or more parameters share the same name,
 					// they are sorted by their value. OAuth Spec: 9.1.1 (1)
 					natsort($v);
+					
 					foreach ($v as $value_for_same_key) {
+						
 						array_push($kvpairs, ($k . '=' . $value_for_same_key));
 					}
+					
 				} else {
+					
 					// For each parameter, the name is separated from the corresponding
 					// value by an '=' character (ASCII code 61). OAuth Spec: 9.1.1 (2)
 					array_push($kvpairs, ($k . '=' . $v));
@@ -161,12 +181,14 @@ class OAuthHandler {
 			// OAuth Spec: 9.1.1 (2)
 			$query_string = implode('&', $kvpairs);
 		}
+		
 		return $query_string;
 	}
 	
 	//-------------------------------------
 	// 
 	protected function oauth_parse_str($query_string) {
+	
 		$query_array = array();
 
 		if (isset($query_string)) {
@@ -176,17 +198,23 @@ class OAuthHandler {
 
 			// Separate each "key=value" string into an array[key] = value
 			foreach ($kvpairs as $pair) {
+			
 				list($k, $v) = explode('=', $pair, 2);
 
 				// Handle the case where multiple values map to the same key
 				// by pulling those values into an array themselves
 				if (isset($query_array[$k])) {
+					
 					// If the existing value is a scalar, turn it into an array
 					if (is_scalar($query_array[$k])) {
+						
 						$query_array[$k] = array($query_array[$k]);
 					}
+					
 					array_push($query_array[$k], $v);
+					
 				} else {
+					
 					$query_array[$k] = $v;
 				}
 			}
@@ -198,38 +226,54 @@ class OAuthHandler {
 	//-------------------------------------
 	// 
 	protected function build_oauth_header($params, $realm='') {
+	
 		$header = 'Authorization: OAuth';
+		
 		foreach ($params as $k => $v) {
+			
 			if (substr($k, 0, 5) == 'oauth') {
-				$header .= ',' . $this->rfc3986_encode($k) . '="' . $this->rfc3986_encode($v) . '"';
+			
+				$header .= ',' . $this->rfc3986_encode($k) 
+						. '="' . $this->rfc3986_encode($v) . '"';
 			}
 		}
+		
 		return $header;
 	}
 	
 	//-------------------------------------
 	// 
 	protected function oauth_compute_plaintext_sig($consumer_secret, $token_secret) {
+	
 		return ($consumer_secret . '&' . $token_secret);
 	}
 	
 	//-------------------------------------
 	// 
 	protected function oauth_compute_hmac_sig(
-			$http_method, $url, $params, $consumer_secret, $token_secret) {
+			$http_method, 
+			$url, 
+			$params, 
+			$consumer_secret, 
+			$token_secret) {
 
 		$base_string = $this->signature_base_string($http_method, $url, $params);
-		$signature_key = $this->rfc3986_encode($consumer_secret) . '&' . $this->rfc3986_encode($token_secret);
+		$signature_key = $this->rfc3986_encode($consumer_secret) 
+				. '&' . $this->rfc3986_encode($token_secret);
 		$sig = base64_encode(hash_hmac('sha1', $base_string, $signature_key, true));
+		
 		if ($this->debug) {
+			
 			logit("oauth_compute_hmac_sig:DBG:sig:$sig");
 		}
+		
 		return $sig;
 	}
 	
 	//-------------------------------------
 	// 
 	protected function normalize_url($url) {
+		
 		$parts = parse_url($url);
 
 		$scheme = $parts['scheme'];
@@ -238,10 +282,13 @@ class OAuthHandler {
 		$path = $parts['path'];
 
 		if (!$port) {
+			
 			$port = ($scheme == 'https') ? '443' : '80';
 		}
+		
 		if (($scheme == 'https' && $port != '443')
 				|| ($scheme == 'http' && $port != '80')) {
+			
 			$host = "$host:$port";
 		}
 
@@ -251,16 +298,20 @@ class OAuthHandler {
 	//-------------------------------------
 	// 
 	protected function signature_base_string($http_method, $url, $params) {
+		
 		// Decompose and pull query params out of the url
 		$query_str = parse_url($url, PHP_URL_QUERY);
 		if ($query_str) {
+			
 			$parsed_query = $this->oauth_parse_str($query_str);
+			
 			// merge params from the url with params array from caller
 			$params = array_merge($params, $parsed_query);
 		}
 
 		// Remove oauth_signature from params array if present
 		if (isset($params['oauth_signature'])) {
+			
 			unset($params['oauth_signature']);
 		}
 
@@ -277,13 +328,16 @@ class OAuthHandler {
 	protected function rfc3986_encode($raw_input){
 
 		if (is_array($raw_input)) {
+		
 			//return array_map($this->rfc3986_encode, $raw_input);
 			return array_map(array($this, 'rfc3986_encode'), $raw_input);
-
 			// return $this->rfc3986_encode($raw_input);
+			
 		} else if (is_scalar($raw_input)) {
+			
 			return str_replace('%7E', '~', rawurlencode($raw_input));
 		} else {
+			
 			return '';
 		}
 	}
@@ -291,6 +345,7 @@ class OAuthHandler {
 	//-------------------------------------
 	// 
 	protected function rfc3986_decode($raw_input) {
+		
 		return rawurldecode($raw_input);
 	}
 }

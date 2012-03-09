@@ -308,14 +308,7 @@ class Model_Base {
 	// 親要素に関連する子要素を取り込む
 	public function merge_assoc (
 			& $ts,
-			$options=array()) {
-		
-		$ds =$options["ds"];
-		$table =$options["table"];
-		$parent_key =$options["parent_key"];
-		$child_key =$options["child_key"];
-		$parent_key_origin =$options["parent_key_origin"];
-		$children_key_origin =$options["children_key_origin"];
+			$query=array()) {
 		
 		if ( ! $ts) {
 			
@@ -324,20 +317,27 @@ class Model_Base {
 		
 		if ( ! is_numeric(array_pop(array_keys($ts)))) {
 			
-			return $this->merge_assoc($ts_copy =array(0=> & $ts),$options);
+			return $this->merge_assoc($ts_copy =array(0=> & $ts),$query);
 		}
+		
+		$ds =$query["ds"];
+		$parent_key =$query["parent_key"];
+		$child_key =$query["child_key"];
+		$parent_key_origin =$query["parent_key_origin"];
+		$children_key_origin =$query["children_key_origin"];
+		unset($query["ds"]);
+		unset($query["parent_key"]);
+		unset($query["child_key"]);
+		unset($query["parent_key_origin"]);
+		unset($query["children_key_origin"]);
 		
 		$parent_ids =$this->convert_to_hashlist(
 				$ts,
 				$parent_key_origin);
+				
+		$query["conditions"][] =array($parent_key =>$parent_ids);
 		
 		// Bridgeの取得
-		$query =array(
-			"table" =>$table,
-			"conditions" =>array(
-				$parent_key =>$parent_ids,
-			),
-		);
 		$ts_bridge =dbi($ds)->select($query);
 		
 		$this->merge_grouped_children(
@@ -347,5 +347,61 @@ class Model_Base {
 				$parent_key_origin, 
 				$children_key_origin,
 				$child_key);
+	}
+
+	//-------------------------------------
+	// AssertSegmentの関連付け
+	public function bind_segment ($segment_name, $segment_id) {
+		
+		$bound_segments =& ref_globals("bound_segments");
+		
+		$bound_segments[$segment_name] =$segment_id;
+	}
+	
+	//-------------------------------------
+	// Assert異常チェック
+	public function assert ($assert_name, $assert_id) {
+		
+		// Segment異常チェック
+		$bound_segments =& ref_globals("bound_segments");
+		
+		foreach ((array)$bound_segments as $segment_name => $segment_id) {
+			
+			$assert_config =registry("Assert.".$assert_name.'.segment.'.$segment_name);
+			
+			if ( ! $assert_config) {
+				
+				continue;
+			}
+			
+			// SQLを発行してデータの検出を確認
+			if ($assert_config["query"]) {
+			
+				dbi()->bind(array(
+					"segment" =>$segment_id,
+					"assert" =>$assert_id,
+				));
+				$exists =dbi()->select_count($assert_config["query"]);
+				
+				if ( ! $exists) {
+					
+					$this->assert_error(array(
+						"assert_config" =>$assert_config,
+						"segment_name" =>$segment_name,
+						"segment_id" =>$segment_id,
+						"assert_name" =>$assert_name,
+						"assert_id" =>$assert_id,
+						"exists" =>$exists,
+					));
+				}
+			}
+		}
+	}
+	
+	//-------------------------------------
+	// Assert異常時の処理
+	public function assert_error ($params=array()) {
+		
+		report_warning("Assert Error",$params);
 	}
 }

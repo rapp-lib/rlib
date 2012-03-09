@@ -115,14 +115,17 @@
 				.' name="'.$params['name'].'[s]'.'"'.' value="0"/>';
 		
 		// JS：日付の誤り訂正
-		$html["datefix"] ='<script>/*<!--*/ rui.require("rui.datefix",function(){'
+		$html["datefix"] ='<script>/*<!--*/ jQuery(function(){ '
+				.'rui.require("rui.datefix",function(){'
 				.'rui.Datefix.fix_dateselect("#'.$html["elm_id"].'"); });'
-				.' /*-->*/</script>';
+				.'}); /*-->*/</script>';
 				
 		// JS：日付選択カレンダーポップUI
-		$html["datepick"] .='<script>/*<!--*/ rui.require("jquery.datepick",function(){'
-				.'rui.Datepick.impl_dateselect("#'.$html["elm_id"].'",{yearRange:"'.$y1.':'.$y2.'"}); });'
-				.' /*-->*/</script>';
+		$html["datepick"] .='<script>/*<!--*/ jQuery(function(){'
+				.'rui.require("jquery.datepick",function(){'
+				.'rui.Datepick.impl_dateselect('
+				.'"#'.$html["elm_id"].'",{yearRange:"'.$y1.':'.$y2.'"}); });'
+				.'}); /*-->*/</script>';
 		
 		$format =$params["format"]
 				? $params["format"]

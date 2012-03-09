@@ -200,7 +200,7 @@ class Context_Base {
 	
 	//-------------------------------------
 	// <DEPLICATED 110629> Model::get_list_queryを使用してください
-	public function query_list ($query=array()) {
+	public function query_list_DELETE ($query=array()) {
 	
 		if ($query["search"]) {
 		

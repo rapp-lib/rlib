@@ -26,6 +26,12 @@
 			"<?=$c['name']?>.entry_form" =>"/<?=$c['name']?>/<?=$c['name']?>.entry_form.html",
 			"<?=$c['name']?>.entry_confirm" =>"/<?=$c['name']?>/<?=$c['name']?>.entry_confirm.html",
 			"<?=$c['name']?>.entry_exec" =>"/<?=$c['name']?>/<?=$c['name']?>.entry_exec.html",
+<? elseif ($c["type"] == "index"): ?>
+			"<?=$c['name']?>.index" =>"/<?=$c['name']?>/<?=$c['name']?>.index.html",
+<? elseif ($c["type"] == "view"): ?>
+			"<?=$c['name']?>.index" =>"/<?=$c['name']?>/<?=$c['name']?>.index.html",
+			"<?=$c['name']?>.view_list" =>"/<?=$c['name']?>/<?=$c['name']?>.view_list.html",
+			"<?=$c['name']?>.view_detail" =>"/<?=$c['name']?>/<?=$c['name']?>.view_detail.html",
 <? endif; ?>
 <? endforeach; ?>
 		),

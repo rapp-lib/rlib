@@ -100,41 +100,30 @@ class DBI_Base {
 	// SQL実行
 	public function exec (
 			$st, 
+			$command="execute", 
 			$report_context=array()) {
+		
+		// Resq2互換のための仕様
+		if (is_object($st)) {
+			
+			report_warning("SQL classes is old-library.",array(
+				"object" =>$st,
+			));
+			
+			$st =$st->__toString();
+			$st =preg_replace('!\n!',"\n",$st);
+		}
 		
 		$start_time =microtime(true);
 		
-		$result =$this->ds->execute($st);
-		
-		$elapsed =round((microtime(true) - $start_time)*1000,2)."ms";
-		
-		// SQL文の調査
-		if (get_webapp_dync("report") && ! $this->ds->error) {
-			
-			$explain =$this->analyze_sql($st,$elapsed);
-			
-			if ($explain["msg"]) {
-				
-				$report_context["Explain"] =$explain["msg"];
-			}
-		}
+		$result =$this->ds->$command($st);
 		
 		report('Execute Statement',array_merge($report_context,array(
 			"Statement" =>$st,
-			"Elapsed" =>$elapsed,
+			"Command" =>$command,
+			"Elapsed" =>round((microtime(true) - $start_time)*1000,2)."ms",
 			"NumRows" =>$this->ds->lastNumRows()."/".$this->ds->lastAffected(),
 		)));
-		
-		if ($explain["warn"]) {
-			
-			foreach ($explain["warn"] as $warn) {
-				
-				report('Bad SQL '.$warn,array(
-					"Statement" =>$st,
-					"Full Explain" =>$explain["full"],
-				));
-			}
-		}
 		
 		if ($this->ds->error) {
 			
@@ -150,54 +139,51 @@ class DBI_Base {
 			}
 		}
 		
-		return $result;
-	}
-	
-	//-------------------------------------
-	// Select結果を1件ロード
-	public function fetch ($result_source) {
-		
-		$this->ds->_result =$result_source;
-		
-		// 結果セットが無効であればnullを返す
-		if ( ! $this->ds->hasResult()) {
-			
-			return null;
-		}
-		
-		$this->ds->resultSet($this->ds->_result);
-		$result =$this->ds->fetchResult();
-		
-		// データがなければnullを返す
-		if ( ! $result) {
-		
-			return null;
-		}
-		
 		// 階層構造の変更（$a[Alias][Key] => $a[Alias.Key]）
-		$result_copy =array();
-		
-		foreach ((array)$result as $k1 => $v1) {
+		if ($command == "fetchRow") {
 			
-			foreach ((array)$v1 as $k2 => $v2) {
-			
-				$key =is_numeric($k1) ? $k2 : $k1.".".$k2;
-				$result_copy[$key] =& $result[$k1][$k2];
+			if ($this->ds->lastNumRows() == 0) {
+				
+				$result =array();
 			}
+			
+			$result_copy =array();
+			
+			foreach ((array)$result as $k1 => $v1) {
+				
+				foreach ((array)$v1 as $k2 => $v2) {
+				
+					$key =is_numeric($k1) ? $k2 : $k1.".".$k2;
+					$result_copy[$key] =& $result[$k1][$k2];
+				}
+			}
+			
+			$result =$result_copy;
 		}
 		
-		return $result_copy;
-	}
-	
-	//-------------------------------------
-	// Select結果を全件ロード
-	public function fetch_all ($result_source) {
-		
-		$result =array();
-		
-		while ($row =$this->fetch($result_source)) {
+		// 階層構造の変更（$a[n][Alias][Key] => $a[n][Alias.Key]）
+		if ($command == "fetchAll") {
 			
-			$result[] =$row;
+			if ($this->ds->lastNumRows() == 0) {
+				
+				$result =array();
+			}
+			
+			$result_copy =array();
+			
+			foreach ((array)$result as $k1 => $v1) {
+				
+				foreach ((array)$v1 as $k2 => $v2) {
+					
+					foreach ((array)$v2 as $k3 => $v3) {
+						
+						$key =is_numeric($k2) ? $k3 : $k2.".".$k3;
+						$result_copy[$k1][$key] =& $result[$k1][$k2][$k3];
+					}
+				}
+			}
+			
+			$result =$result_copy;
 		}
 		
 		return $result;
@@ -249,61 +235,27 @@ class DBI_Base {
 	}
 	
 	//-------------------------------------
-	// Query実行(取得は行わない)
-	public function select_nofetch ($query) {
-		
-		unset($query["assoc"]);
+	// Query実行(全件取得)
+	public function select ($query) {
 	
 		$st =$this->st_select($query);
-		$result =$this->exec($st,array(
-			"Type" =>"select_nofetch",
+		$result =$this->exec($st,"fetchAll",array(
+			"Type" =>"select",
 			"Query" =>$query,
 		));
 		return $result;
 	}
 	
 	//-------------------------------------
-	// Query実行(全件取得)
-	public function select ($query) {
-		
-		$assoc =$query["assoc"];
-		unset($query["assoc"]);
-	
-		$st =$this->st_select($query);
-		$result =$this->exec($st,array(
-			"Type" =>"select",
-			"Query" =>$query,
-		));
-		$ts =$this->fetch_all($result);
-		
-		if ($assoc) {
-			
-			$this->assoc_merge($ts, $assoc);
-		}
-		
-		return $ts;
-	}
-	
-	//-------------------------------------
 	// Query実行(1件のデータ取得)
 	public function select_one ($query) {
-		
-		$assoc =$query["assoc"];
-		unset($query["assoc"]);
-		
+	
 		$st =$this->st_select($query);
-		$result =$this->exec($st,array(
+		$result =$this->exec($st,"fetchRow",array(
 			"Type" =>"select_one",
 			"Query" =>$query,
 		));
-		$t =$this->fetch($result);
-		
-		if ($assoc) {
-			
-			$this->assoc_merge($ts=array(& $t), $assoc);
-		}
-		
-		return $t;
+		return $result;
 	}
 	
 	//-------------------------------------
@@ -317,12 +269,12 @@ class DBI_Base {
 		unset($query["order"]);
 		
 		$st =$this->st_select($query);
-		$result =$this->exec($st,array(
+		$result =$this->exec($st,"fetchRow",array(
 			"Type" =>"select_count",
 			"Query" =>$query,
 		));
-		$t =$this->fetch($result);
-		$count =(int)$t["count"];
+		
+		$count =(int)$result["count"];
 		
 		return $count;
 	}
@@ -337,11 +289,10 @@ class DBI_Base {
 		$limit =$query["limit"];
 		$paging_slider =$query["paging_slider"];
 		
-		unset($query["paging_slider"]);
-		unset($query["limit"]);
 		unset($query["offset"]);
+		unset($query["limit"]);
+		unset($query["paging_slider"]);
 		unset($query["order"]);
-		unset($query["assoc"]);
 		
 		if ( ! $limit) {
 			
@@ -349,12 +300,11 @@ class DBI_Base {
 		}
 		
 		$st =$this->st_select($query);
-		$result =$this->exec($st,array(
+		$result =$this->exec($st,"fetchRow",array(
 			"Type" =>"select_pager",
 			"Query" =>$query,
 		));
-		$t =$this->fetch($result);
-		$count =(int)$t["count"];
+		$count =(int)$result["count"];
 		
 		$pager =$this->build_pager($offset,$limit,$count,$paging_slider);
 		
@@ -364,48 +314,30 @@ class DBI_Base {
 	//-------------------------------------
 	// Query実行(UPDATE)
 	public function update ($query) {
-		
-		$assoc =$query["assoc"];
-		unset($query["assoc"]);
 	
 		$st =$this->st_update($query);
-		$result =$this->exec($st,array(
+		$result =$this->exec($st,"execute",array(
 			"Type" =>"update",
 			"Query" =>$query,
 		));
-		
-		if ($assoc) {
-			
-			$this->assoc_affect("update", $assoc, $query, $result);
-		}
-		
 		return $result;
 	}
 	
 	//-------------------------------------
 	// Query実行(INSERT)
 	public function insert ($query) {
-		
-		$assoc =$query["assoc"];
-		unset($query["assoc"]);
 	
 		$st =$this->st_insert($query);
-		$result =$this->exec($st,array(
+		$result =$this->exec($st,"execute",array(
 			"Type" =>"insert",
 			"Query" =>$query,
 		));
-		
-		if ($assoc) {
-			
-			$this->assoc_affect("insert", $assoc, $query, $result);
-		}
-		
 		return $result;
 	}
 	
 	//-------------------------------------
 	// Query実行(conditionsの有無によりINSERTまたはUPDATE)
-	public function save_DELETE ($query) {
+	public function save ($query) {
 		
 		if ($query["conditions"]) {
 			
@@ -421,20 +353,18 @@ class DBI_Base {
 	// Query実行(DELETE)
 	public function delete ($query) {
 		
-		$assoc =$query["assoc"];
-		unset($query["assoc"]);
+		// table:(table,alias)構造の展開
+		if (is_array($query["table"])) {
+		
+			list($query["table"],$query["alias"]) =$query["table"];
+		}
 	
 		$st =$this->st_delete($query);
 		
-		$result =$this->exec($st,array(
+		$result =$this->exec($st,"execute",array(
 			"Type" =>"delete",
 			"Query" =>$query,
 		));
-		
-		if ($assoc) {
-			
-			$this->assoc_affect("delete", $assoc, $query, $result);
-		}
 		
 		return $result;
 	}
@@ -698,12 +628,6 @@ class DBI_Base {
 			'conditions' => array(),
 		);
 		$query =array_merge($default_query,$query);
-		
-		// table:(table,alias)構造の展開
-		if (is_array($query["table"])) {
-		
-			list($query["table"],$query["alias"]) =$query["table"];
-		}
 		
 		// alias
 		if ( ! $query["alias"]) {
@@ -1100,111 +1024,5 @@ class DBI_Base {
 				: report_warning('Dump restore failur',$report_params) ;
 		
 		return $return_var;
-	}
-	
-	//-------------------------------------
-	// SQL文を評価して問題を指摘
-	public function analyze_sql ($st, $elapsed=0) {
-		
-		if (get_class($this->ds) == "DboPostgres"
-				|| ! preg_match('!^SELECT\s!is',$st)) {
-			
-			return null;
-		}
-		
-		$result =$this->ds->execute("EXPLAIN ".$st);
-		$ts =$this->fetch_all($result);
-		
-		$explain["full"] =array();
-		$explain["msg"] =array();
-		$explain["warn"] =array();
-		
-		foreach ($ts as $i =>$t) {
-			
-			$t["Extra"] =array_map("trim",explode(';',$t["Extra"]));
-			
-			$msg =$t["select_type"];
-			
-			if ($t["type"]) { 
-				
-				$msg .=".".$t["type"]; 
-			}
-			
-			if ($t["table"]) { 
-				
-				$msg .=" , Table: ".$t["table"]; 
-			}
-			
-			if ($t["rows"]) { 
-				
-				$msg .="(".$t["rows"].")"; 
-			}
-				
-			if ($t["key"]) { 
-				
-				$msg .=" , Index: ".$t["key"]; 
-			}
-			
-			if ($t["Extra"]) { 
-				
-				$msg .=" , (".implode("|",$t["Extra"]).")"; 
-			}
-			
-			$explain["msg"][] =$msg;
-			
-			$full =$t;
-			$full["Extra"] =implode(",",$t["Extra"]);
-			$explain["full"][] =implode(" ",$full);
-			
-			if ($t["type"] == "index") {
-				
-				$explain["warn"][] ="[効果的ではないINDEX(A)] ".$msg;
-			}
-			
-			if ($t["type"] == "ALL") {
-				
-				$explain["warn"][] ="[全件スキャン(A)] ".$msg;
-			}
-			
-			if ($t["select_type"] == "DEPENDENT SUBQUERY") {
-				
-				$explain["warn"][] ="[相関サブクエリ(S)] ".$msg;
-			}
-			
-			foreach ($t["Extra"] as $extra_msg) {
-				
-				if ($extra_msg == "Using filesort") {
-				
-					$explain["warn"][] ="[INDEXのないソート(B)] ".$msg;
-				}
-				
-				if ($extra_msg == "Using temporary") {
-				
-					$explain["warn"][] ="[一時テーブルの生成(B)] ".$msg;
-				}
-				
-				if ($extra_msg == "Using join buffer") {
-				
-					$explain["warn"][] ="[全件スキャンJoin(B)] ".$msg;
-				}
-			}
-		}
-			
-		return $explain;
-	}
-	
-	//-------------------------------------
-	// 
-	protected function assoc_affect () {}
-	
-	//-------------------------------------
-	// 
-	protected function assoc_merge () {}
-	
-	//-------------------------------------
-	// プレースホルダーへの値の設定
-	public function bind ($name=null, $value=null) {
-		
-		return array_registry($this->ds->bounds,$name,$value);
 	}
 }

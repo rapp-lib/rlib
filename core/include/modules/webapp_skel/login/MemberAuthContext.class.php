@@ -8,37 +8,55 @@ class <?=str_camelize($c["account"])?>AuthContext extends Context_App {
 	// 認証チェック
 	public function check_auth () {
 		
-		$access_only =registry("Auth.access_only.<?=$c["account"]?>");
-		$controller_name =registry("Request.controller_name");
+		// ログインしていない場合
+		if ( ! $this->id()) {
 		
-		// ログインが必要な場合の処理
-		if (in_array($controller_name,(array)$access_only) &&  ! $this->id()) {
+			$access_only =registry("Auth.access_only.<?=$c["account"]?>");
+			$controller_name =registry("Request.controller_name");
 			
-			redirect("page:<?=$c["name"]?>.entry_form",array(
-				"redirect_to" =>registry("Request.request_uri"),
-			));
+			// ログインが必要な場合の処理
+			if (in_array($controller_name,(array)$access_only)) {
+				
+				redirect("page:<?=$c["name"]?>.entry_form",array(
+					"redirect_to" =>registry("Request.request_uri")."?".http_build_query($_GET),
+				));
+			}
+		
+		// 既にログインしている場合
+		} else {
+			
+			$this->refresh();
 		}
+	}
+	
+	//-------------------------------------
+	// ログイン済みユーザに対する処理
+	public function refresh () {
+	
+		// ログイン時にアカウント情報はSessionに登録しないこと
+		// ここでIDに対応する情報を都度参照するべき
+		
+		// AssertSegmentの関連付け
+		// model()->bind_segment("<?=str_camelize($c["account"])?>",$this->id());
 	}
 	
 	//-------------------------------------
 	// ログイン処理
 	public function login ($login_id, $login_pass) {
 		
-		// 既にログインされていれば情報を削除
-		if ($this->id()) {
-			
-			$this->id(false);
-		}
+		// ログインチャレンジ時は事前にログアウト処理
+		$this->logout();
 		
 		// ログインID/パスワードチェック
-		$accounts =array(
-			"test" =>array("id" =>1, "pass" =>"pass"),
-		);
-		
-		if ($login_id && $login_pass && $accounts[$login_id]
-				&& $login_pass == $accounts[$login_id]["pass"]) {
+		$id =($login_id == "test" && $login_pass == "pass")
+				? 1
+				: null;
 				
-			$this->id($accounts[$login_id]["id"]);
+		if ($id) {
+				
+			$this->id($id);
+			
+			$this->refresh();
 		}
 	}
 	
@@ -46,6 +64,6 @@ class <?=str_camelize($c["account"])?>AuthContext extends Context_App {
 	// ログアウト処理
 	public function logout () {
 	
-		$this->id(false);
+		$this->session(false,array());
 	}
 }

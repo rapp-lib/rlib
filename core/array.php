@@ -70,6 +70,27 @@
 	}
 	
 	//-------------------------------------
+	// Registryの中で配列を保持できるようにKeyをエスケープ
+	function array_escape ($arr) {
+	
+		$arr_escaped =array();
+		
+		foreach ($arr as $k => $v) {
+			
+			if (is_array($v)) {
+				
+				$v =array_escape($v);
+			}
+			
+			$k =str_replace('.','..',$k);
+			
+			$arr_escaped[$k] =$v;
+		}
+		
+		return $arr_escaped;
+	}
+	
+	//-------------------------------------
 	// 
 	function & array_registry ( & $arr, $name=null ,$value=null, $escape=false) {
 		
@@ -187,11 +208,18 @@
 	// 配列をJSON文字列に変換する
 	function array_to_json ($entry) {
 		
-		require_once("Services/JSON.php");
+		// php5.2以降で使用できるようあればphp-jsonを使用
+		if (function_exists("json_encode")) {
 		
-		$agent =new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+			$json =json_encode($entry);
+			
+		// 使用できる関数がなければPEARのJSONモジュールを使用
+		} else {
 		
-		$json =$agent->encodeUnsafe($entry);
+			require_once("Services/JSON.php");
+			$agent =new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+			$json =$agent->encodeUnsafe($entry);
+		}
 		
 		return $json;
 	}
@@ -200,11 +228,18 @@
 	// JSON文字列を配列に変換する
 	function json_to_array ($json) {
 		
-		require_once("Services/JSON.php");
+		// php5.2以降で使用できるようあればphp-jsonを使用
+		if (function_exists("json_decode")) {
 		
-		$agent =new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+			$entry =json_decode($json);
 		
-		$entry =$agent->decode($json);
+		// 使用できる関数がなければPEARのJSONモジュールを使用
+		} else {
+		
+			require_once("Services/JSON.php");
+			$agent =new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+			$entry =$agent->decode($json);
+		}
 		
 		return $entry;
 	}

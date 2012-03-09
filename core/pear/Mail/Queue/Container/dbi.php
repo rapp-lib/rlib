@@ -13,7 +13,7 @@ class Mail_Queue_Container_dbi extends Mail_Queue_Container {
 	public function Mail_Queue_Container_dbi ($options) {
 	
 		$this->mail_table =array($options['mail_table'],"QM");
-		$this->setOption();
+		$this->setOption($options);
 	}
 	
 	//-------------------------------------
@@ -31,8 +31,8 @@ class Mail_Queue_Container_dbi extends Mail_Queue_Container {
 			"offset" =>$this->offset,
 			"limit" =>$this->limit,
 		);
-		$rows =DBI::load()->select($query);
-		
+		$rows =dbi()->select($query);
+		report($rows);
 		$this->_last_item =0;
 		$this->queue_data =array();
 		
@@ -81,7 +81,7 @@ class Mail_Queue_Container_dbi extends Mail_Queue_Container {
 				"COALESCE(MAX(id),0)+1 AS next_id",
 			),
 		);
-		$row =DBI::load()->select_one($query);
+		$row =dbi()->select_one($query);
 		
 		$query =array(
 			"table" =>$this->mail_table,
@@ -98,9 +98,9 @@ class Mail_Queue_Container_dbi extends Mail_Queue_Container {
 				"QM.delete_after_send" =>($delete_after_send ? 1 : 0),
 			),
 		);
-		DBI::load()->insert($query);
+		dbi()->insert($query);
 		
-		return DBI::load()->last_insert_id($this->mail_table,"id");
+		return dbi()->last_insert_id($this->mail_table,"id");
 	}
 	
 	//-------------------------------------
@@ -118,7 +118,7 @@ class Mail_Queue_Container_dbi extends Mail_Queue_Container {
 				"QM.id" =>(string)$mail->getId(),
 			),
 		);
-		DBI::load()->update($query);
+		dbi()->update($query);
 	
 		return $count;
 	}
@@ -136,7 +136,7 @@ class Mail_Queue_Container_dbi extends Mail_Queue_Container {
 				"QM.id" =>(string)$mail->getId(),
 			),
 		);
-		DBI::load()->update($query);
+		dbi()->update($query);
 		
 		return true;
 	}
@@ -151,7 +151,7 @@ class Mail_Queue_Container_dbi extends Mail_Queue_Container {
 				"QM.id" =>(string)$id,
 			),
 		);
-		$row =DBI::load()->select_one($query);
+		$row =dbi()->select_one($query);
 		
 		$recipient =$this->_isSerialized($row['QM.recipient']) 
 				? unserialize($row['QM.recipient']) 
@@ -182,7 +182,7 @@ class Mail_Queue_Container_dbi extends Mail_Queue_Container {
 		$query =array(
 			"table" =>$this->mail_table,
 		);
-		$count =DBI::load()->select_count($query);
+		$count =dbi()->select_count($query);
 		
 		return $count;
 	}
@@ -197,7 +197,7 @@ class Mail_Queue_Container_dbi extends Mail_Queue_Container {
 				"QM.id" =>(string)$id,
 			),
 		);
-		DBI::load()->delete($query);
+		dbi()->delete($query);
 		
 		return true;
 	}

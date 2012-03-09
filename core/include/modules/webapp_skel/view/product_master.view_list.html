@@ -23,11 +23,12 @@
 <!-- /search_module -->
 *}}
 
+{{*
 <!-- controll_module -->
 <div class="controll">
-	{{a _page=".entry_form" class="button"}}新規登録{{/a}}
 </div>
 <!-- /controll_module -->
+*}}
 
 <!-- list_module -->
 <div class="list_wrap">
@@ -46,9 +47,7 @@
 	<tr>
 		<td class="cell menu">
 			<nobr>
-			{{* {{a _page=".view_detail" _id=$t.<?=$t['pkey']?> class="button"}}詳細{{/a}} *}}
-			{{a _page=".entry_form" _id=$t.<?=$t['pkey']?> class="button"}}編集{{/a}}
-			{{a _page=".delete_confirm" _id=$t.<?=$t['pkey']?> class="button bindConfirmDelete"}}削除{{/a}}
+			{{a _page=".view_detail" _id=$t.<?=$t['pkey']?> class="button"}}詳細{{/a}}
 			</nobr>
 		</td>
 <? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>

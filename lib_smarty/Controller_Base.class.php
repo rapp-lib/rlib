@@ -87,7 +87,8 @@ class Controller_Base extends SmartyExtended {
 			
 			} elseif ($sname < 0) {
 			
-				$sname =implode("_",array_slice(explode("_",$page_code),$sname));
+				$sname =str_underscore($var_name)
+						.":".str_underscore($this->controller_name);
 			}
 		}
 

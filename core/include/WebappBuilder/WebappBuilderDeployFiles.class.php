@@ -114,6 +114,34 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 	
 	//-------------------------------------
 	// 
+	protected function build_controller_view ($c) {
+		
+		// テーブル情報参照
+		$t =$this->tables[$c["table"]];
+		
+		// HTMLの構築
+		foreach (array(
+			array("name"=>"view_list", "label"=>"一覧"),
+			array("name"=>"view_detail", "label"=>"詳細"),
+		) as $a) {
+		
+			$src =find_include_path(
+					"modules/webapp_skel/view/product_master.".$a["name"].".html");
+			$dest =registry("Path.webapp_dir")
+					."/html/".$c["name"]."/".$c["name"].".".$a["name"].".html";
+			$this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
+		}
+		
+		// Controllerの構築
+		$src =find_include_path(
+				"modules/webapp_skel/view/ProductMasterController.class.php");
+		$dest =registry("Path.webapp_dir")
+				."/app/controller/".str_camelize($c["name"])."Controller.class.php";
+		$this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
+	}
+	
+	//-------------------------------------
+	// 
 	protected function build_controller_form ($c) {
 		
 		// テーブル情報参照
@@ -169,6 +197,30 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				"modules/webapp_skel/login/MemberAuthContext.class.php");
 		$dest =registry("Path.webapp_dir")
 				."/app/context/".str_camelize($c["account"])."AuthContext.class.php";
+		$this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
+	}
+	
+	//-------------------------------------
+	// 
+	protected function build_controller_index ($c) {
+		
+		// HTMLの構築
+		foreach (array(
+			array("name"=>"index", "label"=>""),
+		) as $a) {
+		
+			$src =find_include_path(
+					"modules/webapp_skel/form/product_master.".$a["name"].".html");
+			$dest =registry("Path.webapp_dir")
+					."/html/".$c["name"]."/".$c["name"].".".$a["name"].".html";
+			$this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
+		}
+		
+		// Controllerの構築
+		$src =find_include_path(
+				"modules/webapp_skel/index/ProductMasterController.class.php");
+		$dest =registry("Path.webapp_dir")
+				."/app/controller/".str_camelize($c["name"])."Controller.class.php";
 		$this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
 	}
 	
@@ -253,6 +305,9 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				}
 			}
 			
+			$t["fields"] =(array)$t["fields"];
+			$t["cols"] =(array)$t["cols"];
+			
 			$this->tables[$t_name] =$t;
 		}
 		
@@ -283,9 +338,16 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				$tc_def["comment"] =$tc_def["comment"]
 						? $tc_def["comment"]
 						: $tc["label"];
+				
+				// INDEXの登録
+				if ($tc_def["index"]) {
+					
+					$index_name =$t_def["table"]."_idx_".$tc_def["index"];
+					$t_def["indexes"][$index_name]["column"][] =$tc_def["name"];
+				}
 			}
 		}
-			
+		
 		report("Fetched table-schema.",array(
 			"tables" =>$this->tables,
 			"tables_def" =>$this->tables_def,
