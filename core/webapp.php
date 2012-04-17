@@ -189,7 +189,11 @@
 	function clean_output_shutdown ($output) {
 		
 		registry("Report.buffer_enable",true);
-		ob_end_clean();
+		
+		while (ob_get_level()) {
+			
+			ob_end_clean();
+		}
 		
 		// download
 		if (is_array($output) && $output["download"]) {

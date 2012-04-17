@@ -13,6 +13,8 @@ class OAuthAgent_Facebook {
 			='https://graph.facebook.com/oauth/access_token';
 	protected $authorize_token_url
 			='https://www.facebook.com/dialog/oauth';
+	protected $graph_url 
+			='https://graph.facebook.com/me/';
 			
 	//-------------------------------------
 	// 
@@ -35,16 +37,33 @@ class OAuthAgent_Facebook {
 		
 		// SecretとCallbackしたパラメータでACEESS-TOKENを取得
 		if ($callback_code) {
-		
+			
+			// ACEESS-TOKENを取得
 			$query =http_build_query(array(
 				'client_id' =>$this->consumer_key,
 				'client_secret' =>$this->consumer_secret,
 				'redirect_uri' =>$callback_url,
 				'code' =>$callback_code,
-			));
-			$get_access_token_url =$this->get_access_token_url."?".$query;
+			),null,"&");
+			$response =obj("HTTPRequestHandler")->request(
+					$this->get_access_token_url."?".$query);
+			$response_arr =array();
+			parse_str($response["body"],$response_arr);
 			
-			$result["oauth_token"] =file_get_contents($get_access_token_url);
+			$result["oauth_token"] =$response_arr["access_token"];
+			$result["oauth_token_secret"] ="";
+			$result["oauth_token_expire"] =time()+$response_arr["expires"];
+			
+			// UserID取得			
+			$query =http_build_query(array(
+				'access_token' =>$result["oauth_token"],
+			),null,"&");
+			$request_handler =new HTTPRequestHandler;
+			$response =$request_handler->request($this->graph_url."?".$query);
+			$result_json =json_to_array($response["body"]);
+			
+			$result["oauth_uid"] =$result_json["id"];
+			$result["profile"] =$result_json;
 		}
 		
 		// ACCESS-TOKENがなければ認証リンクを表示
@@ -54,7 +73,7 @@ class OAuthAgent_Facebook {
 				'client_id' =>$this->consumer_key,
 				'redirect_uri' =>$callback_url,
 				'scope' =>$scope,
-			));
+			),"&");
 			$result["authorize_token_url"] =$this->authorize_token_url."?".$query;
 		}
 		

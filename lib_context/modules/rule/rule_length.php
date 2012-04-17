@@ -3,7 +3,7 @@
 	//-------------------------------------
 	// 文字数制限
 	function rule_length ($value ,$option ){
-		
+
 		$length =mb_strlen($value,"UTF-8");
 		
 		if ( ! $length) {

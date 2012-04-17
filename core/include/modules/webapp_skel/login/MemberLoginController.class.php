@@ -19,8 +19,9 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		
 		// 転送先指定の保存
 		if ($_REQUEST["redirect_to"]) {
-		
-			$this->c->session("redirect_to",$_REQUEST["redirect_to"]);
+			
+			$redirect_to =html_entity_decode($_REQUEST["redirect_to"]);
+			$this->c->session("redirect_to",$redirect_to);
 		}
 	}
 

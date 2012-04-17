@@ -15,7 +15,7 @@ class OAuthAgent_Twitter {
 			='https://api.twitter.com/oauth/request_token';
 	protected $authorize_token_url
 			='https://api.twitter.com/oauth/authorize';
-			
+	
 	//-------------------------------------
 	// 
 	public function __construct ($handler, $params) {
@@ -50,12 +50,18 @@ class OAuthAgent_Twitter {
 				'oauth_verifier' =>$callback_oauth_verifier,
 			));
 			
+			$result["oauth_uid"] =$response["user_id"];
 			$result["oauth_token"] =$response["oauth_token"];
-			$result["oauth_token_secret"] =$response["oauth_token"];
+			$result["oauth_token_secret"] =$response["oauth_token_secret"];
+			$result["oauth_token_expire"] =time()+60*60*24*30;
+			$result["profile"] =array(
+				"user_id" =>$response["user_id"],
+				"user_name" =>$response["screen_name"],
+			);
 		}
 		
 		// ACCESS-TOKENがなければ認証リンクを表示
-		if ( ! $result["access_token"]) {
+		if ( ! $result["oauth_token"]) {
 		
 			$response =$this->handler->oauth_request($this->get_request_token_url,array(
 				'oauth_consumer_key' =>$this->consumer_key,

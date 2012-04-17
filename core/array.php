@@ -231,7 +231,7 @@
 		// php5.2以降で使用できるようあればphp-jsonを使用
 		if (function_exists("json_decode")) {
 		
-			$entry =json_decode($json);
+			$entry =json_decode($json,true);
 		
 		// 使用できる関数がなければPEARのJSONモジュールを使用
 		} else {

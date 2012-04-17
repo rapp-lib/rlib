@@ -46,13 +46,20 @@ class HTTPRequestHandler {
 		if ($params["basic_auth"]) {
 		
 			$handle->set_basic_auth(
-					$params["username"],$params["password"]);
+					$params["basic_auth"]["username"],
+					$params["basic_auth"]["password"]);
 		}
 		
 		// Cookieを管理するファイルの指定
 		if ($params["cookie_file"]) {
 		
 			$handle->set_cookie_file($params["cookie_file"]);
+		}
+		
+		// 通信ログの記録
+		if ($params["log"]) {
+		
+			$handle->set_log($params["log"]);
 		}
 		
 		$body =$handle->send_request();
@@ -207,8 +214,19 @@ class HTTPRequest_Curl {
 	//-------------------------------------
 	// 送信するリクエストヘッダの指定
 	public function set_request_headers (array $request_headers) {
-	
+		
 		$this->set_option(CURLOPT_HTTPHEADER,$request_headers);
+	}
+	
+	//-------------------------------------
+	// 通信ログの記録
+	public function set_log ($log_filename) {
+	
+		// 詳細な情報を出力する
+		$this->set_option(CURLOPT_VERBOSE,true);
+		
+		// STDERR の代わりにエラーを出力するファイルポインタ
+		$this->set_option(CURLOPT_STDERR,fopen($log_filename,'a'));
 	}
 	
 	//-------------------------------------

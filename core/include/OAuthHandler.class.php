@@ -79,7 +79,7 @@ class OAuthHandler {
 			$use_post=false) {
 		
 		$params['oauth_version'] = '1.0';
-        $params['oauth_nonce'] = mt_rand();
+        $params['oauth_nonce'] = md5(mt_rand());
         $params['oauth_timestamp'] = time();
 		$params["oauth_signature_method"] = "HMAC-SHA1";
 		
@@ -98,25 +98,23 @@ class OAuthHandler {
 				$oauth_token_secret);
 
 		// Pass OAuth credentials in a separate header or in the query string
-		$query_parameter_string =$this->oauth_http_build_query($params);
+		$query_parameter_string =$this->oauth_http_build_query($params,true);
+		$headers =array($this->build_oauth_header($params));
 		
 		$response =array();
-			
+		
 		// POST or GET the request
 		if ($use_post) {
 		
-			$headers[] ='Content-Type: application/x-www-form-urlencoded';
-			
 			$request_handler =new HTTPRequestHandler;
 			$response =$request_handler->request($url,array(
-				"headers" =>$headers,
 				"post" =>$query_parameter_string,
+				"headers" =>$headers,
 			));
 			
 		} else {
 		
 			$url .='?'.$query_parameter_string;
-			$headers[] = $this->build_oauth_header($params);
 
 			$request_handler =new HTTPRequestHandler;
 			$response =$request_handler->request($url,array(
@@ -124,10 +122,21 @@ class OAuthHandler {
 			));
 		}
 		
+		if ( ! $response["result"]) {
+			
+			report_warning("OAuth Request failur",array(
+				"url" =>$url,
+				"method" =>$use_post ? "POST" : "GET",
+				"headers" =>$headers,
+				"params" =>$query_parameter_string,
+				"response" =>$response,
+			));
+			
+			return null;
+		}
+		
 		// extract successful response
-		return $response["result"]
-				? $this->oauth_parse_str($response["body"])
-				: null;
+		return $this->oauth_parse_str($response["body"]);
 	}
 	
 	//-------------------------------------
@@ -227,18 +236,20 @@ class OAuthHandler {
 	// 
 	protected function build_oauth_header($params, $realm='') {
 	
-		$header = 'Authorization: OAuth';
+		$headers =array(); 
+		
+		uksort($params, 'strcmp');
 		
 		foreach ($params as $k => $v) {
 			
 			if (substr($k, 0, 5) == 'oauth') {
 			
-				$header .= ',' . $this->rfc3986_encode($k) 
-						. '="' . $this->rfc3986_encode($v) . '"';
+				$headers[] =$this->rfc3986_encode($k)
+						.'="'.$this->rfc3986_encode($v).'"';
 			}
 		}
 		
-		return $header;
+		return 'Authorization: OAuth '.implode($headers,', ');
 	}
 	
 	//-------------------------------------

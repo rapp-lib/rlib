@@ -1,6 +1,6 @@
 <?php
 
-	function smarty_modifier_options ($list_name, $param=null) {
+	function smarty_modifier_options () {
 		
 		$args =func_get_args();
 		$list_name =array_shift($args);

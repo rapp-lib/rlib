@@ -13,7 +13,9 @@ class OAuthAgent_Mixi {
 			='https://secure.mixi-platform.com/2/token';
 	protected $authorize_token_url
 			='https://mixi.jp/connect_authorize.pl';
-			
+	protected $graph_url
+			='http://api.mixi-platform.com/2/people/@me/@self';
+	
 	//-------------------------------------
 	// 
 	public function __construct ($handler, $params) {
@@ -35,10 +37,10 @@ class OAuthAgent_Mixi {
 		
 		// SecretとCallbackしたパラメータでACEESS-TOKENを取得
 		if ($callback_code) {
-	
+			
+			// ACEESS-TOKENを取得
 			$request_handler =new HTTPRequestHandler;
 			$response =$request_handler->request($this->get_access_token_url,array(
-				"headers" =>$headers,
 				"post" =>array(
 					'grant_type' =>'authorization_code',
 					'client_id' =>$this->consumer_key,
@@ -47,10 +49,21 @@ class OAuthAgent_Mixi {
 					'code' =>$callback_code,
 				),
 			));
-			report($response);
+			$result_json =json_to_array($response["body"]);
+			report($result_json);
 			
-			$result["oauth_token"] ="";
+			$result["oauth_token"] =$result_json["access_token"];
+			$result["oauth_token_secret"] ="";
+			$result["oauth_token_expire"] =time()+$result_json["expires_in"];
+			$result["refresh_token"] =$result_json["refresh_token"];
 			
+			// UserIDの取得
+			$response =obj("HTTPRequestHandler")->request(
+					$this->graph_url.'?oauth_token='.$result["oauth_token"]);
+			$result_json =json_to_array($response["body"]);
+			
+			$result["oauth_uid"] =$result_json["entry"]["id"];
+			$result["profile"] =$result_json["entry"];
 		}
 		
 		// ACCESS-TOKENがなければ認証リンクを表示
@@ -62,7 +75,7 @@ class OAuthAgent_Mixi {
 				'client_id' =>$this->consumer_key,
 				'redirect_uri' =>$callback_url,
 				'scope' =>$scope,
-			));
+			),null,"&");
 			$result["authorize_token_url"] =$this->authorize_token_url."?".$query;
 		}
 		

@@ -71,6 +71,13 @@ class Context_Base {
 	
 	//-------------------------------------
 	// 
+	public function & ref_session ($name) {
+	
+		return ref_array($this->session,$name);
+	}
+	
+	//-------------------------------------
+	// 
 	public function get_fields ($fields) {
 	
 		// fields補完
@@ -173,7 +180,7 @@ class Context_Base {
 				$key, 
 				$this,
 			));
-				
+			
 			if ($result) {
 				
 				if ($rule["message"]) {

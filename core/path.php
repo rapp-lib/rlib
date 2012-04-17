@@ -96,7 +96,7 @@
 		
 		if ( ! $full_url) {
 			
-			$document_root_url =preg_replace('!^https?://[^/]+/!','',$document_root_url);
+			$document_root_url =preg_replace('!^https?://[^/]+(/|$)!','',$document_root_url);
 		}
 		
 		$url =preg_match($pattern,$file) 

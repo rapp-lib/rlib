@@ -1945,7 +1945,7 @@ class Smarty_Compiler extends Smarty {
                 $_map_array = false;
                 $_modifier_name = substr($_modifier_name, 1);
             } else {
-                $_map_array = true;
+                $_map_array = false;
             }
 
             if (empty($this->_plugins['modifier'][$_modifier_name])

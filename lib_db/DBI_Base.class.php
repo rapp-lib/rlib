@@ -348,13 +348,32 @@ class DBI_Base {
 			return null;
 		}
 		
-		$st =$this->st_select($query);
-		$result =$this->exec($st,array(
-			"Type" =>"select_pager",
-			"Query" =>$query,
-		));
-		$t =$this->fetch($result);
-		$count =(int)$t["count"];
+		$count =0;
+		
+		// GROUP BY指定がある場合はCOUNT結果を再集計
+		if ($query["group"]) {
+		
+			$st =$this->st_select($query);
+			$ts =$this->exec($st,array(
+				"Type" =>"select_pager",
+				"Query" =>$query,
+			));
+			
+			foreach ($ts as $t) {
+			
+				$count +=(int)$t["count"];
+			}
+			
+		// 件数を集計
+		} else {
+		
+			$st =$this->st_select($query);
+			$t =$this->exec($st,array(
+				"Type" =>"select_pager",
+				"Query" =>$query,
+			));
+			$count =(int)$t["count"];
+		}
 		
 		$pager =$this->build_pager($offset,$limit,$count,$paging_slider);
 		

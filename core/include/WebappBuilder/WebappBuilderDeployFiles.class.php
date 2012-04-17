@@ -210,7 +210,7 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 		) as $a) {
 		
 			$src =find_include_path(
-					"modules/webapp_skel/form/product_master.".$a["name"].".html");
+					"modules/webapp_skel/index/product_master.".$a["name"].".html");
 			$dest =registry("Path.webapp_dir")
 					."/html/".$c["name"]."/".$c["name"].".".$a["name"].".html";
 			$this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));

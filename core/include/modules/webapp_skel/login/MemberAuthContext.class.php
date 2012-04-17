@@ -18,7 +18,8 @@ class <?=str_camelize($c["account"])?>AuthContext extends Context_App {
 			if (in_array($controller_name,(array)$access_only)) {
 				
 				redirect("page:<?=$c["name"]?>.entry_form",array(
-					"redirect_to" =>registry("Request.request_uri")."?".http_build_query($_GET),
+					"redirect_to" =>registry("Request.request_uri")
+						."?".http_build_query($_GET),
 				));
 			}
 		
@@ -64,6 +65,6 @@ class <?=str_camelize($c["account"])?>AuthContext extends Context_App {
 	// ログアウト処理
 	public function logout () {
 	
-		$this->session(false,array());
+		$this->session(false,false);
 	}
 }
