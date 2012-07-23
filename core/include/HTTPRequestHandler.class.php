@@ -263,9 +263,8 @@ class HTTPRequest_Curl {
 			$response_data, 
 			$maxredirs=0) {
 		
-		$response_data =str_replace("\r\n","\n",$response_data);
-		list($header_lines_str, $body) =explode("\n\n",$response_data,2);
-		$header_lines =explode("\n",$header_lines_str);
+		list($header_lines_str, $body) =preg_split("!\r?\n\r?\n!",$response_data,2);
+		$header_lines =preg_split("!\r?\n!",$header_lines_str);
 		$http_desc =array_shift($header_lines);
 		
 		foreach ($header_lines as $header_line) {

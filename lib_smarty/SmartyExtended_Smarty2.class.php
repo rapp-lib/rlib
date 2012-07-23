@@ -1,6 +1,6 @@
 <?php
 	
-	require_once(RLIB_ROOT_DIR."/core/smarty3/Smarty.class.php");
+	require_once(RLIB_ROOT_DIR."/core/smarty2/Smarty.class.php");
 
 //-------------------------------------
 // 

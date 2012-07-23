@@ -1,10 +1,12 @@
 <?php
 	
-	require_once(RLIB_ROOT_DIR."/core/smarty/Smarty.class.php");
+	require_once(RLIB_ROOT_DIR."/core/smarty3/Smarty.class.php");
 
 //-------------------------------------
 // 
 class SmartyExtended extends Smarty {
+	
+	public $_tpl_vars;
 	
 	//-------------------------------------
 	// 初期化
@@ -16,10 +18,12 @@ class SmartyExtended extends Smarty {
 		
 		$this->left_delimiter ='{{';
 		$this->right_delimiter ='}}';
-		$this->plugins_dir[] ="modules/smarty_plugin/";
-		$this->cache_dir =$cache_dir;
-		$this->compile_dir =$cache_dir;
-				
+		$this->addPluginsDir("modules/smarty_plugin/");
+		$this->setCacheDir($cache_dir);
+		$this->setCompileDir($cache_dir);
+		
+		$this->use_include_path =true;
+		
 		if ( ! file_exists($cache_dir) 
 				&& is_writable(dirname($cache_dir))) {
 			
@@ -32,6 +36,20 @@ class SmartyExtended extends Smarty {
 	public function __call ($method, $args) {
 	
 		report_warning(get_class($this).'::'.$method.' is-not callable. ');
+	}
+	
+	//-------------------------------------
+	// メンバ変数取得(overload Smarty::__get)
+	public function __get ($name) {
+	
+		return $this->{$name};
+    }
+
+	//-------------------------------------
+	// メンバ変数設定(overload Smarty::__set)
+	public function __set ($name, $value) {
+	
+		$this->{$name} =$value;
 	}
 	
 	//-------------------------------------
@@ -140,58 +158,28 @@ class SmartyExtended extends Smarty {
 	//-------------------------------------
 	// overwrite Smarty::fetch
 	public function fetch (
-			$resource_name, 
+			$template = null, 
 			$cache_id = null, 
 			$compile_id = null, 
-			$display = false,
-			$tmp_vars = array()) {
+			$parent = null, 
+			$display = false, 
+			$merge_tpl_vars = true, 
+			$no_output_filter = false,
+			$tpl_vars=array()) {
 		
-		$reserve =array();
+		parent::assign($this->_tpl_vars);
+		parent::assign($tpl_vars);
 		
-		if ($tmp_vars) {
-			
-			foreach ($tmp_vars as $k => $v) {
-			
-				$reserve[$k] =$this->_tpl_vars[$k];
-				$this->_tpl_vars[$k] =$v;
-			}
-		}
-		
-		$source =parent::fetch($resource_name,$cache_id,$compile_id,$display);
-		
-		if ($tmp_vars) {
-			
-			foreach ($tmp_vars as $k => $v) {
-			
-				$this->_tpl_vars[$k] =$reserve[$k];
-			}
-		}
+		$source =parent::fetch(
+				$template, 
+				$cache_id, 
+				$compile_id, 
+				$parent, 
+				$display, 
+				$merge_tpl_vars, 
+				$no_output_filter);
 		
 		return $source;
-	}
-	
-	//-------------------------------------
-	// overwrite Smarty::_smarty_include
-    public function _smarty_include ($params) {
-	
-		// $file =$params["smarty_include_tpl_file"];
-		// $vars =$params["smarty_include_vars"];
-		return parent::_smarty_include($params);
-	}
-	
-	//-------------------------------------
-	// overwrite Smarty::_get_plugin_filepath
-	public function _get_plugin_filepath ($type, $name) {
-		
-		$plugin_filename ='modules/smarty_plugin/'.$type.'.'.$name.'.php';
-		$found_file =find_include_path($plugin_filename);
-		
-		if ($found_file) {
-			
-			return $found_file;	
-		}
-		
-		return parent::_get_plugin_filepath($type,$name);
 	}
     
 	//-------------------------------------
@@ -511,7 +499,6 @@ class SmartyExtended extends Smarty {
 				$html["head"] ='<span id="'.$params["id"].'">'.$html["head"];
 				$html["foot"] =$html["foot"].'</span>';
 			}
-				
 					
 			$html["foot"] .='<script>/*<!--*/ rui.require("rui.syncselect",function(){ '
 					.'rui.syncselect("'.$params['id'].'",'.'"'.$params['parent_id'].'",'
@@ -523,8 +510,7 @@ class SmartyExtended extends Smarty {
 		// テンプレート変数へのアサイン
 		if ($params["assign"]) {
 			
-			$ref =& ref_array($template->_tpl_vars,$params["assign"]);
-			$ref =$html;
+			$template->assign($params["assign"],$html);
 			
 			return null;
 		}

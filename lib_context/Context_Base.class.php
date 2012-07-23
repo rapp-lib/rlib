@@ -132,7 +132,11 @@ class Context_Base {
 			
 			$value =$this->input($key);
 			
-			if ( ! strlen($value)) {
+			$is_empty =is_array($value)
+					? ! strlen(implode('',$value))
+					: ! strlen($value);
+					
+			if ($is_empty) {
 				
 				if ($errmsg_label =label("errmsg.input.required.".$key)) {
 				

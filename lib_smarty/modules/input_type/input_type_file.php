@@ -74,13 +74,14 @@
 		$v["FILE"] =$url;
 		$v["ATTRS"] =$params;
 		
-		$v["HTML"] =$smarty->fetch($template,null,null,false,array("v"=>$v));
+		$smarty->assign("v",$v);
+		$v["HTML"] =$smarty->fetch($template);
 		
 		// テンプレート変数へのアサイン
 		if ($assign) {
 			
-			$ref =& ref_array($template->_tpl_vars,$assign);
-			$ref =$v;
+			$smarty->assign($assign,$v);
+			return;
 		}
 		
 		return $v["HTML"];

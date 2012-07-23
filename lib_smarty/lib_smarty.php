@@ -4,17 +4,18 @@
 	// Listインスタンスのファクトリ
 	function get_list ($name) {
 		
-		$instance =& ref_globals("loaded_list_option");
+		$list_base =new List_App;
 		
-		if ( ! $instance[$name]) {
+		if (is_array($name)) {
+			
+			$list_base->init(null,array(
+				"options" =>$name,
+			));
+			return $list_base;
+			
+		} else {
 		
-			$class_name =str_camelize($name)."List";
-			$config =registry("List.".$name);
-				
-			$instance[$name] =new $class_name;
-			$instance[$name]->init($name,$config);
+			return $list_base->get_instance($name);
 		}
-		
-		return $instance[$name];
 	}
 	

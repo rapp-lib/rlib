@@ -5,7 +5,7 @@
 <!-- errors_module -->
 {{if $c->errors()}}
 	<div class="errors">
-	{{foreach from=$c->errors() index="input_name" item="error_message"}}
+	{{foreach $c->errors() as $error_message}}
 		<div class="errmsg">{{$error_message}}</div>
 	{{/foreach}}
 	</div>

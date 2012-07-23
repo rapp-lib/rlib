@@ -68,6 +68,39 @@
 	}
 	
 	//-------------------------------------
+	// 指定したpathがリストに該当するか
+	function in_path ($path, $list) {
+		
+		$page =path_to_page($path);
+		$result =false;
+		
+		foreach ((array)$list as $item) {
+			
+			// path指定
+			if (preg_match('!^(?:path:)?(/[^\*]*)(\*)?$!',$item,$match)) {
+				report($match);
+				$result =$match[2]
+						? strpos($path,$match[1])===0
+						: $path==$match[1];
+				
+			// page指定
+			} elseif ($page && preg_match('!^(?:page:)?([^\*]+)(\*)?$!',$item,$match)) {
+				
+				$result =$match[2]
+						? strpos($page,$match[1])===0
+						: $page==$match[1];
+			}
+			
+			if ($result) {
+				
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	//-------------------------------------
 	// PageからPathを得る
 	function page_to_path ($page) {
 		
@@ -94,6 +127,7 @@
 		$document_root_url =registry('Path.document_root_url');
 		$document_root_url =preg_replace('!/$!','',$document_root_url);
 		
+		// httpから始まるURLを返す必要がなければ切り取る
 		if ( ! $full_url) {
 			
 			$document_root_url =preg_replace('!^https?://[^/]+(/|$)!','',$document_root_url);

@@ -256,18 +256,6 @@
 			output_add_rewrite_var($name,$value);
 		}
 		
-		if (ini_get("session.use_trans_sid")) {
-		
-			if ($name === null) {
-			
-				$result[session_name()] =session_id();
-				
-			} elseif ($name === session_name()) {
-			
-				$result =session_id();
-			}
-		}
-		
 		return $result;
 	}
 	
@@ -370,20 +358,48 @@
 	}
 	
 	//-------------------------------------
-	// ファイルを作成する
-	function create_file ($filename, $mode=0644) {
+	// UserAgentの判定
+	function check_user_agent ($detail=0, $user_agent_string=null) {
 		
-		if ( ! file_exists(dirname($filename))) {
+		/*
+			[detail arg]:   0  / 1
+			iPhone or iPod: sp / iphone
+			iPad:           sp / ipad
+			Android Phone:  sp / android_phone
+			Android Tablet: sp / android_tab
+			Softbank:       mb / softbank
+			DoCoMo:         mb / docomo
+			AU:             mb / au
+			Others:         pc / pc
+		*/
+		
+		if ($user_agent_string === null) {
 			
-			mkdir(dirname($filename),0755,true);
+			$user_agent_string =$_SERVER["HTTP_USER_AGENT"];
 		}
 		
-		if (fclose(fopen($filename,"w"))) {
-			
-			return $filename;
-			
-		} else {
+		$ua_list =array(
+			'iphone'        =>array('!iPhone|iPod!',                     'sp'),
+			'ipad'          =>array('!iPad!',                            'sp'),
+			'android_phone' =>array('!Android.*?Mobile!',                'sp'),
+			'android_tab'   =>array('!Android!',                         'sp'),
+			'softbank'      =>array('!J-PHONE|Vodafone|MOT-|SoftBank!i', 'mb'),
+			'docomo'        =>array('!DoCoMo!i',                         'mb'),
+			'au'            =>array('!UP\.Browser|KDDI!i',               'mb'),
+		);
 		
-			return null;
+		foreach ($ua_list as $k => $v) {
+			
+			if (preg_match($v[0],$user_agent_string)) {
+				
+				if ($detail == 0) {
+				
+					return $v[1];
+				}
+				
+				return $k;
+			}
 		}
+		
+		return "pc";
 	}

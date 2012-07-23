@@ -88,19 +88,29 @@ README about_lib
 				XxxController.class.php
 			context/
 				XxxContext.class.php
-			provider/
-				XxxProvider.class.php
 			list/
 				XxxList.class.php
+			model/
+				XxxModel.class.php
+			widget/
+				XxxWidget.class.php
 			Controller_App.class.php
 			Context_App.class.php
-			Provider_App.class.php
-		config/ ... 主にregisty設定を記述するファイルを格納するDir
+			List_App.class.php
+			Model_App.class.php
+			Widget_App.class.php
+		config/ ... registy設定を記述するファイルを格納するDir
 			config.php ... 各種設定ファイルの起点となるPHP
-			main.config.php ... （名称自由）アプリケーションの動作に関する設定ファイル
-			install.config.php ... （名称自由）初回配置時の初期設定を行う設定ファイル
-			schema.config.php ... （名称自由）Schema設定ファイル
-			schema.config.csv ... （名称自由）Schema生成用CSVファイル
+			app.config.php ... アプリ固有の設定値に関する設定ファイル
+			db.config.php ... DB設定
+			label.config.php ... 文言/テキスト設定（エラー文等）
+			routing.config.php ... URLマッピング設定
+			validate.config.php ... 入力チェック設定
+			auth.config.php ... 認証設定
+			mail.config.php ... メール設定
+			schema.config.php ... Schema設定ファイル
+			schema.config.csv ... Schema生成に使用されるCSVファイル
+			install.sql ... CREATE_TABLE情報
 		tmp/ ... Smartyキャッシュ等一時ファイル保存用Dir（0777推奨）
 		
 -------------------------------------
@@ -111,7 +121,8 @@ README about_lib
 		core/ ... 共用関数群の配置Dir
 			include/ ... 共用クラス群の配置Dir
 			pear/ ... Pearライブラリ
-			smarty/ ... Smarty[ライブラリ
+			smarty3/ ... Smarty3ライブラリ
+			smarty2/ ... Smarty2ライブラリ（後方互換性のために）
 		lib_smarty/
 			modules/ ... 共用モジュール定義Dir
 				input_type/ ... inputタグのHTML生成
@@ -405,27 +416,23 @@ URL：
 
 API（DBI）：
 
-	・DBI::load($name)
+	・dbi($name="default")
 		
-		接続DBIインスタンスを得る
-		初回呼び出し時に"DBI.connection.Name"の接続情報で接続
+		接続DBI_Baseインスタンスを得る
+		初回呼び出し時に"DBI.connection.$name"の接続情報で接続
 		
-	・DBI::exec($sql_statement, $command="execute")
+	・DBI_Base::exec($sql_statement)
 	
 		生のSQLクエリを実行する
-		commandの指定で動作が変わる
-			・execute ... 実行のみ（Default）
-			・fetchRow ... 結果から1行の取得
-			・fetchAll ... 結果から全行の取得
 			
-	・DBI::insert($query)
+	・DBI_Base::insert($query)
 	
 		Insertクエリの実行
 		
 		・呼び出しサンプル：
 		
 			// INSERT
-			$r =DBI::load()->insert(array(
+			$r =dbi()->insert(array(
 				'table' => "member",
 				'alias' => "Member",
 				'fields' => array(
@@ -433,14 +440,14 @@ API（DBI）：
 				),
 			));
 			
-	・DBI::update($query)
+	・DBI_Base::update($query)
 	
 		Updateクエリの実行
 		
 		・呼び出しサンプル：
 		
 			// UPDATE
-			$r =DBI::load()->update(array(
+			$r =dbi()->update(array(
 				'table' => "member",
 				'alias' => "Member",
 				'fields' => array(
@@ -451,14 +458,14 @@ API（DBI）：
 				),
 			));
 			
-	・DBI::delete($query)
+	・DBI_Base::delete($query)
 	
 		Deleteクエリの実行
 		
 		・呼び出しサンプル：
 		
 			// DELETE
-			$r =DBI::load()->delete(array(
+			$r =dbi()->delete(array(
 				'table' => "member",
 				'alias' => "Member",
 				'conditions' => array(
@@ -466,13 +473,13 @@ API（DBI）：
 				),
 			));
 			
-	・DBI::save($query)
+	・DBI_Base::save($query)
 	
 		UpdateOrInsertクエリの実行
 		ConditionsがあればUpdate、なければInsertクエリを発行します。
 		※呼び出し方はUpdate/Insertと同様
 			
-	・DBI::select($query)
+	・DBI_Base::select($query)
 	
 		Select文で取得できる全行を取得
 		配列構造は"$ts[index][TableAlias.col_name]"となる
@@ -480,7 +487,7 @@ API（DBI）：
 		・呼び出しサンプル：
 		
 			// SELECT
-			$ts =DBI::load()->select(array(
+			$ts =dbi()->select(array(
 				'table' => "Member",
 				'alias' => "Member",
 				'fields' => array(
@@ -496,63 +503,63 @@ API（DBI）：
 				'group' => null,
 			));
 		
-	・DBI::select_one($query)
+	・DBI_Base::select_one($query)
 	
 		Select文で1行だけ取得
 		配列構造は"$t[TableAlias.col_name]"となる
 		※呼び出し方法はselect同様
 		
-	・DBI::select_count($query)
+	・DBI_Base::select_count($query)
 		
 		Select文で取得できる行数を取得
 		int型で結果を返す
 		※呼び出し方法はselect同様
 		
-	・DBI::select_pager($query)
+	・DBI_Base::select_pager($query)
 		
 		Pager構造体を取得
 		※呼び出し方法はselect同様
 		
-	・DBI::get_datasource()
+	・DBI_Base::get_datasource()
 		
 		接続に関するCakeDatasourceを取得
 		
-	・DBI::desc($table_name)
+	・DBI_Base::desc($table_name)
 		
 		テーブル構造の解析結果を得る
 		
-	・DBI::last_insert_id($table_name, $pkey)
+	・DBI_Base::last_insert_id($table_name=null, $pkey=null)
 		
 		LAST_INSERT_IDの取得
 			
-	・DBI::create_dump($dump_filename)
-	・DBI::restore_dump($dump_filename)
+	・DBI_Base::create_dump($dump_filename)
+	・DBI_Base::restore_dump($dump_filename)
 		
 		ダンプデータの作成とリストア
 
 API（Model）：
 
-	・Model::load($name) => Model
+	・model($name=null) => Model
 		
-		Modelインスタンスを得る
+		Model_Baseインスタンスを得る
 		Model_Appを拡張してSQLの発行手続きを集約するクラスを作成する
 		name省略でModel_Appを得る
 		
-	・Model::merge_query($query1, $query2) => $query
+	・Model_Base::merge_query($query1, $query2) => $query
 		
 		クエリの統合（上書きを避けつつ右を優先）
 		
-	・Model::convert_to_hashlist($ts, $key_name, $value_name) => $list
+	・Model_Base::convert_to_hashlist($ts, $key_name, $value_name) => $list
 		
 		$tsから指定した列の値でKV配列を得る
 		Keyに$key_name要素、Valueに$value_name要素を指定する
 		
-	・Model::group_by($ts, $key) => $gts
+	・Model_Base::group_by($ts, $key) => $gts
 	
 		特定要素でのグルーピング
 		連番になっている$tsの添え字を$key要素の値に書き換える
 		
-	・Model::merge_grouped_children(
+	・Model_Base::merge_grouped_children(
 			$ts1, 
 			$ts2,
 			$parent_key,

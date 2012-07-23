@@ -77,7 +77,7 @@ class DBI_Base {
 	
 	//-------------------------------------
 	// LAST_INSERT_IDの取得
-	public function last_insert_id ($table_name, $pkey_name) {
+	public function last_insert_id ($table_name=null, $pkey_name=null) {
 		
 		return $this->ds->lastInsertId($table_name,$pkey_name);
 	}
@@ -335,7 +335,9 @@ class DBI_Base {
 		
 		$offset =$query["offset"];
 		$limit =$query["limit"];
-		$paging_slider =$query["paging_slider"];
+		$paging_slider =$query["paging_slider"] 
+				? $query["paging_slider"]
+				: 10 ;
 		
 		unset($query["paging_slider"]);
 		unset($query["limit"]);
@@ -354,10 +356,11 @@ class DBI_Base {
 		if ($query["group"]) {
 		
 			$st =$this->st_select($query);
-			$ts =$this->exec($st,array(
+			$result =$this->exec($st,array(
 				"Type" =>"select_pager",
 				"Query" =>$query,
 			));
+			$ts =$this->fetch_all($result);
 			
 			foreach ($ts as $t) {
 			
@@ -368,10 +371,11 @@ class DBI_Base {
 		} else {
 		
 			$st =$this->st_select($query);
-			$t =$this->exec($st,array(
+			$result =$this->exec($st,array(
 				"Type" =>"select_pager",
 				"Query" =>$query,
 			));
+			$t =$this->fetch($result);
 			$count =(int)$t["count"];
 		}
 		
@@ -629,7 +633,7 @@ class DBI_Base {
 			
 			} elseif (is_numeric($k)) {
 			
-				$update_fields[] =$this->ds->name($k)." = ".$v;
+				$update_fields[] =$v;
 			
 			} elseif (is_array($v)) {
 				
@@ -785,7 +789,7 @@ class DBI_Base {
 	
 	//-------------------------------------
 	// pagerの作成
-	public function build_pager ($offset, $length, $total ,$slider=0) {
+	public function build_pager ($offset, $length, $total ,$slider=10) {
 		
 		$pager =array();
 		
@@ -897,7 +901,8 @@ class DBI_Base {
 		$current =$pager['current'];
 		$pages_count =count($pager['pages']);
 		
-		if ($current+ceil($slider/2) >= $pages_count) {
+		if ($current+ceil($slider/2) >= $pages_count 
+				&& $pages_count-$slider>0) {
 		
 			$start =$pages_count - $slider + 1;
 			
@@ -906,7 +911,7 @@ class DBI_Base {
 			$start =$current - floor($slider/2);
 		}
 		
-		for ($i=$start; $i<$start+$slider; $i++) {
+		for ($i=$start; $i<$start+$slider && $i<=$pages_count; $i++) {
 			
 			$pager['pages_slider'][$i] =$pager['pages'][$i];
 		}
@@ -1173,38 +1178,39 @@ class DBI_Base {
 			
 			$full =$t;
 			$full["Extra"] =implode(",",$t["Extra"]);
-			$explain["full"][] =implode(" ",$full);
 			
 			if ($t["type"] == "index") {
 				
-				$explain["warn"][] ="[効果的ではないINDEX(A)] ".$msg;
+				$explain["warn"][] ="[効果的ではないINDEX] ".$msg;
 			}
 			
 			if ($t["type"] == "ALL") {
 				
-				$explain["warn"][] ="[全件スキャン(A)] ".$msg;
+				$explain["warn"][] ="[全件スキャン] ".$msg;
 			}
 			
 			if ($t["select_type"] == "DEPENDENT SUBQUERY") {
 				
-				$explain["warn"][] ="[相関サブクエリ(S)] ".$msg;
+				$explain["warn"][] ="[相関サブクエリ★] ".$msg;
 			}
 			
 			foreach ($t["Extra"] as $extra_msg) {
-				
+				/*
 				if ($extra_msg == "Using filesort") {
 				
 					$explain["warn"][] ="[INDEXのないソート(B)] ".$msg;
 				}
-				
+				*/
+				/*
 				if ($extra_msg == "Using temporary") {
 				
 					$explain["warn"][] ="[一時テーブルの生成(B)] ".$msg;
 				}
+				*/
 				
 				if ($extra_msg == "Using join buffer") {
 				
-					$explain["warn"][] ="[全件スキャンJoin(B)] ".$msg;
+					$explain["warn"][] ="[全件スキャンJoin] ".$msg;
 				}
 			}
 		}

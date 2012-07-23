@@ -10,7 +10,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 	
 		$this->assert("<?=$t["name"]?>",$id,"read");
 	
-		// 要素の取得
+		// 要素の取得 
 		$query =array(
 			"table" =>"<?=$t["name"]?>",
 			"conditions" =>array(
@@ -143,7 +143,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 		$query =array(
 			"table" =>"<?=$t["name"]?>",
 			"conditions" =>array(
-				"<?=$t["name"]?>.id" =>$id,
+				"<?=$t['pkey']?>" =>$id,
 			),
 		);
 		$r =dbi()->delete($query);

@@ -1,6 +1,7 @@
+{{$page_title="<?=$c["label"]?>：一覧"}}
 <?=$c["header"]?> 
 
-<h1 class="page_label"><?=$c["label"]?>：一覧</h1>
+<h1 class="page_label">{{$page_title}}</h1>
 
 {{*
 <!-- search_module -->
@@ -23,11 +24,24 @@
 <!-- /search_module -->
 *}}
 
+{{*
+<!-- sort_module -->
+<div class="controll">
+	{{a _page="." _query="c[sort]=default"}}古い順{{/a}}
+<? foreach ($this->filter_fields($t["fields"],"sort") as $tc): ?>
+	| {{a _page="." _query="c[sort]=<?=$tc['name']?>"}}<?=$tc['label']?>順{{/a}}
+<? endforeach; ?>
+</div>
+<!-- /sort_module -->
+*}}
+
+<? if ($c["usage"] != "view"): ?>
 <!-- controll_module -->
 <div class="controll">
 	{{a _page=".entry_form" class="button"}}新規登録{{/a}}
 </div>
 <!-- /controll_module -->
+<? endif; /* $c["usage"] != "view" */ ?>
 
 <!-- list_module -->
 <div class="list_wrap">
@@ -42,13 +56,15 @@
 	</td>
 <? endforeach; ?>
 </tr>
-{{foreach from=$ts item="t"}}
+{{foreach $ts as $t}}
 	<tr>
 		<td class="cell menu">
 			<nobr>
 			{{* {{a _page=".view_detail" _id=$t.<?=$t['pkey']?> class="button"}}詳細{{/a}} *}}
+<? if ($c["usage"] != "view"): ?>
 			{{a _page=".entry_form" _id=$t.<?=$t['pkey']?> class="button"}}編集{{/a}}
 			{{a _page=".delete_confirm" _id=$t.<?=$t['pkey']?> class="button bindConfirmDelete"}}削除{{/a}}
+<? endif; /* $c["usage"] != "view" */ ?>
 			</nobr>
 		</td>
 <? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>

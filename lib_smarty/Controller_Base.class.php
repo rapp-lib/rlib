@@ -8,18 +8,18 @@ class Controller_Base extends SmartyExtended {
 	protected $action_name;
 	protected $vars;
 	protected $contexts;
-	protected $parent;
+	protected $parent_controller;
 	
 	//-------------------------------------
 	// 
 	public function __construct (
 			$controller_name="",
 			$action_name="",
-			$parent=null) {
+			$parent_controller=null) {
 			
 		parent::__construct();
 		
-		$this->init($controller_name,$action_name,$parent);
+		$this->init($controller_name,$action_name,$parent_controller);
 	}
 	
 	//-------------------------------------
@@ -27,11 +27,11 @@ class Controller_Base extends SmartyExtended {
 	public function init (
 			$controller_name="",
 			$action_name="",
-			$parent=null) {
+			$parent_controller=null) {
 		
 		$this->controller_name =$controller_name;
 		$this->action_name =$action_name;
-		$this->parent =$parent;
+		$this->parent_controller =$parent_controller;
 		$this->vars =& $this->_tpl_vars;
 		$this->vars =array();
 		$this->contexts =array();
@@ -60,7 +60,7 @@ class Controller_Base extends SmartyExtended {
 			$sname=null, 
 			$fid_enable=false,
 			$class_name="Context_App") {
-			
+		
 		$context =new $class_name;
 		
 		$this->$var_name =$context;
@@ -68,8 +68,8 @@ class Controller_Base extends SmartyExtended {
 		$this->vars[$var_name] =$context;
 		
 		$page_code =str_underscore($var_name)
-				.":".str_underscore($this->controller_name)
-				.":".str_underscore($this->action_name);
+				."-".str_underscore($this->controller_name)
+				."-".str_underscore($this->action_name);
 		
 		if ($sname === null) {
 			
@@ -88,7 +88,7 @@ class Controller_Base extends SmartyExtended {
 			} elseif ($sname < 0) {
 			
 				$sname =str_underscore($var_name)
-						.":".str_underscore($this->controller_name);
+						."-".str_underscore($this->controller_name);
 			}
 		}
 
@@ -100,7 +100,7 @@ class Controller_Base extends SmartyExtended {
 					? $_REQUEST[$fid_name]
 					: sprintf("%09d",mt_rand(1,999999999));
 			
-			$sname .=":".$fid;
+			$sname .="-".$fid;
 			
 			output_rewrite_var($fid_name,$fid);
 		}

@@ -1,18 +1,23 @@
 <!?php
 
 //-------------------------------------
-// Controller: <?=$c["name"]?> 
+// Controller: <?=$c["label"]?> 
 class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 
 	//-------------------------------------
-	// Action: index
+	// Action: トップ
 	public function act_index () {
 	
+<? if ($c["usage"] == "form"): ?>
+		redirect("page:.entry_form");
+<? else: ?>
 		redirect("page:.view_list");
+<? endif; ?>
 	}
-
+	
+<? if ($c["usage"] != "form"): ?>
 	//-------------------------------------
-	// Action: view_list
+	// Action: 一覧
 	public function act_view_list () {
 		
 		$this->context("c",0);
@@ -47,6 +52,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			"paging" =>array(
 				"limit" =>20,
 				"offset_param_name" =>"offset",
+				"slider" =>10,
 			),
 		);
 		list($this->vars["ts"] ,$this->vars["p"])
@@ -73,7 +79,9 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			redirect("page:.view_list");
 		}
 	}
+<? endif; /* $c["usage"] != "form" */ ?>
 
+<? if ($c["usage"] != "view"): ?>
 	//-------------------------------------
 	// action .entry_form
 	public function act_entry_form () {
@@ -127,7 +135,9 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		
 		$this->vars["t"] =$this->c->input();
 		
+<? if ($c["usage"] != "form"): ?>
 		redirect("page:.entry_exec");
+<? endif; ?>
 	}
 
 	//-------------------------------------
@@ -141,6 +151,18 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				&& $this->c->session("checked")
 				&& ! $this->c->session("complete")) {
 			
+<? if ($t["virtual"]): ?>
+			// メールの送信
+			obj("BasicMailer")->send_mail(array(
+				"to" =>"test@example.com",
+				"from" =>"test@example.com",
+				"subject" =>"Test mail",
+				"message" =>"This is test.",
+				// "template_file" =>registry("Path.webapp_dir")
+				// 		."/app/mail/<?=$c["name"]?>_mail.php"),
+				// "template_options" =>$this->c->input(),
+			));
+<? else: /* $t["virtual"] */ ?>
 			// データの記録
 			$fields =$this->c->get_fields(array(
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
@@ -148,13 +170,18 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 <? endforeach; ?>
 			));
 			model("<?=str_camelize($t["name"])?>")->save($fields,$this->c->id());
+<? endif; /* $t["virtual"] */ ?>
 			
 			$this->c->session("complete",true);
 		}
 		
+<? if ($c["usage"] != "form"): ?>
 		redirect("page:.view_list");
+<? endif; ?>
 	}
+<? endif; /* $c["usage"] != "view" */ ?>
 	
+<? if($c["usage"] == ""): ?>
 	//-------------------------------------
 	// action .delete_confirm
 	public function act_delete_confirm () {
@@ -195,4 +222,5 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		
 		redirect("page:.view_list");
 	}
+<? endif; /* $c["usage"] == "" */ ?>
 }

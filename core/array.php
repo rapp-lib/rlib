@@ -208,17 +208,48 @@
 	// 配列をJSON文字列に変換する
 	function array_to_json ($entry) {
 		
-		// php5.2以降で使用できるようあればphp-jsonを使用
+		// php5.2以降で使用できるようあればphp-jsonを使用（負荷:1）
 		if (function_exists("json_encode")) {
 		
 			$json =json_encode($entry);
+		
+		// json_encode_substがあればそれを使用する(負荷:0.7)
+		} elseif (function_exists("json_encode_subst")) {
+		
+			$json =array_to_json_scratch($entry);
 			
-		// 使用できる関数がなければPEARのJSONモジュールを使用
+		// 使用できる関数がなければPEARのJSONモジュールを使用(負荷:300)
 		} else {
 		
 			require_once("Services/JSON.php");
 			$agent =new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
 			$json =$agent->encodeUnsafe($entry);
+		}
+		
+		return $json;
+	}
+	
+	//-------------------------------------
+	// json_encodeの代替実装
+	function json_encode_subst ($entry) {
+		
+		$json ="";
+		
+		if (is_array($entry)) {
+		
+			$inner_item =array();
+			
+			foreach ($entry as $k => $v) {
+				
+				$inner_item[] ="'".str_replace("'","\\'",(string)$k)."'"
+						.":".array_to_json($v);
+			}
+			
+			$json .="{".implode(",\n",$inner_item)."}";
+		
+		} else {
+			
+			$json ="'".str_replace("'","\\'",(string)$entry)."'";
 		}
 		
 		return $json;

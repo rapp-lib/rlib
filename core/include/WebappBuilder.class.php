@@ -116,7 +116,7 @@ class WebappBuilder {
 			umask($old_umask);
 		}
 		
-		return @touch($filename) && @chmod($filename,0664);
+		return touch($filename) && chmod($filename,0664);
 	}
 	
 	//-------------------------------------

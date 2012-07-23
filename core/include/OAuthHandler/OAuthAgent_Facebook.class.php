@@ -13,6 +13,8 @@ class OAuthAgent_Facebook {
 			='https://graph.facebook.com/oauth/access_token';
 	protected $authorize_token_url
 			='https://www.facebook.com/dialog/oauth';
+	protected $mobile_authorize_token_url
+			='http://m.facebook.com/dialog/oauth';
 	protected $graph_url 
 			='https://graph.facebook.com/me/';
 			
@@ -32,6 +34,7 @@ class OAuthAgent_Facebook {
 		$callback_code =$params["get_vars"]["code"];
 		$callback_url =$params["callback_url"];
 		$scope =$params["scope"];
+		$is_mobile =$this->is_mobile($params["user_agent"]);
 		
 		$result =array();
 		
@@ -49,6 +52,16 @@ class OAuthAgent_Facebook {
 					$this->get_access_token_url."?".$query);
 			$response_arr =array();
 			parse_str($response["body"],$response_arr);
+			
+			// 認証エラー
+			if ( ! $response_arr["access_token"]) {
+				
+				report_warning("OAuth get_access_token failur",array(
+					"response" =>$response_arr,
+				));
+				
+				return array();
+			}
 			
 			$result["oauth_token"] =$response_arr["access_token"];
 			$result["oauth_token_secret"] ="";
@@ -73,10 +86,46 @@ class OAuthAgent_Facebook {
 				'client_id' =>$this->consumer_key,
 				'redirect_uri' =>$callback_url,
 				'scope' =>$scope,
-			),"&");
-			$result["authorize_token_url"] =$this->authorize_token_url."?".$query;
+			),null,"&");
+			$authorize_token_url =$this->authorize_token_url;
+			
+			if ($is_mobile) {
+			
+				$authorize_token_url =$this->mobile_authorize_token_url;
+			}
+			
+			$result["authorize_token_url"] =$authorize_token_url."?".$query;
 		}
 		
 		return $result;
+	}
+
+	//-------------------------------------
+	// Useragent判別
+	private function is_mobile ($user_agent=null) {
+		
+		if ($user_agent===null) {
+			
+			$user_agent =$_SERVER["HTTP_USER_AGENT"];
+		}
+			
+		$pattern_list =array(
+			"docomo" =>'!^DoCoMo!',
+			"au" =>'!^(KDDI-|UP\.Browser)!',
+			"softbank" =>'!^(SoftBank|Semulator|Vodafone|Vemulator'.
+					'|MOT-|MOTEMULATOR|J-PHONE|J-EMULATOR)!',
+			// "willcom" =>'!^Mozilla/3\.0\((?:WILLCOM|DDIPOCKET);!',
+			// "emobile" =>'!^(?:emobile|Huawei)!',
+		);
+		
+		foreach ($pattern_list as $code => $pattern) {
+			
+			if (preg_match($pattern,$user_agent)) {
+			
+				return $code;
+			}
+		}
+		
+		return false;
 	}
 }

@@ -89,13 +89,23 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 		// テーブル情報参照
 		$t =$this->tables[$c["table"]];
 		
+		$a_list =array();
+		
+		if ($c["usage"] != "form") {
+		
+			$a_list[] =array("name"=>"view_list", "label"=>"一覧");
+			$a_list[] =array("name"=>"view_detail", "label"=>"詳細");
+		}
+		
+		if ($c["usage"] != "view") {
+		
+			$a_list[] =array("name"=>"entry_form", "label"=>"入力");
+			$a_list[] =array("name"=>"entry_confirm", "label"=>"入力確認");
+			$a_list[] =array("name"=>"entry_exec", "label"=>"入力完了");
+		}
+		
 		// HTMLの構築
-		foreach (array(
-			array("name"=>"view_list", "label"=>"一覧"),
-			array("name"=>"view_detail", "label"=>"詳細"),
-			array("name"=>"entry_form", "label"=>"編集"),
-			array("name"=>"entry_confirm", "label"=>"編集確認"),
-		) as $a) {
+		foreach ($a_list as $a) {
 		
 			$src =find_include_path(
 					"modules/webapp_skel/master/product_master.".$a["name"].".html");
@@ -107,63 +117,6 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 		// Controllerの構築
 		$src =find_include_path(
 				"modules/webapp_skel/master/ProductMasterController.class.php");
-		$dest =registry("Path.webapp_dir")
-				."/app/controller/".str_camelize($c["name"])."Controller.class.php";
-		$this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
-	}
-	
-	//-------------------------------------
-	// 
-	protected function build_controller_view ($c) {
-		
-		// テーブル情報参照
-		$t =$this->tables[$c["table"]];
-		
-		// HTMLの構築
-		foreach (array(
-			array("name"=>"view_list", "label"=>"一覧"),
-			array("name"=>"view_detail", "label"=>"詳細"),
-		) as $a) {
-		
-			$src =find_include_path(
-					"modules/webapp_skel/view/product_master.".$a["name"].".html");
-			$dest =registry("Path.webapp_dir")
-					."/html/".$c["name"]."/".$c["name"].".".$a["name"].".html";
-			$this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
-		}
-		
-		// Controllerの構築
-		$src =find_include_path(
-				"modules/webapp_skel/view/ProductMasterController.class.php");
-		$dest =registry("Path.webapp_dir")
-				."/app/controller/".str_camelize($c["name"])."Controller.class.php";
-		$this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
-	}
-	
-	//-------------------------------------
-	// 
-	protected function build_controller_form ($c) {
-		
-		// テーブル情報参照
-		$t =$this->tables[$c["table"]];
-		
-		// HTMLの構築
-		foreach (array(
-			array("name"=>"entry_form", "label"=>"入力"),
-			array("name"=>"entry_confirm", "label"=>"入力確認"),
-			array("name"=>"entry_exec", "label"=>"完了"),
-		) as $a) {
-		
-			$src =find_include_path(
-					"modules/webapp_skel/form/product_master.".$a["name"].".html");
-			$dest =registry("Path.webapp_dir")
-					."/html/".$c["name"]."/".$c["name"].".".$a["name"].".html";
-			$this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
-		}
-		
-		// Controllerの構築
-		$src =find_include_path(
-				"modules/webapp_skel/form/ProductMasterController.class.php");
 		$dest =registry("Path.webapp_dir")
 				."/app/controller/".str_camelize($c["name"])."Controller.class.php";
 		$this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
@@ -212,7 +165,7 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 			$src =find_include_path(
 					"modules/webapp_skel/index/product_master.".$a["name"].".html");
 			$dest =registry("Path.webapp_dir")
-					."/html/".$c["name"]."/".$c["name"].".".$a["name"].".html";
+					."/html/".$c["name"]."/".$a["name"].".html";
 			$this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
 		}
 		

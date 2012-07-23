@@ -161,7 +161,7 @@ class BasicMailer {
 				$options["from"], 
 				$options["to"], 
 				$options["mime_headers"], 
-				$options["mime_body"],
+				addslashes($options["mime_body"]),
 				$options["time_to_send"]-time());
 				
 		return is_numeric($result)
@@ -471,6 +471,7 @@ class BasicMailer {
 		$headers["Subject"] =$subject;
 		$headers["Bcc"] =$options["bcc"];
 		$headers["Cc"] =$options["cc"];
+		$headers["To"] =$options["to"];
 		$headers =array_filter($headers,"strlen");
 		
 		// BODY部取得
