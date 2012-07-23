@@ -227,7 +227,8 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				
 				if ($tc['type'] == "file") {
 					
-					$tc['modifier'] ='|userfile';
+					$tc['modifier'] ='|userfile:"image"';
+					$tc['input_option'] =' group="image"';
 				}
 				
 				if ($tc['type'] == "select" || $tc['type'] == "radioselect") {
