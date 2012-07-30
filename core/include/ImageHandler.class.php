@@ -15,8 +15,8 @@ class ImageHandler {
 	// 元データ
 	public $filename;
 	public $type;
-	public $raw_width;
-	public $raw_height;
+	public $width_raw;
+	public $height_raw;
 	
 	// 出力画像サイズ
 	public $top;
@@ -94,7 +94,7 @@ class ImageHandler {
 	
 	//-------------------------------------
 	// 短辺に併せて中心を正方形にトリム
-	public function trim_center () {
+	public function square ($size) {
 
 		if ($this->crop_width > $this->crop_height) {
 		
@@ -107,6 +107,8 @@ class ImageHandler {
 			$this->crop_left =round(($this->crop_height-$this->crop_width)/2);
 			$this->crop_height =$this->crop_width;
 		}
+			
+		$this->height =$this->width =$size;
 	}
 	
 	//-------------------------------------

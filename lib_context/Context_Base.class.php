@@ -122,7 +122,7 @@ class Context_Base {
 				// rulesの範囲拡張
 				foreach ($rules_copy=$rules as $k => $v) {
 					
-					$required[$group_name.".".$index.".".$k] =$v;
+					$rules[$group_name.".".$index.".".$k] =$v;
 				}
 			}
 		}
@@ -151,7 +151,7 @@ class Context_Base {
 					$error =$key." : 必ず入力してください";
 				}
 				
-				$this->errors($key,$error);
+				$this->errors($key.'.required',$error);
 			}
 		}
 		
@@ -170,12 +170,6 @@ class Context_Base {
 			
 			$key =$rule["target"];
 			$value =$this->input($key);
-			
-			// 必須チェックエラー等既にエラー判定の項目はスキップ
-			if ($this->errors($key)) {
-				
-				continue;
-			}
 			
 			$module =load_module("rule",$rule["type"],true);
 			$result =call_user_func_array($module,array(
@@ -204,101 +198,8 @@ class Context_Base {
 					$error =$result;
 				}
 				
-				$this->errors($key,$error);
+				$this->errors($key.'.'.$rule["type"],$error);
 			}
 		}
-	}
-	
-	//-------------------------------------
-	// <DEPLICATED 110629> Model::get_list_queryを使用してください
-	public function query_list_DELETE ($query=array()) {
-	
-		if ($query["search"]) {
-		
-			foreach ($query["search"] as $name => $setting) {
-			
-				$targets =is_array($setting["target"])
-						? $setting["target"]
-						: array($setting["target"]);
-						
-				$part_queries =array();
-				
-				foreach ($targets as $target) {
-				
-					$module =load_module("search_type",$setting["type"],true);
-					$part_query =call_user_func_array($module,array(
-						$name,
-						$target,
-						$this->input((string)$name),
-						$setting,
-						$this,
-					));
-					
-					if ($part_query) {
-					
-						$part_queries[] =$part_query;
-					}
-				}
-				
-				if (count($part_queries) == 1) {
-				
-					$query["conditions"][] =$part_queries[0];
-					
-				} elseif (count($part_queries) > 1) {
-				
-					$query["conditions"][] =array("or" =>$part_queries);
-				}
-			}
-			
-			unset($query["search"]);
-		}
-		
-		if ($query["sort"]) {
-		
-			$setting =$query["sort"];
-			$key =$this->input((string)$setting["sort_param_name"]);
-			$value =$setting["map"][$key];
-			
-			if ($value) {
-			
-				$query["order"] =$value;
-			
-			} elseif ($setting["default"]) {
-			
-				$query["order"] =$setting["default"];
-			}
-			
-			unset($query["sort"]);
-		}
-		
-		if ($query["paging"]) {
-		
-			$setting =$query["paging"];
-			
-			if ($setting["offset_param_name"]
-					&& is_numeric($this->input((string)$setting["offset_param_name"]))) {
-					
-				$query["offset"] =(int)$this->input((string)$setting["offset_param_name"]);
-			}
-			
-			if ($setting["limit_param_name"]
-					&& is_numeric($this->input((string)$setting["limit_param_name"]))) {
-					
-				$query["limit"] =(int)$this->input((string)$setting["limit_param_name"]);
-			
-			} elseif ($setting["limit"]) {
-				
-				$query["limit"] =(int)$setting["limit"];
-			}
-			
-			if ($setting["slider"]) {
-			
-				$query["paging_slider"] =$setting["slider"];
-			}
-			
-			unset($query["paging"]);
-		}
-		
-		return $query;
 	}
 }
