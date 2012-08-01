@@ -16,6 +16,31 @@
 			$ref =$arr[$k];
 		}
 	}
+
+	//-------------------------------------
+	//
+	function array_archive ( & $root, $node=null, $root_k=array()) {
+		
+		if ($node === null) {
+		
+			$node =$root;
+		}
+			
+		foreach (array_keys($node) as $k) {
+			
+			$root_k_copy =$root_k;
+			$root_k_copy[] =$k;
+			
+			if (is_array($node[$k])) {
+			
+				array_archive($root,$node[$k],$root_k_copy);
+				
+			} else {
+
+				$root[implode($root_k_copy,'.')] =$node[$k];
+			}
+		}
+	} 
 	
 	//-------------------------------------
 	//

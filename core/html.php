@@ -56,21 +56,7 @@
 			
 			} elseif (is_array($params)) {
 				
-				$url_params =array();
-				
-				foreach ($params as $k => $v) {
-					
-					if (is_numeric($k)) {
-						
-						$url_params[] =$v;
-					
-					} else {
-					
-						$url_params[] =param_name($k).'='.urlencode($v);
-					}
-				}
-				
-				$url .=implode('&',$url_params);
+				$url .=http_build_query($params,null,'&');
 			}
 		}
 		
@@ -193,8 +179,7 @@
 	// URL上でのパラメータ名の配列表現の正規化
 	function param_name ($param_name) {
 		
-		if (strpos($param_name,".") !== false
-				&& preg_match('!^[\[]+!',$param_name,$match)) {
+		if (preg_match('!^([^\[]+\.[^\[]+)([\[].*?)?!',$param_name,$match)) {
 			
 			$stack =explode(".",$match[1]);
 			$param_name =array_shift($stack)."[".implode("][",$stack)."]".$match[2];
