@@ -228,10 +228,11 @@
 		
 			$image_type =@exif_imagetype($cache_file);
 			$mime_type =@image_type_to_mime_type($image_type);
-			$mime_type =$mime_type
-					? $mime_type
-					: "application/octet-stream";
-			header("Content-Type: ".$mime_type);
+			
+			if ($mime_type) {
+			
+				header("Content-Type: ".$mime_type);
+			}
 		}
 		
 		// output

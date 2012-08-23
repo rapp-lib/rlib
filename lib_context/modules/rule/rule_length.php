@@ -4,6 +4,7 @@
 	// 文字数制限
 	function rule_length ($value ,$option ){
 
+		$value =str_replace("\r\n", "\n", $value);
 		$length =mb_strlen($value,"UTF-8");
 		
 		if ( ! $length) {
