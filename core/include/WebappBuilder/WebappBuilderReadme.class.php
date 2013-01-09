@@ -14,7 +14,11 @@ class WebappBuilderReadme extends WebappBuilder {
 			
 		$module =load_module("readme",$page,true);
 		
-		echo call_user_func($module, $this->options, $this);
+		$html =call_user_func($module, $this->options, $this);
+		
+		$charset =registry("Config.external_charset");
+		echo '<html><head><meta charset="'.$charset.'">'
+				.'</head><body>'.$html.'</body></html>';
 		exit;
 	}
 }

@@ -133,6 +133,18 @@
 			$document_root_url =preg_replace('!^https?://[^/]+(/|$)!','',$document_root_url);
 		}
 		
+		// https指定であればURLの先頭をHTTPSに変更
+		if ($full_url == "https") {
+			
+			$document_root_url =preg_replace('!^http://!','https://',$document_root_url);
+		}
+		
+		// http指定であればURLの先頭をHTTPに変更
+		if ($full_url == "http") {
+			
+			$document_root_url =preg_replace('!^https://!','http://',$document_root_url);
+		}
+		
 		$url =preg_match($pattern,$file) 
 				? preg_replace($pattern,$document_root_url."/",$file) 
 				: null;

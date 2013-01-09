@@ -146,7 +146,7 @@ class DBI_Base {
 			// トランザクション起動中であれば例外発行
 			if ($this->transaction_started) {
 				
-				throw new Exception();
+				throw new DBIException($this->ds->error);
 			}
 		}
 		

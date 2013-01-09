@@ -105,7 +105,8 @@
 		ini_set("session.cookie_lifetime",0);
 		ini_set("session.cookie_httponly",true);
 		ini_set("session.cookie_secure",$_SERVER['HTTPS']);
-		
+		header("P3P: CP='UNI CUR OUR'");
+
 		session_cache_limiter('nocache');
 		session_start();
 	}
@@ -273,6 +274,13 @@
 	//
 	function shutdown_webapp ($cause=null, $options=array()) {
 		
+		// 通常終了時はFlushMessageを削除
+		if ($cause == "normal") {
+		
+			flush_message(false);
+		}
+		
+		// register_shutdown_webapp_functionで登録された処理の実行
 		$funcs =& ref_globals('shutdown_webapp_function');
 		
 		foreach (array_reverse((array)$funcs) as $func) {
@@ -320,7 +328,7 @@
 	
 	//-------------------------------------
 	//
-	function redirect ($url, $params=array()) {
+	function redirect ($url, $params=array(), $flush_message=null) {
 		
 		if (preg_match('!^page:(.*)$!',$url,$match)) {
 			
@@ -338,12 +346,14 @@
 		
 		$url =url($url,array_merge((array)$params,(array)output_rewrite_var()));
 		
+		$flush_message =flush_message($flush_message);
+		
 		if (get_webapp_dync("report")) {
 			
-			print tag("a",array("href"=>$url),
-					'<div style="padding:20px;'
+			$redirect_link_html ='<div style="padding:20px;'
 					.'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
-					.'Redirect ... '.$url.'</div>');
+					.'Redirect ... '.$url.'</div>';
+			print tag("a",array("href"=>$url),$redirect_link_html);
 			
 		} else {
 		
@@ -351,6 +361,24 @@
 		}
 		
 		shutdown_webapp("redirect");
+	}
+	
+	//-------------------------------------
+	// FlushMessageの設定/取得
+	function flush_message ($flush_message=null) {
+		
+		$s_flush_message =& ref_session("flush_message");
+		
+		if ($flush_message === false) {
+			
+			$s_flush_message =null;
+		
+		} elseif ($flush_message) {
+			
+			$s_flush_message =$flush_message;
+		}
+		
+		return $s_flush_message;
 	}
 	
 	//-------------------------------------
@@ -362,9 +390,10 @@
 	
 	//-------------------------------------
 	// ラベルを得る
-	function label ($name) {
+	function label () {
 		
-		return (string)registry("Label.".$name);
+		$names =func_get_args();
+		return (string)registry("Label.".implode(".",$names));
 	}
 	
 	//-------------------------------------

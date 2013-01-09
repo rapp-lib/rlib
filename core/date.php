@@ -10,6 +10,12 @@
 		if (strlen($date_string) 
 				&& preg_match($date_pattern,$date_string, $match)) {
 			
+			// Mysql例外日付
+			if ($match[2]==="0000" || $match[3]==="00" || $match[4]==="00") {
+				
+				return array();
+			}
+			
 			$longdate =array();
 			$longdate["T"] =($match[1]?"date":"").($match[5]?"time":"");
 			

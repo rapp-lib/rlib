@@ -403,7 +403,7 @@ class SmartyExtended extends Smarty {
 			}
 		}
 		
-		$list_options =get_list($params["options"]);
+		$list_options =get_list($params["options"],$this);
 		$options =$list_options->options($params["options_params"]);
 		
 		// 空白選択の挿入(Checklist以外)

@@ -108,7 +108,7 @@ class HTTPRequest_Curl {
 		$this->set_option(CURLOPT_SSLVERSION,3);
 		$this->set_option(CURLOPT_SSL_VERIFYPEER,false);
 		$this->set_option(CURLOPT_SSL_VERIFYHOST,false);
-		
+
 		// 100-continue対策
 		$this->options[CURLOPT_HTTPHEADER][] ='Expect:';
 	}
@@ -200,6 +200,11 @@ class HTTPRequest_Curl {
 	// POSTメソッドで送信する値の指定
 	public function set_post_values ($post_field) {
 		
+		if (is_array($post_field)) {
+			
+			$post_field =http_build_query($post_field);
+		}
+		
 		$this->set_option(CURLOPT_POST,true);
 		$this->set_option(CURLOPT_POSTFIELDS,$post_field);
 	}
@@ -215,7 +220,10 @@ class HTTPRequest_Curl {
 	// 送信するリクエストヘッダの指定
 	public function set_request_headers (array $request_headers) {
 		
-		$this->set_option(CURLOPT_HTTPHEADER,$request_headers);
+		foreach ($request_headers as $request_header) {
+		
+			$this->options[CURLOPT_HTTPHEADER][] =$request_header;
+		}
 	}
 	
 	//-------------------------------------

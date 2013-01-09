@@ -14,7 +14,6 @@
 			$setting,
 			$context) {
 		
-		
 		return $input
 				? array($setting["target_start"].' <='=> $input,
 			    		$setting["target_end"].' >='=> $input)

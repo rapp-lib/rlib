@@ -4,20 +4,21 @@
 // CSVファイル入出力を補助するクラス
 class CSVHandler {
 	
+	protected $current_line_num;
+	protected $errors;
+	
 	protected $filename;
 	protected $mode;
 	protected $handle;
-	
+		
 	protected $delim;
 	protected $escape;
 	protected $file_charset;
 	protected $data_charset;
 	protected $return_code;
-	protected $read_callback_by_line;
-	protected $read_callback_by_cell;
-	protected $write_callback_by_line;
-	protected $write_callback_by_cell;
+	
 	protected $map;
+	protected $filters;
 	protected $ignore_empty_line;
 	
 	//-------------------------------------
@@ -32,12 +33,18 @@ class CSVHandler {
 		$this->filename =$filename;
 		$this->mode =$mode;
 		
+		$this->current_line_num =0;
+		$this->errors =array();
+		
 		$this->delim =isset($options["delim"])
 				? $options["delim"]
 				: ",";
 		$this->escape =isset($options["escape"])
 				? $options["escape"]
 				: '"';
+		$this->return_code =isset($options["return_code"])
+				? $options["return_code"]
+				: "\n";
 		
 		$this->file_charset =isset($options["file_charset"])
 				? $options["file_charset"]
@@ -45,31 +52,33 @@ class CSVHandler {
 		$this->data_charset =isset($options["data_charset"])
 				? $options["data_charset"]
 				: "UTF-8";
-		$this->return_code =isset($options["return_code"])
-				? $options["return_code"]
-				: "\n";
-				
-		$this->read_callback_by_line =isset($options["read_callback_by_line"])
-				? $options["read_callback_by_line"]
-				: null;
-		$this->read_callback_by_cell =isset($options["read_callback_by_cell"])
-				? $options["read_callback_by_cell"]
-				: null;
-				
-		$this->write_callback_by_line =isset($options["write_callback_by_line"])
-				? $options["write_callback_by_line"]
-				: null;
-		$this->write_callback_by_cell =isset($options["write_callback_by_cell"])
-				? $options["write_callback_by_cell"]
-				: null;
-				
+		
 		$this->map =isset($options["map"])
 				? $options["map"]
+				: null;
+				
+		$this->filters =isset($options["filters"])
+				? $options["filters"]
 				: null;
 				
 		$this->ignore_empty_line =isset($options["ignore_empty_line"])
 				? $options["ignore_empty_line"]
 				: null;
+	}
+	
+	//-------------------------------------
+	// オプションの追加設定
+	public function set_options ($options) {
+		
+		$overwritables =array("map","filters","ignore_empty_line");
+		
+		foreach ($options as $k => $v) {
+			
+			if (in_array($k,$overwritables)) {
+			
+				$this->$k =$v;
+			}
+		}
 	}
 	
 	//-------------------------------------
@@ -88,11 +97,12 @@ class CSVHandler {
 	
 	//-------------------------------------
 	// 複数の行読み込み
-	public function read_lines ($counter=null) {
+	public function read_lines ($options=array()) {
 		
 		$lines =array();
+		$counter =$options["limit"];
 		
-		while ( ! is_null($line =$this->read_line())) {
+		while ( ! is_null($line =$this->read_line($options))) {
 			
 			if ( ! is_null($counter) && $counter-->0) {
 				
@@ -107,7 +117,7 @@ class CSVHandler {
 	
 	//-------------------------------------
 	// 行ベースの読み込み
-	public function read_line () {
+	public function read_line ($options=array()) {
 		
 		if ( ! $this->handle || feof($this->handle)) {
 			
@@ -154,19 +164,6 @@ class CSVHandler {
 						$this->data_charset,
 						$this->file_charset);
 			}
-			
-			// セル単位コールバック
-			if ( ! is_null($this->read_callback_by_cell)) {
-				
-				$csv_data[$i] =call_user_func(
-						$this->read_callback_by_cell,$csv_data[$i]);
-			}
-		}
-		
-		// 行単位コールバック
-		if ( ! is_null($this->read_callback_by_line)) {
-			
-			$csv_data =call_user_func($this->read_callback_by_line,$csv_data);
 		}
 		
 		// KVマッピング
@@ -181,6 +178,43 @@ class CSVHandler {
 			
 			$csv_data =$csv_data_tmp;
 		}
+		
+		// Filter実行
+		if ($this->filters && ! $options["ignore_filters"]) {
+		
+			foreach ((array)$this->filters as $filter) {
+				
+				$module =load_module("csvfilter",$filter["filter"],true);
+				
+				// target指定がある場合、要素単位で処理
+				if ($filter["target"]) {
+				
+					$csv_data[$filter["target"]] =call_user_func_array($module,array(
+						$csv_data[$filter["target"]],
+						"r",
+						$filter,
+						$this,
+					));
+					
+				// target指定がない場合、全要素を処理
+				} else {
+				
+					$csv_data =call_user_func_array($module,array(
+						$csv_data,
+						"r",
+						$filter,
+						$this,
+					));
+					
+					if ($csv_data === null) {
+						
+						return array();
+					}
+				}
+			}
+		}
+		
+		$this->current_line_num++;
 		
 		if (strlen(implode("",$csv_data))) {
 			
@@ -198,7 +232,7 @@ class CSVHandler {
 	
 	//-------------------------------------
 	// 複数行書き込み
-	public function write_lines ($lines) {
+	public function write_lines ($lines, $options=array()) {
 		
 		if ( ! is_array($lines)) {
 			
@@ -207,7 +241,7 @@ class CSVHandler {
 		
 		foreach ($lines as $line) {
 			
-			$this->write_line($line);
+			$this->write_line($line,$options);
 		}
 		
 		return true;
@@ -215,11 +249,46 @@ class CSVHandler {
 	
 	//-------------------------------------
 	// 行書き込み
-	public function write_line (array $csv_data) {
+	public function write_line (array $csv_data, $options=array()) {
 		
 		if ($this->ignore_empty_line &&  ! strlen(implode("",$csv_data))) {
 			
 			return false;
+		}
+		
+		// Filter実行
+		if ($this->filters && ! $options["ignore_filters"]) {
+		
+			foreach ((array)$this->filters as $filter) {
+				
+				$module =load_module("csvfilter",$filter["filter"],true);
+				
+				// target指定がある場合、要素単位で処理
+				if ($filter["target"]) {
+				
+					$csv_data[$filter["target"]] =call_user_func_array($module,array(
+						$csv_data[$filter["target"]],
+						"w",
+						$filter,
+						$this,
+					));
+					
+				// target指定がない場合、全要素を処理
+				} else {
+				
+					$csv_data =call_user_func_array($module,array(
+						$csv_data,
+						"w",
+						$filter,
+						$this,
+					));
+					
+					if ($csv_data === null) {
+						
+						return;
+					}
+				}
+			}
 		}
 		
 		// VKマッピング
@@ -255,30 +324,55 @@ class CSVHandler {
 						$this->data_charset);
 			}
 			
-			// セル単位コールバック
-			if ( ! is_null($this->write_callback_by_cell)) {
-				
-				$csv_data[$i] =call_user_func(
-						$this->write_callback_by_cell,$csv_data[$i]);
-			}
-			
 			$csv_data[$i] =$this->quote_csv_data($csv_data[$i]);
-		}
-		
-		// 行単位コールバック
-		if ( ! is_null($this->write_callback_by_line)) {
-			
-			$csv_data =call_user_func($this->write_callback_by_line,$csv_data);
 		}
 		
 		$csv_data =implode($this->delim,$csv_data).$this->return_code;
 		
-		return fwrite($this->handle,$csv_data);
+		fwrite($this->handle,$csv_data);
+		
+		$this->current_line_num++;
+	}
+	
+	//-------------------------------------
+	// 次回または現在の読み込み/書き込みの行番号
+	public function get_current_line_num () {
+		
+		return $this->current_line_num;
+	}
+	
+	//-------------------------------------
+	// エラーの登録
+	public function register_error ($message, $line_num=null, $row=null) {
+		
+		$error =array();
+		$error["message"] =$message;
+		
+		if ($line_num !== null) {
+		
+			$error["line"] =$line_num===true
+					? $this->get_current_line_num()
+					: $line_num;
+		}
+		
+		if ($row !== null) {
+		
+			$error["row"] =$row;
+		}
+		
+		$this->errors[] =$error;
+	}
+	
+	//-------------------------------------
+	// 読み込み/書き込みエラーの取得
+	public function get_errors () {
+		
+		return $this->errors;
 	}
 	
 	//-------------------------------------
 	// CSVセルエスケープ
-	public function quote_csv_data ($value) {
+	protected function quote_csv_data ($value) {
 			
 		$value =(string)$value;
 		$value =str_replace($this->escape,$this->escape.$this->escape, $value);

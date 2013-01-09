@@ -43,7 +43,13 @@
 	//-------------------------------------
 	// モジュール読み込み
 	function load_module ($module_group, $module_id, $force=false) {
-	
+		
+		// メソッドがわたっていればそのまま返す
+		if (is_array($module_id) && function_exists($module_id)) {
+			
+			return $module_id;
+		}
+		
 		// 登録済みmoduleから読み込み
 		$modules =& ref_globals("registered_module");
 		$func =$modules[$module_group][$module_id];

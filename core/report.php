@@ -108,7 +108,7 @@
 			}
 		}
 		
-		return preg_replace('!('.$br_code.'|\s)+$!i','',$result);
+		return preg_replace('!'.$br_code.'$!i','',$result);
 	}
 	
 	function report_template (

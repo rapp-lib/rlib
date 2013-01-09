@@ -129,7 +129,7 @@
 		
 		$format =$params["format"]
 				? $params["format"]
-				: '{%l}{%yp}{%mp}{%dp}{%datefix}{%datepick}';
+				: '{%l}{%yp}{%mp}{%dp}{%datefix}';/*{%datepick}*/
 		$html["full"] =$html["head"].str_template_array($format,$html).$html["foot"];
 		
 		// テンプレート変数へのアサイン

@@ -6,10 +6,11 @@ class List_Base {
 	
 	protected $name;
 	protected $config;
+	protected $controller;
 	
 	//-------------------------------------
 	// コンストラクタ
-	public function get_instance ($name) {
+	public function get_instance ($name, $controller=null) {
 		
 		$cache =& ref_globals("list_option_class");
 		
@@ -22,7 +23,7 @@ class List_Base {
 					? new $class_name
 					: new self;
 			
-			$cache[$name]->init($name,$config);
+			$cache[$name]->init($name,$config,$controller);
 		}
 		
 		return $cache[$name];
@@ -30,10 +31,11 @@ class List_Base {
 	
 	//-------------------------------------
 	// 初期化
-	public function init ($name,$config) {
+	public function init ($name, $config, $controller=null) {
 		
 		$this->name =$name;
 		$this->config =$config;
+		$this->controller =$controller;
 	}
 	
 	//-------------------------------------
@@ -79,6 +81,44 @@ class List_Base {
 				if ($v) {
 				
 					$selected[$k] =$options[$k];
+				}
+			}
+			
+			return $selected;
+		}
+		
+		return null;
+	}
+	
+	//-------------------------------------
+	// オプションからキーの選択
+	public function select_reverse ($value=null, $params=array()) {
+	
+		$options =$this->options($params);
+		$keys =array_flip($options);
+		
+		// Serializeされた文字列であれば配列に変換する
+		if (is_string($value) && $unserialized =unserialize($value)) {
+			
+			$value =$unserialized;
+		}
+		
+		// 単一選択
+		if (is_string($value)) {
+		
+			return $keys[$value];
+		}
+		
+		// KEY=>0/1形式の配列での複数選択
+		if (is_array($value)) {
+			
+			$selected =array();
+			
+			foreach ($value as $k => $v) {
+				
+				if ($v) {
+				
+					$selected[$k] =$keys[$k];
 				}
 			}
 			
