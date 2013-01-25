@@ -156,6 +156,25 @@ class SmartyExtended extends Smarty {
 	}
 	
 	//-------------------------------------
+	// テンプレート文字列を直接fetch
+	public function fetch_src (
+			$tpl_source, 
+			$tpl_vars=array(),
+			$security=false) {
+		
+		return $this->fetch(
+				"eval:".$tpl_source, 
+				null, 
+				null, 
+				null, 
+				false, 
+				true, 
+				false,
+				$tpl_vars,
+				$security);
+	}
+	
+	//-------------------------------------
 	// overwrite Smarty::fetch
 	public function fetch (
 			$template = null, 
@@ -165,12 +184,38 @@ class SmartyExtended extends Smarty {
 			$display = false, 
 			$merge_tpl_vars = true, 
 			$no_output_filter = false,
-			$tpl_vars=array()) {
+			$tpl_vars = array(),
+			$security = false) {
 		
+		// 変数アサイン
+		array_extract($this->_tpl_vars);
 		parent::assign($this->_tpl_vars);
+		
+		// 追加の変数アサイン
+		array_extract($tpl_vars);
 		parent::assign($tpl_vars);
 		
-		$source =parent::fetch(
+		// テンプレート記述の制限設定
+		if ($security) {
+		
+			$policy =is_string($security) || is_object($security)
+					? $security
+					: null;
+			
+			if (is_array($security)) {
+				
+				$policy =new Smarty_Security($this);
+				
+				foreach ($security as $k => $v) {
+					
+					$policy->$k =$v;
+				}
+			}
+			
+			$this->enableSecurity();	
+		}
+		
+		$html_source =parent::fetch(
 				$template, 
 				$cache_id, 
 				$compile_id, 
@@ -179,7 +224,9 @@ class SmartyExtended extends Smarty {
 				$merge_tpl_vars, 
 				$no_output_filter);
 		
-		return $source;
+		$this->disableSecurity();
+			
+		return $html_source;
 	}
     
 	//-------------------------------------
@@ -385,19 +432,25 @@ class SmartyExtended extends Smarty {
 				? $params["id"]
 				: sprintf("ELM%09d",mt_rand());
 		
+		// optionsの配列としてparamsを渡す
+		if (is_array($params["options"])) {
+			
+			$list_name =array_shift($params["options"]);
+			$params["options_params"] =$params["options"];
+			$params["options"] =$list_name;
+		}
+		
 		foreach ($params as $key => $value) {
 			
 			if (preg_match('!options_param_(\d+)!',$key,$match)) {
 				
 				$params["options_params"][$match[1]] =$value;
-			}
 			
-			if (preg_match('!parents_param_(\d+)!',$key,$match)) {
+			} elseif (preg_match('!parents_param_(\d+)!',$key,$match)) {
 				
 				$params["parents_params"][$match[1]] =$value;
-			}
 			
-			if ( ! in_array($key,$op_keys)) {
+			} elseif ( ! in_array($key,$op_keys)) {
 			
 				$attr_html .=' '.$key.'="'.$value.'"';
 			}

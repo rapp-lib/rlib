@@ -116,7 +116,5 @@ class Controller_Base extends SmartyExtended {
 	//-------------------------------------
 	// 
 	public function after_act () {
-		
-		array_extract($this->vars);
 	}
 }

@@ -4,7 +4,7 @@
 	// 範囲の広い日付
 	function longdate ($date_string) {
 		
-		$date_pattern ='!^((\d*)[-/](\d*)[-/](\d*))?\D*((\d+):(\d+)(:(\d+)?))?!';
+		$date_pattern ='!^((\d*)[-/](\d*)[-/](\d*))?\D*((\d+):(\d+)(:(\d+))?)?!';
 		$longdate =array();
 		
 		if (strlen($date_string) 
@@ -77,6 +77,33 @@
 		}
 		
 		return $longdate;
+	}
+
+	//-------------------------------------
+	// longdateにおけるdate関数同等機能
+	function longdate_format ($date_string=null, $format="Y/m/d") {
+		
+		if ($date_string == null) {
+			
+			$date_string =time();
+		}
+		
+		if (is_numeric($date_string)) {
+			
+			$date_string =date("Y/m/d H:i:s",$date_string);
+		}
+		
+		$longdate =longdate($date_string);
+		
+		if ( ! $longdate) {
+		
+			return "";
+		}
+		
+		return preg_replace(
+				'!('.implode('|',array_keys($longdate)).')!e',
+				'$longdate["$1"]',
+				$format);
 	}
 	
 	//-------------------------------------

@@ -204,8 +204,15 @@ class DBI_Base {
 	}
 	
 	//-------------------------------------
+	// トランザクションが有効であるかを取得
+	public function in_transaction () {
+		
+		return $this->transaction_started;
+	}
+	
+	//-------------------------------------
 	// トランザクションのBegin
-	public function begin() {
+	public function begin () {
 		
 		if ( ! $this->transaction_started) {
 		
@@ -220,7 +227,7 @@ class DBI_Base {
 	
 	//-------------------------------------
 	// トランザクションのCommit
-	public function commit() {
+	public function commit () {
 		
 		if ($this->transaction_started) {
 		
@@ -235,7 +242,7 @@ class DBI_Base {
 	
 	//-------------------------------------
 	// トランザクションのRollback
-	public function rollback() {
+	public function rollback () {
 		
 		if ($this->transaction_started) { 
 			
@@ -251,8 +258,6 @@ class DBI_Base {
 	//-------------------------------------
 	// Query実行(取得は行わない)
 	public function select_nofetch ($query) {
-		
-		unset($query["assoc"]);
 	
 		$st =$this->st_select($query);
 		$result =$this->exec($st,array(
@@ -265,9 +270,6 @@ class DBI_Base {
 	//-------------------------------------
 	// Query実行(全件取得)
 	public function select ($query) {
-		
-		$assoc =$query["assoc"];
-		unset($query["assoc"]);
 	
 		$st =$this->st_select($query);
 		$result =$this->exec($st,array(
@@ -276,11 +278,6 @@ class DBI_Base {
 		));
 		$ts =$this->fetch_all($result);
 		
-		if ($assoc) {
-			
-			$this->assoc_merge($ts, $assoc);
-		}
-		
 		return $ts;
 	}
 	
@@ -288,20 +285,12 @@ class DBI_Base {
 	// Query実行(1件のデータ取得)
 	public function select_one ($query) {
 		
-		$assoc =$query["assoc"];
-		unset($query["assoc"]);
-		
 		$st =$this->st_select($query);
 		$result =$this->exec($st,array(
 			"Type" =>"select_one",
 			"Query" =>$query,
 		));
 		$t =$this->fetch($result);
-		
-		if ($assoc) {
-			
-			$this->assoc_merge($ts=array(& $t), $assoc);
-		}
 		
 		return $t;
 	}
@@ -343,7 +332,6 @@ class DBI_Base {
 		unset($query["limit"]);
 		unset($query["offset"]);
 		unset($query["order"]);
-		unset($query["assoc"]);
 		
 		if ( ! $limit) {
 			
@@ -385,32 +373,8 @@ class DBI_Base {
 	}
 	
 	//-------------------------------------
-	// Query実行(UPDATE)
-	public function update ($query) {
-		
-		$assoc =$query["assoc"];
-		unset($query["assoc"]);
-	
-		$st =$this->st_update($query);
-		$result =$this->exec($st,array(
-			"Type" =>"update",
-			"Query" =>$query,
-		));
-		
-		if ($assoc) {
-			
-			$this->assoc_affect("update", $assoc, $query, $result);
-		}
-		
-		return $result;
-	}
-	
-	//-------------------------------------
 	// Query実行(INSERT)
 	public function insert ($query) {
-		
-		$assoc =$query["assoc"];
-		unset($query["assoc"]);
 	
 		$st =$this->st_insert($query);
 		$result =$this->exec($st,array(
@@ -418,34 +382,26 @@ class DBI_Base {
 			"Query" =>$query,
 		));
 		
-		if ($assoc) {
-			
-			$this->assoc_affect("insert", $assoc, $query, $result);
-		}
+		return $result;
+	}
+	
+	//-------------------------------------
+	// Query実行(UPDATE)
+	public function update ($query) {
+	
+		$st =$this->st_update($query);
+		
+		$result =$this->exec($st,array(
+			"Type" =>"update",
+			"Query" =>$query,
+		));
 		
 		return $result;
 	}
 	
 	//-------------------------------------
-	// Query実行(conditionsの有無によりINSERTまたはUPDATE)
-	public function save_DELETE ($query) {
-		
-		if ($query["conditions"]) {
-			
-			return $this->update($query);
-			
-		} else {
-		
-			return $this->insert($query);
-		}
-	}
-	
-	//-------------------------------------
 	// Query実行(DELETE)
 	public function delete ($query) {
-		
-		$assoc =$query["assoc"];
-		unset($query["assoc"]);
 	
 		$st =$this->st_delete($query);
 		
@@ -454,11 +410,6 @@ class DBI_Base {
 			"Query" =>$query,
 		));
 		
-		if ($assoc) {
-			
-			$this->assoc_affect("delete", $assoc, $query, $result);
-		}
-		
 		return $result;
 	}
 	
@@ -466,7 +417,7 @@ class DBI_Base {
 	// SQL組み立て（JOIN句）
 	public function st_joins ($joins) {
 		
-		if (is_array($joins)) {
+		if (is_array($joins) && $joins) {
 			
 			foreach ($joins as $k => $v) {
 				
@@ -589,75 +540,6 @@ class DBI_Base {
 	}
 	
 	//-------------------------------------
-	// SQL組み立て（UPDATE）
-	public function st_update ($query) {
-		
-		$default_query =array(
-			'fields' => array(),
-			'conditions' => array(),
-			'table' => null,
-			'joins' => null,
-		);
-		$query =array_merge($default_query,$query);
-		
-		// table:(table,alias)構造の展開
-		if (is_array($query["table"])) {
-		
-			list($query["table"],$query["alias"]) =$query["table"];
-		}
-		
-		// alias
-		if ( ! $query["alias"]) {
-			
-			$query["alias"] =$query["table"];
-		}
-		
-		// joins
-		$query["joins"] =$this->st_joins($query["joins"]);
-		
-		// fields
-		$update_fields =array();
-		
-		foreach ($query["fields"] as $k => $v) {
-		
-			// Postgresならばfieldsのaliasを削除
-			if (get_class($this->ds) == "DboPostgres"
-					&& preg_match('!^(?:[^\.]+\.)([^\.]+)$!',$k,$match)) {
-					
-				$k =$match[1];
-			}
-			
-			if ($v === null) {
-				
-				$update_fields[] =$this->ds->name($k)." = NULL"; 
-			
-			} elseif (is_numeric($k)) {
-			
-				$update_fields[] =$v;
-			
-			} elseif (is_array($v)) {
-				
-				$update_fields[] =$this->ds->name($k)
-						." = ".$this->ds->value(serialize($v), "string", false);
-				
-			} else {
-			
-				$update_fields[] =$this->ds->name($k)
-						." = ".$this->ds->value($v, "string", false);
-			}
-		}
-		
-		$query["fields"] =implode(", ",$update_fields);
-		
-		// conditions
-		$query["conditions"] =$this->ds->conditions($query["conditions"]);
-		
-		$st =$this->ds->renderStatement('update',$query);
-		
-		return $st;
-	}
-	
-	//-------------------------------------
 	// SQL組み立て（INSERT）
 	public function st_insert ($query) {
 		
@@ -711,6 +593,76 @@ class DBI_Base {
 	}
 	
 	//-------------------------------------
+	// SQL組み立て（UPDATE）
+	public function st_update ($query) {
+		
+		$default_query =array(
+			'fields' => array(),
+			'conditions' => array(),
+			'table' => null,
+			'joins' => null,
+		);
+		$query =array_merge($default_query,$query);
+		
+		// table:(table,alias)構造の展開
+		if (is_array($query["table"])) {
+		
+			list($query["table"],$query["alias"]) =$query["table"];
+		}
+		
+		// alias
+		if ( ! $query["alias"]) {
+			
+			$query["alias"] =$query["table"];
+		}
+		
+		// joins
+		$query["joins"] =$this->st_joins($query["joins"]);
+		$query["joins"] =implode(' ',(array)$query["joins"]);
+		
+		// fields
+		$update_fields =array();
+		
+		foreach ($query["fields"] as $k => $v) {
+		
+			// Postgresならばfieldsのaliasを削除
+			if (get_class($this->ds) == "DboPostgres"
+					&& preg_match('!^(?:[^\.]+\.)([^\.]+)$!',$k,$match)) {
+					
+				$k =$match[1];
+			}
+			
+			if ($v === null) {
+				
+				$update_fields[] =$this->ds->name($k)." = NULL"; 
+			
+			} elseif (is_numeric($k)) {
+			
+				$update_fields[] =$v;
+			
+			} elseif (is_array($v)) {
+				
+				$update_fields[] =$this->ds->name($k)
+						." = ".$this->ds->value(serialize($v), "string", false);
+				
+			} else {
+			
+				$update_fields[] =$this->ds->name($k)
+						." = ".$this->ds->value($v, "string", false);
+			}
+		}
+		
+		$query["fields"] =implode(", ",$update_fields);
+		
+		// conditions
+		$query["conditions"] =$this->ds->conditions($query["conditions"]);
+		
+		$st =$this->ds->renderStatement('update',$query);
+		
+		return $st;
+	}
+	
+	//-------------------------------------
 	// SQL組み立て（DELETE）
 	public function st_delete ($query) {
 		
@@ -736,6 +688,7 @@ class DBI_Base {
 		
 		// joins
 		$query["joins"] =$this->st_joins($query["joins"]);
+		$query["joins"] =implode(' ',(array)$query["joins"]);
 		
 		// conditions
 		$query["conditions"] =$this->ds->conditions($query["conditions"]);
@@ -1217,14 +1170,6 @@ class DBI_Base {
 			
 		return $explain;
 	}
-	
-	//-------------------------------------
-	// 
-	protected function assoc_affect () {}
-	
-	//-------------------------------------
-	// 
-	protected function assoc_merge () {}
 	
 	//-------------------------------------
 	// プレースホルダーへの値の設定

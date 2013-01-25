@@ -39,7 +39,7 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 		
 		foreach ((array)$this->tables as $t_name => $t) {
 		
-			foreach ((array)$t["cols"] as $tc_name => $tc) {
+			foreach ((array)$t["fields"] as $tc_name => $tc) {
 				
 				if ($tc["list"]) {
 	
@@ -52,7 +52,7 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				}
 			}
 			
-			if ( ! $t["virtual"]) {
+			if ( ! $t["nomodel"]) {
 				
 				// Modelの構築
 				$src =find_include_path(
@@ -229,6 +229,12 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 					
 					$tc['modifier'] ='|userfile:"image"';
 					$tc['input_option'] =' group="image"';
+				}
+				
+				if ($tc['type'] == "checkbox") {
+					
+					$tc['modifier'] ='|selectflg';
+					$tc['input_option'] =' value="1"';
 				}
 				
 				if ($tc['type'] == "select" || $tc['type'] == "radioselect") {
