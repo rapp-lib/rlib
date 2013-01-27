@@ -187,13 +187,18 @@ class SmartyExtended extends Smarty {
 			$tpl_vars = array(),
 			$security = false) {
 		
+		$resource =$this->createTemplate(
+				$template,
+				$cache_id, 
+				$compile_id);
+				
 		// 変数アサイン
 		array_extract($this->_tpl_vars);
-		parent::assign($this->_tpl_vars);
+		$resource->assign($this->_tpl_vars);
 		
 		// 追加の変数アサイン
 		array_extract($tpl_vars);
-		parent::assign($tpl_vars);
+		$resource->assign($tpl_vars);
 		
 		// テンプレート記述の制限設定
 		if ($security) {
@@ -212,10 +217,10 @@ class SmartyExtended extends Smarty {
 				}
 			}
 			
-			$this->enableSecurity();	
+			$resource->enableSecurity();	
 		}
 		
-		$html_source =parent::fetch(
+		$html_source =$resource->fetch(
 				$template, 
 				$cache_id, 
 				$compile_id, 
@@ -224,8 +229,8 @@ class SmartyExtended extends Smarty {
 				$merge_tpl_vars, 
 				$no_output_filter);
 		
-		$this->disableSecurity();
-			
+		unset($resource);
+		
 		return $html_source;
 	}
     
@@ -265,7 +270,7 @@ class SmartyExtended extends Smarty {
 
 	//-------------------------------------
 	// LINK系のタグの構築（a/form/buttonタグで使用）
-	public function linkage_block ($type, $params, $content, &$template, &$repeat) {
+	public function linkage_block ($type, $params, $content, $template, $repeat) {
 		
 		// 開始タグ処理
 		if ($repeat) {
@@ -403,7 +408,7 @@ class SmartyExtended extends Smarty {
 			$params, 
 			$preset_value, 
 			$postset_value, 
-			& $template) {
+			$template) {
 		
 		$selected_value =isset($postset_value)
 				? $postset_value
