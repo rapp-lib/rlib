@@ -1,10 +1,10 @@
 <?php
 	
 	require_once(RLIB_ROOT_DIR."/core/smarty3/Smarty.class.php");
-
 //-------------------------------------
 // 
-class SmartyExtended extends Smarty {
+class SmartyBC extends Smarty {} 
+class SmartyExtended extends SmartyBC {
 	
 	public $_tpl_vars;
 	
@@ -29,6 +29,9 @@ class SmartyExtended extends Smarty {
 			
 			mkdir($cache_dir,0777);
 		}
+		
+		$this->php_handling =self::PHP_ALLOW;
+		$this->allow_php_templates =true;
 	}
 
 	//-------------------------------------

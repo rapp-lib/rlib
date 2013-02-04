@@ -94,11 +94,11 @@ class Controller_Base extends SmartyExtended {
 
 		if ($fid_enable && $sname) {
 			
-			$fid_name ="__form_".$sname;
+			$fid_name ="_f_".substr(md5($sname),0,5);
 			
 			$fid =strlen($_REQUEST[$fid_name])
 					? $_REQUEST[$fid_name]
-					: sprintf("%09d",mt_rand(1,999999999));
+					: substr(md5(mt_rand(1,999999)),0,5);
 			
 			$sname .="-".$fid;
 			
