@@ -192,9 +192,14 @@ class Model_Base {
 		
 		foreach ($ts as $index => $t) {
 			
-			$gts[$t[$key]][$index] =$reduce_key
-					? $t[$reduce_key]
-					: $t;
+			if ($reduce_key) {
+			
+				$gts[$t[$key]][$t[$reduce_key]] =$t[$reduce_key];
+				
+			} else {
+			
+				$gts[$t[$key]][$index] =$t;
+			}
 		}
 		
 		return $gts;

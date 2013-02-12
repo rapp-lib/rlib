@@ -71,7 +71,17 @@ class Controller_Base extends SmartyExtended {
 				."-".str_underscore($this->controller_name)
 				."-".str_underscore($this->action_name);
 		
-		if ($sname === null) {
+		if (is_object($sname) && is_subclass_of($sname,"Context_Base")) {
+			
+			$sname =str_underscore($var_name)
+					."-extends_".$sname->get_sname();
+					
+		} elseif (is_object($sname)) {
+			
+			$sname =str_underscore($var_name)
+					."-extends_".str_underscore(get_class($sname));
+		
+		} elseif ($sname === null) {
 			
 			$sname =$page_code;
 			
@@ -84,11 +94,6 @@ class Controller_Base extends SmartyExtended {
 			} elseif ($sname > 0) {
 			
 				$sname =implode("_",array_slice(explode("_",$page_code),0,-$sname));
-			
-			} elseif ($sname < 0) {
-			
-				$sname =str_underscore($var_name)
-						."-".str_underscore($this->controller_name);
 			}
 		}
 

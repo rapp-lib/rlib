@@ -19,6 +19,13 @@ class Context_Base {
 	}
 	
 	//-------------------------------------
+	// セッション識別子を取得
+	public function get_sname () {
+		
+		return $this->sname;
+	}
+	
+	//-------------------------------------
 	// 
 	public function bind_session ($sname) {
 	

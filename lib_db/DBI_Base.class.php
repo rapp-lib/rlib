@@ -6,7 +6,7 @@ class DBI_Base {
 
 	protected $name ="";
 	protected $ds =null;
-	protected $transaction_started =false;
+	protected $transaction_stack =array();
 	private $desc_cache =array();
 	
 	//-------------------------------------
@@ -144,7 +144,7 @@ class DBI_Base {
 			));
 			
 			// トランザクション起動中であれば例外発行
-			if ($this->transaction_started) {
+			if ($this->transaction_stack) {
 				
 				throw new DBIException($this->ds->error);
 			}
@@ -204,55 +204,64 @@ class DBI_Base {
 	}
 	
 	//-------------------------------------
-	// トランザクションが有効であるかを取得
-	public function in_transaction () {
-		
-		return $this->transaction_started;
-	}
-	
-	//-------------------------------------
 	// トランザクションのBegin
-	public function begin () {
+	public function begin ($transaction_id="default") {
 		
-		if ( ! $this->transaction_started) {
+		if ( ! $this->transaction_stack) {
 		
 			$this->exec($this->ds->_commands['begin']);
-			$this->transaction_started =true;
-			
-			return true;
 		}
 		
-		return false;
+		array_push($this->transaction_stack,$transaction_id);
 	}
 	
 	//-------------------------------------
 	// トランザクションのCommit
-	public function commit () {
+	public function commit ($transaction_id="default") {
 		
-		if ($this->transaction_started) {
-		
-			$this->exec($this->ds->_commands['commit']);
-			$this->transaction_started =false;
+		if ( ! $this->transaction_stack) {
 			
-			return true;
+			report("Transaction has rollbacked, not commit");
 		}
 		
-		return false;
+		$target_transaction_id =array_pop($this->transaction_stack);
+		
+		if ($transaction_id != $target_transaction_id) {
+			
+			report_error("Nested Transaction commit  error",array(
+				"target_transaction" =>$transaction_id,
+				"missing_transaction" =>$target_transaction_id,
+			));
+		}
+		
+		if ( ! $this->transaction_stack) {
+		
+			$this->exec($this->ds->_commands['commit']);
+		}
 	}
 	
 	//-------------------------------------
 	// トランザクションのRollback
-	public function rollback () {
+	public function rollback ($transaction_id="default") {
 		
-		if ($this->transaction_started) { 
+		if ( ! $this->transaction_stack) {
 			
-			$this->exec($this->ds->_commands['rollback']);
-			$this->transaction_started =false;
-			
-			return true;
+			report("Transaction has rollbacked, not rollback");
 		}
 		
-		return false;
+		$target_transaction_id =array_pop($this->transaction_stack);
+		
+		if ($transaction_id != $target_transaction_id) {
+			
+			report_error("Nested Transaction rollback  error",array(
+				"target_transaction" =>$transaction_id,
+				"missing_transaction" =>$target_transaction_id,
+			));
+		}
+		
+		$this->exec($this->ds->_commands['rollback']);
+		
+		$this->transaction_stack =array();
 	}
 	
 	//-------------------------------------
