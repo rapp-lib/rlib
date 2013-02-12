@@ -110,18 +110,32 @@ class Model_Base {
 		if ($list_setting["sort"]) {
 		
 			$setting =$list_setting["sort"];
-			$key =$input[(string)$setting["sort_param_name"]];
-			$value =$setting["map"][$key];
+			$keys =$input[(string)$setting["sort_param_name"]];
 			
-			if ($value) {
+			// 単数、複数設定可能
+			if ( ! is_array($keys)) {
 			
-				$query["order"] =$value;
+				$keys =array($keys);
+			}
 			
-			} elseif ($setting["default"]) {
+			ksort($keys);
+			
+			foreach ($keys as $key) {
+			
+				$value =$setting["map"][$key];
+				
+				if ($value) {
+				
+					$query["order"][] =$value;
+				} 
+			}
+			
+			// 設定されれていない場合
+			if ( ! $query["order"] && $setting["default"]) {
 			
 				$query["order"] =$setting["default"];
 			}
-			
+				
 			unset($query["sort"]);
 		}
 		
