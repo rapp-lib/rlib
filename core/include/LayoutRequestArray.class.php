@@ -60,7 +60,7 @@ class LayoutRequestArray {
 				// 不正値
 				} else {
 				
-					$values =null;
+					$values =false;
 				}
 				
 			// layout指定
