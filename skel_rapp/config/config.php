@@ -17,6 +17,8 @@
 		"Path.document_root_url" =>"",
 		
 		// 基本設定
+		"Config.dync_key" =>"_",
+		"Config.auto_deploy" =>false,
 		"Config.external_charset" =>"UTF-8",
 		"Config.webapp_include_path" =>array(
 			"app",
@@ -25,9 +27,8 @@
 			"app/context",
 			"app/list",
 			"app/model",
+			"app/widget",
 		),
-		"Config.dync_key" =>"_",
-		"Config.auto_deploy" =>false,
 		
 		"Report.error_reporting" =>E_ALL&~E_NOTICE&~E_DEPRECATED,
 		"Report.buffer_enable" =>false,
