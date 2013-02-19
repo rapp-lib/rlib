@@ -46,13 +46,19 @@ class ImageHandler {
 			$this->load($filename);
 		}
 	}
+		
+	//-------------------------------------
+	// 対象ファイルの有効性チェック
+	public function get_type () {
+		
+		return $this->type;
+	}
 	
 	//-------------------------------------
 	// 画像ファイルの読み込み
 	public function load ($filename) {
 		
 		$this->filename =$filename;
-		$this->valid =false;
 		
 		if (file_exists($filename) && is_file($filename)) {
 			
@@ -151,5 +157,16 @@ class ImageHandler {
 		// ハンドラ開放
 		imagedestroy($src_image); 
 		imagedestroy($dst_image);
+	}
+	
+	//-------------------------------------
+	// 1x1のダミー画像を生成
+	public function create_dummy_image ($color=255, $filename=null) {
+		
+		$image =imagecreatetruecolor(1, 1);
+		$lcolor =imagecolorallocate($image, $color, $color, $color);
+		imagesetpixel($image,0,0,$lcolor);
+		imagepng($image);
+		imagedestroy($image,$filename);
 	}
 }

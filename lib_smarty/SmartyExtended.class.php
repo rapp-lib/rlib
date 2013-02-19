@@ -494,7 +494,7 @@ class SmartyExtended extends SmartyBC {
 			
 			foreach ($options as $option_value => $option_label) {
 				
-				$selected =(string)$option_value == (string)$selected_value;
+				$selected =(string)$option_value === (string)$selected_value;
 				$html["options"][$option_value] ='<option'
 						.' value="'.$option_value.'"'
 						.($selected ? ' selected="selected"' : '')
@@ -508,7 +508,7 @@ class SmartyExtended extends SmartyBC {
 			
 			foreach ($options as $option_value => $option_label) {
 				
-				$checked =(string)$option_value == (string)$selected_value;
+				$checked =(string)$option_value === (string)$selected_value;
 				$html["options"][$option_value] =
 						'<nobr><label>'.'<input type="radio"'
 						.' name="'.$params["name"].'"'
@@ -533,7 +533,17 @@ class SmartyExtended extends SmartyBC {
 			
 			foreach ($options as $option_value => $option_label) {
 				
-				$checked =in_array($option_value,(array)$selected_value);
+				$checked =false;
+				
+				foreach ((array)$selected_value as $a_selected_value) {
+				
+					if ((string)$option_value === (string)$a_selected_value) {
+						
+						$checked =true;
+						break;
+					}
+				}
+				
 				$html["options"][$option_value] =
 						'<input type="hidden" name="'.$params['name']
 						.'['.$option_value.']" value="" />'."\n"
