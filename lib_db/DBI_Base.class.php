@@ -122,7 +122,7 @@ class DBI_Base {
 		report('Execute Statement',array_merge($report_context,array(
 			"Statement" =>$st,
 			"Elapsed" =>$elapsed,
-			"NumRows" =>$this->ds->lastNumRows()."/".$this->ds->lastAffected(),
+			"NumRows" =>"N:".count($result)."/A:".$this->ds->lastAffected(),
 		)));
 		
 		if ($explain["warn"]) {

@@ -36,6 +36,7 @@ rev:2013/02/08.modeac Y.Toyosawa
 		
 		rui.Wysiwyg.instances[elm_id] = new nicEditor({
 			fullPanel : true,
+			convertToText : false,
 			iconsPath : rui.ext_url+"/rui.wysiwyg/nicEditorIcons.gif"
 		});
 		rui.Wysiwyg.instances[elm_id].panelInstance(elm_id);
