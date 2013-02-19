@@ -1,8 +1,8 @@
 <?php
 /*
 	■使用例：
-		<img src="/.resize.php?s=120x120&f=/abs_url_to_image/image.jpg"/>
-		<img src="/.resize.php?s=x120&t=on&f=/abs_url_to_image/image.jpg"/>
+		<img src="{{'/.resize.php'|path_to_url}}?s=120x120&f=/abs_url_to_image/image.jpg"/>
+		<img src="{{'/.resize.php'|path_to_url}}?s=x120&t=on&f=/abs_url_to_image/image.jpg"/>
 	
 	■設定：
 		registry("ImageResize.resized_image_dir.default")
@@ -148,7 +148,7 @@
 		elapse("webapp",true);
 		
 		// 出力
-		//clean_output_shutdown(array("file"=>$cache_file));
+		clean_output_shutdown(array("file"=>$cache_file));
 		
 		elapse("webapp.fetch",true);
 		elapse("webapp",true);

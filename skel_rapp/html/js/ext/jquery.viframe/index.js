@@ -212,8 +212,9 @@
 				return true;
 			}
 
-			// target=_parent、ページ内アンカー、JS実行であれば割り込まない
+			// target=_parent、_blank、ページ内アンカー、JS実行であれば割り込まない
 			if ($anchor.attr("target") == "_parent"
+					|| $anchor.attr("target") == "_blank"
 					|| o.ajaxOptions.url.match(/^#/)
 					|| o.ajaxOptions.url.match(/^javascript:/)) {
 				
