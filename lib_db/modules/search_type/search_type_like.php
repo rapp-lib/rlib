@@ -9,7 +9,7 @@
 			$setting,
 			$context) {
 		
-		return $input
+		return strlen($input)
 				? array($target." LIKE " =>"%".$input."%")
 				: null;
 	}

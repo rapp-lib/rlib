@@ -2338,9 +2338,6 @@ class DboSource extends DataSource {
 		}
 		$conditions = str_replace(array($start, $end), '', $conditions);
 		$conditions = preg_replace_callback('/(?:[\'\"][^\'\"\\\]*(?:\\\.[^\'\"\\\]*)*[\'\"])|([a-z0-9_' . $start . $end . ']*\\.[a-z0-9_' . $start . $end . ']*)/i', array(&$this, '__quoteMatchedField'), $conditions);
-		// <MOD Y.Toysoawa 120308 プレースホルダーを使用可能にする修正>
-		$conditions =String::insert($conditions, array_map(array($this,"value"),(array)$this->bounds));
-		// </MOD Y.Toysoawa 120308 プレースホルダーを使用可能にする修正>
 		if ($conditions !== null) {
 			return $conditions;
 		}

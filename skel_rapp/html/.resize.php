@@ -1,8 +1,8 @@
 <?php
 /*
 	■使用例：
-		<img src="{{'/.resize.php'|path_to_url}}?s=120x120&f=/abs_url_to_image/image.jpg"/>
-		<img src="{{'/.resize.php'|path_to_url}}?s=x120&t=on&f=/abs_url_to_image/image.jpg"/>
+		<img src="/.resize.php?s=120x120&f=/abs_url_to_image/image.jpg"/>
+		<img src="/.resize.php?s=x120&t=on&f=/abs_url_to_image/image.jpg"/>
 	
 	■設定：
 		registry("ImageResize.resized_image_dir.default")
@@ -114,13 +114,15 @@
 		if ( ! save_dir 
 				|| ! is_writable($save_dir)
 				|| ! is_dir($save_dir)) {
-			report(registry("ImageResize"));
+			
 			report_error("Config error",array(
 				"ImageResize.resized_image_dir.default" =>$save_dir,
 			));
 		}
-		// キャッシュがなければ生成
-		if ( ! file_exists($cache_file)) {
+		
+		// キャッシュがないか、古ければければ生成
+		if ( ! file_exists($cache_file)
+				|| filemtime($cache_file) < filemtime($request_file)) {
 			
 			// 画像の取り込み
 			$image =new ImageHandler($request_file);
