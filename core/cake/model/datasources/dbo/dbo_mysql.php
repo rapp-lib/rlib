@@ -124,7 +124,7 @@ class DboMysqlBase extends DboSource {
 		$fields = false;
 		$cols = $this->query('SHOW FULL COLUMNS FROM ' . $this->fullTableName($model));
 
-		foreach ($cols as $column) {
+		foreach ((array)$cols as $column) {
 			$colKey = array_keys($column);
 			if (isset($column[$colKey[0]]) && !isset($column[0])) {
 				$column[0] = $column[$colKey[0]];

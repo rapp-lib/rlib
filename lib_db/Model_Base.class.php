@@ -92,6 +92,11 @@ class Model_Base {
 					if ($part_query) {
 					
 						$part_queries[] =$part_query;
+						
+						if ($setting["merge_query"]) {
+							
+							$query =$this->merge_query($query,$setting["merge_query"]);
+						}
 					}
 				}
 				

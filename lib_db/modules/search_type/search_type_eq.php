@@ -9,7 +9,7 @@
 			$setting,
 			$context) {
 		
-		return $input
+		return (is_string($input) && strlen($input)) || $input
 				? array($target =>$input)
 				: null;
 	}

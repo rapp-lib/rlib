@@ -111,9 +111,6 @@
 	//-------------------------------------
 	// viframe機能の初期化
 	$.fn.viframe =function(url,o) {
-	
-		o =o || {};
-		url =url || "";
 		
 		return this.each(function() {
 			$.viframe($(this), url, o);
@@ -144,8 +141,6 @@
 	//-------------------------------------
 	// リクエストを発行してレスポンスを$targetに関連付ける
 	$.fn.vifHref =function(url, o) {
-	
-		o =o || {};
 		
 		return this.each(function() {
 			$.vifHref($(this), url, o);
@@ -186,10 +181,12 @@
 			$.vifBindRequest($(this), $target, o);
 		});
 	};
-	$.vifBindRequest =function ($anchor, $target, o) {
+	$.vifBindRequest =function ($anchor, $target, oOrigin) {
 
+		var o =objClone(oOrigin) || {};
 		var onBoundReuqest =function(e){ 
-		
+
+			var o =objClone(oOrigin) || {};			
 			var $anchor =$(e.currentTarget);
 			var tagName =$anchor.get(0).tagName;
 				
@@ -330,4 +327,18 @@
 		}
 	};
 	
+	objClone = function (obj) {
+		var clone = new (obj.constructor);
+		for (var p in obj) {
+			clone[p] = typeof obj[p] == 'object' ? objClone(obj[p]) : obj[p];
+		}
+		return clone;
+	}
+	arrayClone = function(obj){
+		var clone = [];
+		for (var i = 0, l = obj.length; i < l; i++) {
+			clone[i] = typeof obj[i] == 'object' ? obj[i].clone() : obj[i];
+		}
+		return clone;
+	}
 })(jQuery);
