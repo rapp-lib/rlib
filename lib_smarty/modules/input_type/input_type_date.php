@@ -29,13 +29,15 @@
 		// 初期選択値の組み立て
 		$d ="";
 		
-		if ($postset_value_d =longdate($postset_value)) {
+		if ($postset_value) {
 			
-			$d =$postset_value_d;
+			$postset_value =input_type_date_parse_value($postset_value);
+			$d =longdate($postset_value);
 			
-		} elseif ($preset_value_d =longdate($preset_value)) {
+		} elseif ($preset_value) {
 			
-			$d =$preset_value_d;
+			$preset_value =input_type_date_parse_value($preset_value);
+			$d =longdate($preset_value);
 		}
 		
 		// 年指定の範囲の設定
@@ -205,5 +207,30 @@
 		}
 		
 		return array($year_start,$year_end);
+	}
+
+	function input_type_date_parse_value ($value) {
+		
+		$today_pattern ='!^today'
+				.'(?:([\+\-]\d+)y)?'
+				.'(?:([\+\-]\d+)m)?'
+				.'(?:([\+\-]\d+)d)?'
+				.'(?:([\+\-]\d+)h)?'
+				.'(?:([\+\-]\d+)i)?'
+				.'(?:([\+\-]\d+)s)?$!';
+				
+		if (preg_match($today_pattern,$value,$match)) {
+			
+			$value =date("Y/m/d H:i:s",mktime(
+				date("H")+$match[4],
+				date("i")+$match[5],
+				date("s")+$match[6],
+				date("m")+$match[2],
+				date("d")+$match[3],
+				date("Y")+$match[1]
+			));
+		}
+		
+		return $value;
 	}
 	

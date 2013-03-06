@@ -4,7 +4,7 @@
 	Sample:
 		$image =new ImageHandler($img_file);
 		$image->squeeze(100,50);
-		// $image->trim_center();
+		// $image->square();
 		$image->save($cache_file);
 */
 
@@ -100,7 +100,7 @@ class ImageHandler {
 	
 	//-------------------------------------
 	// 短辺に併せて中心を正方形にトリム
-	public function square ($size) {
+	public function square ($size=null) {
 
 		if ($this->crop_width > $this->crop_height) {
 		
@@ -113,8 +113,19 @@ class ImageHandler {
 			$this->crop_left =round(($this->crop_height-$this->crop_width)/2);
 			$this->crop_height =$this->crop_width;
 		}
+		
+		if ($size!==null) {
+		
+			$this->height =$this->width =$size;
+		
+		} elseif ($this->height > $this->width) {
 			
-		$this->height =$this->width =$size;
+			$this->height =$this->width;
+			
+		} elseif ($this->height < $this->width) {
+		
+			$this->width =$this->height;
+		}
 	}
 	
 	//-------------------------------------
