@@ -299,3 +299,33 @@
 		
 		return $entry;
 	}
+
+	//-------------------------------------
+	// 最初の要素を取得
+	function array_first ($arr) {
+		
+		if (is_array($arr) && $arr) {
+		
+		 	$keys =array_keys($arr);
+		 	return $arr[array_shift($keys)];
+			
+		} else {
+			
+			return null;
+		}
+	}
+
+	//-------------------------------------
+	// 最後の要素を取得
+	function array_last ($arr) {
+		
+		if (is_array($arr) && $arr) {
+		
+		 	$keys =array_keys($arr);
+		 	return $arr[array_pop($keys)];
+			
+		} else {
+			
+			return null;
+		}
+	}

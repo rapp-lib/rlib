@@ -48,7 +48,7 @@
 			$(".mi_remove",$mi_set).on("click",function(){
 			
 				// 削除数の下限チェック
-				if ($(".mi_set").length <= mi_min) { return; }
+				if ($(".mi_set",$mi).length <= mi_min) { return; }
 				
 				// 選択要素の削除
 				$mi_set.remove();
@@ -87,7 +87,7 @@
 		$(".mi_append",$mi).on("click",function(){
 			
 			// 追加数の上限チェック
-			if ($(".mi_set").length >= mi_max) { return; }
+			if ($(".mi_set",$mi).length >= mi_max) { return; }
 			
 			// .mi_tmplをコピーして追加
 			var index =parseInt(Math.random()*10000000);
@@ -99,7 +99,7 @@
 			
 		//-------------------------------------
 		// 不足している要素の追加
-		while ($(".mi_set").length < mi_min) { 
+		while ($(".mi_set",$mi).length < mi_min) { 
 			
 			$(".mi_append",$mi).trigger("click");
 		}

@@ -1058,11 +1058,11 @@ var nicEditorAdvancedButton = nicEditorButton.extend({
 							textAlign : ((navigator.appVersion.indexOf("Mac")!= -1) ? 'left' : 'right'),
 							className : 'nicEditorPane',
 							border : '1px solid #666',
-							opacity : 0.8,
+							/*<MOD Y.Toyosawa 130305> opacity : 0.8, */
 							backgroundColor : '#000',
 							fontSize : '12px',
-							color : '#FFF',
-							rawStyle : 'border-radius: 8px; -moz-border-radius: 8px; -webkit-border-radius: 8px; -o-border-radius: 8px; -ms-border-radius: 8px;'
+							color : '#FFF'/*<MOD Y.Toyosawa 130305> ,
+							rawStyle : 'border-radius: 8px; -moz-border-radius: 8px; -webkit-border-radius: 8px; -o-border-radius: 8px; -ms-border-radius: 8px;' */
 						} 
 					),
 					this
@@ -1910,12 +1910,12 @@ var nicCodeOptions = {
 /* END CONFIG */
 
 var nicCodeButton = nicEditorAdvancedButton.extend({
-	width : '350px',
+	width : '560px',
 		
 	addPane : function() {
 		this.addForm({
 			'' : {type : 'title', txt : 'HTMLソース編集'},
-			'code' : {type : 'content', 'value' : this.ne.selectedInstance.getContent(), style : {width: '340px', height : '200px'}}
+			'code' : {type : 'content', 'value' : this.ne.selectedInstance.getContent(), style : {width: '550px', height : '320px'}}
 		});
 	},
 	

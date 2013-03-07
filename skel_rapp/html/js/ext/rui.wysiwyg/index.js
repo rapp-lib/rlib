@@ -42,8 +42,12 @@ rev:2013/02/08.modeac Y.Toyosawa
 		rui.Wysiwyg.instances[elm_id].panelInstance(elm_id);
 	};
 	
-bkLib.onDomLoaded(function(){
-	$(".wysiwyg").each(function(){
-		rui.Wysiwyg.init($(this));
+	bkLib.onDomLoaded(function(){
+	
+		$(".wysiwyg").each(function(){
+		
+			rui.Wysiwyg.init($(this));
+		});
+		
+		$(document).trigger("loadWysiwyg");
 	});
-});

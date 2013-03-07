@@ -60,10 +60,11 @@
 		$_REQUEST =array_merge($_GET,$_POST);
 		
 		// 入出力文字コード変換
-		mb_http_output(registry("Config.external_charset"));
-		mb_internal_encoding(registry("Config.internal_charset"));
 		ob_start("mb_output_handler_impl");
-		mb_convert_variables(mb_internal_encoding(),mb_http_output(),$_REQUEST);
+		mb_convert_variables(
+				registry("Config.internal_charset"),
+				registry("Config.external_charset"),
+				$_REQUEST);
 		sanitize_request_variables($_REQUEST);
 		
 		// PHPの設定書き換え
@@ -163,7 +164,10 @@
 	// ob_filter
 	function mb_output_handler_impl ($html) {
 	
-		$html =mb_convert_encoding($html,mb_http_output(),mb_internal_encoding());
+		$html =mb_convert_encoding(
+				$html,
+				registry("Config.external_charset"),
+				registry("Config.internal_charset"));
 				
 		return $html;
 	}
