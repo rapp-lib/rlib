@@ -51,7 +51,7 @@
 	</script>
 	郵便番号: <input type="text" name="zip" size="9" maxlength="8"/> <br/>
 	<a href="javascript:0;" id="zipLoadButton">住所自動入力</a><br/>
-	都道府県: <input type="text" name="addr" size="40"><br/>
+	都道府県: <input type="text" name="pref" size="40"><br/>
 	市区町村番地: <input type="text" name="addr" size="40"><br/>
 	それ以降: <input type="text" name="street" size="40"><br/>
 */
