@@ -255,51 +255,38 @@ class Model_Base {
 	//-------------------------------------
 	// 親要素への変更を子要素へ反映
 	public function affect_assoc (
-			$id, 
-			$values=null,
-			$options=array()) {
+			$values,
+			$id,
+			$query=array()) {
 		
-		$ds =$options["ds"];
-		$table =$options["table"];
-		$parent_key =$options["parent_key"];
-		$child_key =$options["child_key"];
+		// パラメータの抽出
+		$ds =$query["ds"];
+		$base_fields =(array)$query["fields"];
+		$parent_key =$query["parent_key"];
+		$child_key =$query["child_key"];
+		unset($query["ds"]);
+		unset($query["fields"]);
+		unset($query["parent_key"]);
+		unset($query["child_key"]);
 		
-		// 子要素を全て削除
-		$query =array(
-			"table" =>$table,
-			"conditions" =>array(
-				$parent_key =>$id,
-			),
-		);
+		// 登録済みデータの削除
+		$query["conditions"] =(array)$query["conditions"];
+		$query["conditions"][$parent_key] =$id;
+		
 		dbi($ds)->delete($query);
 		
-		// 子要素の登録
-		foreach ($values as $value) {
+		// Bridge要素の登録
+		foreach ((array)$values as $value) {
 			
-			if ( ! $value) {
+			if ( ! strlen($value)) {
 				
 				continue;
 			}
 			
-			// valueは値として、指定の列に登録（Bridge）
-			if ($child_key) {
+			$query["fields"] =$base_fields;
+			$query["fields"][$parent_key] =$id;
+			$query["fields"][$child_key] =$value;
 			
-				$fields =array(
-					$parent_key =>$id,
-					$child_key =>$value,
-				);
-			
-			// valueは値のセットとして、すべて登録（HasMany）
-			} else {
-				
-				$fields =$value;
-				$fields[$parent_key] =$id;
-			}
-			
-			$query =array(
-				"table" =>$table,
-				"fields" =>$fields, 
-			);
 			dbi($ds)->insert($query);
 		}
 	}
@@ -320,32 +307,40 @@ class Model_Base {
 			return $this->merge_assoc($ts_copy =array(0=> & $ts),$query);
 		}
 		
+		// パラメータの抽出
 		$ds =$query["ds"];
 		$parent_key =$query["parent_key"];
 		$child_key =$query["child_key"];
 		$parent_key_origin =$query["parent_key_origin"];
-		$children_key_origin =$query["children_key_origin"];
+		$children_name =$query["children_name"];
 		unset($query["ds"]);
 		unset($query["parent_key"]);
 		unset($query["child_key"]);
 		unset($query["parent_key_origin"]);
-		unset($query["children_key_origin"]);
+		unset($query["children_name"]);
 		
 		$parent_ids =$this->convert_to_hashlist(
 				$ts,
 				$parent_key_origin);
 				
+		// Bridgeの取得
+		$query["conditions"] =(array)$query["conditions"];
 		$query["conditions"][] =array($parent_key =>$parent_ids);
 		
-		// Bridgeの取得
+		$query["fields"] =array(
+			$query["parent_key"],
+			$query["child_key"],
+		);
+		
 		$ts_bridge =dbi($ds)->select($query);
 		
+		// Bridgeの情報のマージ
 		$this->merge_grouped_children(
 				$ts, 
 				$ts_bridge,
 				$parent_key,
 				$parent_key_origin, 
-				$children_key_origin,
+				$children_name,
 				$child_key);
 	}
 

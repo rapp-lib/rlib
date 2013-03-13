@@ -26,12 +26,22 @@
 				return null;
 			}
 			
+			if ($filter["format"]) {
+				
+				$value =longdate_format($value,$filter["format"]);
+			}
+			
 		// CSV書き込み時
 		} elseif ($mode == "w") {
 			
 			if ( ! longdate($value)) {
 				
 				return "";
+			}
+			
+			if ($filter["format"]) {
+				
+				$value =longdate_format($value,$filter["format"]);
 			}
 		}
 		
