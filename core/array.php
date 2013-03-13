@@ -5,15 +5,19 @@
 	//
 	function array_extract ( & $arr) {
 		
-		foreach ($arr as $k => $_v) {
+		if (is_array($arr)) {
 			
-			if (is_array($arr[$k])) {
+			foreach ($arr as $k => $_v) {
 				
-				array_extract($arr[$k]);
+				if (is_array($arr[$k])) {
+					
+					array_extract($arr[$k]);
+				}
+				
+				$ref =& ref_array($arr,$k);
+				$ref =$arr[$k];
 			}
-			
-			$ref =& ref_array($arr,$k);
-			$ref =$arr[$k];
+		
 		}
 	}
 
@@ -72,7 +76,8 @@
 
 		foreach ($path as $i => $key) {
 			
-			if (is_numeric($key) && intval($key) > 0 || $key === '0') {
+			if (( ! preg_match('!^0\d+!',$key) && is_numeric($key) 
+					&& intval($key) > 0) || $key === '0') {
 				
 				$key =intval($key);
 			

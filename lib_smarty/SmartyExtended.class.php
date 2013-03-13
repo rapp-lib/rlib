@@ -466,7 +466,7 @@ class SmartyExtended extends SmartyBC {
 		
 		$list_options =get_list($params["options"],$this);
 		$options =$list_options->options($params["options_params"]);
-		
+		report($options);
 		// 空白選択の挿入(Checklist以外)
 		if ($params["type"] != "checklist" && isset($params["zerooption"])) {
 		
