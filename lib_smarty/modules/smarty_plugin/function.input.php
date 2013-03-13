@@ -41,15 +41,41 @@
 		
 		$postset_value =ref_array($smarty->_tpl_vars,"input.".$name_ref);
 		
+		// Contextのinput内のデータ
 		if ( ! $postset_value
-				&& preg_match('!^([^\.]+)\.(.+)$!',$name_ref,$match)) {
+				&& preg_match('!^([^\[]+)\[([^\[]+)\]((\[[^\[]+\])*)$!',$name,$match)) {
 			
 			$context_name =$match[1];
 			$name_ref_context =$match[2];
+			$name_ref_complex =$match[3];
 			
 			if ($context =$smarty->_tpl_vars[$context_name]) {
 			
 				$postset_value =$context->input($name_ref_context);
+				
+				// input要素内が配列構造
+				if ($name_ref_complex) {
+					
+					// Serializeサれた文字列は展開
+					if (is_string($postset_value)) {
+						
+						$postset_value =unserialize($postset_value);
+					}
+					
+					// 参照可能であれば、下層のデータを抽出
+					if ($postset_value && is_array($postset_value)) {
+					
+						$name_ref_complex =str_replace('][','.',$name_ref_complex);
+						$name_ref_complex =str_replace('[','',$name_ref_complex);
+						$name_ref_complex =str_replace(']','',$name_ref_complex);
+						
+						$postset_value =ref_array($postset_value,$name_ref_complex);
+					
+					} else {
+					
+						$postset_value =null;
+					}
+				}
 			}
 		}
 

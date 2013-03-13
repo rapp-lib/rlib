@@ -65,13 +65,7 @@ class List_Base {
 			$key =$key_unserialized;
 		}
 		
-		// 単一選択
-		if (is_string($key)) {
-		
-			return $options[$key];
-		}
-		
-		// KEY=>0/1形式の配列での複数選択
+		// KEY=>KEY形式の配列での複数選択
 		if (is_array($key)) {
 			
 			$selected =array();
@@ -85,9 +79,12 @@ class List_Base {
 			}
 			
 			return $selected;
-		}
 		
-		return null;
+		// 単一選択
+		} else {
+		
+			return $options[$key];
+		}
 	}
 	
 	//-------------------------------------

@@ -71,7 +71,17 @@ class Controller_Base extends SmartyExtended {
 				."-".str_underscore($this->controller_name)
 				."-".str_underscore($this->action_name);
 		
-		if ($sname === null) {
+		if (is_object($sname) && is_subclass_of($sname,"Context_Base")) {
+			
+			$sname =str_underscore($var_name)
+					."-extends_".$sname->get_sname();
+					
+		} elseif (is_object($sname)) {
+			
+			$sname =str_underscore($var_name)
+					."-extends_".str_underscore(get_class($sname));
+		
+		} elseif ($sname === null) {
 			
 			$sname =$page_code;
 			
@@ -84,21 +94,16 @@ class Controller_Base extends SmartyExtended {
 			} elseif ($sname > 0) {
 			
 				$sname =implode("_",array_slice(explode("_",$page_code),0,-$sname));
-			
-			} elseif ($sname < 0) {
-			
-				$sname =str_underscore($var_name)
-						."-".str_underscore($this->controller_name);
 			}
 		}
 
 		if ($fid_enable && $sname) {
 			
-			$fid_name ="__form_".$sname;
+			$fid_name ="_f_".substr(md5($sname),0,5);
 			
 			$fid =strlen($_REQUEST[$fid_name])
 					? $_REQUEST[$fid_name]
-					: sprintf("%09d",mt_rand(1,999999999));
+					: substr(md5(mt_rand(1,999999)),0,5);
 			
 			$sname .="-".$fid;
 			
@@ -116,7 +121,5 @@ class Controller_Base extends SmartyExtended {
 	//-------------------------------------
 	// 
 	public function after_act () {
-		
-		array_extract($this->vars);
 	}
 }

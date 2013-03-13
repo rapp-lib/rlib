@@ -19,7 +19,21 @@
 			}
 		}
 		
-		return $input
-				? array($target =>$input)
-				: null;
+		if ( ! $input) {
+			
+			return null;
+		}
+		
+		// 関連テーブルをSubqueryで間に入れる
+		if ($setting["query"]) {
+		
+			$query =$setting["query"];
+			$query["conditions"][] =array($setting["query_target"] => $input);
+			return array($target.' IN ('.dbi()->st_select($query).')');
+		
+		} else {
+			
+			return array($target =>$input);
+		}
+		
 	}

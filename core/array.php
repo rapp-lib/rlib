@@ -5,15 +5,19 @@
 	//
 	function array_extract ( & $arr) {
 		
-		foreach ($arr as $k => $_v) {
+		if (is_array($arr)) {
 			
-			if (is_array($arr[$k])) {
+			foreach ($arr as $k => $_v) {
 				
-				array_extract($arr[$k]);
+				if (is_array($arr[$k])) {
+					
+					array_extract($arr[$k]);
+				}
+				
+				$ref =& ref_array($arr,$k);
+				$ref =$arr[$k];
 			}
-			
-			$ref =& ref_array($arr,$k);
-			$ref =$arr[$k];
+		
 		}
 	}
 
@@ -40,7 +44,7 @@
 				$root[implode($root_k_copy,'.')] =$node[$k];
 			}
 		}
-	} 
+	}
 	
 	//-------------------------------------
 	//
@@ -72,7 +76,8 @@
 
 		foreach ($path as $i => $key) {
 			
-			if (is_numeric($key) && intval($key) > 0 || $key === '0') {
+			if (( ! preg_match('!^0\d+!',$key) && is_numeric($key) 
+					&& intval($key) > 0) || $key === '0') {
 				
 				$key =intval($key);
 			
@@ -87,7 +92,7 @@
 			
 				$_list[$key] =array();
 			}
-		
+			
 			$_list =& $_list[$key];
 		}
 		
@@ -298,4 +303,34 @@
 		}
 		
 		return $entry;
+	}
+
+	//-------------------------------------
+	// 最初の要素を取得
+	function array_first ($arr) {
+		
+		if (is_array($arr) && $arr) {
+		
+		 	$keys =array_keys($arr);
+		 	return $arr[array_shift($keys)];
+			
+		} else {
+			
+			return null;
+		}
+	}
+
+	//-------------------------------------
+	// 最後の要素を取得
+	function array_last ($arr) {
+		
+		if (is_array($arr) && $arr) {
+		
+		 	$keys =array_keys($arr);
+		 	return $arr[array_pop($keys)];
+			
+		} else {
+			
+			return null;
+		}
 	}

@@ -92,6 +92,11 @@ class Model_Base {
 					if ($part_query) {
 					
 						$part_queries[] =$part_query;
+						
+						if ($setting["merge_query"]) {
+							
+							$query =$this->merge_query($query,$setting["merge_query"]);
+						}
 					}
 				}
 				
@@ -110,18 +115,32 @@ class Model_Base {
 		if ($list_setting["sort"]) {
 		
 			$setting =$list_setting["sort"];
-			$key =$input[(string)$setting["sort_param_name"]];
-			$value =$setting["map"][$key];
+			$keys =$input[(string)$setting["sort_param_name"]];
 			
-			if ($value) {
+			// 単数、複数設定可能
+			if ( ! is_array($keys)) {
 			
-				$query["order"] =$value;
+				$keys =array($keys);
+			}
 			
-			} elseif ($setting["default"]) {
+			ksort($keys);
+			
+			foreach ($keys as $key) {
+			
+				$value =$setting["map"][$key];
+				
+				if ($value) {
+				
+					$query["order"][] =$value;
+				} 
+			}
+			
+			// 設定されれていない場合
+			if ( ! $query["order"] && $setting["default"]) {
 			
 				$query["order"] =$setting["default"];
 			}
-			
+				
 			unset($query["sort"]);
 		}
 		
@@ -192,9 +211,14 @@ class Model_Base {
 		
 		foreach ($ts as $index => $t) {
 			
-			$gts[$t[$key]][$index] =$reduce_key
-					? $t[$reduce_key]
-					: $t;
+			if ($reduce_key) {
+			
+				$gts[$t[$key]][$t[$reduce_key]] =$t[$reduce_key];
+				
+			} else {
+			
+				$gts[$t[$key]][$index] =$t;
+			}
 		}
 		
 		return $gts;
@@ -328,8 +352,8 @@ class Model_Base {
 		$query["conditions"][] =array($parent_key =>$parent_ids);
 		
 		$query["fields"] =array(
-			$query["parent_key"],
-			$query["child_key"],
+			$parent_key,
+			$child_key,
 		);
 		
 		$ts_bridge =dbi($ds)->select($query);

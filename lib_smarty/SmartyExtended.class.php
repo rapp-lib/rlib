@@ -1,10 +1,10 @@
 <?php
 	
 	require_once(RLIB_ROOT_DIR."/core/smarty3/Smarty.class.php");
-
 //-------------------------------------
 // 
-class SmartyExtended extends Smarty {
+class SmartyBC extends Smarty {} 
+class SmartyExtended extends SmartyBC {
 	
 	public $_tpl_vars;
 	
@@ -29,6 +29,9 @@ class SmartyExtended extends Smarty {
 			
 			mkdir($cache_dir,0777);
 		}
+		
+		$this->php_handling =self::PHP_ALLOW;
+		$this->allow_php_templates =true;
 	}
 
 	//-------------------------------------
@@ -156,6 +159,25 @@ class SmartyExtended extends Smarty {
 	}
 	
 	//-------------------------------------
+	// テンプレート文字列を直接fetch
+	public function fetch_src (
+			$tpl_source, 
+			$tpl_vars=array(),
+			$security=false) {
+		
+		return $this->fetch(
+				"eval:".$tpl_source, 
+				null, 
+				null, 
+				null, 
+				false, 
+				true, 
+				false,
+				$tpl_vars,
+				$security);
+	}
+	
+	//-------------------------------------
 	// overwrite Smarty::fetch
 	public function fetch (
 			$template = null, 
@@ -165,12 +187,43 @@ class SmartyExtended extends Smarty {
 			$display = false, 
 			$merge_tpl_vars = true, 
 			$no_output_filter = false,
-			$tpl_vars=array()) {
+			$tpl_vars = array(),
+			$security = false) {
 		
-		parent::assign($this->_tpl_vars);
-		parent::assign($tpl_vars);
+		$resource =$this->createTemplate(
+				$template,
+				$cache_id, 
+				$compile_id);
+				
+		// 変数アサイン
+		array_extract($this->_tpl_vars);
+		$resource->assign($this->_tpl_vars);
 		
-		$source =parent::fetch(
+		// 追加の変数アサイン
+		array_extract($tpl_vars);
+		$resource->assign($tpl_vars);
+		
+		// テンプレート記述の制限設定
+		if ($security) {
+		
+			$policy =is_string($security) || is_object($security)
+					? $security
+					: null;
+			
+			if (is_array($security)) {
+				
+				$policy =new Smarty_Security($this);
+				
+				foreach ($security as $k => $v) {
+					
+					$policy->$k =$v;
+				}
+			}
+			
+			$resource->enableSecurity();	
+		}
+		
+		$html_source =$resource->fetch(
 				$template, 
 				$cache_id, 
 				$compile_id, 
@@ -179,7 +232,9 @@ class SmartyExtended extends Smarty {
 				$merge_tpl_vars, 
 				$no_output_filter);
 		
-		return $source;
+		unset($resource);
+		
+		return $html_source;
 	}
     
 	//-------------------------------------
@@ -218,7 +273,7 @@ class SmartyExtended extends Smarty {
 
 	//-------------------------------------
 	// LINK系のタグの構築（a/form/buttonタグで使用）
-	public function linkage_block ($type, $params, $content, &$template, &$repeat) {
+	public function linkage_block ($type, $params, $content, $template, $repeat) {
 		
 		// 開始タグ処理
 		if ($repeat) {
@@ -356,7 +411,7 @@ class SmartyExtended extends Smarty {
 			$params, 
 			$preset_value, 
 			$postset_value, 
-			& $template) {
+			$template) {
 		
 		$selected_value =isset($postset_value)
 				? $postset_value
@@ -385,19 +440,25 @@ class SmartyExtended extends Smarty {
 				? $params["id"]
 				: sprintf("ELM%09d",mt_rand());
 		
+		// optionsの配列としてparamsを渡す
+		if (is_array($params["options"])) {
+			
+			$list_name =array_shift($params["options"]);
+			$params["options_params"] =$params["options"];
+			$params["options"] =$list_name;
+		}
+		
 		foreach ($params as $key => $value) {
 			
 			if (preg_match('!options_param_(\d+)!',$key,$match)) {
 				
 				$params["options_params"][$match[1]] =$value;
-			}
 			
-			if (preg_match('!parents_param_(\d+)!',$key,$match)) {
+			} elseif (preg_match('!parents_param_(\d+)!',$key,$match)) {
 				
 				$params["parents_params"][$match[1]] =$value;
-			}
 			
-			if ( ! in_array($key,$op_keys)) {
+			} elseif ( ! in_array($key,$op_keys)) {
 			
 				$attr_html .=' '.$key.'="'.$value.'"';
 			}
@@ -405,7 +466,7 @@ class SmartyExtended extends Smarty {
 		
 		$list_options =get_list($params["options"],$this);
 		$options =$list_options->options($params["options_params"]);
-		
+		report($options);
 		// 空白選択の挿入(Checklist以外)
 		if ($params["type"] != "checklist" && isset($params["zerooption"])) {
 		
@@ -433,7 +494,7 @@ class SmartyExtended extends Smarty {
 			
 			foreach ($options as $option_value => $option_label) {
 				
-				$selected =(string)$option_value == (string)$selected_value;
+				$selected =(string)$option_value === (string)$selected_value;
 				$html["options"][$option_value] ='<option'
 						.' value="'.$option_value.'"'
 						.($selected ? ' selected="selected"' : '')
@@ -447,7 +508,7 @@ class SmartyExtended extends Smarty {
 			
 			foreach ($options as $option_value => $option_label) {
 				
-				$checked =(string)$option_value == (string)$selected_value;
+				$checked =(string)$option_value === (string)$selected_value;
 				$html["options"][$option_value] =
 						'<nobr><label>'.'<input type="radio"'
 						.' name="'.$params["name"].'"'
@@ -472,7 +533,17 @@ class SmartyExtended extends Smarty {
 			
 			foreach ($options as $option_value => $option_label) {
 				
-				$checked =in_array($option_value,(array)$selected_value);
+				$checked =false;
+				
+				foreach ((array)$selected_value as $a_selected_value) {
+				
+					if ((string)$option_value === (string)$a_selected_value) {
+						
+						$checked =true;
+						break;
+					}
+				}
+				
 				$html["options"][$option_value] =
 						'<input type="hidden" name="'.$params['name']
 						.'['.$option_value.']" value="" />'."\n"
@@ -482,6 +553,42 @@ class SmartyExtended extends Smarty {
 						.($checked ? ' checked="checked"' : '')
 						.'>'.$option_label.'</label></nobr>'."\n";
 			}
+			
+		} elseif ($params["type"] == "multiselect") {
+		
+			if (is_string($selected_value)) {
+				
+				$selected_value =unserialize($selected_value);
+			
+			} elseif ( ! is_array($selected_value)) {
+				
+				$selected_value =(array)$selected_value;
+			}
+					
+			$html["head"] ='<select id="'.$params["id"].'"'
+					.' name="'.$params["name"].'[]" multiple="multiple"'
+					.$attr_html.'>'."\n";
+			$html["foot"] ='</select>';
+			
+			foreach ($options as $option_value => $option_label) {
+				
+				$selected =false;
+				
+				foreach ((array)$selected_value as $a_selected_value) {
+				
+					if ((string)$option_value === (string)$a_selected_value) {
+						
+						$selected =true;
+						break;
+					}
+				}
+				
+				$html["options"][$option_value] ='<option'
+						.' value="'.$option_value.'"'
+						.($selected ? ' selected="selected"' : '')
+						.'>'.$option_label.'</option>'."\n";
+			}
+			
 		}
 			
 		// 親要素との連動

@@ -1,0 +1,176 @@
+body {
+	margin: 10px;
+	background-color: #eeeeee;
+}
+
+.main_header, 
+.main_footer, 
+.main_content {
+	padding-top: 10px;
+	padding-left: 10px;
+	padding-bottom: 10px;
+	padding-right: 10px;
+	margin-bottom: 5px;
+	width: 97%;
+	background-color: #ffffff;
+	border: 1px solid  #fefefe;
+}
+
+.main_content h1.page_label {			
+	font-size: small;
+	color: #fefefe;
+	border-style: solid;
+	border-color: #999;
+	border-width: 0 0 4px 0;
+	padding: 5px;
+	margin-bottom: 15px;
+	background: #9C3;
+}		
+.main_content iframe {
+	border: 0px solid  black;
+}	
+
+.main_content .errors {
+	border: 1px solid  #ff7755;
+	background-color: #ffeedd;
+	padding: 15px;
+	margin: 15px;
+	width: 80%;
+}	
+.main_content .errors .errmsg {
+	color: #ff4422;
+	padding-bottom: 2px;
+}
+
+.main_content table td.label {
+	text-align: center;
+	background-color: #7fb809;
+	color: #ffffff;
+}
+.main_content table td.label a {
+	color: #ffffff;
+}
+.main_content table td.cell {
+	background-color: #eeeeee;
+	font-size: 12px;
+	color: #000000;
+	overflow: hidden;
+}
+.main_content table td.controll_cell {
+	text-align: right;
+}
+.main_content table input, 
+.main_content table select, 
+.main_content table textarea {
+	font-size: 12px;
+	border: 1px solid #556b2f;
+	border-left: 2px solid #556b2f;
+	border-top: 2px solid #556b2f;
+	padding: 2px 2px 2px 5px;
+	color: #111144;
+}
+
+.main_content div.list_wrap {
+	width: 100%;
+	height: 420px;
+	overflow: scroll;
+}
+.main_content table.list {
+	width: 100%;
+	background-color: #ffffff;
+	font-size: 12px;
+	border: 0px solid  black;
+}
+
+.main_content table.detail {
+	width: 50%;
+	background-color: #ffffff;
+	font-size: 12px;
+	border: 0px solid  black;
+}
+.main_content table.detail td {
+	height: 35px;
+}
+.main_content table.detail td.label {
+	width: 190px;
+}
+.main_content table td {
+	height: 20px;
+	font-size: 12px;
+	border: 1px #dddddd solid;
+	padding: 2px 4px;
+}
+
+.main_content input.button,
+.main_content a.button {	
+	color: #ffffff;		
+	background: #707070;
+	border: 1px #707070 solid;
+	padding: 1 15;
+	padding-top: 2;
+	font-family: Arial,sans-serif;
+	font-size: 14;
+	text-align: center;
+	margin-right: 3px;
+	text-decoration: none;
+	cursor: hand;
+	font-weight: bold;
+}
+.main_content input.button:hover,
+.main_content a.button:hover {
+	background: #707070;		
+	color: #b4dc55;
+}	
+.main_content input.button.inactive,
+.main_content a.button.inactive, {		
+	background: #f8f8f8;	
+	color: #aaaaaa;
+	cursor: allow;
+}
+.main_content a.button {
+	line-height: 1.5;
+}
+
+.main_content .controll {
+	background: #f8f8f8;
+	border: 1px #dddddd solid;
+	padding: 6px;
+	margin: 5px 0;
+	text-align: left;
+}
+
+.main_content .pager {
+	background: #f0f0f0;
+	border: 1px #dddddd solid;
+	padding: 8px;
+	margin: 5px 0;
+	text-align: center;
+}
+.main_content .pager a,
+.main_content .pager .inactive {			
+	background: #ffffff;
+	border: 1px #bbbbbb solid;
+	padding: 2px 0;
+	font-family: Arial,sans-serif;
+	font-size: 12;
+	text-align: center;
+	margin-right: 3px;
+	padding: 3px 5px;
+	text-decoration: none;
+}
+.main_content .pager .inactive {		
+	background: #f8f8f8;	
+	color: #aaaaaa;
+}
+.main_content .pager a {
+	color: #0084ff;
+	font-weight: bold;
+}
+.main_content .pager a.current {	
+	color: #ffffff;
+	background: #0084ff;
+}
+.main_content .pager a:hover {
+	color: #ffffff;
+	background: #0084ff;
+}
