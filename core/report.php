@@ -326,8 +326,6 @@
 			
 			shutdown_webapp("error_report");
 		}
-		
-		return true;
 	}
 	
 	//-------------------------------------

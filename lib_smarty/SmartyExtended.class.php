@@ -553,6 +553,42 @@ class SmartyExtended extends SmartyBC {
 						.($checked ? ' checked="checked"' : '')
 						.'>'.$option_label.'</label></nobr>'."\n";
 			}
+			
+		} elseif ($params["type"] == "multiselect") {
+		
+			if (is_string($selected_value)) {
+				
+				$selected_value =unserialize($selected_value);
+			
+			} elseif ( ! is_array($selected_value)) {
+				
+				$selected_value =(array)$selected_value;
+			}
+					
+			$html["head"] ='<select id="'.$params["id"].'"'
+					.' name="'.$params["name"].'[]" multiple="multiple"'
+					.$attr_html.'>'."\n";
+			$html["foot"] ='</select>';
+			
+			foreach ($options as $option_value => $option_label) {
+				
+				$selected =false;
+				
+				foreach ((array)$selected_value as $a_selected_value) {
+				
+					if ((string)$option_value === (string)$a_selected_value) {
+						
+						$selected =true;
+						break;
+					}
+				}
+				
+				$html["options"][$option_value] ='<option'
+						.' value="'.$option_value.'"'
+						.($selected ? ' selected="selected"' : '')
+						.'>'.$option_label.'</option>'."\n";
+			}
+			
 		}
 			
 		// 親要素との連動
