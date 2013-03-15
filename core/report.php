@@ -309,9 +309,7 @@
 				$report_buffer ="";
 				
 				// ファイル出力
-				if ($file_name =registry("Report.output_to_file") 
-						&& is_file($file_name)
-						&& is_writable($file_name)) {
+				if ($file_name =registry("Report.output_to_file")) {
 					
 					file_put_contents($file_name,$html,FILE_APPEND|LOCK_EX);
 					
@@ -328,8 +326,6 @@
 			
 			shutdown_webapp("error_report");
 		}
-		
-		return true;
 	}
 	
 	//-------------------------------------
