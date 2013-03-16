@@ -72,11 +72,15 @@
 		set_error_handler("std_error_handler",E_ALL);
 		set_exception_handler('std_exception_handler');
 		
-		// session_start
-		call_user_func(registry("Config.session_start_function"));
+		if ( ! get_cli_mode()) {
 		
-		// Dync機能の有効化
-		start_dync();
+			// session_start
+			call_user_func(registry("Config.session_start_function"));
+			
+			// Dync機能の有効化
+			start_dync();
+		}
+		
 		
 		// include_pathの設定
 		foreach ((array)registry("Config.webapp_include_path") as $k => $v) {
@@ -391,6 +395,15 @@
 		
 		return $flg && registry("Config.dync.".$flg);
 	}
+	
+	//-------------------------------------
+	// CLI（コマンドライン）実行であるかどうかの確認
+	function get_cli_mode () {
+		
+		return php_sapi_name() == "cli";
+	}
+	
+	
 	
 	//-------------------------------------
 	// ラベルを得る
