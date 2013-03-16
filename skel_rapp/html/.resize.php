@@ -140,7 +140,7 @@
 			
 			if ($request_trim_center) {
 				
-				$image->trim_center();
+				$image->square();
 			}
 			
 			$image->save($cache_file);

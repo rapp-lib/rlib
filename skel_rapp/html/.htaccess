@@ -1,6 +1,5 @@
 AddDefaultCharset UTF-8
 
-# RewriteEngine (dispatch *.html to .index.php)
 Options +FollowSymLinks
 RewriteEngine On
 RewriteBase /
@@ -8,8 +7,8 @@ RewriteCond %{REQUEST_URI} (\.html?|/|^)$
 RewriteRule ^(.*)$ /HTML_DIR_URL/.index.php?__REQUEST_URI__=%{REQUEST_URI}&%{QUERY_STRING} [L]
 
 # BasicAuth (ex: preview / cftyuhbvg)
-AuthUserFile /HTML_DIR/.htpasswd
-AuthGroupFile /dev/null
-AuthName "Please enter your ID and password"
-AuthType Basic
-require valid-user
+#AuthUserFile /HTML_DIR/.htpasswd
+#AuthGroupFile /dev/null
+#AuthName "Please enter your ID and password"
+#AuthType Basic
+#require valid-user

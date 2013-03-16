@@ -1,7 +1,7 @@
 <?php
 
 	//-------------------------------------
-	// ファイル保存
+	// ファイルアップロード
 	registry(array(
 		
 		// アップロードディレクトリの指定
@@ -16,21 +16,22 @@
 		// ファイル拡張子制限
 		"UserFileManager.allow_ext" =>array(
 			"default" =>array(
-				'jpg', 'jpeg', 'png', 'gif', 'pdf',
+				'jpg', 'jpeg', 'png', 'gif', 'bmp',
 			),
 			"group" =>array(
 				"image" =>array(
-					'jpg', 'jpeg', 'png', 'gif', 'pdf',
+					'jpg', 'jpeg', 'png', 'gif', 'bmp',
 				),
 				"data" =>array(
-					'jpg', 'jpeg', 'png', 'gif', 'pdf', 
-					'bmp', 'zip', 'pdf', 'csv', 'txt', 'xml',
+					'jpg', 'jpeg', 'png', 'gif', 'bmp',
+					'zip', 'pdf', 
+					'csv', 'txt', 'xml',
 					'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx',
 				),
 			),
 		),
 		
-		// リサイズ画像保存ディレクトリの指定
+		// アップロードディレクトリの指定
 		"ImageResize.resized_image_dir" =>array(
 			"default" =>registry("Path.html_dir").'/user_file/resized',
 		),
