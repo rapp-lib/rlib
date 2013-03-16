@@ -40,6 +40,31 @@
 		$(".mi_tmpl",$mi).remove();
 		
 		//-------------------------------------
+		// コントロールの表示更新
+		var update_mi_set =function(){
+		
+			// 追加数の上限チェック
+			if ($(".mi_set",$mi).length >= mi_max) { 
+				
+				$(".mi_append").hide();
+				
+			} else {
+			
+				$(".mi_append").show();
+			}
+			
+			// 削除数の下限チェック
+			if ($(".mi_set",$mi).length <= mi_min) {
+				
+				$(".mi_remove").hide();
+				
+			} else {
+			
+				$(".mi_remove").show();
+			}
+		};
+		
+		//-------------------------------------
 		// 要素の初期化
 		var init_mi_set =function($mi_set){
 			
@@ -52,6 +77,8 @@
 				
 				// 選択要素の削除
 				$mi_set.remove();
+				
+				update_mi_set();
 			});
 		
 			//-------------------------------------
@@ -95,6 +122,8 @@
 			init_mi_set($mi_set);
 			
 			$(".mi_anchor",$mi).before($mi_set);
+			
+				update_mi_set();
 		});
 			
 		//-------------------------------------

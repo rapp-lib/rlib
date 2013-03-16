@@ -94,7 +94,9 @@
 				
 				$count =strlen($target_value);
 				
-				$target_value =htmlspecialchars($target_value);
+				$target_value =$html_mode
+						? htmlspecialchars($target_value)
+						: str_replace("\n",'\n',$target_value);
 				
 				$result .="string(".$count."): ".(string)$target_value;
 			
@@ -181,7 +183,7 @@
 		
 		$elm_id ="ELM".sprintf('%07d',rand(1,9999999));
 		
-		$html_mode =ini_get("html_errors") && ! registry("Report.output_to_file");
+		$html_mode = ! get_cli_mode() && ! registry("Report.output_to_file");
 		
 		// レポートの整形と出力
 		$report_html ="";

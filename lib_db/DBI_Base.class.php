@@ -1151,28 +1151,34 @@ class DBI_Base {
 				$explain["warn"][] ="[全件スキャン] ".$msg;
 			}
 			
-			if ($t["select_type"] == "DEPENDENT SUBQUERY") {
+			if ($t["select_type"] == "DEPENDENT SUBQUERY" && $t["type"] != "ref") {
 				
-				$explain["warn"][] ="[相関サブクエリ★] ".$msg;
+				$explain["warn"][] ="[INDEXなし相関SQ★] ".$msg;
+			
+			}
+			
+			if ($t["select_type"] == "DEPENDENT SUBQUERY" && $t["type"] == "ref") {
+				
+				$explain["warn"][] ="[INDEX相関SQ] ".$msg;
 			}
 			
 			foreach ($t["Extra"] as $extra_msg) {
 				/*
 				if ($extra_msg == "Using filesort") {
 				
-					$explain["warn"][] ="[INDEXのないソート(B)] ".$msg;
+					$explain["warn"][] ="[INDEXのないソート] ".$msg;
 				}
 				*/
 				/*
 				if ($extra_msg == "Using temporary") {
 				
-					$explain["warn"][] ="[一時テーブルの生成(B)] ".$msg;
+					$explain["warn"][] ="[一時テーブルの生成] ".$msg;
 				}
 				*/
 				
 				if ($extra_msg == "Using join buffer") {
 				
-					$explain["warn"][] ="[全件スキャンJoin] ".$msg;
+					$explain["warn"][] ="[全件スキャンJOIN★] ".$msg;
 				}
 			}
 		}

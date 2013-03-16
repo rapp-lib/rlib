@@ -8,8 +8,6 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 	// Read: <?=$t["label"]?> ID指定で1件取得
 	public function get_by_id ($id) {
 	
-		$this->assert("<?=$t["name"]?>",$id,"read");
-	
 		// 要素の取得 
 		$query =array(
 			"table" =>"<?=$t["name"]?>",
@@ -20,13 +18,13 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 			),
 		);
-		$t =dbi()->select_one($query);
+		$t =$this->select_one($query);
 		
 		return $t;
 	}
 
 	//-------------------------------------
-	// Read: <?=$t["label"]?> 一覧取得
+	// 全件取得
 	public function get_all () {
 	
 		// 条件を指定して要素を取得
@@ -42,18 +40,17 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 			
 		);
-		$ts =dbi()->select($query);
+		$ts =$this->select($query);
 		
 		return $ts;
 	}
 
 	//-------------------------------------
-	// Read: <?=$t["label"]?> 一覧ページ取得
+	// 検索/一覧ページの表示情報取得
 	public function get_list ($list_setting, $input) {
 		
 		// 条件を指定して要素を取得
 		$query =$this->get_list_query($list_setting, $input);
-		
 		$query =$this->merge_query($query, array(
 			"table" =>"<?=$t["name"]?>",
 			"conditions" =>array(
@@ -62,20 +59,18 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 			),
 		));
-		$ts =dbi()->select($query);
-		$p =dbi()->select_pager($query);
+		$ts =$this->select($query);
+		$p =$this->select_pager($query);
 		
 		return array($ts,$p);
 	}
 
 	//-------------------------------------
-	// Write: <?=$t["label"]?> 保存
+	// フォームからのデータ更新/登録
 	public function save ($fields, $id=null) {
 		
 		// IDの指定があれば更新
 		if ($id) {
-	
-			$this->assert("<?=$t["name"]?>",$id,"write");
 			
 <? if ($t['update_date']): ?>
 			$fields["<?=$t['update_date']?>"] =date('Y/m/d H:i:s');
@@ -91,15 +86,17 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 				),
 			);
-			$r =dbi()->update($query);
-			
-			return $r;
+			$this->update($query);
 		
 		// IDの指定がなければ新規登録
 		} else {
 			
 <? if ($t['reg_date']): ?>
 			$fields["<?=$t['reg_date']?>"] =date('Y/m/d H:i:s');
+			
+<? endif; ?>
+<? if ($t['update_date']): ?>
+			$fields["<?=$t['update_date']?>"] =date('Y/m/d H:i:s');
 			
 <? endif; ?>
 <? if ($t['del_flg']): ?>
@@ -110,17 +107,15 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 				"fields" =>$fields,
 				"table" =>"<?=$t["name"]?>",
 			);
-			$r =dbi()->insert($query);
-			
-			return $r;
+			$id =$this->insert($query);
 		}
+		
+		return $id;
 	}
 
 	//-------------------------------------
 	// Write: <?=$t["label"]?> 削除
 	public function delete ($id) {
-	
-		$this->assert("<?=$t["name"]?>",$id,"delete");
 	
 <? if ($t['del_flg']): ?>
 		// 要素の削除フラグをon
@@ -137,7 +132,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 				"<?=$t['del_flg']?>" =>"0",
 			),
 		);
-		$r =dbi()->update($query);
+		$this->update($query);
 <? else: ?>
 		// 要素の削除
 		$query =array(
@@ -146,9 +141,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 				"<?=$t['pkey']?>" =>$id,
 			),
 		);
-		$r =dbi()->delete($query);
+		$this->delete($query);
 <? endif; ?>
-		
-		return $r;
 	}
 }
