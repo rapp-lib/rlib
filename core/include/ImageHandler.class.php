@@ -129,11 +129,31 @@ class ImageHandler {
 	}
 	
 	//-------------------------------------
+	// 中心から指定した幅、高さでトリム
+	public function trim_center ($width=0, $height=0) {
+
+		if ($width) {
+			
+			$this->crop_left =round($this->crop_width/2-$width/2);
+			$this->crop_width =$width;
+			$this->width =$width;
+		}
+
+		if ($height) {
+		
+			$this->crop_top =round($this->crop_height/2-$height/2);
+			$this->crop_height =$height;
+			$this->height =$height;
+		}
+	}
+	
+	//-------------------------------------
 	// 画像を出力
 	public function save ($dst_filename=null) {
 		
 		// 元画像ハンドラの作成
 		$src_image =null;
+		
 		if($this->type == 'jpeg') { $src_image =imagecreatefromjpeg($this->filename); }
 		if($this->type == 'png') { $src_image =imagecreatefrompng($this->filename); }
 		if($this->type == 'gif') { $src_image =imagecreatefromgif($this->filename); }
@@ -142,13 +162,13 @@ class ImageHandler {
 		$dst_image =imagecreatetruecolor($this->width,$this->height);
 		
 		// 透過色の保護
-		if($this->type == 'gif') {
+		if ($this->type == 'gif') {
 		
 			$alpha =imagecolortransparent($src_image);
 			imagefill($dst_image, 0, 0, $alpha);
 			imagecolortransparent($dst_image, $alpha);
-		}
-		if($this->type == 'png') {
+		
+		} elseif ($this->type == 'png') {
 		
 			imagealphablending($dst_image, false);
 			imagesavealpha($dst_image, true);

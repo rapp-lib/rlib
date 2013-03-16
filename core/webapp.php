@@ -234,13 +234,12 @@
 			header("Content-Type: application/octet-stream");
 			
 		} elseif (is_array($output) && $output["file"]) {
-		
-			$image_type =@exif_imagetype($cache_file);
-			$mime_type =@image_type_to_mime_type($image_type);
 			
-			if ($mime_type) {
+			$info =getimagesize($output["file"]);
 			
-				header("Content-Type: ".$mime_type);
+			if ($info['mime']) {
+			
+				header("Content-Type: ".$info['mime']);
 			}
 		}
 		

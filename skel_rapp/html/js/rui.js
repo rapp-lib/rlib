@@ -23,7 +23,7 @@ window.rui.init =function (ext_relative_url) {
 // JS読み込み
 window.rui.require_js =function (ext_file) {
 	
-	if ( ! rui.ext_loaded.js[ext_file]) {
+	if ( ! rui.ext_loaded.css[ext_file]) {
 		
 		$("head").append($("<script/>").attr({
 			language: 'javascript',

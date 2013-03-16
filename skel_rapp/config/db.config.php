@@ -8,7 +8,7 @@
 			"default" =>array(
 				'driver' => 'mysql',
 				'encoding' => 'utf8',
-				'persistent' => false,
+				'persistent' => true,
 				'prefix' => '',
 				'host' => 'localhost',
 				'database' => 'test',
