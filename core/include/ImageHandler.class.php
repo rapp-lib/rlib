@@ -82,16 +82,19 @@ class ImageHandler {
 	// 長辺に合わせて指定サイズ以内に縮小
 	public function squeeze ($width_limit=0, $height_limit=0) {
 		
+		$width =$this->width;
+		$height =$this->height;
+			
 		if ($width_limit && $this->width > $width_limit) {
 			
 			$this->width =$width_limit;
-			$this->height =$this->width*$this->height_raw/$this->width_raw;
+			$this->height =$this->width*$height/$width;
 		}
 		
 		if ($height_limit && $this->height > $height_limit) {
 			
 			$this->height =$height_limit;
-			$this->width =$this->height*$this->width_raw/$this->height_raw;
+			$this->width =$this->height*$width/$height;
 		}
 		
 		$this->width =round($this->width);
