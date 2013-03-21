@@ -466,7 +466,7 @@ class SmartyExtended extends SmartyBC {
 		
 		$list_options =get_list($params["options"],$this);
 		$options =$list_options->options($params["options_params"]);
-		report($options);
+
 		// 空白選択の挿入(Checklist以外)
 		if ($params["type"] != "checklist" && isset($params["zerooption"])) {
 		
@@ -594,22 +594,33 @@ class SmartyExtended extends SmartyBC {
 		// 親要素との連動
 		if ($params["parent_id"]) {
 			
-			$parents =$list_options->parents($params["parents_params"]);
+			// get_list_json.html?parent=xによる動的関連付け
+			// ※現状ではtype="select"でのみ使用可能
+			if ($params["parent_rel_url"]) {
+				
+				$pair ='"'.url($params["parent_rel_url"],array()).'"';
+				
+			// list->parents()による静的な関連付け
+			} else {
 			
-			if ($params["type"] == "radioselect" || $params["type"] == "checklist") {
+				$parents =$list_options->parents($params["parents_params"]);
+				$pair =array_to_json($parents);
 				
-				foreach ($html["options"] as $k => $v) {
-				
-					$html["options"][$k] ='<span class="_listitem">'.$v.'</span>';
-				}
-				
-				$html["head"] ='<span id="'.$params["id"].'">'.$html["head"];
-				$html["foot"] =$html["foot"].'</span>';
-			}
+				if ($params["type"] == "radioselect" || $params["type"] == "checklist") {
 					
+					foreach ($html["options"] as $k => $v) {
+					
+						$html["options"][$k] ='<span class="_listitem">'.$v.'</span>';
+					}
+					
+					$html["head"] ='<span id="'.$params["id"].'">'.$html["head"];
+					$html["foot"] =$html["foot"].'</span>';
+				}
+			}
+			
 			$html["foot"] .='<script>/*<!--*/ rui.require("rui.syncselect",function(){ '
 					.'rui.syncselect("'.$params['id'].'",'.'"'.$params['parent_id'].'",'
-					.array_to_json($parents).',"'.$params["type"].'"); }); /*-->*/</script>';
+					.$pair.',"'.$params["type"].'"); }); /*-->*/</script>';
 		}
 		
 		$html["full"] =$html["head"].implode("",$html["options"]).$html["foot"];
