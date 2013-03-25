@@ -22,6 +22,8 @@ class CalendarFactory {
 		$m =$current_ld["m"];
 		$d =$current_ld["d"];
 		
+		$today_timestamp =strtotime(date("Y/m/d"));
+		
 		$dates =array();
 		
 		$calendar_day_list =$this->get_calendar_day_list($y,$m,$options["start_by_monday"]);
@@ -41,22 +43,38 @@ class CalendarFactory {
 					"w" =>$w,
 					"is_sunday" =>$w==0,
 					"is_saturday" =>$w==6,
+					"is_extra" =>false,
+					"is_past" =>false,
+					"is_future" =>false,
 				);
 				
-				if ($day > 0) {
+				if ($day < 0) {
+					
+					$day =-$day;
+					$dates[$wy][$wx]["is_extra"] =true;
+					
+					$timestamp =$day < 15
+							? mktime(0,0,0,$m+1,$day,$y)
+							: mktime(0,0,0,$m-1,$day,$y);
+				} else {
+					
+					$last_day_of_month =$day;
 					
 					$timestamp =mktime(0,0,0,$m,$day,$y);
-					$dates[$wy][$wx]["timestamp"] =$timestamp;
-					$dates[$wy][$wx]["date"] =date("Y-m-d",$timestamp);
-					$dates[$wy][$wx]["d"] =$day;
-				
-					$last_day_of_month =$day;
-				
-				} else {
-				
-					$dates[$wy][$wx]["d"] =-$day;
-					$dates[$wy][$wx]["is_extra"] =true;
 				}
+				
+				if ($today_timestamp > $timestamp) {
+				
+					$dates[$wy][$wx]["is_past"] =true;
+					
+				} elseif ($today_timestamp+24*60*60 <= $timestamp) {
+				
+					$dates[$wy][$wx]["is_future"] =true;
+				}
+				
+				$dates[$wy][$wx]["timestamp"] =$timestamp;
+				$dates[$wy][$wx]["date"] =date("Y-m-d",$timestamp);
+				$dates[$wy][$wx]["d"] =$day;
 			}
 		}
 		
