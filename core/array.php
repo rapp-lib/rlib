@@ -246,7 +246,7 @@
 		// json_encode_substがあればそれを使用する(負荷:0.7)
 		} elseif (function_exists("json_encode_subst")) {
 		
-			$json =array_to_json_scratch($entry);
+			$json =json_encode_subst($entry);
 			
 		// 使用できる関数がなければPEARのJSONモジュールを使用(負荷:300)
 		} else {
@@ -271,7 +271,7 @@
 			
 			foreach ($entry as $k => $v) {
 				
-				$inner_item[] ="'".str_replace("'","\\'",(string)$k)."'"
+				$inner_item[] ='"'.str_replace('"','\"',(string)$k).'"'
 						.":".array_to_json($v);
 			}
 			
@@ -279,7 +279,7 @@
 		
 		} else {
 			
-			$json ="'".str_replace("'","\\'",(string)$entry)."'";
+			$json ='"'.str_replace('"','\"',(string)$entry).'"';
 		}
 		
 		return $json;

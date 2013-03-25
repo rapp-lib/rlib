@@ -16,18 +16,27 @@
 		// ファイル拡張子制限
 		"UserFileManager.allow_ext" =>array(
 			"default" =>array(
-				'jpg', 'jpeg', 'png', 'gif', 'bmp',
+				'jpg', 'jpeg', 'png', 'gif',
 			),
 			"group" =>array(
 				"image" =>array(
-					'jpg', 'jpeg', 'png', 'gif', 'bmp',
+					'jpg', 'jpeg', 'png', 'gif',
 				),
 				"data" =>array(
-					'jpg', 'jpeg', 'png', 'gif', 'bmp',
-					'zip', 'pdf', 
+					'jpg', 'jpeg', 'png', 'gif',
+					'zip', 'pdf', 'bmp',
 					'csv', 'txt', 'xml',
 					'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx',
 				),
+			),
+		),
+		
+		// ハッシュ階層指定
+		"UserFileManager.hash_level" =>array(
+			"default" =>3,
+			"group" =>array(
+				"image" =>3,
+				"data" =>3,
 			),
 		),
 		
