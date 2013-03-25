@@ -120,7 +120,7 @@
 					url : pair,
 					data : {"parent" : parent_item_id},
 					type : "GET",
-					async : false,
+					async : true,
 					success : function(data){
 					
 						// JSONデータを解析

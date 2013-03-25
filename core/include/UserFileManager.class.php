@@ -384,6 +384,8 @@ class UserFileManager {
 	// アップロード済みのファイルがあればそのファイル名を取得
 	public function get_filename ($code, $group=null) {
 			
+		$code =preg_replace('!\.\.!','_',$code);
+		
 		$upload_dir =$this->get_upload_dir($group);
 		$filename =$upload_dir."/".$code;
 		
@@ -409,10 +411,23 @@ class UserFileManager {
 	//-------------------------------------
 	// 新規のアップロードファイルのコードを生成
 	public function get_blank_key ($group=null) {
-		
+					
 		$key =($group ? $group : "default")
-				."-".date("ymdHis")
-				."-".sprintf('%09d',mt_rand(1,mt_getrandmax()));
+				."-".date("Ymd-His")
+				."-".sprintf('%03d',mt_rand(1,999));
+		
+		// ファイル名をハッシュディレクトリで階層化する
+		$hash_levels =registry("UserFileManager.hash_level");
+		$hash_level =($group && $hash_levels["group"][$group])
+				? $hash_levels["group"][$group]
+				: $hash_levels["default"];
+		
+		// ハッシュ階層化
+		if ($hash_level) {
+			
+			$hash_table =array_splice(preg_split('!!',md5($key)),1,$hash_level);
+			$key =implode("/",$hash_table)."/".$key;
+		}
 		
 		return $key;
 	}
@@ -426,6 +441,12 @@ class UserFileManager {
 				: $this->get_blank_key($group);
 		$upload_dir =$this->get_upload_dir($group);
 		$filename =$upload_dir."/".$code;
+		
+		// フォルダ作成
+		if ( ! file_exists(dirname($filename))) {
+			
+			mkdir(dirname($filename),0777,true);
+		}
 		
 		$dir_writable =$upload_dir 
 				&& is_dir($upload_dir)
