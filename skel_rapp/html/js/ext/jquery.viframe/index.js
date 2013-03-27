@@ -6,6 +6,30 @@
 	2012/12/07 
 
 -------------------------------------
+■サンプル：
+
+	<script src="{{'/js/ext/jquery.viframe/index.js'|path_to_url}}"></script>
+	
+	{{a href="./item/list.html" target="item_list_2"}}[更新 外→中]{{/a}}<br/>
+	<div class="viframe" id="item_list_2"><a href="./item/list.html" class="vifHref"></a></div>
+
+
+	{{form _page=".item_add" target="item_list_3" id="form_3"}}
+		{{input type="hidden" name="id" value=rand(1,999999)}}
+		{{input type="text" name="name"}}
+		{{input type="submit" value="追加"}}
+	{{/form}}
+	
+	<div class="viframe" id="item_list_3"><a href="./item/list.html" class="vifHref"></a></div>
+	
+	<script>
+	$(function(){
+		$("#form_3").on("vifSuccess",function($anchor,$target,data){ alert("追加完了！"); });
+		$("#form_3").on("vifError",function($anchor,$target){ alert("エラー："+textStatus);	});
+	});
+	</script>
+
+-------------------------------------
 ■API：
 
 	$target.viframe(url,o);
@@ -87,9 +111,6 @@
 	//-------------------------------------
 	// viframe機能の初期化
 	$.fn.viframe =function(url,o) {
-	
-		o =o || {};
-		url =url || "";
 		
 		return this.each(function() {
 			$.viframe($(this), url, o);
@@ -120,8 +141,6 @@
 	//-------------------------------------
 	// リクエストを発行してレスポンスを$targetに関連付ける
 	$.fn.vifHref =function(url, o) {
-	
-		o =o || {};
 		
 		return this.each(function() {
 			$.vifHref($(this), url, o);
@@ -162,10 +181,12 @@
 			$.vifBindRequest($(this), $target, o);
 		});
 	};
-	$.vifBindRequest =function ($anchor, $target, o) {
+	$.vifBindRequest =function ($anchor, $target, oOrigin) {
 
+		var o =objClone(oOrigin) || {};
 		var onBoundReuqest =function(e){ 
-		
+
+			var o =objClone(oOrigin) || {};			
 			var $anchor =$(e.currentTarget);
 			var tagName =$anchor.get(0).tagName;
 				
@@ -188,7 +209,7 @@
 				return true;
 			}
 
-			// target=_parent、ページ内アンカー、JS実行であれば割り込まない
+			// target=_parent、_blank、ページ内アンカー、JS実行であれば割り込まない
 			if ($anchor.attr("target") == "_parent"
 					|| $anchor.attr("target") == "_blank"
 					|| o.ajaxOptions.url.match(/^#/)
@@ -306,4 +327,18 @@
 		}
 	};
 	
+	objClone = function (obj) {
+		var clone = new (obj.constructor);
+		for (var p in obj) {
+			clone[p] = typeof obj[p] == 'object' ? objClone(obj[p]) : obj[p];
+		}
+		return clone;
+	}
+	arrayClone = function(obj){
+		var clone = [];
+		for (var i = 0, l = obj.length; i < l; i++) {
+			clone[i] = typeof obj[i] == 'object' ? obj[i].clone() : obj[i];
+		}
+		return clone;
+	}
 })(jQuery);
