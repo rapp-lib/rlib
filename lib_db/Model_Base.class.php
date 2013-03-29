@@ -253,8 +253,18 @@ class Model_Base {
 	}
 		
 	//-------------------------------------
-	// 指定した列の値で配列を得る
+	// DEPLECATED: 指定した列の値で配列を得る
 	public function convert_to_hashlist (
+			& $ts,
+			$key_name,
+			$value_name=null) {
+		
+		return $this->hash($ts, $key_name, $value_name);
+	}
+		
+	//-------------------------------------
+	// 指定した列の値で配列を得る
+	public function hash (
 			& $ts,
 			$key_name,
 			$value_name=null) {
@@ -320,6 +330,24 @@ class Model_Base {
 	public function merge_assoc (
 			& $ts,
 			$query=array()) {
+			
+		/*
+			■呼び出しサンプル：
+		
+		     // Customerに関連するRequirementのIDをrequirement_idsとして組入
+		     model()->merge_assoc($ts,array(
+		          // SELECT発行
+		          "table" =>"Requirement",
+		          // 対象の中での親へのFK
+		          "parent_key" =>"Requirement.customer_id",
+		          // tsのpk（対象のFKと結合する際に使用する）
+		          "parent_key_origin" =>"Customer.id",
+		          // 対象のtsへ組み入れ先の擬似カラム名
+		          "children_name" =>"Customer.requirement_ids",
+		          // （任意）対象をhashlistに変換する場合のカラム名
+		          "child_key" =>"Requirement.id",
+		     ));
+		*/
 		
 		if ( ! $ts) {
 			
@@ -343,18 +371,20 @@ class Model_Base {
 		unset($query["parent_key_origin"]);
 		unset($query["children_name"]);
 		
-		$parent_ids =$this->convert_to_hashlist(
-				$ts,
-				$parent_key_origin);
+		$parent_ids =$this->hash($ts, $parent_key_origin);
 				
 		// Bridgeの取得
 		$query["conditions"] =(array)$query["conditions"];
 		$query["conditions"][] =array($parent_key =>$parent_ids);
 		
-		$query["fields"] =array(
-			$parent_key,
-			$child_key,
-		);
+		// ReduceKeyの指定
+		if ($child_key) {
+		
+			$query["fields"] =array(
+				$parent_key,
+				$child_key,
+			);
+		}
 		
 		$ts_bridge =dbi($ds)->select($query);
 		

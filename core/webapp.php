@@ -402,6 +402,37 @@
 		return php_sapi_name() == "cli";
 	}
 	
+	//-------------------------------------
+	// CLI（コマンドライン）実行時パラメータの取得
+	function get_cli_params () {
+		
+		$argv =$_SERVER["argv"];
+		unset($argv[0]);
+		
+		$params =array();
+		
+		foreach ($argv as $a_argv) {
+			
+			// --XXX=AAA , --XXX
+			if (preg_match('!^--([^=]+)(?:=(.+))?$!',$a_argv,$match)) {
+			
+				$params[$match[1]] =$match[2];
+			
+			// -X , -XAAA
+			} elseif (preg_match('!^-(.)(.+)?$!',$a_argv,$match)) {
+			
+				$params[$match[1]] =$match[2];
+
+			// XXX
+			} else {
+			
+				$params[] =$a_argv;
+			}
+		}
+		
+		return $params;
+	}
+	
 	
 	
 	//-------------------------------------

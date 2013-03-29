@@ -28,6 +28,9 @@
 		$("#form_3").on("vifError",function($anchor,$target){ alert("エラー："+textStatus);	});
 	});
 	</script>
+	
+	<!-- 下記のタグを入れたページはViframeでは読み込まれない（ログイン画面など） -->
+	<a class="vifPreventLoad"></a>
 
 -------------------------------------
 ■API：
@@ -62,7 +65,6 @@
 	o ... vifBindRequestのオプション
 		ajaxOptions : {} ... $.ajaxのリクエストオプション
 		delegate : "" ... delegateするselector
-		stripHead : false ... 自動的にレスポンスのHead要素を削除する設定
 		ignoreExternalLink : true ... 外部リンクへのリクエストは無視する
 */
 
@@ -96,7 +98,6 @@
 	$.vifConfig ={
 		ajaxOptions : {},
 		delegate : "",
-		stripHead : false,
 		ignoreExternalLink : true
 	};
 	
@@ -238,9 +239,9 @@
 			// 通信成功時
 			o.ajaxOptions.success =function (data ,textStatus ,xhr) {
 				
+				// 指定した要素が存在しない
 				if ( ! $target || ! $target.html || $target.length == 0) {
 					
-					// 指定した要素が存在しないエラー
 					$.vifTriggerError("bound $target not-found",{
 						target : $target,
 						anchor : $anchor,
@@ -250,17 +251,22 @@
 					return;
 				}
 				
-				var innerHtml =data;
+				var $innerHtml =$(data);
 				
-				// headタグ削除
-				if (o.stripHead
-						&&(innerHtml.indexOf("<head>")!==0 || 
-						innerHtml.indexOf("<HEAD>")!==0)) {
+				// .vifPreventLoadがある場合
+				if ($innerHtml.find(".vifPreventLoad").length) {
+				
+					$.vifTriggerError(".vifPreventLoad would-not loaded",{
+						target : $target,
+						anchor : $anchor,
+						data : $innerHtml,
+						o : o
+					});
 					
-					var innerHtml =innerHtml.replace(/<head>([\n\r]|.)*?<\/head>/im,'');
+					return;
 				}
-				
-				$target.html(innerHtml); 
+
+				$target.html(data); 
 				
 				$anchor.trigger("vifSuccess",[$anchor,$target,data,xhr,o]);
 				$target.trigger("vifSuccess",[$anchor,$target,data,xhr,o]);

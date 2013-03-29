@@ -15,6 +15,8 @@
 		register_shutdown_webapp_function("__end");
 		start_webapp();
 		
+		$params =get_cli_params();
+		
 		/// 実装
 		
 		shutdown_webapp("normal");
