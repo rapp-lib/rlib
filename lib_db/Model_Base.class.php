@@ -172,7 +172,7 @@ class Model_Base {
 	}
 
 	//-------------------------------------
-	// 配列形式のカラムをunserialize
+	// [DEPLECATED] 配列形式のカラムをunserialize
 	public function unserialize_fields_DELETE (
 			& $ts, 
 			$field_names) {
@@ -253,8 +253,8 @@ class Model_Base {
 	}
 		
 	//-------------------------------------
-	// DEPLECATED: 指定した列の値で配列を得る
-	public function convert_to_hashlist (
+	// [DEPLECATED]指定した列の値で配列を得る
+	public function convert_to_hashlist_DELETE (
 			& $ts,
 			$key_name,
 			$value_name=null) {
@@ -285,6 +285,10 @@ class Model_Base {
 		
 		return $list;
 	}
+	
+	//--------------------------------------------------------------------------
+	// Assoc処理
+	//
 
 	//-------------------------------------
 	// 親要素への変更を子要素へ反映
@@ -397,10 +401,14 @@ class Model_Base {
 				$children_name,
 				$child_key);
 	}
+	
+	//--------------------------------------------------------------------------
+	// [DEPLECATED] Assert処理 
+	//
 
 	//-------------------------------------
-	// AssertSegmentの関連付け
-	public function bind_segment ($segment_name, $segment_id) {
+	// [DEPLECATED] AssertSegmentの関連付け
+	public function bind_segment_DELETE ($segment_name, $segment_id) {
 		
 		$bound_segments =& ref_globals("bound_segments");
 		
@@ -408,8 +416,8 @@ class Model_Base {
 	}
 	
 	//-------------------------------------
-	// Assert異常チェック
-	public function assert ($assert_name, $assert_id) {
+	// [DEPLECATED] Assert異常チェック
+	public function assert_DELETE ($assert_name, $assert_id) {
 		
 		// Segment異常チェック
 		$bound_segments =& ref_globals("bound_segments");
@@ -448,9 +456,179 @@ class Model_Base {
 	}
 	
 	//-------------------------------------
-	// Assert異常時の処理
-	public function assert_error ($params=array()) {
+	// [DEPLECATED] Assert異常時の処理
+	public function assert_error_DELETE ($params=array()) {
 		
 		report_warning("Assert Error",$params);
+	}
+	
+	//--------------------------------------------------------------------------
+	// SQL前後処理
+	//
+	
+	//-------------------------------------
+	// SELECT/DELETE/UPDATEの前処理（table,conditionsを対象）
+	public function before_read ( & $query) {
+	}
+	
+	//-------------------------------------
+	// INSERT/UPDATEの前処理（table,fieldsを対象）
+	public function before_write ( & $query) {
+	}
+	
+	//-------------------------------------
+	// SELECTの前処理
+	public function before_select ( & $query) {
+		
+		$this->before_read($query);
+	}
+	
+	//-------------------------------------
+	// INSERTの前処理
+	public function before_insert ( & $query) {
+		
+		$this->before_write($query);
+	}
+	
+	//-------------------------------------
+	// UPDATEの前処理
+	public function before_update ( & $id, & $query) {
+		
+		$this->before_read($query);
+		$this->before_write($query);
+	}
+	
+	//-------------------------------------
+	// DELETEの前処理
+	public function before_delete ( & $id, & $query) {
+		
+		$this->before_read($query);
+	}
+	
+	//-------------------------------------
+	// SELECTの後処理（tsを対象）
+	public function after_read ( & $ts, & $query) {
+	}
+	
+	//-------------------------------------
+	// INSERT/UPDATE/DELETEの後処理（idを対象）
+	public function after_write ( & $id, & $query) {
+	}
+	
+	//-------------------------------------
+	// SELECTの後処理
+	public function after_select ( & $ts, & $query) {
+		
+		$this->after_read($query);
+	}
+	
+	//-------------------------------------
+	// INSERTの後処理
+	public function after_insert ( & $id, & $query) {
+		
+		$this->after_write($query);
+	}
+	
+	//-------------------------------------
+	// UPDATEの後処理
+	public function after_update ( & $id, & $query) {
+		
+		$this->after_write($query);
+	}
+	
+	//-------------------------------------
+	// DELETEの後処理
+	public function after_delete ( & $id, & $query) {
+		
+		$this->after_write($query);
+	}
+	
+	//-------------------------------------
+	// Query実行(全件取得)
+	public function select ($query) {
+		
+		$this->before_select($query);
+		
+		$ts =dbi()->select($query);
+		
+		$this->after_select($ts,$query);
+		
+		return $ts;
+	}
+	
+	//-------------------------------------
+	// Query実行(1件のデータ取得)
+	public function select_one ($query) {
+		
+		$this->before_select($query);
+		
+		$t =dbi()->select_one($query);
+		
+		$this->after_select($ts=array($t),$query);
+		
+		return $t;
+	}
+	
+	//-------------------------------------
+	// Query実行(件数取得)
+	public function select_count ($query) {
+		
+		$this->before_select($query);
+		
+		$count =dbi()->select_count($query);
+		
+		return $count;
+	}
+	
+	//-------------------------------------
+	// Query実行(Pager取得)
+	public function select_pager ($query) {
+		
+		$this->before_select($query);
+		
+		$p =dbi()->select_pager($query);
+		
+		return $p;
+	}
+	
+	//-------------------------------------
+	// Query実行(INSERT)
+	public function insert ($query) {
+		
+		$this->before_insert($query);
+		
+		$id =dbi()->insert($query)
+				? dbi()->last_insert_id() 
+				: null;
+		
+		$this->after_insert($id, $query);
+		
+		return $id;
+	}
+	
+	//-------------------------------------
+	// Query実行(UPDATE)
+	public function update ($query, $id) {
+		
+		$this->before_update($id, $query);
+		
+		$r =dbi()->update($query);
+		
+		$this->after_update($id, $query);
+		
+		return $r;
+	}
+	
+	//-------------------------------------
+	// Query実行(DELETE)
+	public function delete ($query, $id) {
+		
+		$this->before_delete($id, $query);
+		
+		$r =dbi()->update($query);
+		
+		$this->before_delete($id, $query);
+		
+		return $r;
 	}
 }

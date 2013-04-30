@@ -86,7 +86,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 				),
 			);
-			$this->update($query);
+			$this->update($query,$id);
 		
 		// IDの指定がなければ新規登録
 		} else {
@@ -132,7 +132,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 				"<?=$t['del_flg']?>" =>"0",
 			),
 		);
-		$this->update($query);
+		$this->update($query,$id);
 <? else: ?>
 		// 要素の削除
 		$query =array(
@@ -141,7 +141,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 				"<?=$t['pkey']?>" =>$id,
 			),
 		);
-		$this->delete($query);
+		$this->delete($query,$id);
 <? endif; ?>
 	}
 }

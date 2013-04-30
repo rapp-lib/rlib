@@ -5,112 +5,86 @@
 class Model_App extends Model_Base {
 	
 	//-------------------------------------
-	// データ取得条件の更新
+	// SELECT/DELETE/UPDATEの前処理（table,conditionsを対象）
+	public function before_read ( & $query) {
+	
+		parent::before_read($query);
+	}
+	
+	//-------------------------------------
+	// INSERT/UPDATEの前処理（table,fieldsを対象）
+	public function before_write ( & $query) {
+	
+		parent::before_write($query);
+	}
+	
+	//-------------------------------------
+	// SELECTの前処理
 	public function before_select ( & $query) {
+	
+		parent::before_select($query);
 	}
 	
 	//-------------------------------------
-	// INSERTフィールドの更新
-	public function before_create ( & $query) {
+	// INSERTの前処理
+	public function before_insert ( & $query) {
+	
+		parent::before_insert($query);
 	}
 	
 	//-------------------------------------
-	// UPDATEフィールドの更新
-	public function before_update ( & $query) {
+	// UPDATEの前処理
+	public function before_update ( & $id, & $query) {
+	
+		parent::before_update($id,$query);
 	}
 	
 	//-------------------------------------
-	// DELETE条件の更新
-	public function before_delete ( & $query) {
+	// DELETEの前処理
+	public function before_delete ( & $id, & $query) {
+	
+		parent::before_delete($id,$query);
 	}
 	
 	//-------------------------------------
-	// SELECT結果データの更新
-	public function after_select ( & $ts, $query) {
+	// SELECTの後処理（tsを対象）
+	public function after_read ( & $ts, & $query) {
+	
+		parent::after_read($ts,$query);
 	}
 	
 	//-------------------------------------
-	// Query実行(全件取得)
-	public function select ($query) {
-		
-		$this->before_select($query);
-		
-		$ts =dbi()->select($query);
-		
-		$this->after_select($ts,$query);
-		
-		return $ts;
+	// INSERT/UPDATE/DELETEの後処理（idを対象）
+	public function after_write ( & $id, & $query) {
+	
+		parent::after_write($id,$query);
 	}
 	
 	//-------------------------------------
-	// Query実行(1件のデータ取得)
-	public function select_one ($query) {
-		
-		$this->before_select($query);
-		
-		$t =dbi()->select_one($query);
-		
-		$this->after_select(array($t),$query);
-		
-		return $t;
+	// SELECTの後処理
+	public function after_select ( & $ts, & $query) {
+	
+		parent::after_select($ts,$query);
 	}
 	
 	//-------------------------------------
-	// Query実行(件数取得)
-	public function select_count ($query) {
-		
-		$this->before_select($query);
-		
-		$count =dbi()->select_count($query);
-		
-		return $count;
+	// INSERTの後処理
+	public function after_insert ( & $id, & $query) {
+	
+		parent::after_insert($id,$query);
 	}
 	
 	//-------------------------------------
-	// Query実行(Pager取得)
-	public function select_pager ($query) {
-		
-		$this->before_select($query);
-		
-		$p =dbi()->select_pager($query);
-		
-		return $p;
+	// UPDATEの後処理
+	public function after_update ( & $id, & $query) {
+	
+		parent::after_update($id,$query);
 	}
 	
 	//-------------------------------------
-	// Query実行(INSERT)
-	public function insert ($query) {
+	// DELETEの後処理
+	public function after_delete ( & $id, & $query) {
 		
-		$this->before_create($query);
-		
-		$id =dbi()->insert($query)
-				? dbi()->last_insert_id() 
-				: null;
-		
-		return $id;
-	}
-	
-	//-------------------------------------
-	// Query実行(UPDATE)
-	public function update ($query) {
-		
-		$this->before_select($query);
-		$this->before_update($query);
-		
-		$r =dbi()->update($query);
-		
-		return $r;
-	}
-	
-	//-------------------------------------
-	// Query実行(DELETE)
-	public function delete ($query) {
-		
-		$this->before_select($query);
-		$this->before_delete($query);
-		
-		$r =dbi()->update($query);
-		
-		return $r;
+		parent::after_delete($id,$query);
 	}
 }
