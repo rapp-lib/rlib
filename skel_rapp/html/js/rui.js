@@ -10,7 +10,7 @@ window.rui.ext_loaded ={ js:{}, css:{}, pkg:{} };
 // 機能の初期化
 window.rui.init =function (ext_relative_url) {
 	
-	rui.ext_url =location.protocol+"//"+location.host+ext_relative_url;
+	rui.ext_url =ext_relative_url;
 	
 	// console機能の補完
 	if ( ! ('console' in window)) { 

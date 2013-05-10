@@ -19,34 +19,6 @@ class Model_App extends Model_Base {
 	}
 	
 	//-------------------------------------
-	// SELECTの前処理
-	public function before_select ( & $query) {
-	
-		parent::before_select($query);
-	}
-	
-	//-------------------------------------
-	// INSERTの前処理
-	public function before_insert ( & $query) {
-	
-		parent::before_insert($query);
-	}
-	
-	//-------------------------------------
-	// UPDATEの前処理
-	public function before_update ( & $id, & $query) {
-	
-		parent::before_update($id,$query);
-	}
-	
-	//-------------------------------------
-	// DELETEの前処理
-	public function before_delete ( & $id, & $query) {
-	
-		parent::before_delete($id,$query);
-	}
-	
-	//-------------------------------------
 	// SELECTの後処理（tsを対象）
 	public function after_read ( & $ts, & $query) {
 	
@@ -58,33 +30,5 @@ class Model_App extends Model_Base {
 	public function after_write ( & $id, & $query) {
 	
 		parent::after_write($id,$query);
-	}
-	
-	//-------------------------------------
-	// SELECTの後処理
-	public function after_select ( & $ts, & $query) {
-	
-		parent::after_select($ts,$query);
-	}
-	
-	//-------------------------------------
-	// INSERTの後処理
-	public function after_insert ( & $id, & $query) {
-	
-		parent::after_insert($id,$query);
-	}
-	
-	//-------------------------------------
-	// UPDATEの後処理
-	public function after_update ( & $id, & $query) {
-	
-		parent::after_update($id,$query);
-	}
-	
-	//-------------------------------------
-	// DELETEの後処理
-	public function after_delete ( & $id, & $query) {
-		
-		parent::after_delete($id,$query);
 	}
 }

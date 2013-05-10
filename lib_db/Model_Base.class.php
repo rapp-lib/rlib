@@ -519,28 +519,28 @@ class Model_Base {
 	// SELECTの後処理
 	public function after_select ( & $ts, & $query) {
 		
-		$this->after_read($query);
+		$this->after_read($ts,$query);
 	}
 	
 	//-------------------------------------
 	// INSERTの後処理
 	public function after_insert ( & $id, & $query) {
 		
-		$this->after_write($query);
+		$this->after_write($id,$query);
 	}
 	
 	//-------------------------------------
 	// UPDATEの後処理
 	public function after_update ( & $id, & $query) {
 		
-		$this->after_write($query);
+		$this->after_write($id,$query);
 	}
 	
 	//-------------------------------------
 	// DELETEの後処理
 	public function after_delete ( & $id, & $query) {
 		
-		$this->after_write($query);
+		$this->after_write($id,$query);
 	}
 	
 	//-------------------------------------
@@ -564,7 +564,7 @@ class Model_Base {
 		
 		$t =dbi()->select_one($query);
 		
-		$this->after_select($ts=array($t),$query);
+		$this->after_select($ts=array(& $t),$query);
 		
 		return $t;
 	}
