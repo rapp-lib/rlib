@@ -60,7 +60,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	}
 
 	//-------------------------------------
-	// action .detail
+	// Action: 詳細表示
 	public function act_view_detail () {
 		
 		$this->context("c");
@@ -83,7 +83,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 
 <? if ($c["usage"] != "view"): ?>
 	//-------------------------------------
-	// action .entry_form
+	// Action: フォーム 入力
 	public function act_entry_form () {
 		
 		$this->context("c",1,true);
@@ -111,7 +111,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	}
 
 	//-------------------------------------
-	// action .entry_confirm
+	// Action: フォーム 確認
 	public function act_entry_confirm () {
 		
 		$this->context("c",1,true);
@@ -141,7 +141,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	}
 
 	//-------------------------------------
-	// action .entry_exec
+	// Action: フォーム 登録実行
 	public function act_entry_exec () {
 		
 		$this->context("c",1,true);
@@ -183,7 +183,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	
 <? if($c["usage"] == ""): ?>
 	//-------------------------------------
-	// action .delete_confirm
+	// Action: 削除 確認
 	public function act_delete_confirm () {
 		
 		$this->context("c",1,true);
@@ -206,7 +206,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	}
 
 	//-------------------------------------
-	// action .delete_exec
+	// Action: 削除 実行
 	public function act_delete_exec () {
 		
 		$this->context("c",1,true);
@@ -215,7 +215,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				&& ! $this->c->session("complete")) {
 				
 			// データの削除
-			model("<?=str_camelize($t["name"])?>")->delete($this->c->id());
+			model("<?=str_camelize($t["name"])?>")->drop($this->c->id());
 			
 			$this->c->session("complete",true);
 		}

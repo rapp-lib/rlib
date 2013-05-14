@@ -625,7 +625,7 @@ class Model_Base {
 		
 		$this->before_delete($id, $query);
 		
-		$r =dbi()->update($query);
+		$r =dbi()->delete($query);
 		
 		$this->before_delete($id, $query);
 		
