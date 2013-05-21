@@ -322,6 +322,12 @@ class UserFileManager {
 				
 				continue;
 			}
+		
+			// フォルダ作成
+			if ( ! file_exists(dirname($dest_filename))) {
+				
+				mkdir(dirname($dest_filename),0777,true);
+			}
 			
 			$result =move_uploaded_file($resource["tmp_name"],$dest_filename)
 					&& chmod($dest_filename,0664);
