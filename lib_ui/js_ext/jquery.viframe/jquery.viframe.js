@@ -70,19 +70,6 @@
 
 (function($){
 	
-	//------------------------------------- 
-	// .viframe要素を全てviframe読み込み
-	$(function(){
-	
-		$(".viframe").each(function(){
-			
-			var $vifHref =$(this).children(".vifHref");
-			var url =$vifHref.length > 0 ? $vifHref : "";
-			
-			$(this).viframe(url);
-		});
-	});
-	
 	//-------------------------------------
 	// オプションのマージ処理
 	var merge =function(a,b) {
@@ -203,7 +190,7 @@
 				o.ajaxOptions.type =$anchor.attr("method") || "GET";
 				o.ajaxOptions.url =$anchor.attr("action");
 				o.ajaxOptions.data =$anchor.serialize();
-			
+				
 			// リクエスト以外には割り込まない
 			} else {
 				
@@ -301,8 +288,17 @@
 				$anchor.trigger("vifAfter",[$anchor,$target,xhr,o]);
 				$target.trigger("vifAfter",[$anchor,$target,xhr,o]);
 			};
-		
-			$.ajax(o.ajaxOptions);
+			
+			// file要素がある場合はiframeでRequest
+			if ($anchor.find('input:file').length) {
+					
+				requestByIframe($anchor, o.ajaxOptions);
+			
+			// AJAXでリクエスト
+			} else {
+				
+				$.ajax(o.ajaxOptions);
+			}
 			
 			return false;
 		};
@@ -333,6 +329,8 @@
 		}
 	};
 	
+	//-------------------------------------
+	// オプションのClone処理
 	objClone = function (obj) {
 		var clone = new (obj.constructor);
 		for (var p in obj) {
@@ -347,4 +345,71 @@
 		}
 		return clone;
 	}
+	
+	//-------------------------------------
+	// iframeを使用したAjax実装
+	var iframeUuid =0;
+	requestByIframe = function ($anchor, ajaxOptions) {
+		
+		var iframeName ='jquery_upload'+(++iframeUuid);
+		var $iframe =$('<iframe id="'+iframeName+'" name="'+iframeName+'"/>');
+		$iframe.attr("style","position:absolute;top:-9999px");
+		$iframe.appendTo('body');
+				
+		$iframe.on("load",function(){
+			setTimeout(function() {
+			
+				var contents =$iframe.contents().get(0);
+				
+				// 応答処理
+				if ($.isXMLDoc(contents) || contents.XMLDocument) {
+					
+					// XML応答処理
+					ajaxOptions.success(parseXml(contents.XMLDocument || contents));
+					
+				} else if ($(contents).find('body').length) {
+					
+					// HTML応答の処理
+					ajaxOptions.success($(contents).find('body').html());
+					
+				} else {
+					
+					// エラー処理
+					ajaxOptions.error();
+				}
+				
+				// 送信後
+				ajaxOptions.complete();
+			},0);
+		});
+		
+		// 送信前
+		ajaxOptions.beforeSend();
+		
+		$anchor.attr("target",iframeName);
+		$anchor.trigger("submit");
+	}
+	parseXml =function (text) {
+		if (window.DOMParser) {
+			return new DOMParser().parseFromString(text, 'application/xml');
+		} else {
+			var xml = new ActiveXObject('Microsoft.XMLDOM');
+			xml.async = false;
+			xml.loadXML(text);
+			return xml;
+		}
+	}
+	
+	//------------------------------------- 
+	// .viframe要素を全てviframe読み込み
+	$(function(){
+	
+		$(".viframe").each(function(){
+			
+			var $vifHref =$(this).children(".vifHref");
+			var url =$vifHref.length > 0 ? $vifHref : "";
+			
+			$(this).viframe(url);
+		});
+	});
 })(jQuery);

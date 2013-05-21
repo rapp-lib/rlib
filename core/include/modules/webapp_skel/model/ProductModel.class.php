@@ -5,7 +5,7 @@
 class <?=str_camelize($t["name"])?>Model extends Model_App {
 
 	//-------------------------------------
-	// Read: <?=$t["label"]?> ID指定で1件取得
+	// ID指定で1件取得
 	public function get_by_id ($id) {
 	
 		// 要素の取得 
@@ -86,7 +86,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 				),
 			);
-			$this->update($query);
+			$this->update($query,$id);
 		
 		// IDの指定がなければ新規登録
 		} else {
@@ -114,8 +114,8 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 	}
 
 	//-------------------------------------
-	// Write: <?=$t["label"]?> 削除
-	public function delete ($id) {
+	// 削除
+	public function drop ($id) {
 	
 <? if ($t['del_flg']): ?>
 		// 要素の削除フラグをon
@@ -132,7 +132,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 				"<?=$t['del_flg']?>" =>"0",
 			),
 		);
-		$this->update($query);
+		$this->update($query,$id);
 <? else: ?>
 		// 要素の削除
 		$query =array(
@@ -141,7 +141,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 				"<?=$t['pkey']?>" =>$id,
 			),
 		);
-		$this->delete($query);
+		$this->delete($query,$id);
 <? endif; ?>
 	}
 }
