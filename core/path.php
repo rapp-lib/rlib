@@ -122,7 +122,7 @@
 	//-------------------------------------
 	// ファイル名からURLを得る
 	function file_to_url ($file, $full_url=false) {
-		
+	
 		$pattern ='!^'.preg_quote(registry('Path.document_root_dir')).'/?!';
 		$document_root_url =registry('Path.document_root_url');
 		$document_root_url =preg_replace('!/$!','',$document_root_url);
