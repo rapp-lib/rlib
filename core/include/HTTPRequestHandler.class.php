@@ -9,12 +9,86 @@ class HTTPRequestHandler {
 	// HTTPリクエスト送信
 	public function request ($url, $params=array()) {
 		
-		return $this->request_curl($url,$params);
+		return $this->request_http_request2($url,$params);
 	}
 	
 	//-------------------------------------
-	// CURLによるHTTPリクエスト送信
-	public function request_curl ($url, $params=array()) {
+	// Pear_HTTP_Request2によるHTTPリクエスト送信
+	public function request_http_request2 ($url, $params=array()) {
+		
+		require_once "HTTP/Request2.php";
+		
+		try {
+		
+		    $handle = new HTTP_Request2();
+			
+			$handle->setUrl($url);
+			
+			$handle->setMethod(isset($params["post"])
+					? HTTP_Request2::METHOD_POST
+					: HTTP_Request2::METHOD_GET);
+			
+			$handle->setConfig('ssl_verify_peer', false);
+			$handle->setConfig('protocol_version', '1.1');
+			$handle->setConfig('connect_timeout', '300');
+			$handle->setConfig('timeout', '300');
+			$handle->setConfig('follow_redirects', true);
+			$handle->setConfig('max_redirects', 10);
+			
+			// Curlで送信
+			if ($params["adapter"] == "curl") {
+			
+				require_once 'HTTP/Request2/Adapter/Curl.php';
+				$handle->setAdapter(new HTTP_Request2_Adapter_Curl());
+			}
+			
+			// 設定変更
+			foreach ($params["config"] as $k => $v) {
+			
+				$handle->setConfig($k,$v);
+			}
+			
+			// POST設定
+			foreach ($params["post"] as $k => $v) {
+			
+				$handle->addPostParameter($k,$v);
+			}
+			
+			// Header追加
+			foreach ($params["headers"] as $k => $v) {
+			
+				$handle->setHeader($k,$v);
+			}
+			
+			// ベーシック認証のusernameとpasswordの指定
+			if ($params["basic_auth"]) {
+				
+				$handle->setAuth(
+						$params["basic_auth"]["username"],
+						$params["basic_auth"]["password"],
+						HTTP_Request2::AUTH_BASIC);
+			}
+		
+			$response =$handle->send();
+		
+			return array(
+				"body" =>$response->getBody(),
+				"result" =>preg_match('!^2..$!',$response->getStatus()),
+				"code" =>$response->getStatus(),
+				"headers" =>$response->getHeader(),
+			);
+			
+		} catch (Exception $e) {
+			
+			return array(
+				"error" =>$e,
+			);
+		}
+	}
+	
+	//-------------------------------------
+	// (非推奨 130612 Y.Toyosawa)CURLによるHTTPリクエスト送信
+	public function request_curl_DEPRECATED ($url, $params=array()) {
 		
 		$handle =new HTTPRequest_Curl($url);
 		
