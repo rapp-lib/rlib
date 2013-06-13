@@ -165,6 +165,11 @@ class Model_Base {
 				$query["limit"] =(int)$setting["limit"];
 			}
 			
+			if ($setting["slider"]) {
+				
+				$query["paging_slider"] =(int)$setting["slider"];
+			}
+			
 			unset($query["paging"]);
 		}
 		

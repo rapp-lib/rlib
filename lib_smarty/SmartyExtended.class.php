@@ -282,7 +282,7 @@ class SmartyExtended extends SmartyBC {
 		} else {
 			
 			$attr_html ="";
-			$url_params ="";
+			$url_params =array();
 			$hidden_input_html ="";
 			
 			$dest_url =$params["href"]
@@ -340,7 +340,7 @@ class SmartyExtended extends SmartyBC {
 				foreach (explode("&",$params["_query"]) as $kvset) {
 					
 					list($k,$v) =explode("=",$kvset,2);
-					$params["_".$k] =$v;
+					$url_params[$k] =$v;
 				}
 				
 				unset($params["_query"]);
@@ -355,7 +355,7 @@ class SmartyExtended extends SmartyBC {
 					
 					if ($type == 'a') {
 						
-						$url_params .=$param_name.'='.$value.'&';
+						$url_params[$param_name] =$value;
 					
 					} elseif ($type == 'form' || $type == "button") {
 					
@@ -369,17 +369,7 @@ class SmartyExtended extends SmartyBC {
 				}
 			}
 			
-			// URL末尾にパラメータの指定
-			if ($url_params) {
-			
-				$dest_url .=(strpos($dest_url,"?")===false ? "?" : "&").$url_params;
-			}
-			
-			// URL末尾にアンカーの指定
-			if ($anchor) {
-			
-				$dest_url .='#'.$anchor;
-			}
+			$dest_url =url($dest_url,$url_params,$anchor);
 			
 			$html ="";
 			

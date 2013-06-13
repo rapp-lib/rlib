@@ -43,7 +43,7 @@
 			$url .=$base_url;
 		}
 		
-		if ($params !== null) {
+		if ($params) {
 			
 			if ($url !== null) {
 				
@@ -60,7 +60,7 @@
 			}
 		}
 		
-		if (is_string($anchor)) {
+		if (strlen($anchor)) {
 			
 			$url .='#'.$anchor;
 		}

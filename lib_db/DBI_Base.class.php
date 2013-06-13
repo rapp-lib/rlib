@@ -330,7 +330,6 @@ class DBI_Base {
 	public function select_pager ($query) {
 		
 		$query["fields"] =array("COUNT(*) AS count");
-		
 		$offset =$query["offset"];
 		$limit =$query["limit"];
 		$paging_slider =$query["paging_slider"] 
