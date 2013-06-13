@@ -328,7 +328,7 @@ class DBI_Base {
 	//-------------------------------------
 	// Query実行(Pager取得)
 	public function select_pager ($query) {
-		
+	
 		$query["fields"] =array("COUNT(*) AS count");
 		
 		$offset =$query["offset"];

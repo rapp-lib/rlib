@@ -42,7 +42,9 @@
 		
 			// 404エラー
 			if ( ! file_exists($request_file)) {
-			
+				
+				header("HTTP/1.1 404 Not Found");
+				
 				report_error("Request error: Route and File Not found.",array(
 					"request_uri" =>$request_uri,
 					"request_path" =>$request_path,
