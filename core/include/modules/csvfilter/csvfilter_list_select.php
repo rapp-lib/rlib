@@ -16,22 +16,68 @@
 			return $mode=="r" ? null : "";
 		}
 		
+		// listの指定
 		$list_options =get_list($filter["list"]);
 		
-		// CSV読み込み時
-		if ($mode == "r") {
-			
-			$value =$list_options->select_reverse($value);
-			
-		// CSV書き込み時
-		} elseif ($mode == "w") {
-			
-			$value =$list_options->select($value);
-		}
+		// 複合データの場合
+		if ($delim =$filter["delim"]) {
 		
-		if ($value===null) {
+			// CSV読み込み時
+			if ($mode == "r") {
+				
+				$value_exploded =explode($delim,$value);
+				$value =array();
+				
+				foreach ($value_exploded as $k=>$v) {
+					
+					if ($v =$list_options->select_reverse($v)) {
+						
+						$value[$k] =$v;
+					
+					} else {
+						
+						$csv->register_error("設定された値が不正です",true,$filter["target"]);
+					}
+				}
+				
+			// CSV書き込み時
+			} elseif ($mode == "w") {
 			
-			$csv->register_error("設定された値が不正です",true,$filter["target"]);
+				$value_unserialized =array();
+				
+				foreach ((array)unserialize($value) as $k=>$v) {
+					
+					if ($v =$list_options->select($v)) {
+					
+						$value_unserialized[$k] =$v;
+						
+					} else {
+						
+						$csv->register_error("設定された値が不正です",true,$filter["target"]);
+					}
+				}
+				
+				$value =implode($delim,$value_unserialized);
+			}
+		
+		// 単純データの場合
+		} else {
+		
+			// CSV読み込み時
+			if ($mode == "r") {
+				
+				$value =$list_options->select_reverse($value);
+			
+			// CSV書き込み時
+			} elseif ($mode == "w") {
+				
+				$value =$list_options->select($value);
+			}
+			
+			if ($value===null) {
+				
+				$csv->register_error("設定された値が不正です",true,$filter["target"]);
+			}
 		}
 		
 		return $value;

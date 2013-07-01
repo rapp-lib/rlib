@@ -39,6 +39,12 @@
 		var mi_tmpl =$(".mi_tmpl",$mi).eq(0).html();
 		$(".mi_tmpl",$mi).remove();
 		
+		// Serialカウンター
+		if ( ! $('.mi_ser',$mi).length) {
+			
+			$mi.prepend('<input type="hidden" class="mi_ser" value="1"/>');
+		}
+		
 		//-------------------------------------
 		// コントロールの表示更新
 		var update_mi_set =function(){
@@ -100,6 +106,17 @@
 					$mi_set.before($mi_set.next());
 				}
 			});
+			
+			// 初期化済みの要素でない場合
+			if ( ! $mi_set.hasClass('mi_init')) {
+				
+				// Serialの初期化
+				var mi_ser =$('.mi_ser',$mi).val()*1;
+				$('.mi_ser',$mi).val(mi_ser+1);
+				$mi_set.addClass('mi_ser_'+mi_ser);
+				
+				$mi_set.addClass('mi_init');
+			}
 		};
 			
 		//-------------------------------------
@@ -123,7 +140,7 @@
 			
 			$(".mi_anchor",$mi).before($mi_set);
 			
-				update_mi_set();
+			update_mi_set();
 		});
 			
 		//-------------------------------------

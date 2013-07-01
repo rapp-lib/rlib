@@ -182,7 +182,10 @@ class CSVHandler {
 		// Filter実行
 		if ($this->filters && ! $options["ignore_filters"]) {
 		
-			foreach ((array)$this->filters as $filter) {
+			$filters =(array)$this->filters;
+			ksort($filters);
+			
+			foreach ($filters as $filter) {
 				
 				$module =load_module("csvfilter",$filter["filter"],true);
 				
@@ -259,7 +262,10 @@ class CSVHandler {
 		// Filter実行
 		if ($this->filters && ! $options["ignore_filters"]) {
 		
-			foreach ((array)$this->filters as $filter) {
+			$filters =(array)$this->filters;
+			krsort($filters);
+			
+			foreach ($filters as $filter) {
 				
 				$module =load_module("csvfilter",$filter["filter"],true);
 				
