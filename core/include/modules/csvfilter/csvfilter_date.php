@@ -1,11 +1,22 @@
 <?php
 	
+	/*
+		補足：
+			formatを指定しないと評価のみで整形は行わない
+		パラメータ：
+	 		* target: 対象の項目
+	 		format: longdate_formatに渡して整形を行う場合指定
+	*/
 	//-------------------------------------
-	// 
-	function csvfilter_date ($value, $mode, $filter, $csv) {
+	// 対象の値が正しい日付であるか評価、整形を行う
+	function csvfilter_date ($value, $mode, $line, $filter, $csv) {
 		
-		// 全要素は処理できない
-		if (is_array($value)) {
+		// オプションチェック
+		if ( ! $filter["target"]) {
+			
+			report_error('csvfilter:date targetの指定は必須です',array(
+				"filter" =>$filter,
+			));
 			
 			return $value;
 		}

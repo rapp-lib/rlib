@@ -55,7 +55,7 @@
 				registry($k,$v);
 			}
 		}
-		
+
 		// HTTPパラメータ構築
 		$_REQUEST =array_merge($_GET,$_POST);
 		
@@ -81,19 +81,18 @@
 			start_dync();
 		}
 		
-		
 		// include_pathの設定
 		foreach ((array)registry("Config.webapp_include_path") as $k => $v) {
 			
 			add_include_path(registry("Path.webapp_dir")."/".$v);
 		}
-		
+
 		// ライブラリの読み込み
 		foreach ((array)registry("Config.load_lib") as $k => $v) {
 			
 			load_lib($v);
 		}
-		
+
 		// WebappBuild機能
 		if (get_webapp_dync("webapp_build") && $_REQUEST["exec"]) {
 			

@@ -182,7 +182,10 @@ class CSVHandler {
 		// Filter実行
 		if ($this->filters && ! $options["ignore_filters"]) {
 		
-			foreach ((array)$this->filters as $filter) {
+			$filters =(array)$this->filters;
+			ksort($filters);
+			
+			foreach ($filters as $filter) {
 				
 				$module =load_module("csvfilter",$filter["filter"],true);
 				
@@ -192,6 +195,7 @@ class CSVHandler {
 					$csv_data[$filter["target"]] =call_user_func_array($module,array(
 						$csv_data[$filter["target"]],
 						"r",
+						$csv_data,
 						$filter,
 						$this,
 					));
@@ -202,6 +206,7 @@ class CSVHandler {
 					$csv_data =call_user_func_array($module,array(
 						$csv_data,
 						"r",
+						$csv_data,
 						$filter,
 						$this,
 					));
@@ -259,7 +264,10 @@ class CSVHandler {
 		// Filter実行
 		if ($this->filters && ! $options["ignore_filters"]) {
 		
-			foreach ((array)$this->filters as $filter) {
+			$filters =(array)$this->filters;
+			krsort($filters);
+			
+			foreach ($filters as $filter) {
 				
 				$module =load_module("csvfilter",$filter["filter"],true);
 				
@@ -269,6 +277,7 @@ class CSVHandler {
 					$csv_data[$filter["target"]] =call_user_func_array($module,array(
 						$csv_data[$filter["target"]],
 						"w",
+						$csv_data,
 						$filter,
 						$this,
 					));
@@ -279,6 +288,7 @@ class CSVHandler {
 					$csv_data =call_user_func_array($module,array(
 						$csv_data,
 						"w",
+						$csv_data,
 						$filter,
 						$this,
 					));

@@ -206,7 +206,7 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 	//-------------------------------------
 	// CSVファイルを読み込んでSchemaのコードを生成する
 	protected function load_schema_csv ($filename) {
-		
+	
 		$csv =new CSVHandler($filename,"r",array(
 			"file_charset" =>"SJIS-WIN",
 		));

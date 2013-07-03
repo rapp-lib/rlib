@@ -541,7 +541,7 @@ class SmartyExtended extends SmartyBC {
 						.' name="'.$params["name"].'['.$option_value.']'.'"'
 						.' value="'.$option_value.'"'.$attr_html
 						.($checked ? ' checked="checked"' : '')
-						.'>'.$option_label.'</label></nobr> &nbsp;'."\n";
+						.'> '.$option_label.'</label></nobr> &nbsp;'."\n";
 			}
 			
 		} elseif ($params["type"] == "multiselect") {
