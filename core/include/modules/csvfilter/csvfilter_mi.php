@@ -1,11 +1,21 @@
 <?php
 	
+	/*
+		補足：
+			[target_base].[0からのindex].[mi_set内での実要素名]のルールで展開される
+		パラメータ：
+			* target_base: $input/$tで保持する配列の要素名
+	*/
 	//-------------------------------------
-	// 
-	function csvfilter_mi ($value, $mode, $filter, $csv) {
+	// miで構成された複合データを展開、集約する
+	function csvfilter_mi ($value, $mode, $line, $filter, $csv) {
 		
-		// 個別要素は処理できない（＝target指定不可）
-		if ( ! is_array($value)) {
+		// オプションチェック
+		if ($filter["target"] || ! $filter["target_base"]) {
+			
+			report_error('csvfilter:mi targetではなくtarget_baseでの指定が必須です',array(
+				"filter" =>$filter,
+			));
 			
 			return $value;
 		}

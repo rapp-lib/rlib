@@ -195,6 +195,7 @@ class CSVHandler {
 					$csv_data[$filter["target"]] =call_user_func_array($module,array(
 						$csv_data[$filter["target"]],
 						"r",
+						$csv_data,
 						$filter,
 						$this,
 					));
@@ -205,6 +206,7 @@ class CSVHandler {
 					$csv_data =call_user_func_array($module,array(
 						$csv_data,
 						"r",
+						$csv_data,
 						$filter,
 						$this,
 					));
@@ -275,6 +277,7 @@ class CSVHandler {
 					$csv_data[$filter["target"]] =call_user_func_array($module,array(
 						$csv_data[$filter["target"]],
 						"w",
+						$csv_data,
 						$filter,
 						$this,
 					));
@@ -285,6 +288,7 @@ class CSVHandler {
 					$csv_data =call_user_func_array($module,array(
 						$csv_data,
 						"w",
+						$csv_data,
 						$filter,
 						$this,
 					));
