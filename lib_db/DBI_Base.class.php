@@ -885,6 +885,7 @@ class DBI_Base {
 				? $pager['pages'][$pager['current']+$slider+1]
 				: null;
 				
+		$pager['pages_raw'] =$pager['pages'];
 		$pager['pages'] =$pager['pages_slider'];
 			
 		return $pager;

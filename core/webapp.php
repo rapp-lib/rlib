@@ -1,7 +1,7 @@
 <?php
 	
 	//-------------------------------------
-	//
+	// 
 	function start_webapp () {
 		
 		// Registryのデフォルト値の補完
@@ -262,7 +262,7 @@
 	}
 	
 	//-------------------------------------
-	// URL書き換え機能
+	// URL書き換え対象のパラメータ追加
 	function output_rewrite_var ($name=null, $value=null) {
 	
 		$output_rewrite_var =& ref_globals("output_rewrite_var");
@@ -271,13 +271,15 @@
 		if ($value !== null) {
 			
 			output_add_rewrite_var($name,$value);
+			
+			registry('State.is_url_rewrited',true);
 		}
 		
 		return $result;
 	}
 	
 	//-------------------------------------
-	//
+	// 処理を停止するexit相当の機能/異常終了を正しく通知できる
 	function shutdown_webapp ($cause=null, $options=array()) {
 		
 		// 通常終了時はFlushMessageを削除
@@ -301,7 +303,7 @@
 	}
 	
 	//-------------------------------------
-	//
+	// 全PHP処理終了時に呼び出す関数の設定
 	function register_shutdown_webapp_function ($func) {
 		
 		$funcs =& ref_globals('shutdown_webapp_function');
@@ -309,7 +311,7 @@
 	}
 	
 	//-------------------------------------
-	//
+	// 実行実時間の計測
 	function elapse ($event=null,$stop=false) {
 		
 		static $time =array();
@@ -330,6 +332,95 @@
 		}
 		
 		return array();
+	}
+	
+	//-------------------------------------
+	// HTTPレスポンスコードの設定
+	function set_response_code ($response_code) {
+		
+		$response_code_list =array(
+		
+			// 1xx Informational 情報
+			100 =>"Continue",
+			101 =>"Switching Protocols",
+			102 =>"Processing",
+			
+			// 2xx Success 成功
+			200 =>"OK",
+			201 =>"Created",
+			202 =>"Accepted",
+			203 =>"Non-Authoritative Information",
+			204 =>"No Content",
+			205 =>"Reset Content",
+			206 =>"Partial Content",
+			207 =>"Multi-Status",
+			226 =>"IM Used",
+			
+			// 3xx Redirection リダイレクション
+			300 =>"Multiple Choices",
+			301 =>"Moved Permanently",
+			302 =>"Found",
+			303 =>"See Other",
+			304 =>"Not Modified",
+			305 =>"Use Proxy",
+			306 =>"(Unused)",
+			307 =>"Temporary Redirect",
+			
+			// 4xx Client Error クライアントエラー
+			400 =>"Bad Request",
+			401 =>"Unauthorized",
+			402 =>"Payment Required",
+			403 =>"Forbidden",
+			404 =>"Not Found",
+			405 =>"Method Not Allowed",
+			406 =>"Not Acceptable",
+			407 =>"Proxy Authentication Required",
+			408 =>"Request Timeout",
+			409 =>"Conflict",
+			410 =>"Gone",
+			411 =>"Length Required",
+			412 =>"Precondition Failed",
+			413 =>"Request Entity Too Large",
+			414 =>"Request-URI Too Long",
+			415 =>"Unsupported Media Type",
+			416 =>"Requested Range Not Satisfiable",
+			417 =>"Expectation Failed",
+			418 =>"I'm a teapot",
+			422 =>"Unprocessable Entity",
+			423 =>"Locked",
+			424 =>"Failed Dependency",
+			426 =>"Upgrade Required",
+			
+			// 5xx Server Error サーバエラー
+			500 =>"Internal Server Error",
+			501 =>"Not Implemented",
+			502 =>"Bad Gateway",
+			503 =>"Service Unavailable",
+			504 =>"Gateway Timeout",
+			505 =>"HTTP Version Not Supported",
+			506 =>"Variant Also Negotiates",
+			507 =>"Insufficient Storage",
+			509 =>"Bandwidth Limit Exceeded",
+			510 =>"Not Extended",
+		);
+		
+		if ($response_msg =$response_code_list[$response_code]) {
+			
+			header("HTTP/1.1 ".$response_code." ".$response_msg);
+			
+			registry("Response.response_code",$response_code);
+			
+		} else {
+			
+			report_error("Invalid Response Code",array(
+				"response_code" =>$response_code,
+			));
+		}
+		
+		if ($error_document =registry("Config.error_document.".$response_code)) {
+			
+			include($error_document);
+		}
 	}
 	
 	//-------------------------------------
@@ -362,11 +453,20 @@
 			print tag("a",array("href"=>$url),$redirect_link_html);
 			
 		} else {
-		
+			
 			header("Location: ".$url);
 		}
 		
 		shutdown_webapp("redirect");
+	}
+	
+	//-------------------------------------
+	//
+	function redirect_permanently ($url, $params=array(), $flush_message=null) {
+		
+		set_response_code(301);
+		
+		redirect ($url,$params,$flush_message);
 	}
 	
 	//-------------------------------------

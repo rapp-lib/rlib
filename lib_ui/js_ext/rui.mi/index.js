@@ -4,7 +4,7 @@
 	<div class="mi">
 		<input type="hidden" class="mi_min" value="0"/>
 		<input type="hidden" class="mi_max" value="3"/>
-		{{foreach $c->input("Entry.art_arts")|unserialize as $i=>$v}}
+		{{foreach $c->input("Entry.art_arts")|to_array as $i=>$v}}
 		<div class="mi_set">
 			{{input type="file" name="c[Entry.art_arts][`$i`][file]" value=$v.file}}
 			{{input type="text" name="c[Entry.art_arts][`$i`][caption]" value=$v.caption}}

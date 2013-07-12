@@ -37,23 +37,28 @@
 		
 		$request_page =path_to_page($request_path);
 	
-		// 静的ページの表示
+		// 対応するpageのroutingがない、静的ページの表示
 		if ( ! $request_page) {
-		
-			// 404エラー
-			if ( ! file_exists($request_file)) {
-				
-				header("HTTP/1.1 404 Not Found");
-				
-				report_error("Request error: Route and File Not found.",array(
+			
+			// HTMLは表示可能、page=static.index
+		 	if (file_exists($request_file)) {
+			
+				$request_page ="static.index";
+			
+			// HTMLファイルもない、404エラー
+			} else {
+			
+				report_warning("Request error: Route and File Not found.",array(
 					"request_uri" =>$request_uri,
 					"request_path" =>$request_path,
 					"request_page" =>$request_page,
 					"request_file" =>$request_file,
 				));
+				
+				set_response_code(404);
+				
+				shutdown_webapp("notfound");
 			}
-			
-			$request_page ="static.index";
 		}
 		
 		// 強制HTTPSアクセス設定
@@ -162,6 +167,11 @@
 	//-------------------------------------
 	// __end
 	function __end ($cause, $options) {
+		
+		if ($cause == "error_report") {
+			
+			set_response_code(500);
+		}
 		
 		$webapp_log =& ref_globals("webapp_log");
 		
