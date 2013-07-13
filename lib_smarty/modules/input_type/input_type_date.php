@@ -46,15 +46,30 @@
 				: "2007~+5";
 		list($y1,$y2) =input_type_date_parse_range($range);
 		
+		// 入力されている年数を含むように範囲を調整
 		if ($d && $d["Y"]) {
 			
-			if ($y1 > $d["Y"]) {
-				
-				$y1 =$d["Y"];
+			if ($y1 < $y2) {
 			
-			} elseif ($y2 < $d["Y"]) {
+				if ($y1 > $d["Y"]) {
+					
+					$y1 =$d["Y"];
 				
-				$y2 =$d["Y"];
+				} elseif ($y2 < $d["Y"]) {
+					
+					$y2 =$d["Y"];
+				}
+			
+			} elseif ($y1 < $y2) {
+			
+				if ($y2 > $d["Y"]) {
+					
+					$y2 =$d["Y"];
+				
+				} elseif ($y1 < $d["Y"]) {
+					
+					$y1 =$d["Y"];
+				}
 			}
 		}
 		

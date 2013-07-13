@@ -88,6 +88,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		
 		$this->context("c",1,true);
 		
+		// 完了後の再アクセス時にはデータ消去
+		if ($this->c->session("complete")) {
+			
+			$this->c->session(false, false);
+		}
+		
 		// id指定があれば既存のデータを読み込む
 		if ($_REQUEST["id"]) {
 			
