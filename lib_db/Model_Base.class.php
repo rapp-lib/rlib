@@ -175,35 +175,6 @@ class Model_Base {
 		
 		return $query;
 	}
-
-	//-------------------------------------
-	// [DEPLECATED] 配列形式のカラムをunserialize
-	public function unserialize_fields_DELETE (
-			& $ts, 
-			$field_names) {
-		
-		$field_names =is_array($field_names)
-				? $field_names
-				: array($field_names);
-				
-		foreach ($field_names as $field_name) {
-			
-			if (isset($ts[$field_names])) {
-			
-				$ts[$field_names] =unserialize($ts);
-			
-			} else {
-			
-				foreach ($ts as $t_index => $t) {
-				
-					if (isset($ts[$t_index][$field_names])) {
-						
-						$ts[$t_index][$field_names] =unserialize($t);
-					}
-				}
-			}
-		}
-	}
 		
 	//-------------------------------------
 	// 特定要素でのグルーピング
@@ -292,261 +263,8 @@ class Model_Base {
 	}
 	
 	//--------------------------------------------------------------------------
-	// Assoc処理
+	// Query代理実行
 	//
-
-	//-------------------------------------
-	// 親要素への変更を子要素へ反映
-	public function affect_assoc (
-			$values,
-			$id,
-			$query=array()) {
-		
-		// パラメータの抽出
-		$ds =$query["ds"];
-		$base_fields =(array)$query["fields"];
-		$parent_key =$query["parent_key"];
-		$child_key =$query["child_key"];
-		unset($query["ds"]);
-		unset($query["fields"]);
-		unset($query["parent_key"]);
-		unset($query["child_key"]);
-		
-		// 登録済みデータの削除
-		$query["conditions"] =(array)$query["conditions"];
-		$query["conditions"][$parent_key] =$id;
-		
-		dbi($ds)->delete($query);
-		
-		// Bridge要素の登録
-		foreach ((array)$values as $value) {
-			
-			if ( ! strlen($value)) {
-				
-				continue;
-			}
-			
-			$query["fields"] =$base_fields;
-			$query["fields"][$parent_key] =$id;
-			$query["fields"][$child_key] =$value;
-			
-			dbi($ds)->insert($query);
-		}
-	}
-
-	//-------------------------------------
-	// 親要素に関連する子要素を取り込む
-	public function merge_assoc (
-			& $ts,
-			$query=array()) {
-			
-		/*
-			■呼び出しサンプル：
-		
-		     // Customerに関連するRequirementのIDをrequirement_idsとして組入
-		     model()->merge_assoc($ts,array(
-		          // SELECT発行
-		          "table" =>"Requirement",
-		          // 対象の中での親へのFK
-		          "parent_key" =>"Requirement.customer_id",
-		          // tsのpk（対象のFKと結合する際に使用する）
-		          "parent_key_origin" =>"Customer.id",
-		          // 対象のtsへ組み入れ先の擬似カラム名
-		          "children_name" =>"Customer.requirement_ids",
-		          // （任意）対象をhashlistに変換する場合のカラム名
-		          "child_key" =>"Requirement.id",
-		     ));
-		*/
-		
-		if ( ! $ts) {
-			
-			return;
-		}
-		
-		if ( ! is_numeric(array_pop(array_keys($ts)))) {
-			
-			return $this->merge_assoc($ts_copy =array(0=> & $ts),$query);
-		}
-		
-		// パラメータの抽出
-		$ds =$query["ds"];
-		$parent_key =$query["parent_key"];
-		$child_key =$query["child_key"];
-		$parent_key_origin =$query["parent_key_origin"];
-		$children_name =$query["children_name"];
-		unset($query["ds"]);
-		unset($query["parent_key"]);
-		unset($query["child_key"]);
-		unset($query["parent_key_origin"]);
-		unset($query["children_name"]);
-		
-		$parent_ids =$this->hash($ts, $parent_key_origin);
-				
-		// Bridgeの取得
-		$query["conditions"] =(array)$query["conditions"];
-		$query["conditions"][] =array($parent_key =>$parent_ids);
-		
-		// ReduceKeyの指定
-		if ($child_key) {
-		
-			$query["fields"] =array(
-				$parent_key,
-				$child_key,
-			);
-		}
-		
-		$ts_bridge =dbi($ds)->select($query);
-		
-		// Bridgeの情報のマージ
-		$this->merge_grouped_children(
-				$ts, 
-				$ts_bridge,
-				$parent_key,
-				$parent_key_origin, 
-				$children_name,
-				$child_key);
-	}
-	
-	//--------------------------------------------------------------------------
-	// [DEPLECATED] Assert処理 
-	//
-
-	//-------------------------------------
-	// [DEPLECATED] AssertSegmentの関連付け
-	public function bind_segment_DELETE ($segment_name, $segment_id) {
-		
-		$bound_segments =& ref_globals("bound_segments");
-		
-		$bound_segments[$segment_name] =$segment_id;
-	}
-	
-	//-------------------------------------
-	// [DEPLECATED] Assert異常チェック
-	public function assert_DELETE ($assert_name, $assert_id) {
-		
-		// Segment異常チェック
-		$bound_segments =& ref_globals("bound_segments");
-		
-		foreach ((array)$bound_segments as $segment_name => $segment_id) {
-			
-			$assert_config =registry("Assert.".$assert_name.'.segment.'.$segment_name);
-			
-			if ( ! $assert_config) {
-				
-				continue;
-			}
-			
-			// SQLを発行してデータの検出を確認
-			if ($assert_config["query"]) {
-			
-				dbi()->bind(array(
-					"segment" =>$segment_id,
-					"assert" =>$assert_id,
-				));
-				$exists =dbi()->select_count($assert_config["query"]);
-				
-				if ( ! $exists) {
-					
-					$this->assert_error(array(
-						"assert_config" =>$assert_config,
-						"segment_name" =>$segment_name,
-						"segment_id" =>$segment_id,
-						"assert_name" =>$assert_name,
-						"assert_id" =>$assert_id,
-						"exists" =>$exists,
-					));
-				}
-			}
-		}
-	}
-	
-	//-------------------------------------
-	// [DEPLECATED] Assert異常時の処理
-	public function assert_error_DELETE ($params=array()) {
-		
-		report_warning("Assert Error",$params);
-	}
-	
-	//--------------------------------------------------------------------------
-	// SQL前後処理
-	//
-	
-	//-------------------------------------
-	// SELECT/DELETE/UPDATEの前処理（table,conditionsを対象）
-	public function before_read ( & $query) {
-	}
-	
-	//-------------------------------------
-	// INSERT/UPDATEの前処理（table,fieldsを対象）
-	public function before_write ( & $query) {
-	}
-	
-	//-------------------------------------
-	// SELECTの前処理
-	public function before_select ( & $query) {
-		
-		$this->before_read($query);
-	}
-	
-	//-------------------------------------
-	// INSERTの前処理
-	public function before_insert ( & $query) {
-		
-		$this->before_write($query);
-	}
-	
-	//-------------------------------------
-	// UPDATEの前処理
-	public function before_update ( & $id, & $query) {
-		
-		$this->before_read($query);
-		$this->before_write($query);
-	}
-	
-	//-------------------------------------
-	// DELETEの前処理
-	public function before_delete ( & $id, & $query) {
-		
-		$this->before_read($query);
-	}
-	
-	//-------------------------------------
-	// SELECTの後処理（tsを対象）
-	public function after_read ( & $ts, & $query) {
-	}
-	
-	//-------------------------------------
-	// INSERT/UPDATE/DELETEの後処理（idを対象）
-	public function after_write ( & $id, & $query) {
-	}
-	
-	//-------------------------------------
-	// SELECTの後処理
-	public function after_select ( & $ts, & $query) {
-		
-		$this->after_read($ts,$query);
-	}
-	
-	//-------------------------------------
-	// INSERTの後処理
-	public function after_insert ( & $id, & $query) {
-		
-		$this->after_write($id,$query);
-	}
-	
-	//-------------------------------------
-	// UPDATEの後処理
-	public function after_update ( & $id, & $query) {
-		
-		$this->after_write($id,$query);
-	}
-	
-	//-------------------------------------
-	// DELETEの後処理
-	public function after_delete ( & $id, & $query) {
-		
-		$this->after_write($id,$query);
-	}
 	
 	//-------------------------------------
 	// Query実行(全件取得)
@@ -635,5 +353,414 @@ class Model_Base {
 		$this->before_delete($id, $query);
 		
 		return $r;
+	}
+	
+	//--------------------------------------------------------------------------
+	// SQL前後処理
+	//
+	
+	//-------------------------------------
+	// SELECT/DELETE/UPDATEの前処理（table,conditionsを対象）
+	public function before_read ( & $query) {
+	}
+	
+	//-------------------------------------
+	// INSERT/UPDATEの前処理（table,fieldsを対象）
+	public function before_write ( & $query) {
+	
+		$this->extend_fields_splice($query);
+	}
+	
+	//-------------------------------------
+	// SELECTの後処理（tsを対象）
+	public function after_read ( & $ts, & $query) {
+		
+		$this->extend_fields_merge($ts,$query);
+	}
+	
+	//-------------------------------------
+	// INSERT/UPDATE/DELETEの後処理（idを対象）
+	public function after_write ( & $id, & $query) {
+	
+		$this->extend_fields_affect($id,$query);
+	}
+	
+	//-------------------------------------
+	// SELECTの前処理
+	public function before_select ( & $query) {
+		
+		$this->before_read($query);
+	}
+	
+	//-------------------------------------
+	// INSERTの前処理
+	public function before_insert ( & $query) {
+		
+		$this->before_write($query);
+	}
+	
+	//-------------------------------------
+	// UPDATEの前処理
+	public function before_update ( & $id, & $query) {
+		
+		$this->before_read($query);
+		$this->before_write($query);
+	}
+	
+	//-------------------------------------
+	// DELETEの前処理
+	public function before_delete ( & $id, & $query) {
+		
+		$this->before_read($query);
+	}
+	
+	//-------------------------------------
+	// SELECTの後処理
+	public function after_select ( & $ts, & $query) {
+		
+		$this->after_read($ts,$query);
+	}
+	
+	//-------------------------------------
+	// INSERTの後処理
+	public function after_insert ( & $id, & $query) {
+		
+		$this->after_write($id,$query);
+	}
+	
+	//-------------------------------------
+	// UPDATEの後処理
+	public function after_update ( & $id, & $query) {
+		
+		$this->after_write($id,$query);
+	}
+	
+	//-------------------------------------
+	// DELETEの後処理
+	public function after_delete ( & $id, & $query) {
+		
+		$this->after_write($id,$query);
+	}
+	
+	//--------------------------------------------------------------------------
+	// fields拡張処理
+	//
+
+	protected $spliced_fields =array();
+	protected $meta_cols =array(
+			"meta_name","idx","elm","value","value_int","value_date");
+			
+	//-------------------------------------
+	// fields拡張/SELECT時の拡張要素の取得
+	public function extend_fields_merge ( & $ts, & $query) {
+		
+		// Queryを参照して対象となるfields拡張設定を適用する
+		foreach ((array)registry("Model.extends.fields") as $table => $cols) {
+			
+			if ($query["table"] != $table) {
+				
+				continue;
+			}
+			
+			foreach ($cols as $col => $info) {
+				
+				$target_col =$table.".".$col;
+				
+				// auto_loadがtrueの場合fieldsに明示されなくても取得
+				if ( ! $info["auto_load"]
+						&& ! in_array($target_col,$query["fields"])) {
+					
+					continue;
+				}
+				
+				unset($info["auto_load"]);
+				
+				// KVSのmerge処理
+				if ($info["type"]=="assoc_bridge") {
+					
+					// パラメータのリネーム
+					$info["parent_key_origin"] =$info["parent_pk"];
+					$info["parent_key"] =$info["connect_by"];
+					$info["child_key"] =$info["reduce_by"];
+					$info["children_name"] =$target_col;
+					
+					// Model::merge_assoc
+					$query_sub =$info;
+					unset($query_sub["connect_by"]);
+					unset($query_sub["reduce_by"]);
+					unset($query_sub["type"]);
+					unset($query_sub["auto_load"]);
+					unset($query_sub["col_name"]);
+					unset($query_sub["parent_pk"]);
+					model()->merge_assoc($ts,$query_sub);
+				
+				// MetaKVSのmerge処理
+				} elseif ($info["type"]=="assoc_meta") {
+					
+					// col_nameのリネーム
+					foreach ($this->meta_cols as $k=>$v) {
+						
+						if ( ! $info["col_name"][$k]) {
+							
+							$info["col_name"][$k] =$k;
+						}
+					}
+					
+					// meta_nameによる絞り込み
+					$info["conditions"][] =array(
+						$info["table"].".".$info["col_name"]["meta_name"] =>$target_col,
+					);
+					
+					// パラメータのリネーム
+					$info["parent_key_origin"] =$info["parent_pk"];
+					$info["parent_key"] =$info["connect_by"];
+					$info["children_name"] =$target_col;
+					
+					// Model::merge_assoc
+					$query_sub =$info;
+					unset($query_sub["connect_by"]);
+					unset($query_sub["type"]);
+					unset($query_sub["auto_load"]);
+					unset($query_sub["col_name"]);
+					unset($query_sub["parent_pk"]);
+					model()->merge_assoc($ts,$query_sub);
+					
+					// Metadataの再構築
+					foreach ($ts as $i=>$t) {
+					
+						$values_base =array();
+						
+						foreach ((array)$t[$target_col] as $meta_data) {
+							
+							$idx =$meta_data[$info["table"].".".$info["col_name"]["idx"]];
+							$elm =$meta_data[$info["table"].".".$info["col_name"]["elm"]];
+							$value =$meta_data[$info["table"].".".$info["col_name"]["value"]];
+							
+							$values_base[$idx][$elm] =$value;
+						}
+						
+						$ts[$i][$target_col] =$values_base;
+					}
+				}
+			}
+		}
+	}
+	
+	//-------------------------------------
+	// fields拡張/save前の事前のSPLICE処理
+	public function extend_fields_splice ( & $query) {
+		
+		// Queryを参照して対象となるfields拡張設定を適用する
+		foreach ((array)registry("Model.extends.fields") as $table => $cols) {
+			
+			if ($query["table"] != $table) {
+				
+				continue;
+			}
+			
+			foreach ($cols as $col => $info) {
+				
+				$target_col =$table.".".$col;
+				
+				if ( ! isset($query["fields"][$target_col])) {
+					
+					continue;
+				}
+				
+				// SPLICE処理
+				$this->spliced_fields[$target_col] =$query["fields"][$target_col];
+				unset($query["fields"][$target_col]);
+			}
+		}
+	}
+	
+	//-------------------------------------
+	// fields拡張/更新処理時のAffect処理
+	public function extend_fields_affect ( & $id, & $query) {
+		
+		// Queryを参照して対象となるfields拡張設定を適用する
+		foreach ((array)registry("Model.extends.fields") as $table => $cols) {
+			
+			if ($query["table"] != $table) {
+				
+				continue;
+			}
+			
+			foreach ($cols as $col => $info) {
+				
+				$target_col =$table.".".$col;
+				
+				if ( ! isset($this->spliced_fields[$target_col])) {
+				
+					continue;
+				}
+					
+				$values_base =(array)$this->spliced_fields[$target_col];
+				
+				// KVSのmerge処理
+				if ($info["type"]=="assoc_bridge") {
+						
+					// パラメータのリネーム
+					$info["parent_key"] =$info["connect_by"];
+					$info["child_key"] =$info["reduce_by"];
+					
+					// 外部テーブルへのAFFECT処理
+					$query_sub =$info;
+					unset($query_sub["connect_by"]);
+					unset($query_sub["reduce_by"]);
+					unset($query_sub["type"]);
+					unset($query_sub["auto_load"]);
+					unset($query_sub["col_name"]);
+					unset($query_sub["parent_pk"]);
+					$this->affect_assoc($values_base,$id,$query_sub);
+				
+				// MetaKVSのmerge処理
+				} elseif ($info["type"]=="assoc_meta") {
+					
+					// col_nameのリネーム
+					foreach ($this->meta_cols as $k=>$v) {
+						
+						if ( ! $info["col_name"][$k]) {
+							
+							$info["col_name"][$k] =$k;
+						}
+					}
+					
+					// MetaKVSとして格納できるように分解
+					$values =array();
+					
+					foreach ($values_base as $idx=>$elms) {
+						
+						foreach ($elms as $elm=>$value) {
+						
+							$values[] =array(
+								$info["table"].".".$info["col_name"]["meta_name"] =>$target_col,
+								$info["table"].".".$info["col_name"]["idx"] =>$idx,
+								$info["table"].".".$info["col_name"]["elm"] =>$elm,
+								$info["table"].".".$info["col_name"]["value"] =>$value,
+								$info["table"].".".$info["col_name"]["value_int"] =>(int)$value,
+								$info["table"].".".$info["col_name"]["value_date"] =>strtotime($value),
+							);
+						}
+					}
+				
+					// パラメータのリネーム
+					$info["parent_key"] =$info["connect_by"];
+					
+					// 外部テーブルへのAFFECT処理
+					$query_sub =$info;
+					unset($query_sub["connect_by"]);
+					unset($query_sub["type"]);
+					unset($query_sub["auto_load"]);
+					unset($query_sub["col_name"]);
+					unset($query_sub["parent_pk"]);
+					$this->affect_assoc($values,$id,$query_sub);
+				}
+			}
+		}
+	}
+
+	//-------------------------------------
+	// [private化予定]親要素に関連する子要素を取り込む
+	public function merge_assoc (
+			& $ts,
+			$query=array()) {
+		
+		if ( ! $ts) {
+			
+			return;
+		}
+		
+		if ( ! is_numeric(array_pop(array_keys($ts)))) {
+			
+			return $this->merge_assoc($ts_copy =array(0=> & $ts),$query);
+		}
+		
+		// パラメータの抽出
+		$ds =$query["ds"];
+		$parent_key =$query["parent_key"];
+		$child_key =$query["child_key"];
+		$parent_key_origin =$query["parent_key_origin"];
+		$children_name =$query["children_name"];
+		unset($query["ds"]);
+		unset($query["parent_key"]);
+		unset($query["child_key"]);
+		unset($query["parent_key_origin"]);
+		unset($query["children_name"]);
+		
+		$parent_ids =$this->hash($ts, $parent_key_origin);
+				
+		// Bridgeの取得
+		$query["conditions"] =(array)$query["conditions"];
+		$query["conditions"][] =array($parent_key =>$parent_ids);
+		
+		// ReduceKeyの指定
+		if ($child_key) {
+		
+			$query["fields"] =array(
+				$parent_key,
+				$child_key,
+			);
+		}
+		
+		$ts_bridge =dbi($ds)->select($query);
+		
+		// Bridgeの情報のマージ
+		$this->merge_grouped_children(
+				$ts, 
+				$ts_bridge,
+				$parent_key,
+				$parent_key_origin, 
+				$children_name,
+				$child_key);
+	}
+
+	//-------------------------------------
+	// [private化予定]親要素への変更を子要素へ反映
+	public function affect_assoc (
+			$values,
+			$id,
+			$query=array()) {
+		
+		// パラメータの抽出
+		$ds =$query["ds"];
+		$base_fields =(array)$query["fields"];
+		$parent_key =$query["parent_key"];
+		$child_key =$query["child_key"];
+		unset($query["ds"]);
+		unset($query["fields"]);
+		unset($query["parent_key"]);
+		unset($query["child_key"]);
+		
+		// 登録済みデータの削除
+		$query["conditions"] =(array)$query["conditions"];
+		$query["conditions"][$parent_key] =$id;
+		
+		dbi($ds)->delete($query);
+		
+		// Bridge要素の登録
+		foreach ((array)$values as $value) {
+			
+			if ((is_string($value) && ! strlen($value))
+					|| (is_array($value) && ! count($value))) {
+				
+				continue;
+			}
+			
+			$query["fields"] =$base_fields;
+			$query["fields"][$parent_key] =$id;
+			
+			if ($child_key!==null) {
+			
+				$query["fields"][$child_key] =$value;
+				dbi($ds)->insert($query);
+				
+			} elseif (is_array($value)) {
+				
+				$query_tmp =$query;
+				$query_tmp["fields"] =array_merge($query["fields"],$value);
+				dbi($ds)->insert($query_tmp);
+			}
+		}
 	}
 }
