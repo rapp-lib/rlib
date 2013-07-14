@@ -504,7 +504,8 @@ class SmartyExtended extends SmartyBC {
 						.' name="'.$params["name"].'"'
 						.' value="'.$option_value.'"'.$attr_html
 						.($checked ? ' checked="checked"' : '')
-						.'>'.$option_label.'</label></nobr> &nbsp;'."\n";
+						.'> <span class="labeltext">'.$option_label
+						.'</span></label></nobr> &nbsp;'."\n";
 			}
 			
 		} elseif ($params["type"] == "checklist") {
@@ -541,7 +542,8 @@ class SmartyExtended extends SmartyBC {
 						.' name="'.$params["name"].'['.$option_value.']'.'"'
 						.' value="'.$option_value.'"'.$attr_html
 						.($checked ? ' checked="checked"' : '')
-						.'> '.$option_label.'</label></nobr> &nbsp;'."\n";
+						.'> <span class="labeltext">'.$option_label
+						.'</span></label></nobr> &nbsp;'."\n";
 			}
 			
 		} elseif ($params["type"] == "multiselect") {

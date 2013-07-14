@@ -34,6 +34,12 @@
 		"Report.buffer_enable" =>false,
 		"Report.output_to_file" =>null,
 	));
+	registry(array(
+		"Config.error_document" =>array(
+			"404" =>registry("Path.html_dir")."/errors/404.html",
+			"500" =>registry("Path.html_dir")."/errors/500.html",
+		),
+	));
 
 	foreach (glob(dirname(__FILE__).'/*.config.php') as $config_file) {
 		

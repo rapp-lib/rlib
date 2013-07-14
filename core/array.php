@@ -334,3 +334,32 @@
 			return null;
 		}
 	}
+
+	//-------------------------------------
+	// 値を強制的に配列に変換する
+	function to_array ($value) {
+		
+		// 配列はそのまま返す
+		if (is_array($value)) {
+		
+		 	return $value;
+		
+		// オブジェクトは展開
+		} elseif (is_object($value)) {
+			
+			return get_object_vars($value);
+		
+		// null/falseは空の配列に変換
+		} elseif ($value === null || $value === false) {
+			
+			return array();
+		
+		// unserialize可能であれば展開
+		} elseif (is_string($value) && $unserialized =@unserialize($value)) {
+			
+			return $unserialized;
+		}
+		
+		// その他はすべて第一要素に入れて配列で返す
+		return array($value);
+	}
