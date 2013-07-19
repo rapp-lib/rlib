@@ -6,6 +6,7 @@
 		<input type="hidden" class="mi_max" value="3"/>
 		{{foreach $c->input("Entry.art_arts")|to_array as $i=>$v}}
 		<div class="mi_set">
+			[<span class="mi_idx"></span>]
 			{{input type="file" name="c[Entry.art_arts][`$i`][file]" value=$v.file}}
 			{{input type="text" name="c[Entry.art_arts][`$i`][caption]" value=$v.caption}}
 			<span class="mi_remove">[Ｘ]</span>
@@ -16,6 +17,7 @@
 		<div class="mi_anchor"></div>
 		<div class="mi_tmpl">
 		<div class="mi_set">
+			[<span class="mi_idx"></span>]
 			{{input name="c[Entry.art_arts][%{INDEX}][file]" type="file"}}
 			{{input name="c[Entry.art_arts][%{INDEX}][caption]" type="text"}}
 			<span class="mi_remove">[Ｘ]</span>
@@ -68,6 +70,14 @@
 			
 				$(".mi_remove").show();
 			}
+			
+			// 連番の更新
+			var idx =1;
+			
+			$(".mi_set",$mi).each(function(){
+			
+				$(".mi_idx",$(this)).html(idx++);
+			});
 		};
 		
 		//-------------------------------------
@@ -117,6 +127,8 @@
 				
 				$mi_set.addClass('mi_init');
 			}
+			
+			update_mi_set();
 		};
 			
 		//-------------------------------------
