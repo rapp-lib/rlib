@@ -49,7 +49,7 @@
 		
 		//-------------------------------------
 		// コントロールの表示更新
-		var update_mi_set =function(){
+		var update_mi =function(){
 		
 			// 追加数の上限チェック
 			if ($(".mi_set",$mi).length >= mi_max) { 
@@ -81,6 +81,24 @@
 		};
 		
 		//-------------------------------------
+		// コントロールの表示更新
+		var append_mi_set =function(){
+			
+			// 追加数の上限チェック
+			if ($(".mi_set",$mi).length >= mi_max) { return; }
+			
+			// .mi_tmplをコピーして追加
+			var index =parseInt(Math.random()*10000000);
+			var $mi_set =$(mi_tmpl.replace(/%\{INDEX\}/g,index));
+			
+			init_mi_set($mi_set);
+			
+			$(".mi_anchor",$mi).before($mi_set);
+			
+			update_mi();
+		};
+		
+		//-------------------------------------
 		// 要素の初期化
 		var init_mi_set =function($mi_set){
 			
@@ -94,7 +112,7 @@
 				// 選択要素の削除
 				$mi_set.remove();
 				
-				update_mi_set();
+				update_mi();
 			});
 		
 			//-------------------------------------
@@ -105,6 +123,8 @@
 				
 					$mi_set.after($mi_set.prev());
 				}
+				
+				update_mi();
 			});
 		
 			//-------------------------------------
@@ -115,6 +135,8 @@
 				
 					$mi_set.before($mi_set.next());
 				}
+				
+				update_mi();
 			});
 			
 			// 初期化済みの要素でない場合
@@ -127,9 +149,11 @@
 				
 				$mi_set.addClass('mi_init');
 			}
-			
-			update_mi_set();
 		};
+		
+		//-------------------------------------
+		// 追加ボタンの操作
+		$(".mi_append",$mi).on("click",append_mi_set);
 			
 		//-------------------------------------
 		// 既存の各要素について処理
@@ -137,30 +161,15 @@
 			
 			init_mi_set($(this));
 		});
-		
-		//-------------------------------------
-		// 追加ボタンの操作
-		$(".mi_append",$mi).on("click",function(){
-			
-			// 追加数の上限チェック
-			if ($(".mi_set",$mi).length >= mi_max) { return; }
-			
-			// .mi_tmplをコピーして追加
-			var index =parseInt(Math.random()*10000000);
-			var $mi_set =$(mi_tmpl.replace(/%\{INDEX\}/g,index));
-			init_mi_set($mi_set);
-			
-			$(".mi_anchor",$mi).before($mi_set);
-			
-			update_mi_set();
-		});
 			
 		//-------------------------------------
 		// 不足している要素の追加
 		while ($(".mi_set",$mi).length < mi_min) { 
 			
-			$(".mi_append",$mi).trigger("click");
+			append_mi_set();
 		}
+				
+		update_mi();
 	};
 
 	
