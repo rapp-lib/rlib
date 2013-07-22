@@ -162,7 +162,7 @@
 			$(".mi_append",$mi).trigger("click");
 		}
 	};
-	
+
 	
 $(function(){
 	
