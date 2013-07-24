@@ -562,6 +562,28 @@ class Model_Base {
 	}
 	
 	//-------------------------------------
+	// Query実行(SELECTクエリ発行のみ)
+	public function select_nofetch ($query) {
+		
+		$this->before_select($query);
+		
+		$res =dbi()->select_nofetch($query);
+		
+		return $res;
+	}
+	
+	//-------------------------------------
+	// Query実行(クエリ発行結果のFetch)
+	public function fetch ($res, $query) {
+		
+		$t =dbi()->fetch($res);
+		
+		$this->after_select($ts=array(& $t),$query);
+		
+		return $t;
+	}
+	
+	//-------------------------------------
 	// Query実行(1件のデータ取得)
 	public function select_one ($query) {
 		
