@@ -286,8 +286,8 @@ class Model_Base {
 		$this->before_select($query);
 		
 		$t =dbi()->select_one($query);
-		
-		$this->after_select($ts=array(& $t),$query);
+				
+		$this->after_select_one($t,$query);
 		
 		return $t;
 	}
@@ -422,6 +422,17 @@ class Model_Base {
 	}
 	
 	//-------------------------------------
+	// SELECT(単一行取得)の後処理
+	public function after_select_one ( & $t, & $query) {
+		
+		$ts =$t
+				? array(& $t)
+				: array();
+				
+		$this->after_read($ts,$query);
+	}
+	
+	//-------------------------------------
 	// INSERTの後処理
 	public function after_insert ( & $id, & $query) {
 		
@@ -468,7 +479,7 @@ class Model_Base {
 				
 				// auto_loadがtrueの場合fieldsに明示されなくても取得
 				if ( ! $info["auto_load"]
-						&& ! in_array($target_col,$query["fields"])) {
+						&& ! in_array($target_col,(array)$query["fields"])) {
 					
 					continue;
 				}

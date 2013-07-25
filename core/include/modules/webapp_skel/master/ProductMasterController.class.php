@@ -55,8 +55,8 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				"slider" =>10,
 			),
 		);
-		list($this->vars["ts"] ,$this->vars["p"])
-				=model("<?=str_camelize($t["name"])?>")->get_list($list_setting,$this->c->input());
+		list($this->vars["ts"] ,$this->vars["p"]) =model("<?=str_camelize($t["name"])?>")
+				->get_by_search_form($list_setting,$this->c->input());
 	}
 
 	//-------------------------------------
@@ -158,9 +158,8 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				"from" =>"test@example.com",
 				"subject" =>"Test mail",
 				"message" =>"This is test.",
-				// "template_file" =>registry("Path.webapp_dir")
-				// 		."/app/mail/<?=$c["name"]?>_mail.php"),
-				// "template_options" =>$this->c->input(),
+				// "template_file" =>"/mail/<?=$c["name"]?>_mail.php",
+				// "template_options" =>array("c" =>$this->c->input()),
 			));
 <? else: /* $t["virtual"] */ ?>
 			// データの記録

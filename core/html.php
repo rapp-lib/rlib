@@ -1,37 +1,5 @@
 <?php
 
-/*	<MOD 11115 Y.Toyosawa DEPLECATED:Cakeとの競合のため>
-
-	//-------------------------------------
-	// 
-	function h ($text) {
-		
-		if (is_array($text)) {
-			
-			if (isset($text["name"])) {
-			
-				return call_user_func_array("tag",array(
-					$text["name"],
-					$text["attrs"],
-					$text["content"],
-				));
-			
-			} else {
-			
-				$html ='';
-				
-				foreach ($text as $k => $v) {
-					
-					$html .=call_user_func_array("tag",(array)$v);
-				}
-				
-				return $html;
-			}
-		}
-		
-		return htmlspecialchars($text);
-	}
-*/	
 	//-------------------------------------
 	// URLの組み立て
 	function url ($base_url=null, $params=null, $anchor=null) {

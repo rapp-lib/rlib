@@ -8,7 +8,6 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 	// ID指定で1件取得
 	public function get_by_id ($id) {
 	
-		// 要素の取得 
 		$query =array(
 			"table" =>"<?=$t["name"]?>",
 			"conditions" =>array(
@@ -24,10 +23,9 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 	}
 
 	//-------------------------------------
-	// 全件取得
+	// 無条件での全件取得
 	public function get_all () {
 	
-		// 条件を指定して要素を取得
 		$query =array(
 			"table" =>"<?=$t["name"]?>",
 			"conditions" =>array(
@@ -46,8 +44,8 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 	}
 
 	//-------------------------------------
-	// 検索/一覧ページの表示情報取得
-	public function get_list ($list_setting, $input) {
+	// 検索フォームの結果取得
+	public function get_by_search_form ($list_setting, $input) {
 		
 		// 条件を指定して要素を取得
 		$query =$this->get_list_query($list_setting, $input);
@@ -66,7 +64,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 	}
 
 	//-------------------------------------
-	// フォームからのデータ更新/登録
+	// フォームからのデータ更新/新規登録
 	public function save ($fields, $id=null) {
 		
 		// IDの指定があれば更新

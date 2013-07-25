@@ -8,7 +8,6 @@
 		"UserFileManager.upload_dir" =>array(
 			"default" =>registry("Path.html_dir").'/user_file/uploaded',
 			"group" =>array(
-				"image" =>registry("Path.html_dir").'/user_file/uploaded',
 				"data" =>registry("Path.tmp_dir").'/uploaded',
 			),
 		),
@@ -19,9 +18,6 @@
 				'jpg', 'jpeg', 'png', 'gif',
 			),
 			"group" =>array(
-				"image" =>array(
-					'jpg', 'jpeg', 'png', 'gif',
-				),
 				"data" =>array(
 					'jpg', 'jpeg', 'png', 'gif',
 					'zip', 'pdf', 'bmp',

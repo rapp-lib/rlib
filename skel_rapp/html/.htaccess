@@ -12,8 +12,8 @@ RewriteEngine On
 RewriteBase /
 
 # DirectryIndexの転送（SEO対策）
-RewriteCond %{REQUEST_URI} ^.*/index\.(html|php)$
-RewriteRule ^(.*)index\.(html|php)$ /$1 [R=301,L,QSA]
+RewriteCond %{REQUEST_URI} ^.*/index\.(html|htm)$
+RewriteRule ^(.*)index\.(html|htm)$ /$1 [R=301,L,QSA]
 
 # .index.phpへのルーティング
 RewriteCond %{REQUEST_URI} (\.html?|/|^)$

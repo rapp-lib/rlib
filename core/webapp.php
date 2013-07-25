@@ -491,6 +491,12 @@
 	// 稼働状態の確認
 	function get_webapp_dync ($flg="report") {
 		
+		// reportのみregistryによる強制ON設定を適用
+		if ($flg=="report" && registry("Report.force_reporting")) {
+			
+			return true;
+		}
+		
 		return $flg && registry("Config.dync.".$flg);
 	}
 	

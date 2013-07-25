@@ -293,7 +293,7 @@
 		}
 		
 		// レポート出力判定
-		if ((get_webapp_dync("report") || registry("Report.force_reporting"))
+		if (get_webapp_dync("report") 
 				&& (registry("Report.error_reporting") & $options["errno"])) {
 			
 			$html =report_template($errstr,$params,$options);

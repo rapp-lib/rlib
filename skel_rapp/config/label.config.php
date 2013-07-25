@@ -4,9 +4,6 @@
 	// ラベル設定
 	registry(array(
 		
-		// ページ名
-		"Label.page.index.index" =>"トップページ",
-		
 		// データ項目名
 		// （例）"Label.cols.Article.category_id" =>"カテゴリID",
 		// （例）"Label.schema.col.Product.name" =>"製品名",
