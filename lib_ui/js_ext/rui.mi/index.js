@@ -6,6 +6,7 @@
 		<input type="hidden" class="mi_max" value="3"/>
 		{{foreach $c->input("Entry.art_arts")|to_array as $i=>$v}}
 		<div class="mi_set">
+			[<span class="mi_idx"></span>]
 			{{input type="file" name="c[Entry.art_arts][`$i`][file]" value=$v.file}}
 			{{input type="text" name="c[Entry.art_arts][`$i`][caption]" value=$v.caption}}
 			<span class="mi_remove">[Ｘ]</span>
@@ -16,6 +17,7 @@
 		<div class="mi_anchor"></div>
 		<div class="mi_tmpl">
 		<div class="mi_set">
+			[<span class="mi_idx"></span>]
 			{{input name="c[Entry.art_arts][%{INDEX}][file]" type="file"}}
 			{{input name="c[Entry.art_arts][%{INDEX}][caption]" type="text"}}
 			<span class="mi_remove">[Ｘ]</span>
@@ -47,7 +49,7 @@
 		
 		//-------------------------------------
 		// コントロールの表示更新
-		var update_mi_set =function(){
+		var update_mi =function(){
 		
 			// 追加数の上限チェック
 			if ($(".mi_set",$mi).length >= mi_max) { 
@@ -68,6 +70,32 @@
 			
 				$(".mi_remove").show();
 			}
+			
+			// 連番の更新
+			var idx =1;
+			
+			$(".mi_set",$mi).each(function(){
+			
+				$(".mi_idx",$(this)).html(idx++);
+			});
+		};
+		
+		//-------------------------------------
+		// コントロールの表示更新
+		var append_mi_set =function(){
+			
+			// 追加数の上限チェック
+			if ($(".mi_set",$mi).length >= mi_max) { return; }
+			
+			// .mi_tmplをコピーして追加
+			var index =parseInt(Math.random()*10000000);
+			var $mi_set =$(mi_tmpl.replace(/%\{INDEX\}/g,index));
+			
+			init_mi_set($mi_set);
+			
+			$(".mi_anchor",$mi).before($mi_set);
+			
+			update_mi();
 		};
 		
 		//-------------------------------------
@@ -84,7 +112,7 @@
 				// 選択要素の削除
 				$mi_set.remove();
 				
-				update_mi_set();
+				update_mi();
 			});
 		
 			//-------------------------------------
@@ -95,6 +123,8 @@
 				
 					$mi_set.after($mi_set.prev());
 				}
+				
+				update_mi();
 			});
 		
 			//-------------------------------------
@@ -105,6 +135,8 @@
 				
 					$mi_set.before($mi_set.next());
 				}
+				
+				update_mi();
 			});
 			
 			// 初期化済みの要素でない場合
@@ -118,6 +150,10 @@
 				$mi_set.addClass('mi_init');
 			}
 		};
+		
+		//-------------------------------------
+		// 追加ボタンの操作
+		$(".mi_append",$mi).on("click",append_mi_set);
 			
 		//-------------------------------------
 		// 既存の各要素について処理
@@ -125,32 +161,17 @@
 			
 			init_mi_set($(this));
 		});
-		
-		//-------------------------------------
-		// 追加ボタンの操作
-		$(".mi_append",$mi).on("click",function(){
-			
-			// 追加数の上限チェック
-			if ($(".mi_set",$mi).length >= mi_max) { return; }
-			
-			// .mi_tmplをコピーして追加
-			var index =parseInt(Math.random()*10000000);
-			var $mi_set =$(mi_tmpl.replace(/%\{INDEX\}/g,index));
-			init_mi_set($mi_set);
-			
-			$(".mi_anchor",$mi).before($mi_set);
-			
-			update_mi_set();
-		});
 			
 		//-------------------------------------
 		// 不足している要素の追加
 		while ($(".mi_set",$mi).length < mi_min) { 
 			
-			$(".mi_append",$mi).trigger("click");
+			append_mi_set();
 		}
+				
+		update_mi();
 	};
-	
+
 	
 $(function(){
 	

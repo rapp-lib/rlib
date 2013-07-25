@@ -32,7 +32,7 @@ class LayoutRequestArray {
 			// 日付指定
 			if ($request["mode"] == "date") {
 			
-				$date_is_set =($values["y"] || $values["m"] || $values["d"]);
+				$date_is_set =($values["y"] || $values["m"]);
 				$date_str =(int)$values["y"].'/'. (int)$values["m"]."/".(int)$values["d"];
 				
 				$time_is_set =(strlen($values["h"]) || strlen($values["i"]));
