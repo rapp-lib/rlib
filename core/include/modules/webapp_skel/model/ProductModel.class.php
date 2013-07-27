@@ -45,7 +45,7 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 
 	//-------------------------------------
 	// 検索フォームの結果取得
-	public function get_by_search_form ($list_setting, $input) {
+	public function get_by_search_form ($list_setting, $input, $is_forcsv=false) {
 		
 		// 条件を指定して要素を取得
 		$query =$this->get_list_query($list_setting, $input);
@@ -57,6 +57,15 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 <? endif; ?>
 			),
 		));
+		
+		// CSV向けに取得
+		if ($is_forcsv) {
+			
+			unset($query["offset"]);
+			unset($query["limit"]);
+			return $this->select_nofetch($query);
+		}
+		
 		$ts =$this->select($query);
 		$p =$this->select_pager($query);
 		

@@ -29,10 +29,10 @@
 			"<?=$c['name']?>.delete_confirm" =>"/<?=$c['name']?>/<?=$c['name']?>.delete_confirm.html",
 			"<?=$c['name']?>.delete_exec" =>"/<?=$c['name']?>/<?=$c['name']?>.delete_exec.html",
 <? endif; /* $c["usage"] != "view" && $c["usage"] != "form" */ ?>
-<? if($c["usage"] != "form" && $c["use"]["csv"] == "on"): ?>
+<? if($c["usage"] != "form" && $c["use_csv"]): ?>
 			"<?=$c['name']?>.view_csv" =>"/<?=$c['name']?>/<?=$c['name']?>.view_csv.html",
 <? endif; /* $c["usage"] != "form" && $c["usage"] != "form" */ ?>
-<? if($c["usage"] != "view" && $c["use"]["csv"] == "on"): ?>
+<? if($c["usage"] != "view" && $c["use_csv"]): ?>
 			"<?=$c['name']?>.entry_csv_form" =>"/<?=$c['name']?>/<?=$c['name']?>.entry_csv_form.html",
 			"<?=$c['name']?>.entry_csv_confirm" =>"/<?=$c['name']?>/<?=$c['name']?>.entry_csv_confirm.html",
 			"<?=$c['name']?>.entry_csv_exec" =>"/<?=$c['name']?>/<?=$c['name']?>.entry_csv_exec.html",
@@ -41,4 +41,3 @@
 <? endforeach; /* by $s["controller"] */ ?>
 		),
 	));
-	

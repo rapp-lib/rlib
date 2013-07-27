@@ -104,6 +104,11 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 			$a_list[] =array("name"=>"entry_exec", "label"=>"入力完了");
 		}
 		
+		if ($c["usage"] != "view" && $c["use_csv"]) {
+		
+			$a_list[] =array("name"=>"entry_csv_form", "label"=>"CSV一括インポート");
+		}
+		
 		// HTMLの構築
 		foreach ($a_list as $a) {
 		
@@ -245,7 +250,7 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				
 				if ($tc['type'] == "checklist") {
 					
-					$tc['modifier'] ='|select:"'.$tc['list'].'"|@implode:" "';
+					$tc['modifier'] ='|select:"'.$tc['list'].'"|@tostring:" "';
 					$tc['input_option'] =' options="'.$tc['list'].'"';
 				}
 				

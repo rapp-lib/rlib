@@ -18,6 +18,7 @@ class CSVHandler {
 	protected $return_code;
 	
 	protected $map;
+	protected $labels;
 	protected $filters;
 	protected $ignore_empty_line;
 	
@@ -56,7 +57,16 @@ class CSVHandler {
 		$this->map =isset($options["map"])
 				? $options["map"]
 				: null;
-				
+		$this->labels =isset($options["labels"])
+				? $options["labels"]
+				: null;
+		
+		if ($options["rows"]) {
+		
+			$this->map =array_keys($options["rows"]);
+			$this->labels =$options["rows"];
+		}
+		
 		$this->filters =isset($options["filters"])
 				? $options["filters"]
 				: null;
@@ -64,6 +74,19 @@ class CSVHandler {
 		$this->ignore_empty_line =isset($options["ignore_empty_line"])
 				? $options["ignore_empty_line"]
 				: null;
+		
+		// ラベル行の書き込み/スキップ
+		if ($this->labels) {
+			
+			if ($mode=="r") {
+			
+				$this->read_line(array("ignore_filters" =>true));
+		
+			} elseif ($mode=="w") {
+		
+				$this->write_line($this->labels,array("ignore_filters" =>true));
+			}
+		}
 	}
 	
 	//-------------------------------------

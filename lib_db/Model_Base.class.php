@@ -315,6 +315,28 @@ class Model_Base {
 	}
 	
 	//-------------------------------------
+	// Query実行(SELECTクエリ発行のみ)
+	public function select_nofetch ($query) {
+		
+		$this->before_select($query);
+		
+		$result =dbi()->select_nofetch($query);
+		
+		return new Model_ResultBuffer($this,$result,$query);
+	}
+	
+	//-------------------------------------
+	// Query実行(クエリ発行結果のFetch)
+	public function fetch ($result, $query) {
+		
+		$t =dbi()->fetch($result);
+				
+		$this->after_select_one($t,$query);
+		
+		return $t;
+	}
+	
+	//-------------------------------------
 	// Query実行(INSERT)
 	public function insert ($query) {
 		
@@ -573,13 +595,12 @@ class Model_Base {
 				
 				$target_col =$table.".".$col;
 				
-				if ( ! isset($query["fields"][$target_col])) {
-					
-					continue;
+				if (isset($query["fields"][$target_col])) {
+										
+					// SPLICE処理
+					$this->spliced_fields[$target_col] =$query["fields"][$target_col];
 				}
 				
-				// SPLICE処理
-				$this->spliced_fields[$target_col] =$query["fields"][$target_col];
 				unset($query["fields"][$target_col]);
 			}
 		}
@@ -640,9 +661,9 @@ class Model_Base {
 					// MetaKVSとして格納できるように分解
 					$values =array();
 					
-					foreach ($values_base as $idx=>$elms) {
+					foreach ((array)$values_base as $idx=>$elms) {
 						
-						foreach ($elms as $elm=>$value) {
+						foreach ((array)$elms as $elm=>$value) {
 						
 							$values[] =array(
 								$info["table"].".".$info["col_name"]["meta_name"] =>$target_col,
@@ -773,5 +794,75 @@ class Model_Base {
 				dbi($ds)->insert($query_tmp);
 			}
 		}
+	}
+}
+
+//-------------------------------------
+// select_nofetch結果セット
+class Model_ResultBuffer implements Iterator {
+	
+	protected $cur;
+	protected $pos;
+	protected $valid;
+	protected $model;
+	protected $result;
+	protected $query;
+	
+	//-------------------------------------
+	// 初期化
+	public function __construct ($model, $result, $query) {
+	
+		$this->pos =0;
+		$this->valid =true;
+		$this->model =$model;
+		$this->result =$result;
+		$this->query =$query;
+	}
+
+	//-------------------------------------
+	// 次の1件の取得
+	public function fetch () {
+		
+		$this->next();
+		$t =$this->current();
+		return $t;
+	}
+
+	//-------------------------------------
+	// override: Iterator::rewind
+	public function rewind () {
+	}
+
+	//-------------------------------------
+	// override: Iterator::cur
+	public function current () {
+		
+		return $this->cur;
+	}
+
+	//-------------------------------------
+	// override: Iterator::key
+	public function key () {
+		
+		return $this->pos;
+	}
+
+	//-------------------------------------
+	// override: Iterator::next
+	public function next () {
+		
+		$this->cur =$this->model->fetch($this->result, $this->query);
+		
+		if ($this->cur !== null) {
+			
+			$this->pos++;
+		}
+	}
+
+	//-------------------------------------
+	// override: Iterator::valid
+	public function valid () {
+		
+		return $this->cur !== null;
 	}
 }

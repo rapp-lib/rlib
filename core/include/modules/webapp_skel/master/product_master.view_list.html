@@ -35,13 +35,19 @@
 <!-- /sort_module -->
 *}}
 
-<? if ($c["usage"] != "view"): ?>
 <!-- controll_module -->
 <div class="controll">
+<? if ($c["usage"] != "view"): ?>
 	{{a _page=".entry_form" class="button"}}新規登録{{/a}}
+<? endif; /* $c["usage"] != "view" */ ?>
+<? if ($c["usage"] != "form" && $c["use_csv"]): ?>
+	{{a _page=".view_csv" class="button"}}CSV一括ダウンロード{{/a}}
+<? endif; /* $c["usage"] != "form" && $c["use_csv"] */ ?>
+<? if ($c["usage"] != "view" && $c["use_csv"]): ?>
+	{{a _page=".entry_csv_form" class="button"}}CSV一括インポート{{/a}}
+<? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 </div>
 <!-- /controll_module -->
-<? endif; /* $c["usage"] != "view" */ ?>
 
 <!-- list_module -->
 <div class="list_wrap">
