@@ -278,7 +278,10 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				->get_by_search_form($this->list_setting,$this->c->input(),true);
 		
 		// CSVファイルの書き込み準備
-		$csv_filename =registry("Path.tmp_dir")."/csv_output/<?=$t["name"]?>-".date("Ymd-His")."-".rand(100).".csv";
+		$csv_filename =registry("Path.tmp_dir")
+				."/csv_output/<?=$t["name"]?>-"
+				.date("Ymd-His")."-"
+				.sprintf("%04d",rand(0,9999)).".csv";
 		$csv =new CSVHandler($csv_filename,"w",$this->csv_setting);
 		
 		while (($t =$res->fetch()) !== null) {
