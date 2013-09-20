@@ -57,7 +57,7 @@ class SmartyExtended extends SmartyBC {
 	
 	//-------------------------------------
 	// widgetリソース解決
-	public function resolve_resource_widget ($resource_name, $load=false) {
+	public function resolve_resource_widget_DEDICATED ($resource_name, $load=false) {
 		
 		if (preg_match('!^/!',$resource_name)) {
 			

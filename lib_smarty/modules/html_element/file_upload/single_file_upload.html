@@ -4,7 +4,7 @@
 <input type="file" name="{{$v.ALIAS}}_%{INDEX}_file"/>
 
 <div style="display:{{if $v.FILE}}inline{{else}}none{{/if}}">
-<a href="{{$v.FILE}}" target="_blank">ファイル</a>
+{{*<a href="{{$v.FILE}}" target="_blank">ファイル</a>*}}
 {{*サムネイル：<img src="{{$v.FILE}}" width="30" height="30"/>*}}
-<input type="checkbox" name="_UFM[{{$v.ALIAS}}_%{INDEX}][delete]" value="1"/> 削除
+{{*<input type="checkbox" name="_UFM[{{$v.ALIAS}}_%{INDEX}][delete]" value="1"/> 削除*}}
 </div>

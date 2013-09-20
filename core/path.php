@@ -57,14 +57,45 @@
 	}
 	
 	//-------------------------------------
-	// PathからPageを得る（主にRouting時に使用）
-	function path_to_page ($path) {
+	// PathからPageを得る（主にRouting時） 
+	// extract_url_paramsでURL内パラメータも取得
+	function path_to_page ($path, $extract_url_params=false) {
 		
 		$path =relative_path($path);
 		$path_to_page =& get_page_to_path_map(true);
 		$page =$path_to_page[$path];
+		$params =array();
 		
-		return $page;
+		// 解決できない場合はパターンマッチ
+		if ( ! $page) {
+			
+			foreach ($path_to_page as $to_path => $to_page) {
+				
+				if (preg_match_all('!\[([^\]]+)\]!',$to_path,$matches)) {
+					
+					$param_keys =$matches[1];
+					$to_path_ptn ='!'.preg_quote($to_path,'!').'!';
+					$to_path_ptn =preg_replace('!\\\\\[.*?\\\\\]!','(.*?)',$to_path_ptn);
+					
+					if (preg_match($to_path_ptn,$path,$match)) {
+						
+						array_shift($match);
+						
+						foreach ($match as $k => $v) {
+						
+							$params[$param_keys[$k]] =$v;
+						}
+						
+						$path =$to_path;
+						$page =$to_page;
+					}
+				}
+			}
+		}
+		
+		return $extract_url_params
+				? array($page,$path,$params)
+				: $page;
 	}
 	
 	//-------------------------------------
