@@ -53,6 +53,7 @@ class CSVHandler {
 		$this->data_charset =isset($options["data_charset"])
 				? $options["data_charset"]
 				: "UTF-8";
+		$this->all_escape =(boolean)$options["all_escape"];
 		
 		$this->map =isset($options["map"])
 				? $options["map"]
@@ -412,7 +413,7 @@ class CSVHandler {
 		
 		$escape_pattern ='!['.preg_quote($this->escape.$this->delim.$this->return_code,"!").']!';
 		
-		if (preg_match($escape_pattern,$value)) {
+		if (preg_match($escape_pattern,$value) || $this->all_escape) {
 		
 			$value =$this->escape.$value.$this->escape;
 		}
