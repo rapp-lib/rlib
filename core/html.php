@@ -11,6 +11,32 @@
 			$url .=$base_url;
 		}
 		
+		// URL内パラメータの解決
+		$ptn_url_param ='!^([^\[\?]*\[[^\[\?]+\][^\?]*)(\?.*)?$!';
+		
+		if (preg_match($ptn_url_param,$url,$match)) {
+			
+			list(,$url,$qs) =$match;
+			
+			$tmp_url_params =& ref_globals("tmp_url_params");
+			$tmp_url_params =$params;
+			
+			$url =preg_replace_callback('!\[([^\]]+)\]!',"url_param_replace",$url);
+			
+			$params =$tmp_url_params;
+			
+			$url .=$qs;
+			
+			if (preg_match($ptn_url_param,$url)) {
+				
+				report_warning("URL params wasnot resolved",array(
+					"url" =>$url,
+					"base_url" =>$base_url,
+					"params" =>$params,
+				));
+			}
+		}
+		
 		if ($params) {
 			
 			if ($url !== null) {
@@ -35,6 +61,24 @@
 		
 		return $url;
 	}
+	
+	//-------------------------------------
+	// URL内パラメータの置換処理
+	function url_param_replace ($match) {
+		
+		$replaced =$match[0];
+		
+		$tmp_url_params =& ref_globals("tmp_url_params");
+		
+		if (isset($tmp_url_params[$match[1]])) {
+			
+			$replaced =$tmp_url_params[$match[1]];
+			unset($tmp_url_params[$match[1]]);
+		}
+		
+		return $replaced;
+	}
+	
 	
 	//-------------------------------------
 	// HTMLタグの組み立て

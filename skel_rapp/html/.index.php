@@ -35,7 +35,15 @@
 		$request_path =preg_replace(
 				'!^'.preg_quote($html_dir).'!','',$request_file);
 		
-		$request_page =path_to_page($request_path);
+		list($request_page, $ext_path, $ext_params) 
+				=path_to_page($request_path,true);
+		
+		if ($request_path != $ext_path) {
+			
+			$request_file =path_to_file($ext_path);
+			$request_path =$ext_path;
+			array_registry($_REQUEST,$ext_params);
+		}
 	
 		// 対応するpageのroutingがない、静的ページの表示
 		if ( ! $request_page) {
