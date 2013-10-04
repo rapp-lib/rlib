@@ -8,9 +8,6 @@
 			
 			// TOPページ
 			"index.index" =>"/index.html",
-			
-			// 404エラーページ
-			"static.error_404" =>"/error/error_404.jsp",
 		),
 		
 		// HTTPアクセス制限
