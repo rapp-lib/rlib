@@ -121,7 +121,7 @@
 	}
 	
 	//-------------------------------------
-	// 
+	// 配列をregisry同様のストアとして利用する
 	function & array_registry ( & $arr, $name=null ,$value=null, $escape=false) {
 		
 		// 全取得
@@ -131,6 +131,12 @@
 			
 		// 配列指定（name）
 		} elseif (is_array($name)) {
+			
+			// 階層固定（escape）であれば一括更新時はクリア
+			if ($escape) {
+				
+				$arr =array();
+			}
 			
 			foreach ($name as $a_name => $a_value) {
 			

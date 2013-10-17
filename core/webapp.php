@@ -119,46 +119,29 @@
 	// start_dync
 	function start_dync () {
 		
-		// Dync継続
 		if ($dync_key =registry("Config.dync_key")) {
 			
-			$dync =(array)unserialize($_COOKIE["__dync"]);
+			$dync =(array)$_SESSION["__dync"];
 			
-			// Dync認証
-			if ($_REQUEST[$dync_key]
-					&& registry("Config.dync_auth_id")
-					&& $dync["auth"] != registry("Config.dync_auth_id")) {
-					
-				$form_html =
-						'<span onclick="document.getElementById(\'F\')'
-						.'.style.visibility=\'visible\';" style="color:#FFFFFF">'
-						.'.</span><form action="'.$_SERVER["REQUEST_URI"]
-						.'?'.$_SERVER["QUERY_STRING"].'" method="post"'
-						.' style="visibility:hidden;" id="F">'
-						.'ID <input type="text" name="dync_auth_id"/> '
-						.'PW <input type="text" name="dync_auth_pw"/> '
-						.'<input type="submit" value="Login"/></form>';
+			if ($_REQUEST[$dync_key] && ! $dync["auth"] 
+					&& ($sec =$_REQUEST["__ts"]) && ($min =floor(time()/60))
+					&& (encrypt_string(substr(md5($dync_key."/".($min-0)),12,12))==$sec
+					|| encrypt_string(substr(md5($dync_key."/".($min-1)),12,12))==$sec)) {
 						
-				if (md5($_REQUEST["dync_auth_id"]) == registry("Config.dync_auth_id")
-						&& md5($_REQUEST["dync_auth_pw"]) == registry("Config.dync_auth_pw")) {
-					
-					$dync["auth"] =registry("Config.dync_auth_id");
-				
-				} else {
-					
-					print $form_html;
-					exit;
-				}
+				$dync["auth"] =registry("Config.dync_auth_id");
 			}
 			
-			$dync =array_merge($dync,(array)$_REQUEST[$dync_key]);
-			setcookie("__dync",serialize($dync),0,"/");
-			registry("Config.dync",$dync);
+			if ($dync["auth"]) {
 			
-			if ($dync["report"]) {
+				$dync =array_merge($dync,(array)$_REQUEST[$dync_key]);
+				$_SESSION["__dync"] =$dync;
+				registry("Config.dync",$dync);
 				
-				ini_set("display_errors",true);
-				ini_set("error_reporting",registry("Report.error_reporting"));
+				if ($dync["report"]) {
+					
+					ini_set("display_errors",true);
+					ini_set("error_reporting",registry("Report.error_reporting"));
+				}
 			}
 		}
 	}
