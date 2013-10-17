@@ -770,8 +770,9 @@ class DBI_Base {
 		for ($i=1; $i <= $pages; $i++) {
 			
 			$coffset = $length * ($i-1);
-			$pager['pages'][$i] =$coffset;
 			
+			$pager['pages'][$i] =$coffset;
+
 			if ($coffset == $offset) {
 				
 				$pager['current'] = $i;
@@ -835,7 +836,7 @@ class DBI_Base {
 			
 			$pager['to'] = $pager['current'] * $length;
 		}
-		
+
 		$pager['from'] = (($pager['current']-1) * $length)+1;
 		$pager['total'] =$total;
 		$pager['offset'] =$offset + 1;
@@ -866,17 +867,17 @@ class DBI_Base {
 				&& $pages_count-$slider>0) {
 		
 			$start =$pages_count - $slider + 1;
-			
+
 		} elseif ($current-floor($slider/2) > 0) {
 		
 			$start =$current - floor($slider/2);
 		}
-		
+
 		for ($i=$start; $i<$start+$slider && $i<=$pages_count; $i++) {
-			
+		
 			$pager['pages_slider'][$i] =$pager['pages'][$i];
 		}
-		
+
 		$pager['slider_prev'] =isset($pager['pages'][$pager['current']-$slider-1])
 				? $pager['pages'][$pager['current']-$slider-1]
 				: null;

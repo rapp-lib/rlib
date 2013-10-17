@@ -64,7 +64,7 @@ class Model_Base {
 	//-------------------------------------
 	// 検索整列ページングを行うクエリを生成
 	public function get_list_query ($list_setting, $input) {
-		
+	
 		$query =array();
 		
 		// 検索条件の指定

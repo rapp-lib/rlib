@@ -28,17 +28,18 @@
 		<span class="mi_append">[要素の追加]</span>
 	</div>
 */
-
 	//-------------------------------------
 	// 可変数フォームを作成
-	var init_multiple_input =function($mi){
+	var MultipleInputObserver =function ($mi) {
+		
+		var o =this;
 		
 		//-------------------------------------
 		// パラメータのhidden値の取得
-		var mi_min =$(".mi_min",$mi).length ? $(".mi_min",$mi).val() : 0;
-		var mi_max =$(".mi_max",$mi).length ? $(".mi_max",$mi).val() : 1000;
+		o.mi_min =$(".mi_min",$mi).length ? $(".mi_min",$mi).val() : 0;
+		o.mi_max =$(".mi_max",$mi).length ? $(".mi_max",$mi).val() : 1000;
 		
-		var mi_tmpl =$(".mi_tmpl",$mi).eq(0).html();
+		o.mi_tmpl =$(".mi_tmpl",$mi).eq(0).html();
 		$(".mi_tmpl",$mi).remove();
 		
 		// Serialカウンター
@@ -49,10 +50,10 @@
 		
 		//-------------------------------------
 		// コントロールの表示更新
-		var update_mi =function(){
+		o.update_mi =function(){
 		
 			// 追加数の上限チェック
-			if ($(".mi_set",$mi).length >= mi_max) { 
+			if ($(".mi_set",$mi).length >= o.mi_max) { 
 				
 				$(".mi_append").hide();
 				
@@ -62,7 +63,7 @@
 			}
 			
 			// 削除数の下限チェック
-			if ($(".mi_set",$mi).length <= mi_min) {
+			if ($(".mi_set",$mi).length <= o.mi_min) {
 				
 				$(".mi_remove").hide();
 				
@@ -78,41 +79,56 @@
 			
 				$(".mi_idx",$(this)).html(idx++);
 			});
+			
+			$mi.trigger("after_mi_update");
 		};
 		
 		//-------------------------------------
-		// コントロールの表示更新
-		var append_mi_set =function(){
-			
+		// 要素の追加
+		o.append_mi_set =function(){
+		
 			// 追加数の上限チェック
-			if ($(".mi_set",$mi).length >= mi_max) { return; }
+			if ($(".mi_set",$mi).length >= o.mi_max) { return; }
 			
 			// .mi_tmplをコピーして追加
 			var index =parseInt(Math.random()*10000000);
-			var $mi_set =$(mi_tmpl.replace(/%\{INDEX\}/g,index));
+			var $mi_set =$(o.mi_tmpl.replace(/%\{INDEX\}/g,index));
 			
-			init_mi_set($mi_set);
+			o.init_mi_set($mi_set);
+			
+			$mi.trigger("before_mi_append",[$mi_set]);
 			
 			$(".mi_anchor",$mi).before($mi_set);
 			
-			update_mi();
+			o.update_mi();
+			
+			return $mi_set;
+		};
+		
+		//-------------------------------------
+		// 要素の削除
+		o.remove_mi_set =function($mi_set){
+			
+			// 削除数の下限チェック
+			if ($(".mi_set",$mi).length <= o.mi_min) { return; }
+			
+			$mi.trigger("before_mi_remove",[$mi_set]);
+			
+			// 選択要素の削除
+			$mi_set.remove();
+			
+			o.update_mi();
 		};
 		
 		//-------------------------------------
 		// 要素の初期化
-		var init_mi_set =function($mi_set){
+		o.init_mi_set =function($mi_set){
 			
 			//-------------------------------------
 			// 削除ボタンの操作
 			$(".mi_remove",$mi_set).on("click",function(){
-			
-				// 削除数の下限チェック
-				if ($(".mi_set",$mi).length <= mi_min) { return; }
 				
-				// 選択要素の削除
-				$mi_set.remove();
-				
-				update_mi();
+				o.remove_mi_set($mi_set);
 			});
 		
 			//-------------------------------------
@@ -124,7 +140,7 @@
 					$mi_set.after($mi_set.prev());
 				}
 				
-				update_mi();
+				o.update_mi();
 			});
 		
 			//-------------------------------------
@@ -136,7 +152,7 @@
 					$mi_set.before($mi_set.next());
 				}
 				
-				update_mi();
+				o.update_mi();
 			});
 			
 			// 初期化済みの要素でない場合
@@ -145,32 +161,62 @@
 				// Serialの初期化
 				var mi_ser =$('.mi_ser',$mi).val()*1;
 				$('.mi_ser',$mi).val(mi_ser+1);
-				$mi_set.addClass('mi_ser_'+mi_ser);
 				
+				$mi_set.addClass('mi_ser_'+mi_ser);
 				$mi_set.addClass('mi_init');
 			}
 		};
 		
 		//-------------------------------------
 		// 追加ボタンの操作
-		$(".mi_append",$mi).on("click",append_mi_set);
+		$(".mi_append",$mi).on("click",function(){
+			
+			o.append_mi_set();
+		});
 			
 		//-------------------------------------
-		// 既存の各要素について処理
+		// 既存の各要素について初期化処理
 		$(".mi_set",$mi).each(function(){
 			
-			init_mi_set($(this));
+			o.init_mi_set($(this));
 		});
 			
 		//-------------------------------------
 		// 不足している要素の追加
-		while ($(".mi_set",$mi).length < mi_min) { 
+		while ($(".mi_set",$mi).length < o.mi_min) { 
 			
-			append_mi_set();
+			o.append_mi_set();
 		}
 				
-		update_mi();
+		o.update_mi();
 	};
+	
+	var mi_list ={};
+	
+	$.fn.extend({
+	
+		mi_init: function() {
+			
+			var mi =new MultipleInputObserver(this);
+			
+			if ($(this).attr("id")) {
+			
+				mi_list[$(this).attr("id")] =mi;
+			}
+			
+			return mi;
+		},
+		
+		mi_get: function() {
+			
+			if ($(this).attr("id")) {
+			
+				return mi_list[$(this).attr("id")];
+			}
+			
+			return false;
+		}
+	});
 
 	
 $(function(){
@@ -178,6 +224,6 @@ $(function(){
 	// .miについて処理
 	$(".mi").each(function(){
 	
-		init_multiple_input($(this));
+		$(this).mi_init();
 	});
 });
