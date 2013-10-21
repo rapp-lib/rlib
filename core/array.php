@@ -132,12 +132,6 @@
 		// 配列指定（name）
 		} elseif (is_array($name)) {
 			
-			// 階層固定（escape）であれば一括更新時はクリア
-			if ($escape) {
-				
-				$arr =array();
-			}
-			
 			foreach ($name as $a_name => $a_value) {
 			
 				array_registry($arr,$a_name,$a_value,$escape);
