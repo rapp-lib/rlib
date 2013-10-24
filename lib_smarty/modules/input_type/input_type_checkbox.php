@@ -18,6 +18,7 @@
 		}
 		
 		$op_keys =array(
+			"type",
 		);
 		$attr_html ="";
 		
