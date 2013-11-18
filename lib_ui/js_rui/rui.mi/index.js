@@ -55,21 +55,21 @@
 			// 追加数の上限チェック
 			if ($(".mi_set",$mi).length >= o.mi_max) { 
 				
-				$(".mi_append").hide();
+				$(".mi_append",$mi).hide();
 				
 			} else {
 			
-				$(".mi_append").show();
+				$(".mi_append",$mi).show();
 			}
 			
 			// 削除数の下限チェック
 			if ($(".mi_set",$mi).length <= o.mi_min) {
 				
-				$(".mi_remove").hide();
+				$(".mi_remove",$mi).hide();
 				
 			} else {
 			
-				$(".mi_remove").show();
+				$(".mi_remove",$mi).show();
 			}
 			
 			// 連番の更新
