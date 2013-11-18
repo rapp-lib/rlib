@@ -110,8 +110,14 @@
 		ini_set("session.cookie_httponly",true);
 		ini_set("session.cookie_secure",$_SERVER['HTTPS']);
 		header("P3P: CP='UNI CUR OUR'");
-
-		session_cache_limiter('nocache');
+		
+		// Probrem on IE and https filedownload
+		// http://www.php.net/manual/en/function.session-cache-limiter.php#48822
+		session_cache_limiter('');
+		header("Pragma: public");
+		header("Expires: Thu, 19 Nov 1981 08:52:00 GMT");
+		header("Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
+		
 		session_start();
 	}
 	
