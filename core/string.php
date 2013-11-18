@@ -56,7 +56,14 @@
 				
 		$map =str_split($chartable);
 	
-		$crc =sprintf('%02d',abs(crc32($target))%100);
+		// 32bit compatible crc32
+		$crc =abs(crc32($target));
+		if ($crc & 0x80000000) {
+			$crc ^= 0xffffffff;
+			$crc += 1;
+		}
+		$crc =sprintf('%02d',$crc%100);
+
 		$target =$target.$crc;
 		$target =str_split($target);
 		
