@@ -11,7 +11,6 @@ class Controller_App extends Controller_Base {
 		parent::before_act();
 		
 		// リクエスト変換処理
-		obj("UserFileManager")->fetch_file_upload_request();
 		obj("LayoutRequestArray")->fetch_request_array();
 		
 		// 管理者認証

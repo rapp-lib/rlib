@@ -2,87 +2,85 @@
 
 	function input_type_file ($params, $preset_value, $postset_value, $smarty) {
 		
-		/*
-			○paramsの指定
-				name:
-					name属性
-				
-				value:
-					codeの指定
-						single_file_uploadの場合: codeがそのまま値として格納
-						multi_file_uploadの場合: codeの配列が格納
-						multi_file_upload_complexの場合: codeを含む二重連想配列で格納
-				
-				assign:
-					各要素をテンプレートに展開する変数名
-				
-				group:
-					ファイルアップロードグループの指定
-					
-				template:
-					テンプレートファイルのパスを指定する
-					例:
-						module:/file_upload/single_file_upload.html（デフォルト）
-						module:/file_upload/multi_file_upload.html
-						module:/file_upload/single_file_upload.html
-				
-				auto_extract:
-					Valueを自動的にunserializeする
-					
-				complex:
-					multi_file_uploadにおいてファイル付帯情報を扱えるようにする
-					例: subname,date
-		*/
+		// Attrsの組み立て
+		$op_keys =array(
+			"type",
+			"name",
+			"value",
+			"group",
+			"assign", // 部品をアサインするテンプレート変数名
+		);
+		$attr_html ="";
 		
-		$code =$postset_value
+		foreach ($params as $key => $value) {
+			
+			if ( ! in_array($key,$op_keys)) {
+			
+				$attr_html .=' '.$key.'="'.$value.'"';
+			}
+		}
+		
+		$value =$postset_value
 				? $postset_value
 				: $preset_value;
-		$template =$params["template"]
-				? $params["template"]
-				: "module:file_upload/single_file_upload.html";
-		$assign =$params["assign"];
-		$name =$params["name"];
-		$group =$params["group"];
-		$auto_extract =$params["auto_extract"];
+		$file =obj("UserFileManager")->get_filename($value,$group);
+		$url =file_to_url($file);
 		
-		if ($auto_extract && ! is_array($code)) {
+		$html["alias"] =sprintf("LRA%09d",mt_rand());
+		$html["elm_id"] ='ELM_'.$html["alias"];
+		
+		// LRA共通ヘッダ／フッタ
+		$html["head"] ='<span id="area_'.$html["elm_id"].'">'
+				.'<input type="hidden"'
+				.' name="_LRA['.$html["alias"].'][name]"'
+				.' value="'.$params['name'].'"/>'
+				.'<input type="hidden"'
+				.' name="_LRA['.$html["alias"].'][mode]"'
+				.' value="file"/>'
+				.'<input type="hidden"'
+				.' name="_LRA['.$html["alias"].'][group]"'
+				.' value="'.$params["group"].'"/>'
+				.'<input type="hidden"'
+				.' name="_LRA['.$html["alias"].'][var_name]"'
+				.' value="'.$html["name"].'"/>'
+				.'<input type="hidden"'
+				.' name="_LRA['.$html["alias"].'][files_key]"'
+				.' value="'.$html["alias"].'"/>'
+				.'<input type="hidden" id="input_'.$html["elm_id"].'"'
+				.' name="'.$params["name"].'"'
+				.' value="'.$value.'"/>';
+		$html["foot"] ='</span>';
+		
+		// アップロード済み領域の削除JS
+		$html["delete_js"] ='if (document.getElementById(\'link_set_'.$html["elm_id"].'\')) {'
+				.' document.getElementById(\'input_'.$html["elm_id"].'\').value=\'\';'
+				.' document.getElementById(\'link_set_'.$html["elm_id"].'\').style.display=\'none\';'
+				.' } return false;';
+		
+		// アップロード済み領域
+		$html["link"] =$file ? '<a href="'.$url.'" target="_blank">アップロード済み</a>' : '';
+		$html["delete"] =$file ? '<a href="javascript:void(0)"'
+				.' onclick="'.$html["delete_js"].'">(削除)</a>' : '';
+		$html["link_set"] ='<span id="link_set_'.$html["elm_id"].'">'
+				.' '.$html["link"]
+				.' '.$html["delete"]
+				.'</span>';
+		
+		// fileコントロール
+		$html["upload"] ='<input type="file" name="'.$html["alias"].'"'
+				.' onchange="'.$html["delete_js"].'"'.$attr_html.' />';
+		
+		// HTML一式
+		$html["full"] =$html["head"].$html["upload"].$html["link_set"].$html["foot"];
 			
-			$code =@unserialize($code);
-		}
-		
-		if (is_array($code)) {
-		
-			$url =array();
-			
-			foreach ($code as $index => $complex) {
-			
-				$code_spec =is_array($complex) ? $complex["code"] : $complex;
-				$filename =obj("UserFileManager")->get_filename($code_spec,$group);
-				$url[$index] =file_to_url($filename);
-			}
-			
-		} else{
-		
-			$filename =obj("UserFileManager")->get_filename($code,$group);
-			$url =file_to_url($filename);
-		}
-		
-		$v["CODE"] =$code;
-		$v["GROUP"] =$group;
-		$v["ALIAS"] =sprintf("UFM%09d",mt_rand());
-		$v["DATANAME"] =$name;
-		$v["FILE"] =$url;
-		$v["ATTRS"] =$params;
-		
-		$smarty->assign("v",$v);
-		$v["HTML"] =$smarty->fetch($template);
-		
 		// テンプレート変数へのアサイン
-		if ($assign) {
+		if ($params["assign"]) {
 			
-			$smarty->assign($assign,$v);
-			return;
+			$ref =& ref_array($template->_tpl_vars,$params["assign"]);
+			$ref =$html;
+
+			return null;
 		}
 		
-		return $v["HTML"];
+		return $html["full"];
 	}
