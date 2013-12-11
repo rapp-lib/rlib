@@ -30,48 +30,61 @@
 		$html["elm_id"] ='ELM_'.$html["alias"];
 		
 		// LRA共通ヘッダ／フッタ
-		$html["head"] ='<span id="area_'.$html["elm_id"].'">'
-				.'<input type="hidden"'
+		$html["head"] ='<span class="vifUploadContainer">'
+				.'<input type="hidden" class="lraName"'
 				.' name="_LRA['.$html["alias"].'][name]"'
 				.' value="'.$params['name'].'"/>'
-				.'<input type="hidden"'
+				.'<input type="hidden" class="lraMode"'
 				.' name="_LRA['.$html["alias"].'][mode]"'
 				.' value="file"/>'
-				.'<input type="hidden"'
+				.'<input type="hidden" class="lraGroup"'
 				.' name="_LRA['.$html["alias"].'][group]"'
 				.' value="'.$params["group"].'"/>'
-				.'<input type="hidden"'
+				.'<input type="hidden" class="lraVarName"'
 				.' name="_LRA['.$html["alias"].'][var_name]"'
 				.' value="'.$html["name"].'"/>'
-				.'<input type="hidden"'
+				.'<input type="hidden" class="lraFiles_key"'
 				.' name="_LRA['.$html["alias"].'][files_key]"'
 				.' value="'.$html["alias"].'"/>'
-				.'<input type="hidden" id="input_'.$html["elm_id"].'"'
+				.'<input type="hidden" class="lraResponse"'
+				.' name="_LRA['.$html["alias"].'][response]"'
+				.' value=""/>'
+				.'<input type="hidden" id="value_'.$html["elm_id"].'" class="lraValue"'
 				.' name="'.$params["name"].'"'
 				.' value="'.$value.'"/>';
 		$html["foot"] ='</span>';
 		
 		// アップロード済み領域の削除JS
-		$html["delete_js"] ='if (document.getElementById(\'link_set_'.$html["elm_id"].'\')) {'
-				.' document.getElementById(\'input_'.$html["elm_id"].'\').value=\'\';'
-				.' document.getElementById(\'link_set_'.$html["elm_id"].'\').style.display=\'none\';'
+		$html["delete_js"] ='if (document.getElementById(\'uploaded_set_'.$html["elm_id"].'\')) {'
+				.' document.getElementById(\'value_'.$html["elm_id"].'\').value=\'\';'
+				.' document.getElementById(\'uploaded_set_'.$html["elm_id"].'\').style.display=\'none\';'
 				.' } return false;';
 		
 		// アップロード済み領域
-		$html["link"] =$file ? '<a href="'.$url.'" target="_blank">アップロード済み</a>' : '';
-		$html["delete"] =$file ? '<a href="javascript:void(0)"'
-				.' onclick="'.$html["delete_js"].'">(削除)</a>' : '';
-		$html["link_set"] ='<span id="link_set_'.$html["elm_id"].'">'
-				.' '.$html["link"]
-				.' '.$html["delete"]
-				.'</span>';
+		$html["uploaded_set_head"] ='<span id="uploaded_set_'.$html["elm_id"].'" class="uploadedSet"'
+				.($file ? '' : ' style="display:none"').'>';
+		$html["uploaded_set_foot"] ='</span>';
+		$html["uploaded_link"] ='<a href="'.$url.'" target="_blank" class="uploadedFile">アップロード済み</a>';
+		$html["uploaded_img"] ='<a href="'.$url.'" target="_blank" class="uploadedFile">'
+				.'<img src="'.$url.'" class="uploadedFile">'.'</a>';
+		$html["uploaded_delete"] ='<a href="javascript:void(0)"'
+				.' onclick="'.$html["delete_js"].'" class="delete">(削除)</a>';
+		
+		$html["message_area"] ='<span class="messageArea"></span>';
 		
 		// fileコントロール
 		$html["upload"] ='<input type="file" name="'.$html["alias"].'"'
 				.' onchange="'.$html["delete_js"].'"'.$attr_html.' />';
 		
 		// HTML一式
-		$html["full"] =$html["head"].$html["upload"].$html["link_set"].$html["foot"];
+		$html["full"] =$html["head"]
+				.$html["upload"]
+				.$html["message_area"]
+				.$html["uploaded_set_head"]
+				.$html["uploaded_link"]
+				.$html["uploaded_delete"]
+				.$html["uploaded_set_foot"]
+				.$html["foot"];
 			
 		// テンプレート変数へのアサイン
 		if ($params["assign"]) {

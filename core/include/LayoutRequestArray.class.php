@@ -62,6 +62,20 @@ class LayoutRequestArray {
 				
 					$value =false;
 				}
+				
+			// 分割テキスト指定
+			} elseif ($request["mode"] == "splittext") {
+				
+				// 分割設定
+				$settings =array(
+					"tel" =>array("delim" =>"-", "length" =>3, "type" =>"text"),
+					"zip" =>array("delim" =>"-", "length" =>2, "type" =>"text"),
+					"mail" =>array("delim" =>"@", "length" =>2, "type" =>"text"),
+				);
+				
+				$setting =$settings[$request["splitmode"]];
+				
+				$value =implode($value,$setting["delim"]);
 			
 			// ファイル指定
 			} elseif ($request["mode"] == "file") {
@@ -72,6 +86,12 @@ class LayoutRequestArray {
 					"src_filename" =>$_FILES[$request["files_key"]]["tmp_name"], 
 					"src_filename_alias" =>$_FILES[$request["files_key"]]["name"], 
 				));
+				
+				if ($request["response"] == "json") {
+					
+					unset($result["file"]);
+					clean_output_shutdown(array_to_json($result));
+				}
 				
 				if ($result["status"] == "success") {
 
@@ -90,6 +110,8 @@ class LayoutRequestArray {
 						"request" =>$request,
 						"resource" =>$resource,
 					));
+				
+				} elseif ($result["status"] == "no_file") {
 				}
 
 			// layout指定

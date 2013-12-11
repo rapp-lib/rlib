@@ -112,6 +112,8 @@ class UserFileManager {
 			
 				return array(
 					"status" =>"denied",
+					"reaseon" =>"ext_denied",
+					"ext" =>$ext,
 					"message" =>"ext:".$ext." is denied for group:".$group,
 				);
 			}

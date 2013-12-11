@@ -292,15 +292,13 @@
 			// file要素がある場合はiframeでRequest
 			if ($anchor.find('input:file').length) {
 					
-				requestByIframe($anchor, o.ajaxOptions);
+				return $.vifRequestByIframe($anchor, o.ajaxOptions);
 			
 			// AJAXでリクエスト
 			} else {
 				
-				$.ajax(o.ajaxOptions);
+				return $.ajax(o.ajaxOptions);
 			}
-			
-			return false;
 		};
 
 		// リクエスト発行イベントに常時割り込み
@@ -349,7 +347,7 @@
 	//-------------------------------------
 	// iframeを使用したAjax実装
 	var iframeUuid =0;
-	requestByIframe = function ($anchor, ajaxOptions) {
+	$.vifRequestByIframe = function ($anchor, ajaxOptions) {
 		
 		var iframeName ='jquery_upload'+(++iframeUuid);
 		var $iframe =$('<iframe id="'+iframeName+'" name="'+iframeName+'"/>');
@@ -364,7 +362,18 @@
 				// 応答処理
 				if ($.isXMLDoc(contents) || contents.XMLDocument) {
 					
-					// XML応答処理
+					// XML応答処理					
+					var parseXml =function (text) {
+						if (window.DOMParser) {
+							return new DOMParser().parseFromString(text, 'application/xml');
+						} else {
+							var xml = new ActiveXObject('Microsoft.XMLDOM');
+							xml.async = false;
+							xml.loadXML(text);
+							return xml;
+						}
+					}
+					
 					ajaxOptions.success(parseXml(contents.XMLDocument || contents));
 					
 				} else if ($(contents).find('body').length) {
@@ -388,16 +397,6 @@
 		
 		$anchor.attr("target",iframeName);
 		$anchor.trigger("submit");
-	}
-	parseXml =function (text) {
-		if (window.DOMParser) {
-			return new DOMParser().parseFromString(text, 'application/xml');
-		} else {
-			var xml = new ActiveXObject('Microsoft.XMLDOM');
-			xml.async = false;
-			xml.loadXML(text);
-			return xml;
-		}
 	}
 	
 	//------------------------------------- 
