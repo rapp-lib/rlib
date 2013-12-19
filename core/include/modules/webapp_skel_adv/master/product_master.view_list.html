@@ -1,0 +1,178 @@
+<?=$c["header"]?> 
+
+<!-- page_title_module -->
+<div class="row">
+<div class="col-lg-12">
+		
+ 	<h1><?=$c["label"]?> <small><?=$a["label"]?></small></h1>
+	<hr/>
+
+</div><!-- /.col-lg-12 -->
+</div><!-- /.row -->
+<!-- /page_title_module -->
+
+<div class="row">
+
+<!-- master_control_module -->
+<div class="col-lg-8">
+
+	<div class="btn-toolbar" role="toolbar">
+	
+<? if ($c["usage"] != "view"): ?>
+	  <div class="btn-group">
+			{{a _page="user_master.entry_form" class="btn btn-primary act-create"}}新規登録{{/a}}
+		</div>
+		
+<? endif; /* $c["usage"] != "view" */ ?>
+<? if ($c["usage"] != "view" && $c["use_csv"]): ?>
+	  <div class="btn-group">
+			{{a _page="user_master.entry_form" class="btn btn-default act-csvimp"}}<span class="glyphicon glyphicon-log-in"></span> CSV一括インポート{{/a}}
+		</div>
+		
+<? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
+<? if ($c["usage"] != "form" && $c["use_csv"]): ?>
+	  <div class="btn-group">
+			{{a _page="user_master.entry_form" class="btn btn-default act-csvexp"}}<span class="glyphicon glyphicon-log-out"></span> CSV一括ダウンロード{{/a}}
+		</div>
+		
+<? endif; /* $c["usage"] != "form" && $c["use_csv"] */ ?>
+	</div>
+	<br/>
+	
+</div><!-- /.col-lg-8 -->
+<!-- /master_control_module -->
+
+<!-- search_module -->
+<div class="col-lg-4">
+	
+	{{form _page="." _reset="1" class="form-horizontal" role="form"}}
+	
+		<div class="panel panel-default">
+		
+			<div class="panel-heading cursor-pointer" data-toggle="collapse" data-target="#search-form">
+			
+	      <h4 class="panel-title">
+					検索
+				</h4>
+				
+			</div><!-- /.panel-heading -->
+			<div class="collapse out" id="search-form">
+			
+	  		<div class="panel-body">
+				
+<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
+					<div class="form-group">
+						<label class="control-label col-md-4">
+							<?=$tc['label']?> 
+						</label>
+						<div class="form-controls col-lg-8">
+							{{input name="c[<?=$tc['name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}
+						</div>
+					</div>
+					
+<? endforeach; ?>
+
+					<div class="form-group">
+						<label class="control-label col-md-4">
+							表示順
+						</label>
+						<div class="form-controls col-lg-8">
+							{{input name="c[sort]" type="select" values=['default'=>'登録順'] nozerooption="on" class="input-select"}}
+						</div>
+					</div>
+					
+				</div><!-- /.panel-body -->
+  			<div class="panel-footer">	
+				
+					<div class="col-lg-12 text-right">								
+						{{a _page="." _reset="1" class="btn btn-default" role="button"}}リセット{{/a}}
+						{{input type="submit" value="検  索" class="btn btn-primary act-search"}}
+					</div>
+					
+				</div><!-- /.panel-footer -->
+				
+			</div><!-- /.collapse -->
+			
+		</div><!-- /.panel -->
+		
+	{{/form}}
+	
+</div><!-- /.col-lg-4 -->
+<!-- /search_module -->
+
+</div><!-- /.row -->
+
+<!-- list_module -->
+<div class="row">
+<div class="col-lg-12">
+
+	<div class="table-responsive">
+	<table class="table table-bordered table-hover">
+	<thead>
+		<tr>
+			<th>ID</th>
+<? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
+			<th><?=$tc['label']?></th>
+<? endforeach; ?>
+			<th>&nbsp;</th>
+		</tr>
+	</thead>
+	<tbody>
+{{foreach $ts as $t}}
+		<tr>
+			<td>
+				{{$t.<?=$t['pkey']?>}}
+			</td>
+<? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
+			<td>
+				{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}
+			</td>
+<? endforeach; ?>
+			<td>
+				{{* {{a _page=".view_detail" _id=$t.<?=$t['pkey']?> class="btn btn-default btn-xs"}}詳細{{/a}} *}}
+<? if ($c["usage"] != "view"): ?>
+				{{a _page=".entry_form" _id=$t.<?=$t['pkey']?> class="btn btn-default btn-xs act-edit"}}編集{{/a}}
+				{{a _page=".delete_confirm" _id=$t.<?=$t['pkey']?> class="btn btn-default btn-xs act-delete"}}削除{{/a}}
+<? endif; /* $c["usage"] != "view" */ ?>
+			</td>
+		</tr>
+{{/foreach}}
+	</tbody>
+	</table>
+	</div>
+	
+</div><!-- /.col-lg-12 -->
+</div><!-- /.row -->
+<!-- /list_module -->
+
+<!-- pager_module -->
+<div class="row">
+<div class="col-lg-12">
+
+	<ul class="pagination pull-right">
+{{if $p.prev !== null}}
+		<li>{{a _page="." _query="c[offset]=`$p.prev`"}}&laquo;前へ{{/a}}</li>
+{{/if}}
+{{if $p.pages[$p.firstpage] === null}}
+		<li>{{a _page="." _query="c[offset]=`$p.pages_raw[$p.firstpage]`"}}{{$p.firstpage}}...{{/a}}</li>
+{{/if}}
+{{foreach from=$p.pages key="index" item="page_offset"}}
+	{{if $index==$p.current}} 
+		<li class="active">{{a _page="." _query="c[offset]=`$page_offset`"}}{{$index}}{{/a}}</li>
+	{{else}}
+		<li>{{a _page="." _query="c[offset]=`$page_offset`"}}{{$index}}{{/a}}</li>
+	{{/if}}
+{{/foreach}}
+{{if $p.pages[$p.lastpage] === null}}
+		<li>{{a _page="." _query="c[offset]=`$p.pages_raw[$p.lastpage]`"}}...{{$p.lastpage}}{{/a}}</li>
+{{/if}}
+{{if $p.next !== null}}
+		<li>{{a _page="." _query="c[offset]=`$p.next`"}}次へ&raquo;{{/a}}</li>
+{{/if}}
+	</ul>
+	
+</div><!-- /.col-lg-12 -->
+</div><!-- /.row -->
+<!-- /pager_module -->
+
+<?=$c["footer"]?> 

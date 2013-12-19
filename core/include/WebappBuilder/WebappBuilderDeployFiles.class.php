@@ -277,6 +277,8 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 					$tc['input_option'] =' options="'.$tc['list'].'"';
 				}
 				
+				$tc['input_option'] .=' class="input-'.$tc['type'].'"';
+				
 				// DB上のカラムに対応するcolsに登録
 				if ($tc['def']['type'] != "" && $tc['def']['type'] != "virtual") {
 				
