@@ -384,6 +384,8 @@ class Model_Base {
 	//-------------------------------------
 	// SELECT/DELETE/UPDATEの前処理（table,conditionsを対象）
 	public function before_read ( & $query) {
+		
+		$this->extend_fields_splice($query,true);
 	}
 	
 	//-------------------------------------
@@ -501,7 +503,7 @@ class Model_Base {
 				
 				// auto_loadがtrueの場合fieldsに明示されなくても取得
 				if ( ! $info["auto_load"]
-						&& ! in_array($target_col,(array)$query["fields"])) {
+						&& ! in_array($target_col,(array)$this->spliced_fields)) {
 					
 					continue;
 				}
@@ -581,7 +583,9 @@ class Model_Base {
 	
 	//-------------------------------------
 	// fields拡張/save前の事前のSPLICE処理
-	public function extend_fields_splice ( & $query) {
+	public function extend_fields_splice ( & $query, $by_value=false) {
+		
+		$this->spliced_fields =array();
 		
 		// Queryを参照して対象となるfields拡張設定を適用する
 		foreach ((array)registry("Model.extends.fields") as $table => $cols) {
@@ -594,6 +598,13 @@ class Model_Base {
 			foreach ($cols as $col => $info) {
 				
 				$target_col =$table.".".$col;
+				
+				// FieldsのKeyが値に入る場合の処理
+				if ($by_value) {
+					
+					$fields_flip =array_flip($query["fields"]);
+					$target_col =$fields_flip[$target_col];
+				}
 				
 				if (isset($query["fields"][$target_col])) {
 										
@@ -727,7 +738,7 @@ class Model_Base {
 		$query["conditions"][] =array($parent_key =>$parent_ids);
 		
 		// ReduceKeyの指定
-		if ($child_key) {
+		if ($child_key && ! $query["fields"]) {
 		
 			$query["fields"] =array(
 				$parent_key,
