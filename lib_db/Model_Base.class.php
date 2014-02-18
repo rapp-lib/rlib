@@ -601,8 +601,8 @@ class Model_Base {
 				
 				// FieldsのKeyが値に入る場合の処理
 				if ($by_value) {
-					
-					$fields_flip =array_flip($query["fields"]);
+				
+					$fields_flip =array_flip((array)$query["fields"]);
 					$target_col =$fields_flip[$target_col];
 				}
 				

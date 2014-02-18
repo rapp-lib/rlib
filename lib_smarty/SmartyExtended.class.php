@@ -1,6 +1,7 @@
 <?php
 	
 	require_once(RLIB_ROOT_DIR."/core/smarty3/Smarty.class.php");
+	
 //-------------------------------------
 // 
 class SmartyBC extends Smarty {} 
@@ -202,6 +203,11 @@ class SmartyExtended extends SmartyBC {
 		// 追加の変数アサイン
 		array_extract($tpl_vars);
 		$resource->assign($tpl_vars);
+		
+		$resource->assign(array(
+			"_REQUEST" =>$_REQUEST,
+			"_SERVER" =>$_SERVER,
+		));
 		
 		// テンプレート記述の制限設定
 		if ($security) {
