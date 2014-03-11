@@ -314,6 +314,7 @@
 				if ($file_name =registry("Report.output_to_file")) {
 					
 					file_put_contents($file_name,$html,FILE_APPEND|LOCK_EX);
+					chmod($file_name,0777);
 					
 				// 直接出力
 				} else {

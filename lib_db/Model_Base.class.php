@@ -207,7 +207,7 @@ class Model_Base {
 			$children, 
 			$key, 
 			$children_name="children") {
-			
+		
 		foreach ($ts as $index => $t) {
 			
 			$ts[$index][$children_name] =$children[$t[$key]];

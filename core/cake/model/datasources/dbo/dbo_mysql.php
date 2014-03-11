@@ -651,7 +651,7 @@ class DboMysql extends DboMysqlBase {
 		if (empty($column)) {
 			$column = $this->introspectType($data);
 		}
-
+		
 		switch ($column) {
 			case 'boolean':
 				return $this->boolean((bool)$data);

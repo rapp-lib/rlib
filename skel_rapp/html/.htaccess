@@ -2,6 +2,13 @@
 # Charset
 #
 AddDefaultCharset UTF-8
+
+#-------------------------------------
+# PHP 
+#
+php_flag display_errors On
+php_value error_reporting 6135 
+php_value date.timezone Asia/Tokyo
 php_flag mbstring.encoding_translation OFF
 
 #-------------------------------------

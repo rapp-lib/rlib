@@ -201,22 +201,28 @@ class BasicMailer {
 		require_once("Mail/mimeDecode.php");
 		
 		$options =$this->check_options($options,array(
-			"receive_mode" =>"stdin",
+			"receive_mode" =>"file",
+			"mail_data" =>"",
+			"mail_data_file" =>"php://stdin",
 			"receive_option" =>array(),
 		),array(
 		));
 		
 		$raw_mail ="";
 		
-		if ($options["receive_mode"]=="stdin") {
+		if ($options["receive_mode"]=="file") {
 		
-			$raw_mail =file_get_contents("php://stdin");
+			$raw_mail =file_get_contents($options["mail_data_file"]);
+			
+		} elseif ($options["receive_mode"]=="data") {
+		
+			$raw_mail =$options["mail_data"];
 			
 		} else {
 			
 			report_error("Invalid receive_mode: ".$options["receive_mode"]);
 		}
-				
+		
 		$decoder =new Mail_mimeDecode($raw_mail."\n");
 		$decoded =$decoder->decode(array(
 				'include_bodies' =>true,
