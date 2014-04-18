@@ -233,8 +233,10 @@ class BasicMailer {
 		
 		// HEAD部解析
 		foreach ((array)$decoded->headers as $k => $v) {
-		
-			$maildata[strtolower($k)] =mb_decode_mimeheader($v);
+			
+			$maildata[strtolower($k)] =is_string($v)
+					? mb_decode_mimeheader($v)
+					: $v;
 		}
 		
 		// from抽出
