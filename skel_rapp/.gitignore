@@ -2,3 +2,5 @@ tmp/*/*
 html/user_file/*/*
 config/env-*
 *_DELETE
+
+!empty
