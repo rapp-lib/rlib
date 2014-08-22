@@ -67,39 +67,41 @@ class Controller_Base extends SmartyExtended {
 		$this->contexts[$var_name] =$context;
 		$this->vars[$var_name] =$context;
 		
-		$page_code =str_underscore($var_name)
-				."-".str_underscore($this->controller_name)
-				."-".str_underscore($this->action_name);
-		
 		if (is_object($sname) && is_subclass_of($sname,"Context_Base")) {
 			
-			$sname =str_underscore($var_name)
-					."-extends_".$sname->get_sname();
+			$sname ="ctx_by_ctx-".$sname->get_sname();
 					
 		} elseif (is_object($sname)) {
 			
 			$sname =str_underscore($var_name)
-					."-extends_".str_underscore(get_class($sname));
+					."ctx_by_class-".str_underscore(get_class($sname));
 		
-		} elseif ($sname === null) {
+		} elseif ($sname === null || $sname === 0) {
 			
-			$sname =$page_code;
+			$sname ="ctx_by_page-"
+					.str_underscore($this->controller_name)
+					."-".str_underscore($this->action_name);
 			
-		} elseif (is_numeric($sname)) {
+		} elseif (is_numeric($sname) && $sname > 0) {
+		
+			$action_name =$this->action_name;
+			$action_name =str_underscore($action_name);
+			$action_name =explode("_",$action_name);
+			$action_name =array_slice($action_name,0,-$sname);
+			$action_name =implode("_",$action_name);
 			
-			if ($sname == 0) {
+			$sname ="ctx_by_pages-"
+					.str_underscore($this->controller_name)
+					."-".$action_name;
+		
+		} else {
 			
-				$sname =$page_code;
-				
-			} elseif ($sname > 0) {
-			
-				$sname =implode("_",array_slice(explode("_",$page_code),0,-$sname));
-			}
+			$sname ="ctx_by_name-".$sname;
 		}
-
+		
 		if ($fid_enable && $sname) {
 			
-			$fid_name ="_f_".substr(md5($sname),0,5);
+			$fid_name ="f_".substr(md5($sname),0,5);
 			
 			$fid =strlen($_REQUEST[$fid_name])
 					? $_REQUEST[$fid_name]

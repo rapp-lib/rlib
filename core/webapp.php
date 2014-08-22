@@ -444,11 +444,18 @@
 			}
 		}
 		
-		$url =url($url,array_merge(
+		$params =array_merge(
 			(array)$params,
 			(array)output_rewrite_var(),
 			(array)redirect_rewrite_var()
-		));
+		);
+		
+		if (ini_get("session.use_trans_sid")) {
+			
+			$params[session_name()] =session_id();
+		}
+		
+		$url =url($url,$params);
 		
 		$flush_message =flush_message($flush_message);
 		

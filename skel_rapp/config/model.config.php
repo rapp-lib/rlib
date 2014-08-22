@@ -6,9 +6,12 @@
 		// （例）Bridge関係のサンプル
 		/*
 		"Product.categories" =>array(
-			"auto_load" =>true,
+			"auto_load" =>false,
 			"type" =>"assoc_bridge",
 			"table" =>"ProductCategoryAssoc",
+			"conditions" =>array_escape(array(
+				"ProductCategoryAssoc.status" =>1,
+			)),
 			"parent_pk" =>"Product.id",
 			"connect_by" =>"ProductCategoryAssoc.product_id",
 			"reduce_by" =>"ProductCategoryAssoc.category_id",

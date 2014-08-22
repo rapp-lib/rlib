@@ -204,6 +204,11 @@ class SmartyExtended extends SmartyBC {
 		array_extract($tpl_vars);
 		$resource->assign($tpl_vars);
 		
+		$resource->assign(array(
+			"_REQUEST" =>$_REQUEST,
+			"_SERVER" =>$_SERVER,
+		));
+		
 		// テンプレート記述の制限設定
 		if ($security) {
 		

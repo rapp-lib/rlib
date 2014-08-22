@@ -1,3 +1,6 @@
 tmp/*/*
 html/user_file/*/*
-rlib.git/*
+config/env-*
+*_DELETE
+
+!empty
