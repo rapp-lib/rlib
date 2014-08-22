@@ -191,47 +191,52 @@
 		// HTML形式
 		if ($html_mode) {
 			
-			$report_html .='<div id="'.$elm_id.'" '
+			$font_color ="#00ff00";
+			$elm_class ="";
+			$message ="";
+			
+			if ($options["errno"] & E_USER_NOTICE) { 
+			
+				$font_color ="#00ff00";
+				$elm_class ="notice";
+				
+			} elseif ($options["errno"] & (E_USER_ERROR | E_ERROR)) { 
+			
+				$font_color ="#ff0000";
+				$elm_class ="warning";
+				
+			} else {
+			
+				$font_color ="#ffff00";
+				$elm_class ="error";
+			}
+			
+			if (is_array($params) && is_string($errstr)) {
+			
+				$message .=$errstr;
+				
+			} else {
+			
+				$message .=decorate_value($errstr,true);
+			}
+			
+			if (is_array($params)) {
+			
+				$message .=' :'.decorate_value($params,true);
+			}
+			
+			$report_html .='<div class="ruiReport '.$elm_class.'" id="'.$elm_id.'" '
 					.'onclick="var e=document.getElementById(\''.$elm_id.'\');'
 					.'e.style.height =\'auto\'; e.style.cursor =\'auto\';" '
 					.'style="font-size:14px;text-align:left;overflow:hidden;'
 					.'margin:1px;padding:2px;font-family:monospace;'
 					.'border:#888888 1px solid;background-color:'
-					.'#000000;cursor:hand;height:40px;color:';
-			
-			if ($options["errno"] & E_USER_NOTICE) { 
-			
-				$report_html .="#00ff00";
-				
-			} elseif ($options["errno"] & (E_USER_ERROR | E_ERROR)) { 
-			
-				$report_html .="#ff0000";
-				
-			} else {
-			
-				$report_html .="#ffff00";
-			}
-			
-			$report_html .='"><div style="display:none">'
+					.'#000000;cursor:hand;height:40px;color:'.$font_color.'">'
+					.'<div style="display:none">'
 					.$errdetail.'</div>'
 					.$errfile.'('.$errline.') - '.$errpos
-					.'<div style="margin:0 0 0 10px">';
-		
-			if (is_array($params) && is_string($errstr)) {
-			
-				$report_html .=$errstr;
-				
-			} else {
-			
-				$report_html .=decorate_value($errstr,true);
-			}
-			
-			if (is_array($params)) {
-			
-				$report_html .=' :'.decorate_value($params,true);
-			}
-			
-			$report_html .='</div></div>';
+					.'<div style="margin:0 0 0 10px">'
+					.$message.'</div></div>';
 		
 		// 非HTML形式
 		} elseif ( ! $html_mode) {

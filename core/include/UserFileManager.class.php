@@ -1,16 +1,7 @@
 <?php
-		
 /*
-	
 	-------------------------------------
-	○パラメータについて
-			
-		[_REQUEST] _UFM[ALIAS]
-			group    // ファイルディレクトリ解決に使用
-			target   // _FILESへのアクセス... $_FILES[$target];
-			         // 省略時は ALIAS_file
-			shutdown // trueならばアップ完了後に結果出力して終了
-			var_name // 上書きする_REQUESTの変数（ドット参照可)
+	□設定
 		
 		[Registry] App.UserFileManager.upload_dir
 			default ... group空白時のアップロード先
@@ -21,146 +12,182 @@
 			default ... group空白時の許可拡張子リスト（"."含む）
 			groups
 				<_UFMs.n.group> ... group別許可拡張子リスト
-		
-		[Output] _REQUEST.shutdown時の出力
-			<UserFileManager DELETED -> ... 削除完了
-			<UserFileManager ERROR ${errcode}> ... エラー
-			<UserFileManager UPLOADED ${code}> ... アップロード成功
-			
-			
-	-------------------------------------
-	○Sample1（<input type="file">での実現方法）
-		
-		<input type="hidden" name="DATANAME" value="CODE"/>
-		<input type="hidden" name="_UFM[ALIAS][group]" value="GROUP"/>
-		<input type="hidden" name="_UFM[ALIAS][var_name]" value="DATANAME"/>
-		<input type="file" name="ALIAS_file"/>
-		<input type="checkbox" name="_UFM[ALIAS][delete]" value="1"/>
-		
-		
-	-------------------------------------
-	○Sample2（jquery.upload.jsでの実現方法）
-		
-		<input type="hidden" name="DATANAME" value="CODE" id="ALIAS_code"/>
-		<a id="ALIAS_trigger">Upload</a>
-		<script>
-		$(function(){
-			new AjaxUpload("ALIAS_trigger", {
-				action: "UPLOAD_SCRIPT_URL?"
-						+"_UFM[ALIAS][group]=GROUP&"
-						+"_UFM[ALIAS][shutdown]=1&",
-				data : {},
-				onSubmit : function(file , ext){},
-				onComplete : function(file, response) {
-					if (response.match(/<UserFileManager (\S+) ([^>]+)>/)) {
-						var result =RegExp.$1;
-						var value =RegExp.$2;
-						if (result == "UPLOADED") {
-							$("#ALIAS_code").attr("value",value);
-						}
-					}
-				}
-			});
-		});
-		</script>
-		
-		
-	-------------------------------------
-	○Sample3（可変数アップロード）
-		
-		<div style="display:inline;" id="ALIAS_inc_elm">
-		</div>
-		<div style="display:none;" id="ALIAS_tmpl_elm">
-			<div class="ALIAS_item_elm">
-				<input type="hidden" name="DATANAME" value="<CODE>"/>
-				<input type="hidden" name="_UFM[ALIAS_<INDEX>][group]" 
-						value="GROUP"/>
-				<input type="hidden" name="_UFM[ALIAS_<INDEX>][var_name]" 
-						value="DATANAME.<INDEX>"/>
-				<input type="file" name="ALIAS_<INDEX>_file"/>
-				<a onclick="window.ALIAS_onclick_remove(this)">[Remove]</a>
-				<a onclick="window.ALIAS_onclick_append(this)">[Append]</a>
-			</div>
-		</div>
-		<script>
-			window.ALIAS_init ={
-				INDEX1: CODE1,
-				INDEX2: CODE2
-			};
-		</script>
-		<!-- ここから定型の処理 -->
-		<script>
-		$(function(){
-			window.ALIAS_last =0;
-			window.ALIAS_tmpl =$("#ALIAS_tmpl_elm").html();
-			window.ALIAS_create_cmd =function (id,code) {
-				if (id == undefined) {
-					id =window.ALIAS_last+1;
-				}
-				if (code == undefined) {
-					code ="";
-				}
-				if (id > window.ALIAS_last) {
-					window.ALIAS_last =id;
-				}
-				var tmpl_inst =window.ALIAS_tmpl;
-				tmpl_inst =tmpl_inst.replace("<INDEX>",id);
-				tmpl_inst =tmpl_inst.replace("<CODE>",code);
-				return $(tmpl_inst);
-			};
-			window.ALIAS_onclick_append =function (trigger_elm) {
-				var html =window.ALIAS_create_cmd();
-				$(trigger_elm).parent(".ALIAS_item_elm").after(html);
-			};
-			window.ALIAS_onclick_remove =function (trigger_elm) {
-				$(trigger_elm).parent(".ALIAS_item_elm").remove();
-			};
-			if (window.ALIAS_init != undefined) {
-				for (var index in window.ALIAS_init) {
-					var html =window.ALIAS_create_cmd(index,window.ALIAS_init[index]);
-					$("#ALIAS_inc_elm").append(html);
-				}
-			}
-		});
-		</script>
-	
-	
-	-------------------------------------
-	○Sample4（<input type="file">にてJSでの削除方法）
-		
-		<input type="hidden" name="DATANAME" value="CODE" id="ALIAS_code"/>
-		<input type="hidden" name="_UFM[ALIAS][group]" value="GROUP"/>
-		<input type="hidden" name="_UFM[ALIAS][var_name]" value="DATANAME"/>
-		<input type="file" name="ALIAS_file"/>
-		<a onclick="$('#ALIAS_code').attr('value','')">[Delete]</a>
-		
-		
-	-------------------------------------
-	○HTML上でのサンプルパラメータについて
-		
-		GROUP ... アップロード先の振り分けに使用します（省略可能）
-		ALIAS ... HTML上で一意な名前
-		DATANAME ... _REQUESTに使用する名前（配列またはドット参照可能）
-		CODE ... アップロード済みファイルの値
-		UPLOAD_SCRIPT_URL ... Ajaxアップロードの受け取りURL
-
 
 	-------------------------------------
 	□サンプルコード（フォーム以外からのファイルアップロード）:
-		
-		$code =obj("UserFileManager")->upload_file("./target.csv");
-		
+
+		$result =obj("UserFileManager")->save_file(array(
+			"is_uploaded_resource" =>false,
+			"group" =>$request["group"],
+			"src_filename" =>$tmp_name, 
+			"src_filename_alias" =>$name, 
+		));
 */
 
 //-------------------------------------
 // 
 class UserFileManager {
 	
-	protected static $uploaded =null;
+	//-------------------------------------
+	// アップロード済みのファイルがあればそのファイル名を取得
+	public function get_filename ($code, $group=null) {
+			
+		$code =preg_replace('!\.\.!','_',$code);
+		
+		$upload_dir =$this->get_upload_dir($group);
+		$filename =$upload_dir."/".$code;
+		
+		return $filename && file_exists($filename) && ! is_dir($filename)
+				? $filename
+				: null;
+	}
 	
 	//-------------------------------------
-	// 
-	public function fetch_file_upload_request () {
+	// アップロードディレクトリを取得
+	public function get_upload_dir ($group=null) {
+		
+		$group =preg_replace('![^-_0-9a-zA-Z]!','_',$group);
+				
+		$upload_dirs =registry("UserFileManager.upload_dir");
+		$upload_dir =($group && $upload_dirs["group"][$group])
+				? $upload_dirs["group"][$group]
+				: $upload_dirs["default"];
+		
+		return $upload_dir;
+	}
+	
+	//-------------------------------------
+	// 新規のアップロードファイルのコードを生成
+	public function get_blank_key ($group=null) {
+					
+		$key =date("Ymd-His")."-".sprintf('%03d',mt_rand(1,999));
+		
+		// ファイル名をハッシュディレクトリで階層化する
+		$hash_levels =registry("UserFileManager.hash_level");
+		$hash_level =($group && $hash_levels["group"][$group])
+				? $hash_levels["group"][$group]
+				: $hash_levels["default"];
+		
+		// ハッシュ階層化
+		if ($hash_level) {
+			
+			$hash_table =array_splice(preg_split('!!',md5($key)),1,$hash_level);
+			$key =implode("/",$hash_table)."/".$key;
+		}
+		
+		return $key;
+	}
+	
+	//-------------------------------------
+	// ファイルを保存
+	public function save_file ($params) {
+		
+		$group =$params["group"];
+		
+		$upload_dir =$this->get_upload_dir($group);
+		
+		$allow_exts =registry("UserFileManager.allow_ext");
+		$allow_ext =($group && $allow_exts["group"][$group])
+				? $allow_exts["group"][$group]
+				: $allow_exts["default"];
+	
+		// アップロードファイルがない
+		if ( ! file_exists($params["src_filename"])) {
+
+			return array(
+				"status" =>"no_file",
+			);
+		}
+
+		// 拡張子の確認
+		$ext ="";
+		
+		if ($allow_ext) {
+			
+			$ext =preg_match('!\.[^\.]+$!',$params["src_filename_alias"],$match)
+					? strtolower($match[0])
+					: "";
+			
+			if ( ! in_array(str_replace('.','',$ext),$allow_ext)) {
+			
+				return array(
+					"status" =>"denied",
+					"reaseon" =>"ext_denied",
+					"ext" =>$ext,
+					"message" =>"ext:".$ext." is denied for group:".$group,
+				);
+			}
+		}
+		
+		$is_dir_writable =$upload_dir 
+				&& is_dir($upload_dir)
+				&& is_writable($upload_dir);
+				
+		// 保存先ディレクトリチェック
+		if ( ! $is_dir_writable) {
+			
+			return array(
+				"status" =>"error",
+				"message" =>"upload_dir:".$upload_dir." is-not writable",
+			);
+		}
+		
+		$key =$this->get_blank_key($group);
+		$code =$key.$ext;
+		$dest_filename =$upload_dir."/".$key.$ext;
+		
+		// 既存ファイル衝突チェック
+		if (file_exists($dest_filename)) {
+			
+			return array(
+				"status" =>"error",
+				"message" =>"dest_file:".$dest_filename." already exists",
+			);
+		}
+	
+		// フォルダ作成
+		if ( ! file_exists(dirname($dest_filename))) {
+			
+			mkdir(dirname($dest_filename),0777,true);
+		}
+		
+		// アップロード
+		$result =false;
+		
+		if ($params["is_uploaded_resource"]) {
+		
+			$result =is_uploaded_file($params["src_filename"])
+					&& move_uploaded_file($params["src_filename"],$dest_filename);
+		} else {
+			
+			$result =copy($params["src_filename"],$dest_filename);
+		}
+		
+		if ( ! $result) {
+			
+			return array(
+				"status" =>"error",
+				"message" =>"dest_file:".$dest_filename." could-not be-written",
+			);
+		}
+		
+		chmod($dest_filename,0666);
+
+		return array(
+			"status" =>"success",
+			"code" =>$code,
+			"file" =>$dest_filename,
+			"url" =>file_to_url($dest_filename),
+		);
+	}
+	
+	//-------------------------------------
+	// <DEPLECATED 131204 save_fileに移行>
+	protected static $uploaded_DEPLECATED =null;
+	
+	//-------------------------------------
+	// <DEPLECATED 131204 save_fileに移行 input_type_file_oldから呼び出しは可能>
+	public function fetch_file_upload_request_DEPLECATED () {
 		
 		if (self::$uploaded !== null) {
 			
@@ -387,60 +414,12 @@ class UserFileManager {
 	}
 	
 	//-------------------------------------
-	// アップロード済みのファイルがあればそのファイル名を取得
-	public function get_filename ($code, $group=null) {
-			
-		$code =preg_replace('!\.\.!','_',$code);
-		
-		$upload_dir =$this->get_upload_dir($group);
-		$filename =$upload_dir."/".$code;
-		
-		return $filename && file_exists($filename) && ! is_dir($filename)
-				? $filename
-				: null;
-	}
-	
-	//-------------------------------------
-	// アップロードディレクトリを取得
-	public function get_upload_dir ($group=null) {
-		
-		$group =preg_replace('![^-_0-9a-zA-Z]!','_',$group);
-				
-		$upload_dirs =registry("UserFileManager.upload_dir");
-		$upload_dir =($group && $upload_dirs["group"][$group])
-				? $upload_dirs["group"][$group]
-				: $upload_dirs["default"];
-		
-		return $upload_dir;
-	}
-	
-	//-------------------------------------
-	// 新規のアップロードファイルのコードを生成
-	public function get_blank_key ($group=null) {
-					
-		$key =($group ? $group : "default")
-				."-".date("Ymd-His")
-				."-".sprintf('%03d',mt_rand(1,999));
-		
-		// ファイル名をハッシュディレクトリで階層化する
-		$hash_levels =registry("UserFileManager.hash_level");
-		$hash_level =($group && $hash_levels["group"][$group])
-				? $hash_levels["group"][$group]
-				: $hash_levels["default"];
-		
-		// ハッシュ階層化
-		if ($hash_level) {
-			
-			$hash_table =array_splice(preg_split('!!',md5($key)),1,$hash_level);
-			$key =implode("/",$hash_table)."/".$key;
-		}
-		
-		return $key;
-	}
-	
-	//-------------------------------------
-	// 指定したデータをアップロード
-	public function upload_data ($data, $code=null, $group=null) {
+	// 指定したデータをアップロード<DEPLECATED 131204 save_fileに移行>
+	public function upload_data_DEPLECATED (
+			$data, 
+			$code=null, 
+			$group=null, 
+			$data_is_filename=false) {
 		
 		$code =$code
 				? $code
@@ -482,8 +461,14 @@ class UserFileManager {
 			return null;
 		}
 	
-		$result =file_put_contents($filename,$data)
-				&& chmod($filename,0664);
+		$result =$data_is_filename
+				? copy($data,$filename)
+				: file_put_contents($filename,$data);
+		
+		if ($result) {
+
+			chmod($filename,0666);
+		}
 		
 		return $result
 				? $code
@@ -491,8 +476,8 @@ class UserFileManager {
 	}
 	
 	//-------------------------------------
-	// 指定したファイルをアップロード
-	public function upload_file ($target_file, $code=null, $group=null) {
+	// 指定したファイルをアップロード<DEPLECATED 131204 save_fileに移行>
+	public function upload_file_DEPLECATED ($target_file, $code=null, $group=null) {
 		
 		if ( ! file_exists($target_file)
 				|| ! is_readable($target_file)
@@ -507,9 +492,7 @@ class UserFileManager {
 			return null;
 		}
 		
-		$data =file_get_contents($target_file);
-		
-		return $this->upload_data($data,$code,$group);
+		return $this->upload_data($target_file,$code,$group,true);
 	}
 }
 	

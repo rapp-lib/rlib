@@ -1,0 +1,47 @@
+<?=$c["header"]?>  
+
+<!-- page_title_module -->
+<div class="row">
+<div class="col-lg-12">
+		
+ 	<h1><?=$c["label"]?> <small><?=$a["label"]?></small></h1>
+	<hr/>
+
+</div><!-- /.col-lg-12 -->
+</div><!-- /.row -->
+<!-- /page_title_module -->
+
+<!-- show_module -->
+<div class="row form-horizontal">
+<div class="col-lg-6">
+
+<? foreach ($this->filter_fields($t["fields"],"input") as $tc): ?>
+	<div class="form-group">
+		<label class="col-lg-4 control-label">
+			<?=$tc['label']?>
+		</label>
+		<div class="col-lg-8 form-controls">
+			{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}
+		</div>
+	</div>
+	
+	<hr/>
+	
+<? endforeach; ?>
+	<div class="form-group well">
+		<div class="col-lg-12 text-right">
+			{{a _page=".entry_form" class="btn btn-default" role="button"}}戻 る{{/a}}
+			{{a _page=".entry_exec" class="btn btn-primary" role="button"}}保 存{{/a}}
+		</div>
+	</div>
+	
+</div><!-- /.col-lg-6 -->
+<div class="col-lg-6">
+
+	<!-- Right-side contents -->
+	
+</div><!-- /.col-lg-6 -->
+</div><!-- /.row -->
+<!-- /show_module -->
+
+<?=$c["footer"]?> 

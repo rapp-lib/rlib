@@ -5,15 +5,17 @@
 	□メール送信用 options:
 		・to/from/subject/messageの指定は必須
 		・cc/bccの指定も可能
+		・to/cc/bccは配列で複数指定が可能
+		※to/cc/bccの名前を設定することは出来ません
 		・template_fileとtemplate_optionsでテンプレートファイル読み込み
 		・fromnameでfromの日本語名をつけられる
 		・attach_files配列内にfilenameとdata_file（またはdata）を指定可能
 		・error_handlerで配信エラー時に呼び出す関数を登録
+		・send_mode=smtp/send_options=...で送信サーバの指定が可能
 		※テンプレートファイルの書式
 			・先頭にto/from/subjectを「subject: ***」形式で指定
 			・ファイルの内容はPHPとしてパースされる
 			・各項目記述の後、空行を開けて、以降にmessageを記述
-		※to/cc/bccの名前を設定することは出来ません
 		
 	-------------------------------------
 	□メール一斉配信予約用テーブル構成: 
@@ -44,7 +46,17 @@
 			"to" =>"toyosawa@sharingseed.co.jp",
 			"from" =>"dev@sharingseed.info",
 			"template_file" =>"./mail/default_mail.php",
+			
+			"send_mode" =>"smtp", // SMTPサーバを明示的に指定（オプション）
+			"send_options" =>array(
+				"host" =>"210.188.236.3",
+				"port" =>"25",
+				"auth" =>true,
+				"username" =>"test@example.com",
+				"password" =>"00000000",
+			),
 		));
+		
 
 	-------------------------------------
 	□サンプルコード（一斉配信の予約と送信）:
@@ -68,6 +80,9 @@
 			"send_options" =>array(
 				"host" =>"210.188.236.3",
 				"port" =>"25",
+				"auth" =>true,
+				"username" =>"test@example.com",
+				"password" =>"00000000",
 			),
 		));
 
@@ -474,6 +489,7 @@ class BasicMailer {
 			}
 		}
 		
+		// HEADER構築
 		$headers =(array)$options["headers"];
 		$headers["From"] =$from;
 		$headers["Subject"] =$subject;
@@ -490,6 +506,31 @@ class BasicMailer {
 		
 		// HEADERS部取得
 		$options["mime_headers"] =$mime->headers($headers);
+		
+		// SMTP送信の場合、CC,BCCを送信先に加える必要があるための処理
+		if ($options["send_mode"] == "smtp"
+				&& ($options["cc"] || $options["bcc"])) {
+		
+			$options["to"] =is_array($options["to"]) 
+					? $options["to"]
+					: explode(",",$options["to"]);
+					
+			if ($options["cc"]) {
+				
+				$options["cc"] =is_array($options["cc"]) 
+						? $options["cc"]
+						: explode(",",$options["cc"]);
+				$options["to"] =array_merge($options["to"],$options["cc"]);
+			}
+			
+			if ($options["bcc"]) {
+				
+				$options["bcc"] =is_array($options["bcc"]) 
+						? $options["cc"]
+						: explode(",",$options["cc"]);
+				$options["to"] =array_merge($options["to"],$options["bcc"]);
+			}
+		}
 		
 		return $options;
 	}

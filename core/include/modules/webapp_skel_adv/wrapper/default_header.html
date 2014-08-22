@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>-</title>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+	<!-- Add robots-nofollow for rewrited url -->
+	{{if "State.is_url_rewrited"|registry}}
+	<meta name="robots" content="nofollow"/>
+	{{/if}}
+	
+	<!-- JS Hosted-on CDN -->
+	<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+		
+	<!-- Bootstrap JS/CSS Hosted-on CDN -->
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"/>
+
+	<!-- JS rui -->
+	<script charset="UTF-8" src="{{'/js/rui/rui.js'|path_to_url}}"></script>
+	<script> rui.init("{{'/js/rui'|path_to_url}}"); </script>
+	<script> rui.require("jquery.mi"); </script>
+	<script> rui.require("jquery.viframe"); </script>
+	
+	<!-- CSS bs-plugin -->
+  <link rel="stylesheet" href="{{'/css/sb-admin.css'|path_to_url}}"/>
+  <link rel="stylesheet" href="{{'/css/sb-admin-alt.css'|path_to_url}}"/>
+	
+	<!--[if lt IE 9]>
+		<script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.min.js"></script>
+		<script src="//oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  	<link rel="stylesheet" href="{{'/css/non-responsive.css'|path_to_url}}"/>
+	<![endif]-->
+</head>
+<body>
+<div id="wrapper">
+
+  <!-- Header and Sidebar -->
+  <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+	
+    <!-- Top-left Brand icon -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+        <span class="sr-only"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      {{a _page="index" class="navbar-brand"}}<span class="glyphicon glyphicon-th"></span> 管理ツール{{/a}}
+    </div>
+		
+    <div class="collapse navbar-collapse navbar-ex1-collapse">
+    	
+			<!-- Left side nav -->
+      <ul class="nav navbar-nav side-nav">
+			
+				{{foreach from="Schema.controller"|registry key="controller_name" item="controller"}}
+					<li>{{a _page="`$controller_name`"}}{{$controller.label}}{{/a}}</li>
+				{{/foreach}}
+				
+				<!-- Dropdown menu-->
+				<!--
+				<li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li><a href="#">Dropdown Item</a></li>
+          </ul>
+        </li>
+				-->
+      </ul>
+
+    	<!-- Top-right nav -->
+      <ul class="nav navbar-nav navbar-right navbar-user">
+			
+				{{*
+				{{if $c_member_auth->id()}}
+					<li>{{a _page="member_login.logout"}}ログアウト{{/a}}</li>
+				{{/if}}
+				*}}
+				
+				<!-- Dropdown messagebox-->
+				<!--
+        <li class="dropdown messages-dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-envelope"></i> Messages <span class="badge">7</span> <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li class="dropdown-header">7 New Messages</li>
+            <li class="message-preview">
+              <a href="#">
+                <span class="avatar"><img src="http://placehold.it/50x50"></span>
+                <span class="name">John Smith:</span>
+                <span class="message">Hey there, I wanted to ask you something...</span>
+                <span class="time"><i class="fa fa-clock-o"></i> 4:34 PM</span>
+              </a>
+            </li>
+            <li class="divider"></li>
+            <li><a href="#">View Inbox <span class="badge">7</span></a></li>
+          </ul>
+        </li>
+				-->
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </nav>
+
+  <div id="page-wrapper">

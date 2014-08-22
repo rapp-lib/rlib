@@ -418,6 +418,8 @@ class SmartyExtended extends SmartyBC {
 			"id",
 			"name",
 			"assign", // 指定した名前で部品のアサイン
+			
+			"values", // 値リストの配列指定
 			"options", // List名の指定
 			"options_params", // List::optionsの引数
 			"parent_id", // 連動対象の要素のID
@@ -443,25 +445,26 @@ class SmartyExtended extends SmartyBC {
 			$params["options_params"] =$params["options"];
 			$params["options"] =$list_name;
 		}
-		
+
 		foreach ($params as $key => $value) {
 			
-			if (preg_match('!options_param_(\d+)!',$key,$match)) {
-				
-				$params["options_params"][$match[1]] =$value;
-			
-			} elseif (preg_match('!parents_param_(\d+)!',$key,$match)) {
-				
-				$params["parents_params"][$match[1]] =$value;
-			
-			} elseif ( ! in_array($key,$op_keys)) {
+			if ( ! in_array($key,$op_keys)) {
 			
 				$attr_html .=' '.$key.'="'.$value.'"';
 			}
 		}
-		
-		$list_options =get_list($params["options"],$this);
-		$options =$list_options->options($params["options_params"]);
+
+		// valuesで配列によってリストを渡す
+		if ( ! $params["options"] && $params["values"]) {
+
+			$list_options =get_list(null,$this);
+			$options =$params["values"];
+
+		} else {
+
+			$list_options =get_list($params["options"],$this);
+			$options =$list_options->options($params["options_params"]);
+		}
 
 		// 空白選択の挿入(Checklist以外)
 		if ($params["type"] != "checklist" && isset($params["zerooption"])) {

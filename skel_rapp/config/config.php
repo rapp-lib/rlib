@@ -20,6 +20,7 @@
 		"Config.dync_key" =>"_",
 		"Config.auto_deploy" =>false,
 		"Config.external_charset" =>"UTF-8",
+		"Config.session_lifetime" =>86400,
 		"Config.webapp_include_path" =>array(
 			"app",
 			"app/include",

@@ -25,7 +25,7 @@ window.rui.require_js =function (ext_file) {
 
 	if ( ! rui.ext_loaded.css[ext_file]) {
 		
-		$("head").append($("<script/>").attr({
+		$("head").append($("<script></script>").attr({
 			language: 'javascript',
 			charset: 'UTF-8',
 			src: rui.ext_url+"/"+ext_file

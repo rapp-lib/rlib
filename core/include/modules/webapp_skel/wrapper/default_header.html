@@ -1,29 +1,24 @@
 <html>
 <head>
 	<title>-</title>
-	
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-	
 	{{if "State.is_url_rewrited"|registry}}
-	<meta name="robots" content="nofollow"/>
+		<meta name="robots" content="nofollow"/>
 	{{/if}}
-	
-	<link rel="stylesheet" href="{{'/css/default-admin.css'|path_to_url}}"/>
-	
+	<link rel="stylesheet" href="{{'/css/default_style.css'|path_to_url}}"/>
 	<script charset="UTF-8" src="{{'/js/jquery.js'|path_to_url}}"></script>
 	<script charset="UTF-8" src="{{'/js/rui/rui.js'|path_to_url}}"></script>
 	<script> rui.init("{{'/js/rui'|path_to_url}}"); </script>
-	
 </head>
 <body>
 
 <div class="main_content">
 	{{a _page="index.index" class="button"}}トップ{{/a}}
-	{{*
+{{*
 	{{if $c_member_auth->id()}}
 		{{a _page="member_login.logout" class="button"}}ログアウト{{/a}}
 	{{/if}}
-	*}}
+*}}
 	{{foreach from="Schema.controller"|registry key="controller_name" item="controller"}}
 		{{a _page="`$controller_name`.index" class="button"}}{{$controller.label}}{{/a}}
 	{{/foreach}}

@@ -1,0 +1,66 @@
+<?=$c["header"]?> 
+
+<!-- page_title_module -->
+<div class="row">
+<div class="col-lg-12">
+		
+ 	<h1><?=$c["label"]?> <small><?=$a["label"]?></small></h1>
+	<hr/>
+
+</div><!-- /.col-lg-12 -->
+</div><!-- /.row -->
+<!-- /page_title_module -->
+
+<!-- errors_module -->
+<div class="row">
+<div class="col-lg-12">
+
+	{{if $c && $c->errors()}}
+	<div class="alert alert-danger">
+		<a class="close" data-dismiss="alert">×</a>
+		{{foreach $c->errors() as $input_name => $error_message}}
+			<strong>※</strong> {{$error_message}}<br/>
+		{{/foreach}}
+	</div><!-- /.alert -->
+	{{/if}}
+	
+</div><!-- /.col-lg-12 -->
+</div><!-- /.row -->
+<!-- /errors_module -->
+
+<!-- entry_module -->
+{{form _page=".entry_confirm" enctype="multipart/form-data"}}
+<div class="row form-horizontal">
+<div class="col-lg-6">
+
+<? foreach ($this->filter_fields($t["fields"],"input") as $tc): ?>
+	<div class="form-group">
+		<label class="col-lg-4 control-label">
+			<?=$tc['label']?> 
+		</label>
+		<div class="col-lg-8 form-controls">
+			{{input name="c[<?=$tc['name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?>}}
+		</div>
+	</div>
+	
+	<hr/>
+	
+<? endforeach; ?>
+	<div class="form-group well">
+		<div class="col-lg-12 text-right">
+			{{a _page=".index" class="btn btn-default" role="button"}}戻 る{{/a}}
+			{{input type="submit" class="btn btn-primary" value="確 認"}}
+		</div>
+	</div>
+	
+</div><!-- /.col-lg-6 -->
+<div class="col-lg-6">
+
+	<!-- Right-side contents -->
+	
+</div><!-- /.col-lg-6 -->
+</div><!-- /.row -->
+{{/form}}
+<!-- /entry_module -->
+
+<?=$c["footer"]?> 
