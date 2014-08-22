@@ -109,7 +109,7 @@
 			
 			// path指定
 			if (preg_match('!^(?:path:)?(/[^\*]*)(\*)?$!',$item,$match)) {
-				report($match);
+				
 				$result =$match[2]
 						? strpos($path,$match[1])===0
 						: $path==$match[1];
@@ -124,7 +124,7 @@
 			
 			if ($result) {
 				
-				return true;
+				return $item;
 			}
 		}
 		
@@ -153,28 +153,29 @@
 	//-------------------------------------
 	// ファイル名からURLを得る
 	function file_to_url ($file, $full_url=false) {
-	
-		$pattern ='!^'.preg_quote(registry('Path.document_root_dir')).'/?!';
+		
 		$document_root_url =registry('Path.document_root_url');
 		$document_root_url =preg_replace('!/$!','',$document_root_url);
 		
+		// https指定であればURLの先頭を変更
+		if ($full_url == "https") {
+					
+			if ($document_root_ssl_url =registry('Path.document_root_ssl_url')) {
+			
+				$document_root_url =preg_replace('!/$!','',$document_root_ssl_url);
+			
+			} else {
+			
+				$document_root_url =preg_replace('!^http://!','https://',$document_root_url);
+			}
+		
 		// httpから始まるURLを返す必要がなければ切り取る
-		if ( ! $full_url) {
+		} else {
 			
 			$document_root_url =preg_replace('!^https?://[^/]+(/|$)!','',$document_root_url);
 		}
-		
-		// https指定であればURLの先頭をHTTPSに変更
-		if ($full_url == "https") {
-			
-			$document_root_url =preg_replace('!^http://!','https://',$document_root_url);
-		}
-		
-		// http指定であればURLの先頭をHTTPに変更
-		if ($full_url == "http") {
-			
-			$document_root_url =preg_replace('!^https://!','http://',$document_root_url);
-		}
+	
+		$pattern ='!^'.preg_quote(registry('Path.document_root_dir')).'/?!';
 		
 		$url =preg_match($pattern,$file) 
 				? preg_replace($pattern,$document_root_url."/",$file) 

@@ -1,4 +1,16 @@
-	
+/**
+
+-- jquery.vifupload --
+	Sharingseed co,ltd
+	Yasutaka Toyosawa 
+	2013/12/10 
+
+-------------------------------------
+■サンプル：
+*/
+
+(function($){
+		
 	// file(LRA)要素を非同期で送信する機能
 	$.vifUpload =function($upload){
 		
@@ -131,3 +143,4 @@
 			$.vifUpload($(this));
 		});
 	});
+})(jQuery);

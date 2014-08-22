@@ -11,19 +11,22 @@
 	<meta name="robots" content="nofollow"/>
 	{{/if}}
 	
-	<!-- JQuery(CDN) -->
+	<!-- JS Hosted-on CDN -->
 	<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+		
+	<!-- Bootstrap JS/CSS Hosted-on CDN -->
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"/>
 
-	<!-- JS -->
+	<!-- JS rui -->
 	<script charset="UTF-8" src="{{'/js/rui/rui.js'|path_to_url}}"></script>
 	<script> rui.init("{{'/js/rui'|path_to_url}}"); </script>
-	<script> rui.require("rui.mi"); </script>
+	<script> rui.require("jquery.mi"); </script>
 	<script> rui.require("jquery.viframe"); </script>
-		
-	<!-- BootstrapCSS(CDN) -->
-	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"/>
 	
-	<!-- CSS -->
+	<!-- CSS bs-plugin -->
   <link rel="stylesheet" href="{{'/css/sb-admin.css'|path_to_url}}"/>
   <link rel="stylesheet" href="{{'/css/sb-admin-alt.css'|path_to_url}}"/>
 	

@@ -81,6 +81,23 @@
 	};
 	
 	//-------------------------------------
+	// オプションのClone処理
+	var objClone = function (obj) {
+		var clone = new (obj.constructor);
+		for (var p in obj) {
+			clone[p] = typeof obj[p] == 'object' ? objClone(obj[p]) : obj[p];
+		}
+		return clone;
+	}
+	var arrayClone = function(obj){
+		var clone = [];
+		for (var i = 0, l = obj.length; i < l; i++) {
+			clone[i] = typeof obj[i] == 'object' ? obj[i].clone() : obj[i];
+		}
+		return clone;
+	}
+	
+	//-------------------------------------
 	// デフォルトオプション
 	$.vifConfig ={
 		ajaxOptions : {},
@@ -177,7 +194,7 @@
 			var o =objClone(oOrigin) || {};			
 			var $anchor =$(e.currentTarget);
 			var tagName =$anchor.get(0).tagName;
-				
+			
 			// リンクの場合
 			if (tagName == "A" && e.type == "click") {
 			
@@ -189,17 +206,27 @@
 				
 				o.ajaxOptions.type =$anchor.attr("method") || "GET";
 				o.ajaxOptions.url =$anchor.attr("action");
-				o.ajaxOptions.data =$anchor.serialize();
+				
+				o.ajaxOptions.data =o.ajaxOptions.data || {};
+				
+				var formData =$anchor.serializeArray();
+				
+				for (var i in formData) {
+					
+					o.ajaxOptions.data[formData[i]["name"]] =formData[i]["value"];
+				}
 				
 			// リクエスト以外には割り込まない
 			} else {
 				
 				return true;
 			}
-
+			
 			// target=_parent、_blank、ページ内アンカー、JS実行であれば割り込まない
 			if ($anchor.attr("target") == "_parent"
 					|| $anchor.attr("target") == "_blank"
+					|| ( $anchor.attr("target") 
+						&& $anchor.attr("target") != $target.attr("id") )
 					|| o.ajaxOptions.url.match(/^#/)
 					|| o.ajaxOptions.url.match(/^javascript:/)) {
 				
@@ -223,9 +250,41 @@
 				}
 			}
 			
+			// Header追加
+			o.ajaxOptions.headers =o.ajaxOptions.headers || {};
+			
+			o.ajaxOptions.headers["X-Vif-Request"] ="1";
+			o.ajaxOptions.headers["X-Vif-Target-Id"] =$target.attr("id") || "noname";
+				
+			if (o.headers) {
+			
+				for (var i in o.headers) {
+				
+					o.ajaxOptions.headers[i] =o.headers[i];
+				};
+			}
+			
+			// POSTパラメータ追加
+			o.ajaxOptions.data =o.ajaxOptions.data || {};
+				
+			if (o.data) {
+			
+				for (var i in o.data) {
+				
+					o.ajaxOptions.data[i] =o.data[i];
+				};
+			}
+			
 			// 通信成功時
 			o.ajaxOptions.success =function (data ,textStatus ,xhr) {
 				
+				var vifResponseTargetId =xhr.getResponseHeader("X-Vif-Target-Id");
+				
+				if (vifResponseTargetId && $target.attr("id") != vifResponseTargetId) {
+					
+					$target =$("#"+vifResponseTargetId);
+				}
+						
 				// 指定した要素が存在しない
 				if ( ! $target || ! $target.html || $target.length == 0) {
 					
@@ -255,6 +314,7 @@
 
 				$target.html(data); 
 				
+				o.onSuccess && o.onSuccess($anchor,$target,data,xhr,o);
 				$anchor.trigger("vifSuccess",[$anchor,$target,data,xhr,o]);
 				$target.trigger("vifSuccess",[$anchor,$target,data,xhr,o]);
 			};
@@ -271,13 +331,15 @@
 					o : o
 				});
 				
+				o.onError && o.onError($anchor,$target,textStatus,xhr,o);
 				$target.trigger("vifError",[$anchor,$target,textStatus,xhr,o]);
 				$anchor.trigger("vifError",[$anchor,$target,textStatus,xhr,o]);
 			};
 			
 			// 通信前
 			o.ajaxOptions.beforeSend =function (xhr) {
-			
+		
+				o.onBeforeSend && o.onBeforeSend($anchor,$target,xhr,o);
 				$anchor.trigger("vifBefore",[$anchor,$target,xhr,o]);
 				$target.trigger("vifBefore",[$anchor,$target,xhr,o]);
 			};
@@ -285,20 +347,30 @@
 			// 通信後
 			o.ajaxOptions.complete	=function (xhr) {
 			
+				o.onComplete && o.onBeforeSend($anchor,$target,xhr,o);
 				$anchor.trigger("vifAfter",[$anchor,$target,xhr,o]);
 				$target.trigger("vifAfter",[$anchor,$target,xhr,o]);
 			};
 			
+			// 通信を行う関数の指定がある場合
+			if (o.requestFunction) {
+				
+				o.requestFunction($anchor, $target, o.ajaxOptions);
+				
 			// file要素がある場合はiframeでRequest
-			if ($anchor.find('input:file').length) {
+			} else if ($anchor.find('input:file').length) {
 					
-				return $.vifRequestByIframe($anchor, o.ajaxOptions);
+				$.vifRequestByIframe($anchor, o.ajaxOptions);
 			
 			// AJAXでリクエスト
 			} else {
 				
-				return $.ajax(o.ajaxOptions);
+				$.ajax(o.ajaxOptions);
 			}
+			
+			e.preventDefault();
+			e.stopPropagation();
+			return false;
 		};
 
 		// リクエスト発行イベントに常時割り込み
@@ -326,23 +398,6 @@
 			}
 		}
 	};
-	
-	//-------------------------------------
-	// オプションのClone処理
-	objClone = function (obj) {
-		var clone = new (obj.constructor);
-		for (var p in obj) {
-			clone[p] = typeof obj[p] == 'object' ? objClone(obj[p]) : obj[p];
-		}
-		return clone;
-	}
-	arrayClone = function(obj){
-		var clone = [];
-		for (var i = 0, l = obj.length; i < l; i++) {
-			clone[i] = typeof obj[i] == 'object' ? obj[i].clone() : obj[i];
-		}
-		return clone;
-	}
 	
 	//-------------------------------------
 	// iframeを使用したAjax実装

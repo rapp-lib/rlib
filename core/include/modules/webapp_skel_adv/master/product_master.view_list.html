@@ -20,19 +20,19 @@
 	
 <? if ($c["usage"] != "view"): ?>
 	  <div class="btn-group">
-			{{a _page="user_master.entry_form" class="btn btn-primary act-create"}}新規登録{{/a}}
+			{{a _page=".entry_form" class="btn btn-primary act-create"}}新規登録{{/a}}
 		</div>
 		
 <? endif; /* $c["usage"] != "view" */ ?>
 <? if ($c["usage"] != "view" && $c["use_csv"]): ?>
 	  <div class="btn-group">
-			{{a _page="user_master.entry_form" class="btn btn-default act-csvimp"}}<span class="glyphicon glyphicon-log-in"></span> CSV一括インポート{{/a}}
+			{{a _page=".entry_csv_form" class="btn btn-default act-csvimp"}}<span class="glyphicon glyphicon-log-in"></span> CSV一括インポート{{/a}}
 		</div>
 		
 <? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 <? if ($c["usage"] != "form" && $c["use_csv"]): ?>
 	  <div class="btn-group">
-			{{a _page="user_master.entry_form" class="btn btn-default act-csvexp"}}<span class="glyphicon glyphicon-log-out"></span> CSV一括ダウンロード{{/a}}
+			{{a _page=".view_csv" class="btn btn-default act-csvexp"}}<span class="glyphicon glyphicon-log-out"></span> CSV一括ダウンロード{{/a}}
 		</div>
 		
 <? endif; /* $c["usage"] != "form" && $c["use_csv"] */ ?>

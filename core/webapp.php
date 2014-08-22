@@ -24,6 +24,7 @@
 			"Config.dync_auth_pw" =>"547d913f6ee96d283eb4d50aea20acc1",
 			
 			// セッション設定
+			"Config.session_lifetime" =>86400,
 			"Config.session_start_function" =>"std_session_start",
 			
 			// webapp_dir内のinclude_path設定
@@ -106,10 +107,11 @@
 	function std_session_start () {
 		
 		// セッションの開始
-		ini_set("session.cookie_lifetime",0);
+		$session_lifetime =registry("Config.session_lifetime");
+		ini_set("session.gc_maxlifetime",$session_lifetime);
+		ini_set("session.cookie_lifetime",$session_lifetime);
 		ini_set("session.cookie_httponly",true);
 		ini_set("session.cookie_secure",$_SERVER['HTTPS']);
-		header("P3P: CP='UNI CUR OUR'");
 		
 		// Probrem on IE and https filedownload
 		// http://www.php.net/manual/en/function.session-cache-limiter.php#48822
@@ -117,6 +119,8 @@
 		header("Pragma: public");
 		header("Expires: Thu, 19 Nov 1981 08:52:00 GMT");
 		header("Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
+		
+		header("P3P: CP='UNI CUR OUR'");
 		
 		session_start();
 	}
@@ -263,6 +267,16 @@
 			
 			registry('State.is_url_rewrited',true);
 		}
+		
+		return $result;
+	}
+	
+	//-------------------------------------
+	// 転送時に引き継ぐパラメータの設定
+	function redirect_rewrite_var ($name=null, $value=null) {
+	
+		$rewrite_var =& ref_globals("redirect_rewrite_var");
+		$result =array_registry($rewrite_var,$name,$value);
 		
 		return $result;
 	}
@@ -430,7 +444,11 @@
 			}
 		}
 		
-		$url =url($url,array_merge((array)$params,(array)output_rewrite_var()));
+		$url =url($url,array_merge(
+			(array)$params,
+			(array)output_rewrite_var(),
+			(array)redirect_rewrite_var()
+		));
 		
 		$flush_message =flush_message($flush_message);
 		
