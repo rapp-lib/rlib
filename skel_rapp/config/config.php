@@ -61,8 +61,5 @@
 		registry(array(
 		));
 	
-	} else {
-		
-		report_error("env-ident file not found.");
 	}
 	
