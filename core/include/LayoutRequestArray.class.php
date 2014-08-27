@@ -75,7 +75,9 @@ class LayoutRequestArray {
 				
 				$setting =$settings[$request["splitmode"]];
 				
-				$value =implode($value,$setting["delim"]);
+				$value =strlen(implode($value,""))
+						? implode($value,$setting["delim"])
+						: "";
 			
 			// ファイル指定
 			} elseif ($request["mode"] == "file") {
