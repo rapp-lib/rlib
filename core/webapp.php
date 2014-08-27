@@ -450,7 +450,8 @@
 			(array)redirect_rewrite_var()
 		);
 		
-		if (ini_get("session.use_trans_sid")) {
+		if (ini_get("session.use_trans_sid")
+				&& $_REQUEST[session_name()] == session_id()) {
 			
 			$params[session_name()] =session_id();
 		}
