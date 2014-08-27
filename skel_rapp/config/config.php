@@ -41,6 +41,10 @@
 			"404" =>registry("Path.html_dir")."/errors/404.html",
 			"500" =>registry("Path.html_dir")."/errors/500.html",
 		),
+		
+		// 複数サイト対応
+		"Config.vhosts" =>array(
+		),
 	));
 
 	//-------------------------------------
@@ -52,15 +56,47 @@
 	
 	//-------------------------------------
 	// 環境別設定の上書き
-	if (file_exists(dirname(__FILE__).'/env-release')) {
+	foreach (glob(dirname(__FILE__).'/*.env-ident') as $env_ident_file) {
 		
-		registry(array(
-		));
-		
-	} elseif (file_exists(dirname(__FILE__).'/env-stg')) {
-		
-		registry(array(
-		));
+		if (preg_match('!/([^\./]+)\.env-ident$!',$env_ident_file,$match)) {
+			
+			$env_id =$match[1];
+			$config_files =glob(dirname(__FILE__).'/*.'.$env_id.'.env-config.php');
+			
+			foreach ($config_files as $config_file) {
+				
+				include_once($config_file);
+			}
+			
+			break;
+		}
+	}
 	
+	//-------------------------------------
+	// ドメイン別設定の上書き
+	foreach (registry("Config.vhosts") as $site_id => $site_config) {
+		
+		$server_names = ! is_array($site_config["server_name"]) 
+				? array($site_config["server_name"])
+				: $site_config["server_name"];
+		$server_name =$server_names[0];
+		
+		if (in_array($_SERVER["SERVER_NAME"],$server_names)) {
+			
+			registry(array(
+				"Path.document_root_url" =>"http://".$server_name,
+				"Path.document_root_url_https" =>"https://".$server_name,
+			));
+			registry((array)$site_config["overwrite_config"]);
+			
+			$config_files =glob(dirname(__FILE__).'/*.'.$site_id.'.site-config.php');
+			
+			foreach ($config_files as $config_file) {
+				
+				include_once($config_file);
+			}
+			
+			break;
+		}
 	}
 	
