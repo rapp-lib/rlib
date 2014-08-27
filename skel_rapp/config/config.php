@@ -35,6 +35,11 @@
 		"Report.error_reporting" =>E_ALL&~E_NOTICE&~E_DEPRECATED,
 		"Report.buffer_enable" =>false,
 		"Report.output_to_file" =>null,
+		"Report.report_about_dync" =>false,
+		"Report.report_backtraces" =>false,
+	));
+	
+	registry(array(
 		
 		// エラー時転送先設定
 		"Config.error_document" =>array(
@@ -42,7 +47,7 @@
 			"500" =>registry("Path.html_dir")."/errors/500.html",
 		),
 		
-		// 複数サイト対応
+		// 複数サイト対応設定
 		"Config.vhosts" =>array(
 		),
 	));

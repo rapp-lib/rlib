@@ -133,7 +133,7 @@
 		$libpath =realpath(dirname(__FILE__));
 		$backtraces =debug_backtrace();
 	
-		$errdetail ="\n";
+		$errdetail =array();
 		$errfile ="-";
 		$errline ="-";
 		$errpos ="";
@@ -148,20 +148,17 @@
 					&& ( ! strlen($backtrace['file']) 
 					|| strstr($backtrace['file'],$libpath))) {
 					
-				$errdetail .="@".basename($backtrace['file'])
+				$errdetail[$i] .="@".basename($backtrace['file'])
 						."(".$backtrace['line'].") ";
 			
 				if (strlen($backtrace['class'])) {
 			
-					$errdetail .=$backtrace['class']."::".$backtrace['function'];
+					$errdetail[$i] .=$backtrace['class']."::".$backtrace['function'];
 			
 				} elseif (strlen($backtrace['function'])) {
 			
-					$errdetail .=$backtrace['function'];
-				
+					$errdetail[$i] .=$backtrace['function'];
 				}
-				
-				$errdetail .="\n";
 				
 				continue;
 			}
@@ -225,6 +222,11 @@
 				$message .=' :'.decorate_value($params,true);
 			}
 			
+			if (registry("Report.report_backtraces")) {
+			
+				$message .='<br/> [BACKTRACES] :'.decorate_value($errdetail,true);
+			}
+			
 			$report_html .='<div class="ruiReport '.$elm_class.'" id="'.$elm_id.'" '
 					.'onclick="var e=document.getElementById(\''.$elm_id.'\');'
 					.'e.style.height =\'auto\'; e.style.cursor =\'auto\';" '
@@ -232,8 +234,6 @@
 					.'margin:1px;padding:2px;font-family:monospace;'
 					.'border:#888888 1px solid;background-color:'
 					.'#000000;cursor:hand;height:40px;color:'.$font_color.'">'
-					.'<div style="display:none">'
-					.$errdetail.'</div>'
 					.$errfile.'('.$errline.') - '.$errpos
 					.'<div style="margin:0 0 0 10px">'
 					.$message.'</div></div>';
