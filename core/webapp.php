@@ -136,7 +136,8 @@
 			if ($_REQUEST[$dync_key] && ! $dync["auth"] 
 					&& ($sec =$_REQUEST["__ts"]) && ($min =floor(time()/60))
 					&& (encrypt_string(substr(md5($dync_key."/".($min-0)),12,12))==$sec
-					|| encrypt_string(substr(md5($dync_key."/".($min-1)),12,12))==$sec)) {
+					|| encrypt_string(substr(md5($dync_key."/".($min-1)),12,12))==$sec
+					|| encrypt_string(substr(md5($dync_key."/".($min+1)),12,12))==$sec)) {
 						
 				$dync["auth"] =registry("Config.dync_auth_id");
 			}
@@ -144,7 +145,9 @@
 			if ($dync["auth"]) {
 			
 				$dync =array_merge($dync,(array)$_REQUEST[$dync_key]);
+				
 				$_SESSION["__dync"] =$dync;
+				
 				registry("Config.dync",$dync);
 				
 				if ($dync["report"]) {
@@ -152,6 +155,18 @@
 					ini_set("display_errors",true);
 					ini_set("error_reporting",registry("Report.error_reporting"));
 				}
+			}
+			
+			if (registry("Report.report_about_dync")) {
+			
+				report("Dync status-report.",array(
+					"request_ts" =>$_REQUEST["__ts"],
+					"server_dync_key" =>$dync_key,
+					"server_min" =>date("Y/m/d H:i",time()),
+					"server_min_threashold" =>"+-1min",
+					"request_dync" =>$_REQUEST[$dync_key],
+					"session_dync" =>$_SESSION["__dync"],
+				));
 			}
 		}
 	}
