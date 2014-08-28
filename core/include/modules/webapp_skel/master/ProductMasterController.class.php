@@ -312,7 +312,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		$this->context("c",1,true);
 		$this->c->input($_REQUEST["c"]);
 
-		$csv_filename =obj("UserFilemanager")->get_filename(
+		$csv_filename =obj("UserFileManager")->get_filename(
 				$this->c->input("Import.csv_file"), "data");
 		
 		if ( ! $csv_filename) {
@@ -332,7 +332,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		
 		$this->context("c",1,true);
 		
-		$csv_filename =obj("UserFilemanager")->get_filename(
+		$csv_filename =obj("UserFileManager")->get_filename(
 				$this->c->input("Import.csv_file"), "data");
 		
 		// CSVファイルの読み込み準備
