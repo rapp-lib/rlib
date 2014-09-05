@@ -4,9 +4,14 @@
 	
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 	
-	{{if "State.is_url_rewrited"|registry}}
-	<meta name="robots" content="nofollow"/>
-	{{/if}}
+	<!-- Add robots-meta -->
+{{$_robots=array()}}
+{{if "State.is_url_rewrited"|registry}}{{$_robots["nofollow"]=1}}{{/if}}
+{{if $_REQUEST["_noindex"]}}{{$_robots["noindex"]=1}}{{/if}}
+{{if $_REQUEST["_noindex"]}}{{$_robots["noarchive"]=1}}{{/if}}
+{{if $_robots}}
+	<meta name="robots" content="{{$_robots|array_keys|implode:','}}"/> 
+{{/if}}
 	
 	<link rel="stylesheet" href="{{'/css/default-admin.css'|path_to_url}}"/>
 	

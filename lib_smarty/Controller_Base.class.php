@@ -110,6 +110,7 @@ class Controller_Base extends SmartyExtended {
 			$sname .="-".$fid;
 			
 			output_rewrite_var($fid_name,$fid);
+			output_rewrite_var("_noindex","1");
 		}
 		
 		$context->bind_session($sname);

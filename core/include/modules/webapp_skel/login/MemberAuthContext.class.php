@@ -58,6 +58,9 @@ class <?=str_camelize($c["account"])?>AuthContext extends Context_App {
 			$this->id($id);
 			
 			$this->refresh();
+			
+			// Session Fixation対策
+			session_regenerate_id(true);
 		}
 	}
 	

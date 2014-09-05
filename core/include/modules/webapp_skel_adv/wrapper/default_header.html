@@ -6,10 +6,14 @@
 	<meta name="viewport" content="width=device-width"/>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 
-	<!-- Add robots-nofollow for rewrited url -->
-	{{if "State.is_url_rewrited"|registry}}
-	<meta name="robots" content="nofollow"/>
-	{{/if}}
+	<!-- Add robots-meta -->
+{{$_robots=array()}}
+{{if "State.is_url_rewrited"|registry}}{{$_robots["nofollow"]=1}}{{/if}}
+{{if $_REQUEST["_noindex"]}}{{$_robots["noindex"]=1}}{{/if}}
+{{if $_REQUEST["_noindex"]}}{{$_robots["noarchive"]=1}}{{/if}}
+{{if $_robots}}
+	<meta name="robots" content="{{$_robots|array_keys|implode:','}}"/> 
+{{/if}}
 	
 	<!-- JS Hosted-on CDN -->
 	<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
