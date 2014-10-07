@@ -1,6 +1,6 @@
 <?php
 
-	function input_type_splittext ($params, $preset_value, $postset_value, $smarty) {
+	function input_type_splittext ($params, $preset_value, $postset_value, $template) {
 	
 		// 分割設定
 		$settings =array(
@@ -79,10 +79,9 @@
 			
 		// テンプレート変数へのアサイン
 		if ($params["assign"]) {
+		
+			$template->assign($params["assign"],$html);
 			
-			$ref =& ref_array($template->_tpl_vars,$params["assign"]);
-			$ref =$html;
-
 			return null;
 		}
 		
