@@ -1,43 +1,32 @@
 <?php
 
 	//-------------------------------------
-	// ファイルアップロード
-	registry(array(
-		
-		// アップロードディレクトリの指定
-		"UserFileManager.upload_dir" =>array(
-			"default" =>registry("Path.html_dir").'/user_file/uploaded',
-			"group" =>array(
-				"data" =>registry("Path.tmp_dir").'/uploaded',
+	// ファイルアップロード設定
+	registry("UserFile.group", array(
+	
+		"public" =>array(
+			"upload_dir" =>registry("Path.html_dir").'/user_file/uploaded',
+			"allow_ext" =>array(
+				'jpg', 'jpeg', 'png', 'gif', 'pdf',
 			),
+			"hash_level" =>3,
+			"save_raw_filename" =>false,
 		),
 		
-		// ファイル拡張子制限
-		"UserFileManager.allow_ext" =>array(
-			"default" =>array(
+		"private" =>array(
+			"upload_dir" =>registry("Path.tmp_dir").'/uploaded',
+			"allow_ext" =>array(
 				'jpg', 'jpeg', 'png', 'gif',
+				'zip', 'pdf', 'bmp',
+				'csv', 'txt', 'xml',
+				'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx',
 			),
-			"group" =>array(
-				"data" =>array(
-					'jpg', 'jpeg', 'png', 'gif',
-					'zip', 'pdf', 'bmp',
-					'csv', 'txt', 'xml',
-					'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx',
-				),
-			),
-		),
-		
-		// ハッシュ階層指定
-		"UserFileManager.hash_level" =>array(
-			"default" =>3,
-			"group" =>array(
-				"image" =>3,
-				"data" =>3,
-			),
-		),
-		
-		// アップロードディレクトリの指定
-		"ImageResize.resized_image_dir" =>array(
-			"default" =>registry("Path.html_dir").'/user_file/resized',
+			"hash_level" =>3,
+			"save_raw_filename" =>false,
 		),
 	));
+	
+	//-------------------------------------
+	// リサイズ画像保存先の指定
+	registry("ImageResize.resized_image_dir.default",
+			registry("Path.html_dir").'/user_file/resized');

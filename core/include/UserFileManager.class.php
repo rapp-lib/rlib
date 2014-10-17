@@ -3,16 +3,12 @@
 	-------------------------------------
 	□設定
 		
-		[Registry] App.UserFileManager.upload_dir
-			default ... group空白時のアップロード先
-			groups
-				<_UFMs.n.group> ... group別アップロード先
-		
-		[Registry] App.UserFileManager.allow_ext
-			default ... group空白時の許可拡張子リスト（"."含む）
-			groups
-				<_UFMs.n.group> ... group別許可拡張子リスト
-
+		registry("UserFile.group.[group]",array(
+			"upload_dir" => "", // アップロード先
+			"allow_ext" => "", // 許可拡張子リスト（"."含む）
+			"hash_level" => 3, // ハッシュ階層
+		));
+			
 	-------------------------------------
 	□サンプルコード（フォーム以外からのファイルアップロード）:
 
@@ -29,44 +25,104 @@
 class UserFileManager {
 	
 	//-------------------------------------
-	// アップロード済みのファイルがあればそのファイル名を取得
-	public function get_filename ($code, $group=null) {
+	// グループ別設定を取得する
+	protected function get_config ($name, $group, $must=false) {
 			
-		$code =preg_replace('!\.\.!','_',$code);
+		$must_code =$must ? "!" : "";
+		$group =preg_replace('![^_0-9a-zA-Z]!','_',$group);
 		
-		$upload_dir =$this->get_upload_dir($group);
-		$filename =$upload_dir."/".$code;
+		/// DEPRECATED 141016 : 古い設定記述方法への対応
+		if (registry("UserFileManager")) {
+			
+			return $group
+					? registry($must_code."UserFileManager.".$name.".group.".$group)
+					: registry($must_code."UserFileManager.".$name.".default");
+		}
 		
-		return $filename && file_exists($filename) && ! is_dir($filename)
-				? $filename
+		return $group
+				? registry($must_code."UserFile.group.".$group.".".$name)
 				: null;
 	}
 	
 	//-------------------------------------
-	// アップロードディレクトリを取得
-	public function get_upload_dir ($group=null) {
+	// アップロード完了時のローカルファイル名を取得
+	public function get_uploaded_file ($code, $group) {
 		
-		$group =preg_replace('![^-_0-9a-zA-Z]!','_',$group);
+		$code =preg_replace('!\.\.!','__',$code);
+		
+		$upload_dir =$this->get_config("upload_dir",$group,true);
+		
+		$filename =$upload_dir."/".$code;
+		
+		// 対象が空
+		if ( ! $code) {
+			
+			return null;
+		}
+		
+		// ファイルがない
+		$file_notfound = ! file_exists($filename) || ! is_file($filename);
+		
+		// 参照時に手元にファイルがなかったらダウンロードを行う指定がある場合
+		if ($file_notfound && $this->get_config("fetch_remote_file",$group)) {
+			
+			$transfar =$this->get_config("transfar",$group);
+			
+			// SCP転送
+			if ($transfar["type"] == "scp") {
 				
-		$upload_dirs =registry("UserFileManager.upload_dir");
-		$upload_dir =($group && $upload_dirs["group"][$group])
-				? $upload_dirs["group"][$group]
-				: $upload_dirs["default"];
+				$result =obj("SSHTransfar")->scp_download(array(
+					"local_file" =>$filename,
+					"remote_file" =>$transfar["scp_config"]["remote_dir"]."/".$code,
+					"host" =>$transfar["scp_config"]["host"],
+					"port" =>$transfar["scp_config"]["port"],
+					"user" =>$transfar["scp_config"]["user"],
+					"identity_file" =>$transfar["scp_config"]["identity_file"],
+				));
+				
+				// 通信失敗
+				if ( ! $result) {
+					
+					return null;
+				}
+			}
 		
-		return $upload_dir;
+			$file_notfound = ! file_exists($filename) || is_dir($filename);
+		}
+		
+		if ($file_notfound) {
+			
+			return null;
+		}
+		
+		return $filename;
+	}
+	
+	//-------------------------------------
+	// Codeに対応するファイルの配信URLを取得
+	public function get_url ($code, $group) {
+		
+		// URLの解決方法の指定がある場合
+		if ($upload_url =$this->get_config("upload_url",$group)) {
+			
+			return $upload_url."/".$code;
+		}
+		
+		// DocumentRoot以下のファイルで自動的にURL解決できる場合		
+		$filename =$this->get_uploaded_file($code, $group);
+		$url =file_to_url($filename);
+		
+		return $url;
 	}
 	
 	//-------------------------------------
 	// 新規のアップロードファイルのコードを生成
-	public function get_blank_key ($group=null) {
+	public function get_blank_key ($group) {
 					
 		$key =date("Ymd-His")."-".sprintf('%03d',mt_rand(1,999));
 		
 		// ファイル名をハッシュディレクトリで階層化する
-		$hash_levels =registry("UserFileManager.hash_level");
-		$hash_level =($group && $hash_levels["group"][$group])
-				? $hash_levels["group"][$group]
-				: $hash_levels["default"];
+		$hash_level =$this->get_config("hash_level",$group);
 		
 		// ハッシュ階層化
 		if ($hash_level) {
@@ -84,13 +140,6 @@ class UserFileManager {
 		
 		$group =$params["group"];
 		
-		$upload_dir =$this->get_upload_dir($group);
-		
-		$allow_exts =registry("UserFileManager.allow_ext");
-		$allow_ext =($group && $allow_exts["group"][$group])
-				? $allow_exts["group"][$group]
-				: $allow_exts["default"];
-	
 		// アップロードファイルがない
 		if ( ! file_exists($params["src_filename"])) {
 
@@ -99,10 +148,11 @@ class UserFileManager {
 			);
 		}
 
-		// 拡張子の確認
+		// 許可する拡張子の指定がある場合、指定以外拒否するが、拡張子は削除しない
 		$ext ="";
 		
-		if ($allow_ext) {
+		if ($params["src_filename_alias"]
+				&& $allow_ext =$this->get_config("allow_ext",$group)) {
 			
 			$ext =preg_match('!\.[^\.]+$!',$params["src_filename_alias"],$match)
 					? strtolower($match[0])
@@ -119,11 +169,13 @@ class UserFileManager {
 			}
 		}
 		
+		// 保存先ディレクトリチェック
+		$upload_dir =$this->get_config("upload_dir",$group,true);
+		
 		$is_dir_writable =$upload_dir 
 				&& is_dir($upload_dir)
 				&& is_writable($upload_dir);
 				
-		// 保存先ディレクトリチェック
 		if ( ! $is_dir_writable) {
 			
 			return array(
@@ -132,11 +184,24 @@ class UserFileManager {
 			);
 		}
 		
+		// 保存先ファイル名の生成
 		$key =$this->get_blank_key($group);
 		$code =$key.$ext;
-		$dest_filename =$upload_dir."/".$key.$ext;
 		
-		// 既存ファイル衝突チェック
+		// アップロード時のファイル名を残す設定
+		if ($this->get_config("save_raw_filename",$group)
+				&& $params["src_filename_alias"]) {
+			
+			// 拡張子が許可されている場合のみ指定を有効にする
+			if ($ext) {
+			
+				$code =$key."/".basename($params["src_filename_alias"]);
+			}
+		}
+		
+		$dest_filename =$upload_dir."/".$code;
+		
+		// 既存ファイル衝突チェック（通常乱数の衝突が発生することはない）
 		if (file_exists($dest_filename)) {
 			
 			return array(
@@ -148,7 +213,7 @@ class UserFileManager {
 		// フォルダ作成
 		if ( ! file_exists(dirname($dest_filename))) {
 			
-			mkdir(dirname($dest_filename),0777,true);
+			mkdir(dirname($dest_filename),0775,true);
 		}
 		
 		// アップロード
@@ -163,6 +228,7 @@ class UserFileManager {
 			$result =copy($params["src_filename"],$dest_filename);
 		}
 		
+		// ファイルの書き込みエラー
 		if ( ! $result) {
 			
 			return array(
@@ -171,328 +237,74 @@ class UserFileManager {
 			);
 		}
 		
-		chmod($dest_filename,0666);
-
+		chmod($dest_filename,0664);
+		
+		// アップロードファイルのリモートへの転送の指定がある場合
+		if ($transfar =$this->get_config("transfar",$group)) {
+			
+			// SCP転送
+			if ($transfar["type"] == "scp") {
+				
+				$result =obj("SSHTransfar")->ssh_remote_exec(array(
+					"mkdir",
+					"-p",
+					dirname($transfar["scp_config"]["remote_dir"]."/".$code),
+				),array(
+					"host" =>$transfar["scp_config"]["host"],
+					"port" =>$transfar["scp_config"]["port"],
+					"user" =>$transfar["scp_config"]["user"],
+					"identity_file" =>$transfar["scp_config"]["identity_file"],
+				));
+				
+				$result =obj("SSHTransfar")->scp_upload(array(
+					"local_file" =>$dest_filename,
+					"remote_file" =>$transfar["scp_config"]["remote_dir"]."/".$code,
+					"host" =>$transfar["scp_config"]["host"],
+					"port" =>$transfar["scp_config"]["port"],
+					"user" =>$transfar["scp_config"]["user"],
+					"identity_file" =>$transfar["scp_config"]["identity_file"],
+				));
+				
+				// 通信失敗
+				if ( ! $result) {
+					
+					return array(
+						"status" =>"transfar_failed",
+						"message" =>"scp transfar failed",
+					);
+				}
+			}
+		}
+		
 		return array(
 			"status" =>"success",
 			"code" =>$code,
 			"file" =>$dest_filename,
-			"url" =>file_to_url($dest_filename),
+			"url" =>$this->get_url($code,$group),
 		);
 	}
 	
 	//-------------------------------------
-	// <DEPLECATED 131204 save_fileに移行>
-	protected static $uploaded_DEPLECATED =null;
-	
-	//-------------------------------------
-	// <DEPLECATED 131204 save_fileに移行 input_type_file_oldから呼び出しは可能>
-	public function fetch_file_upload_request_DEPLECATED () {
+	// アップロードディレクトリを取得 
+	/// DEPRECATED 141016 get_configに移行
+	public function get_upload_dir_DEPRECATED ($group=null) {
 		
-		if (self::$uploaded !== null) {
-			
-			return self::$uploaded;
-		}
+		$group =preg_replace('![^-_0-9a-zA-Z]!','_',$group);
+				
+		$upload_dirs =registry("UserFileManager.upload_dir");
+		$upload_dir =($group && $upload_dirs["group"][$group])
+				? $upload_dirs["group"][$group]
+				: $upload_dirs["default"];
 		
-		if ( ! isset($_REQUEST["_UFM"])) {
-			
-			return;
-		}
-		
-		$requests =$_REQUEST["_UFM"];
-		
-		self::$uploaded =array();
-			
-		foreach ((array)$requests as $request_index => $request) {
-			
-			if ( ! is_array($request)) {
-				
-				$request =array();
-			}
-			
-			$group =preg_replace('![^-_0-9a-zA-Z]!','_',$request["group"]);
-			
-			$target =$request["target"]
-					? $request["target"]
-					: $request_index."_file";
-			$resource =$_FILES[$target];
-			$delete =$request["delete"];
-			$complex =$request["complex"];
-			
-			$var_name =$request["var_name"]
-					? $request["var_name"]
-					: $request_index;
-			$name_ref =$var_name;
-			$name_ref =str_replace('.','..',$name_ref);
-			$name_ref =str_replace('][','.',$name_ref);
-			$name_ref =str_replace('[','.',$name_ref);
-			$name_ref =str_replace(']','',$name_ref);
-			$overwrite_target_var =& ref_array($_REQUEST,$name_ref);
-			
-			$upload_dir =$this->get_upload_dir($group);
-			
-			$allow_exts =registry("UserFileManager.allow_ext");
-			$allow_ext =($group && $allow_exts["group"][$group])
-					? $allow_exts["group"][$group]
-					: $allow_exts["default"];
-			
-			// 削除判定
-			if ($delete) {
-				
-				self::$uploaded[$request_index] =array(
-					"deleted" =>true,
-				);
-				
-				if ($request["shutdown"]) {
-				
-					clean_output_shutdown("<UserFileManager DELETED ->");
-				}
-				
-				$overwrite_target_var ="";
-				
-				continue;
-			}
-			
-			// アップロードファイルがない
-			if ( ! is_uploaded_file($resource["tmp_name"])) {
-			
-				report("No file to upload.",array(
-					"request_index" =>$request_index,
-					"group" =>$group,
-					"upload_dir" =>$upload_dir,
-					"resource" =>$resource,
-					"request" =>$request,
-				));
-				
-				continue;
-			}
-			
-			// 拡張子の確認
-			$ext ="";
-			
-			if ($allow_ext) {
-				
-				$ext =preg_match('!\.[^\.]+$!',$resource["name"],$match)
-						? $match[0]
-						: "";
-				
-				if ( ! in_array(str_replace('.','',strtolower($ext)),$allow_ext)) {
-								
-					if ($request["shutdown"]) {
-					
-						clean_output_shutdown("<UserFileManager ERROR ext_error>");
-					}
-				
-					report_warning("File upload error. ext not-allowed.",array(
-						"request_index" =>$request_index,
-						"group" =>$group,
-						"upload_dir" =>$upload_dir,
-						"target_file" =>$resource["name"],
-						"ext" =>$ext,
-					));
-					
-					self::$uploaded[$request_index] =array(
-						"error" =>"ext_error",
-					);
-					
-					continue;
-				}
-			}
-			
-			$dir_writable =$upload_dir 
-					&& is_dir($upload_dir)
-					&& is_writable($upload_dir);
-					
-			// 保存先ディレクトリチェック
-			if ( ! $dir_writable) {
-									
-				if ($request["shutdown"]) {
-				
-					clean_output_shutdown("<UserFileManager ERROR internal_error_dir>");
-				}
-				
-				report_warning("File upload error. upload_dir is not writable.",array(
-					"request_index" =>$request_index,
-					"group" =>$group,
-					"upload_dir" =>$upload_dir,
-				));
-				
-				self::$uploaded[$request_index] =array(
-					"error" =>"internal_error_dir",
-				);
-				
-				continue;
-			}
-			
-			$key =$this->get_blank_key($group);
-			$code =$key.$ext;
-			$dest_filename =$upload_dir."/".$key.$ext;
-			
-			// 既存ファイル衝突チェック
-			if (file_exists($dest_filename)) {
-				
-				if ($request["shutdown"]) {
-				
-					clean_output_shutdown("<UserFileManager ERROR internal_error_file>");
-				}
-				
-				report_warning("File upload error. File already exists.",array(
-					"request_index" =>$request_index,
-					"group" =>$group,
-					"upload_dir" =>$upload_dir,
-					"dest_filename" =>$dest_filename,
-				));
-				
-				self::$uploaded[$request_index] =array(
-					"error" =>"internal_error_file",
-				);
-				
-				continue;
-			}
-		
-			// フォルダ作成
-			if ( ! file_exists(dirname($dest_filename))) {
-				
-				mkdir(dirname($dest_filename),0777,true);
-			}
-			
-			$result =move_uploaded_file($resource["tmp_name"],$dest_filename)
-					&& chmod($dest_filename,0664);
-			
-			// アップロード可否確認
-			if ( ! $result) {
-				
-				if ($request["shutdown"]) {
-				
-					clean_output_shutdown("<UserFileManager ERROR internal_error_upload>");
-				}
-				
-				report_warning("File upload error. Upload failur",array(
-					"request_index" =>$request_index,
-					"group" =>$group,
-					"upload_dir" =>$upload_dir,
-					"dest_filename" =>$dest_filename,
-					"resource" =>$resource,
-				));
-				
-				self::$uploaded[$request_index] =array(
-					"error" =>"internal_error_upload",
-				);
-				
-				continue;
-			}
-			
-			$url =file_to_url($dest_filename);
-			
-			self::$uploaded[$request_index] =array(
-				"upload_dir" =>$upload_dir,
-				"key" =>$key,
-				"ext" =>$ext,
-				"group" =>$group,
-				"url" =>$url,
-				"filename" =>$dest_filename,
-				"code" =>$code,
-			);
-			
-			if ($request["shutdown"]) {
-			
-				clean_output_shutdown("<UserFileManager UPLOADED ".$code.">");
-			}
-			
-			if ($request["complex"]) {
-				
-				$overwrite_target_var =$request["complex"];
-				$overwrite_target_var["code"] =$code;
-				
-			} else {
-			
-				$overwrite_target_var =$code;
-			}
-		}
-		
-		return self::$uploaded;
+		return $upload_dir;
 	}
 	
 	//-------------------------------------
-	// 指定したデータをアップロード<DEPLECATED 131204 save_fileに移行>
-	public function upload_data_DEPLECATED (
-			$data, 
-			$code=null, 
-			$group=null, 
-			$data_is_filename=false) {
+	// アップロード完了時のファイル名を取得
+	/// DEPRECATED 141016 get_uploaded_file に移行
+	public function get_filename ($code, $group) {
 		
-		$code =$code
-				? $code
-				: $this->get_blank_key($group);
-		$upload_dir =$this->get_upload_dir($group);
-		$filename =$upload_dir."/".$code;
-		
-		// フォルダ作成
-		if ( ! file_exists(dirname($filename))) {
-			
-			mkdir(dirname($filename),0777,true);
-		}
-		
-		$dir_writable =$upload_dir 
-				&& is_dir($upload_dir)
-				&& is_writable($upload_dir);
-		
-		// 保存先ディレクトリチェック
-		if ( ! $dir_writable) {
-		
-			report_warning("File upload error. upload_dir is not writable.",array(
-				"group" =>$group,
-				"upload_dir" =>$upload_dir,
-				"filename" =>$filename,
-			));
-			
-			return null;
-		}
-		
-		// 既存ファイル衝突チェック
-		if (file_exists($filename)) {
-		
-			report_warning("File upload error. File already exists.",array(
-				"group" =>$group,
-				"upload_dir" =>$upload_dir,
-				"filename" =>$filename,
-			));
-			
-			return null;
-		}
-	
-		$result =$data_is_filename
-				? copy($data,$filename)
-				: file_put_contents($filename,$data);
-		
-		if ($result) {
-
-			chmod($filename,0666);
-		}
-		
-		return $result
-				? $code
-				: null;
-	}
-	
-	//-------------------------------------
-	// 指定したファイルをアップロード<DEPLECATED 131204 save_fileに移行>
-	public function upload_file_DEPLECATED ($target_file, $code=null, $group=null) {
-		
-		if ( ! file_exists($target_file)
-				|| ! is_readable($target_file)
-				|| is_dir($target_file)) {
-		
-			report_warning("File upload error. Target file is-not readable.",array(
-				"group" =>$group,
-				"upload_dir" =>$upload_dir,
-				"filename" =>$filename,
-			));
-			
-			return null;
-		}
-		
-		return $this->upload_data($target_file,$code,$group,true);
+		return $this->get_uploaded_file($code, $group);
 	}
 }
 	

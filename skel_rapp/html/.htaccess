@@ -6,7 +6,8 @@ AddDefaultCharset UTF-8
 #-------------------------------------
 # PHP 
 #
-php_flag display_errors On
+php_flag short_open_tag On
+php_flag display_errors Off
 php_value error_reporting 6135 
 php_value date.timezone Asia/Tokyo
 php_flag mbstring.encoding_translation Off

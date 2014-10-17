@@ -6,37 +6,37 @@
 #,,content,本文,text,textarea,
 #,,release_date,掲載日時,datetime,date,
 #,,status,ステータス,text,select,list=blog_entry_status
-#,,image_file,画像ファイル,text,file,
+#,,image_file,画像ファイル,text,file,group=public
 #,,movie,動画URL,text,text,
 #,,list_display_flg,一覧表示選択,text,select,list=blog_entry_list_display_flg
 #,,release_flg,公開範囲,text,select,list=blog_entry_release_flg
 #,,social_flgs,ソーシャル連携フラグ,text,checklist,list=blog_entry_social_flgs
-#,,blog_categories,カテゴリ,,checklist,list=blog_entry_categories | assoc.bridge=XBlogEntryToBlogCategory
+#,,blog_categories,カテゴリ,,checklist,list=blog_entry_categories | assoc.bridge=BlogEntryToBlogCategory
 #,,blog_comments,コメント,,,assoc.hasmany=BlogComment
 #,,id,ID,integer,,def.key=primary
-#,,reg_date,登録日時,datetime,,def.index=reg_date
+#,,reg_date,登録日時,datetime,,def.index=default
 #,,update_date,最終更新日時,timestamp,,
-#,,del_flg,削除フラグ,integer,,def.default=0 | def.index=del_flg
+#,,del_flg,削除フラグ,integer,,def.default=0 | def.index=default
 #,,,,,,
 #,BlogComment,,ブログコメント,,,pkey=id | del_flg=del_flg | update_date=update_date | reg_date=reg_date
 #,,blog_entry_id,ブログ記事ID,integer,,assoc.fkey=BlogEntry.id
 #,,artist_id,ユーザID,integer,,def.index=fk_artist_id
 #,,content,本文,text,textarea,
 #,,id,ID,integer,,def.key=primary
-#,,reg_date,登録日時,datetime,,def.index=reg_date
+#,,reg_date,登録日時,datetime,,def.index=default
 #,,update_date,最終更新日時,timestamp,,
-#,,del_flg,削除フラグ,integer,,def.default=0 | def.index=del_flg
+#,,del_flg,削除フラグ,integer,,def.default=0 | def.index=default
 #,,,,,,
 #,BlogCategory,,ブログカテゴリ,,,pkey=id | del_flg=del_flg | update_date=update_date | reg_date=reg_date
 #,,artist_id,ユーザID,integer,,def.index=fk_artist_id
 #,,name,カテゴリ名,text,text,
 #,,order_number,表示順序,integer,text,
 #,,id,ID,integer,,def.key=primary
-#,,reg_date,登録日時,datetime,,def.index=reg_date
+#,,reg_date,登録日時,datetime,,def.index=default
 #,,update_date,最終更新日時,timestamp,,
-#,,del_flg,削除フラグ,integer,,def.default=0 | def.index=del_flg
+#,,del_flg,削除フラグ,integer,,def.default=0 | def.index=default
 #,,,,,,
-#,XBlogEntryToBlogCategory,,（相関）ブログ記事対カテゴリ,,,pkey=id
+#,BlogEntryToBlogCategory,,（相関）ブログ記事対カテゴリ,,,pkey=id
 #,,blog_entry_id,ブログ記事ID,integer,,assoc.fkey=BlogEntry.id
 #,,blog_category_id,ブログカテゴリID,integer,,assoc.fkey=BlogCategory.id
 #,,id,ID,integer,,def.key=primary
@@ -46,5 +46,5 @@
 #,blog_entry_master,書店ブログ,master,BlogEntry,,wrapper=admin
 #,inquiry,問い合わせ,master,InquiryMessage,,wrapper=default | usage=form
 #,news_list,記事一覧,master,News,,wrapper=default | usage=view
-#,user_login,ログイン,login,User,User,wrapper=login
+#,user_login,ログイン,login,User,user,wrapper=login
 #,user_mypage,マイページ,index,,,wrapper=mypage

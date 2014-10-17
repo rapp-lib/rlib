@@ -7,13 +7,13 @@
 	
 	//-------------------------------------
 	// システム動作基本設定
+	registry("Path.webapp_dir", realpath(dirname(__FILE__)."/.."));
 	registry(array(
 	
 		// パス設定
-		"Path.webapp_dir" =>realpath(dirname(__FILE__)."/.."),
-		"Path.tmp_dir" =>realpath(dirname(__FILE__)."/../tmp"),
-		"Path.html_dir" =>realpath(dirname(__FILE__)."/../html"),
-		"Path.document_root_dir" =>realpath(dirname(__FILE__)."/../html"),
+		"Path.tmp_dir" =>registry("Path.webapp_dir")."/tmp",
+		"Path.html_dir" =>registry("Path.webapp_dir")."/html",
+		"Path.document_root_dir" =>registry("Path.webapp_dir")."/html",
 		"Path.document_root_url" =>"",
 		
 		// 基本設定
@@ -28,7 +28,6 @@
 			"app/context",
 			"app/list",
 			"app/model",
-			"app/widget",
 		),
 		
 		// デバッグ設定
