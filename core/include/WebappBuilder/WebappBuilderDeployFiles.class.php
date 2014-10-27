@@ -255,8 +255,12 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				
 				if ($tc['type'] == "file") {
 					
-					$tc['modifier'] ='|userfile:"image"';
-					$tc['input_option'] =' group="image"';
+					$group =$tc['group']
+							? $tc['group']
+							: "public";
+							
+					$tc['modifier'] ='|userfile:"'.$group.'"';
+					$tc['input_option'] =' group="'.$group.'"';
 				}
 				
 				if ($tc['type'] == "checkbox") {

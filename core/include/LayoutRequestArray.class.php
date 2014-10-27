@@ -99,18 +99,30 @@ class LayoutRequestArray {
 
 					$value =$result["code"];
 
+					report("File upload completed",array(
+						"request" =>$request,
+						"result" =>$result,
+					));
+
 				} elseif ($result["status"] == "denied") {
 
 					report_warning($result["message"],array(
 						"request" =>$request,
-						"resource" =>$resource,
+						"result" =>$result,
+					));
+
+				} elseif ($result["status"] == "transfar_failed") {
+
+					report_error($result["message"],array(
+						"request" =>$request,
+						"result" =>$result,
 					));
 
 				} elseif ($result["status"] == "error") {
 
 					report_error($result["message"],array(
 						"request" =>$request,
-						"resource" =>$resource,
+						"result" =>$result,
 					));
 				
 				} elseif ($result["status"] == "no_file") {

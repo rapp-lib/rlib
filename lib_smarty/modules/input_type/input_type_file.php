@@ -23,8 +23,7 @@
 		$value =$postset_value
 				? $postset_value
 				: $preset_value;
-		$file =obj("UserFileManager")->get_filename($value,$group);
-		$url =file_to_url($file);
+		$url =obj("UserFileManager")->get_url($value,$params["group"]);
 		
 		$html["alias"] =sprintf("LRA%09d",mt_rand());
 		$html["elm_id"] ='ELM_'.$html["alias"];
@@ -62,13 +61,13 @@
 		
 		// アップロード済み領域
 		$html["uploaded_set_head"] ='<span id="uploaded_set_'.$html["elm_id"].'" class="uploadedSet"'
-				.($file ? '' : ' style="display:none"').'>';
+				.($value ? '' : ' style="display:none"').'>';
 		$html["uploaded_set_foot"] ='</span>';
-		$html["uploaded_link"] ='<a href="'.$url.'" target="_blank" class="uploadedFile">アップロード済み</a>';
-		$html["uploaded_img"] ='<a href="'.$url.'" target="_blank" class="uploadedFile">'
-				.'<img src="'.$url.'" class="uploadedFile">'.'</a>';
+		$html["uploaded_link"] =$url ? '<a href="'.$url.'" target="_blank" class="uploadedFile">アップロード済み</a>' : "アップロード済み";
+		$html["uploaded_img"] =$url ? '<a href="'.$url.'" target="_blank" class="uploadedFile">'
+				.'<img src="'.$url.'" class="uploadedFile">'.'</a>' : "";
 		$html["uploaded_delete"] ='<a href="javascript:void(0)"'
-				.' onclick="'.$html["delete_js"].'" class="delete">(削除)</a>';
+				.' onclick="'.$html["delete_js"].'" class="delete">[削除]</a>';
 		
 		$html["message_area"] ='<span class="messageArea"></span>';
 		
@@ -81,8 +80,8 @@
 				.$html["upload"]
 				.$html["message_area"]
 				.$html["uploaded_set_head"]
-				.$html["uploaded_link"]
-				.$html["uploaded_delete"]
+				." ".$html["uploaded_link"]
+				." ".$html["uploaded_delete"]
 				.$html["uploaded_set_foot"]
 				.$html["foot"];
 			
