@@ -5,6 +5,7 @@
 class DBI_Base {
 
 	protected $name ="";
+	protected $driver_name ="";
 	protected $ds =null;
 	protected $transaction_stack =array();
 	private $desc_cache =array();
@@ -19,6 +20,8 @@ class DBI_Base {
 	//-------------------------------------
 	// DB接続
 	public function connect ($connect_info) {
+		
+		$this->driver_name =$connect_info["driver"];
 		
 		if ($connect_info["driver"]) {
 		
@@ -109,7 +112,8 @@ class DBI_Base {
 		$elapsed =round((microtime(true) - $start_time)*1000,2)."ms";
 		
 		// SQL文の調査
-		if (get_webapp_dync("report") && ! $this->ds->error) {
+		if ($this->check_driver("is_support_analyze_sql")
+				&& get_webapp_dync("report") && ! $this->ds->error) {
 			
 			$explain =$this->analyze_sql($st,$elapsed);
 			
@@ -505,8 +509,8 @@ class DBI_Base {
 			list($query["table"],$query["alias"]) =$query["table"];
 		}
 		
-		// Postgres向けに全てのfieldsのaliasを"AS TTT__AAA"に設定する
-		if (get_class($this->ds) == "DboPostgres") {
+		// 一部RDBMS全てのfieldsのaliasを"AS TTT__AAA"に設定する
+		if ($this->check_driver("is_require_rename_fields")) {
 			
 			// aliasの取得
 			$aliases =array();
@@ -527,7 +531,7 @@ class DBI_Base {
 						"alias" =>$alias_name);
 			}
 			
-			$query["fields"] =$this->rename_fields_for_postgres($query["fields"],$aliases);
+			$query["fields"] =$this->rename_fields($query["fields"],$aliases);
 		}
 			
 		// サブクエリの解決
@@ -633,8 +637,8 @@ class DBI_Base {
 		
 		foreach ($query["fields"] as $k => $v) {
 		
-			// Postgresならばfieldsのaliasを削除
-			if (get_class($this->ds) == "DboPostgres"
+			// Postgres等でfieldsのaliasを削除
+			if ($this->check_driver("is_require_drop_field_alias")
 					&& preg_match('!^(?:[^\.]+\.)([^\.]+)$!',$k,$match)) {
 					
 				$k =$match[1];
@@ -893,8 +897,9 @@ class DBI_Base {
 	}
 	
 	//-------------------------------------
-	// Postgres向けに全てのfieldsのaliasを設定する
-	private function rename_fields_for_postgres ($raw_fields,$aliases) {
+	// Postgres等向けに全てのfieldsのaliasを設定する
+	// ※Driver内でmapに対して"__"分割でデータを設定する機能の実装が必要
+	private function rename_fields ($raw_fields,$aliases) {
 		
 		$fields =array();
 		$field_pattern_tfa ='!^\s*(?:([_\w\*]+)\.)?([_\w\*]+)(?:\s+AS\s+([_\w\*]+))?\s*$!i';
@@ -1093,8 +1098,7 @@ class DBI_Base {
 	// SQL文を評価して問題を指摘
 	public function analyze_sql ($st, $elapsed=0) {
 		
-		if (get_class($this->ds) == "DboPostgres"
-				|| ! preg_match('!^SELECT\s!is',$st)) {
+		if ( ! preg_match('!^SELECT\s!is',$st)) {
 			
 			return null;
 		}
@@ -1192,5 +1196,31 @@ class DBI_Base {
 	public function bind ($name=null, $value=null) {
 		
 		return array_registry($this->ds->bounds,$name,$value);
+	}
+	
+	//-------------------------------------
+	// ドライバの判定
+	protected function check_driver ($mode) {
+		
+		if ($mode == "is_support_analyze_sql") {
+			
+			return $this->driver_name == "mysql";
+		}
+		
+		if ($mode == "is_require_rename_fields") {
+			
+			return $this->driver_name == "postgres"
+					|| $this->driver_name == "sqlite3"
+					|| $this->driver_name == "sqlite";
+		}
+		
+		if ($mode == "is_require_drop_field_alias") {
+			
+			return $this->driver_name == "postgres"
+					|| $this->driver_name == "sqlite3"
+					|| $this->driver_name == "sqlite";
+		}
+		
+		return false;
 	}
 }
