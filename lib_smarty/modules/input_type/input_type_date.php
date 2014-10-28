@@ -15,6 +15,7 @@
 				// 日付の表示： format="{%l}{%yp}{%mp}{%dp}{%datefix}{%datepick}"
 				// 時刻の表示： format="{%l}{%hp}{%ip}{%datefix}"
 			"assign", // 部品をアサインするテンプレート変数名
+			"attr",
 		);
 		$attr_html ="";
 		
@@ -91,31 +92,31 @@
 		
 		// 数値のみ
 		$html["y"] =input_type_date_get_select(
-				$params['name']."[y]",$d["Y"],range($y1,$y2),$attr_html,""); 
+				$params['name']."[y]",$d["Y"],range($y1,$y2),$attr_html.$params["attr"]["y"],""); 
 		$html["m"] =input_type_date_get_select(
-				$params['name']."[m]",$d["m"],range(1,12),$attr_html,"");
+				$params['name']."[m]",$d["m"],range(1,12),$attr_html.$params["attr"]["m"],"");
 		$html["d"] =input_type_date_get_select(
-				$params['name']."[d]",$d["d"],range(1,31),$attr_html,"");
+				$params['name']."[d]",$d["d"],range(1,31),$attr_html.$params["attr"]["d"],"");
 		$html["h"] =input_type_date_get_select(
-				$params['name']."[h]",$d["H"],range(0,23),$attr_html,"");
+				$params['name']."[h]",$d["H"],range(0,23),$attr_html.$params["attr"]["h"],"");
 		$html["i"] =input_type_date_get_select(
-				$params['name']."[i]",$d["i"],range(0,59),$attr_html,"");
+				$params['name']."[i]",$d["i"],range(0,59),$attr_html.$params["attr"]["i"],"");
 		$html["s"] =input_type_date_get_select(
-				$params['name']."[s]",$d["s"],range(0,59),$attr_html,"");
+				$params['name']."[s]",$d["s"],range(0,59),$attr_html.$params["attr"]["s"],"");
 		
 		// 年月日表記を含むもの
 		$html["yp"] =input_type_date_get_select(
-				$params['name']."[y]",$d["Y"],range($y1,$y2),$attr_html,"年");
+				$params['name']."[y]",$d["Y"],range($y1,$y2),$attr_html.$params["attr"]["y"],"年");
 		$html["mp"] =input_type_date_get_select(
-				$params['name']."[m]",$d["m"],range(1,12),$attr_html,"月");
+				$params['name']."[m]",$d["m"],range(1,12),$attr_html.$params["attr"]["m"],"月");
 		$html["dp"] =input_type_date_get_select(
-				$params['name']."[d]",$d["d"],range(1,31),$attr_html,"日");
+				$params['name']."[d]",$d["d"],range(1,31),$attr_html.$params["attr"]["d"],"日");
 		$html["hp"] =input_type_date_get_select(
-				$params['name']."[h]",$d["H"],range(0,23),$attr_html,"時");
+				$params['name']."[h]",$d["H"],range(0,23),$attr_html.$params["attr"]["h"],"時");
 		$html["ip"] =input_type_date_get_select(
-				$params['name']."[i]",$d["i"],range(0,59),$attr_html,"分");
+				$params['name']."[i]",$d["i"],range(0,59),$attr_html.$params["attr"]["i"],"分");
 		$html["sp"] =input_type_date_get_select(
-				$params['name']."[s]",$d["s"],range(0,59),$attr_html,"秒");
+				$params['name']."[s]",$d["s"],range(0,59),$attr_html.$params["attr"]["s"],"秒");
 		
 		// 固定Hidden入力
 		$html["yf"] ='<input type="hidden"'
