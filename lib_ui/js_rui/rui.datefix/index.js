@@ -46,6 +46,8 @@
 					}
 				}
 			}
+			
+			$selects.trigger("refresh");
 		});
 	};
 	
