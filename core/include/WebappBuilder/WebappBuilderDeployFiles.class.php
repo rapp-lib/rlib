@@ -232,8 +232,9 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 				
 				// データ表現別のオプション付加
 				if ($tc['type'] == "date") {
-					
+
 					$tc['modifier'] ='|date:"Y/m/d"';
+					$tc['input_option'] =' range="2007~+5" format="{%l}{%yp}{%mp}{%dp}{%datefix}"';
 				}
 				
 				if ($tc['type'] == "textarea") {
