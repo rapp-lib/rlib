@@ -217,8 +217,10 @@ class DboSqlite3 extends DboSource {
 	  			// Schema change; re-run query
 				if ($e->errorInfo[1] === 17) {
 					$this->last_error = $e->getMessage();
+					continue;
+				} else {
+					$this->last_error = $e->getMessage();
 				}
-				 continue;
 	  		}
 		}
 		return false;

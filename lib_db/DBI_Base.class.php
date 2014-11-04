@@ -523,6 +523,23 @@ class DBI_Base {
 			
 			foreach ($query["joins"] as $join_query) {
 			
+				// joins.N:(table,conditions,type)構造の展開
+				if (isset($join_query[0])) {
+					
+					$join_query["table"] =$join_query[0];
+					unset($join_query[0]);
+				}
+				
+				// table:(table,alias)構造の展開
+				if (is_array($join_query["table"])
+						&& $join_query["table"][0]) {
+					
+					list(
+						$join_query["table"],
+						$join_query["alias"]
+					) =$join_query["table"];
+				}
+				
 				$alias_name =$join_query["alias"] 
 						? $join_query["alias"] 
 						: $join_query["table"];
