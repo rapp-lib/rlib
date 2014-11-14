@@ -10,6 +10,7 @@ class HTTPRequestHandler {
 	public function request ($url, $params=array()) {
 		
 		return $this->request_http_request2($url,$params);
+		//return $this->request_curl_DEPRECATED($url,$params);
 	}
 	
 	//-------------------------------------
@@ -43,19 +44,26 @@ class HTTPRequestHandler {
 			}
 			
 			// 設定変更
-			foreach ($params["config"] as $k => $v) {
+			foreach ((array)$params["config"] as $k => $v) {
 			
 				$handle->setConfig($k,$v);
 			}
 			
 			// POST設定
-			foreach ($params["post"] as $k => $v) {
-			
-				$handle->addPostParameter($k,$v);
+			foreach ((array)$params["post"] as $k => $v) {
+				
+				if (is_numeric($k)) {
+					
+					$handle->addPostParameter($v);
+					
+				} else {
+				
+					$handle->addPostParameter($k,$v);
+				}
 			}
 			
 			// Header追加
-			foreach ($params["headers"] as $k => $v) {
+			foreach ((array)$params["headers"] as $k => $v) {
 			
 				$handle->setHeader($k,$v);
 			}

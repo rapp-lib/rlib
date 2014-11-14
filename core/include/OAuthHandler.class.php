@@ -67,7 +67,9 @@ class OAuthHandler {
 	public function get_agent ($service, $params=array()) {
 		
 		$class_name ="OAuthAgent_".$service;		
+		
 		require_once(dirname(__FILE__)."/OAuthHandler/".$class_name.".class.php");
+		
 		return new $class_name($this, $params);
 	}
 		
@@ -97,9 +99,10 @@ class OAuthHandler {
 				$oauth_consumer_secret, 
 				$oauth_token_secret);
 
+
 		// Pass OAuth credentials in a separate header or in the query string
 		$query_parameter_string =$this->oauth_http_build_query($params,true);
-		$headers =array($this->build_oauth_header($params));
+		$headers =array("Authorization"=>$this->build_oauth_header($params));
 		
 		$response =array();
 		
@@ -249,7 +252,7 @@ class OAuthHandler {
 			}
 		}
 		
-		return 'Authorization: OAuth '.implode($headers,', ');
+		return 'OAuth '.implode($headers,', ');
 	}
 	
 	//-------------------------------------
