@@ -17,12 +17,18 @@
 			"assign", // 部品をアサインするテンプレート変数名
 		);
 		$attr_html ="";
+		$attr_html_part =array();
 		
 		foreach ($params as $key => $value) {
 			
 			if ( ! in_array($key,$op_keys)) {
 			
 				$attr_html .=' '.$key.'="'.$value.'"';
+			
+			// 要素別属性
+			} elseif (preg_match('!^([ymdhisx])_(.+)$!',$key,$match)) {
+				
+				$attr_html_part[$match[1]] .=' '.$match[2].'="'.$value.'"';
 			}
 		}
 		
@@ -91,31 +97,43 @@
 		
 		// 数値のみ
 		$html["y"] =input_type_date_get_select(
-				$params['name']."[y]",$d["Y"],range($y1,$y2),$attr_html,""); 
+				$params['name']."[y]",$d["Y"],range($y1,$y2),
+				$attr_html.$attr_html_part["y"],""); 
 		$html["m"] =input_type_date_get_select(
-				$params['name']."[m]",$d["m"],range(1,12),$attr_html,"");
+				$params['name']."[m]",$d["m"],range(1,12),
+				$attr_html.$attr_html_part["m"],"");
 		$html["d"] =input_type_date_get_select(
-				$params['name']."[d]",$d["d"],range(1,31),$attr_html,"");
+				$params['name']."[d]",$d["d"],range(1,31),
+				$attr_html.$attr_html_part["d"],"");
 		$html["h"] =input_type_date_get_select(
-				$params['name']."[h]",$d["H"],range(0,23),$attr_html,"");
+				$params['name']."[h]",$d["H"],range(0,23),
+				$attr_html.$attr_html_part["h"],"");
 		$html["i"] =input_type_date_get_select(
-				$params['name']."[i]",$d["i"],range(0,59),$attr_html,"");
+				$params['name']."[i]",$d["i"],range(0,59),
+				$attr_html.$attr_html_part["i"],"");
 		$html["s"] =input_type_date_get_select(
-				$params['name']."[s]",$d["s"],range(0,59),$attr_html,"");
+				$params['name']."[s]",$d["s"],range(0,59),
+				$attr_html.$attr_html_part["s"],"");
 		
 		// 年月日表記を含むもの
 		$html["yp"] =input_type_date_get_select(
-				$params['name']."[y]",$d["Y"],range($y1,$y2),$attr_html,"年");
+				$params['name']."[y]",$d["Y"],range($y1,$y2),
+				$attr_html.$attr_html_part["y"],"年");
 		$html["mp"] =input_type_date_get_select(
-				$params['name']."[m]",$d["m"],range(1,12),$attr_html,"月");
+				$params['name']."[m]",$d["m"],range(1,12),
+				$attr_html.$attr_html_part["m"],"月");
 		$html["dp"] =input_type_date_get_select(
-				$params['name']."[d]",$d["d"],range(1,31),$attr_html,"日");
+				$params['name']."[d]",$d["d"],range(1,31),
+				$attr_html.$attr_html_part["d"],"日");
 		$html["hp"] =input_type_date_get_select(
-				$params['name']."[h]",$d["H"],range(0,23),$attr_html,"時");
+				$params['name']."[h]",$d["H"],range(0,23),
+				$attr_html.$attr_html_part["h"],"時");
 		$html["ip"] =input_type_date_get_select(
-				$params['name']."[i]",$d["i"],range(0,59),$attr_html,"分");
+				$params['name']."[i]",$d["i"],range(0,59),
+				$attr_html.$attr_html_part["i"],"分");
 		$html["sp"] =input_type_date_get_select(
-				$params['name']."[s]",$d["s"],range(0,59),$attr_html,"秒");
+				$params['name']."[s]",$d["s"],range(0,59),
+				$attr_html.$attr_html_part["s"],"秒");
 		
 		// 固定Hidden入力
 		$html["yf"] ='<input type="hidden"'
@@ -135,6 +153,13 @@
 		$html["datefix"] ='<script>/*<!--*/ jQuery(function(){ '
 				.'rui.require("rui.datefix",function(){'
 				.'rui.Datefix.fix_dateselect("#'.$html["elm_id"].'"); });'
+				.'}); /*-->*/</script>';
+		
+		// JS：日付の誤り訂正
+		$html["japcal"] ='<script>/*<!--*/ jQuery(function(){ '
+				//.'rui.require("rui.japcal",function(){'
+				.'rui.Japcal.year_input_exchange("#'.$html["elm_id"].'");'
+				//.'});'
 				.'}); /*-->*/</script>';
 				
 		// JS：日付選択カレンダーポップUI

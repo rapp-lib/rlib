@@ -445,7 +445,7 @@ class BasicMailer {
 		// SMTPへ送信元のパラメータを付加
 		$options["send_options"][] ="-f ".$options["from"];
 		
-		$message =mb_convert_encoding($options["message"],"JIS","UTF-8");
+		$message =mb_convert_encoding($options["message"],"ISO-2022-JP","UTF-8");
 		$subject =mb_encode_mimeheader($options["subject"], "ISO-2022-JP", "B", "\n");
 		
 		$fromname =mb_encode_mimeheader($options["fromname"], "ISO-2022-JP", "B", "\n");
@@ -454,6 +454,31 @@ class BasicMailer {
 				: $options["from"];
 			
 		$mime =new Mail_Mime("\n");
+		
+		// 本文の76桁自動改行処理
+		$message_wrap = "";
+		$count_col = 0;
+		
+		for ($i=0; $i<mb_strlen($message); $i++) {
+			
+			$substr= mb_substr($message, $i, 1, 'ISO-2022-JP');
+			$message_wrap .= $substr;
+			
+			// 改行コードを検知した場合は、桁数をリセット
+			if($substr == "\n") { $count_col = 0; }
+			
+			// 切り出された文字のバイト数
+			$count_col += strlen($substr)==1 ? 1 : 2;
+			
+			// 76桁目で改行コードを挿入
+			if($count_col >= 76) {
+			
+				$count_col=0;
+				$message_wrap .= "\n";
+			}
+		}
+		
+		$message =$message_wrap;
 		
 		// 本文登録
 		$mime->setTxtBody($message);

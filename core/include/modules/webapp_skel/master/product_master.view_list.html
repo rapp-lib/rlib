@@ -25,11 +25,37 @@
 *}}
 
 {{*
+<!-- search_crit_module -->
+<div class="controll">
+	検索条件
+<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
+	{{if $c->input("<?=$tc['name']?>")}}
+		| <?=$tc['label']?> : {{$c->input("<?=$tc['name']?>")<?=$tc['modifier']?>}}
+	{{/if}}
+<? endforeach; ?>
+</div>
+<!-- /search_crit_module -->
+*}}
+
+{{*
 <!-- sort_module -->
 <div class="controll">
-	{{a _page="." _query="c[sort]=default"}}古い順{{/a}}
+	{{if $c->input("sort")=="" || $c->input("sort")=="<?=$t['pkey']?>@ASC"}}
+		{{a _page="." _query="c[sort]=<?=$t['pkey']?>@DESC"}}登録順▼{{/a}}
+	{{elseif $c->input("sort")=="<?=$t['pkey']?>@DESC"}}
+		{{a _page="." _query="c[sort]=<?=$t['pkey']?>@ASC"}}登録順▲{{/a}}
+	{{else}}
+		{{a _page="." _query="c[sort]=<?=$t['pkey']?>@ASC"}}登録順▽{{/a}}
+	{{/if}}
 <? foreach ($this->filter_fields($t["fields"],"sort") as $tc): ?>
-	| {{a _page="." _query="c[sort]=<?=$tc['name']?>"}}<?=$tc['label']?>順{{/a}}
+	| 
+	{{if $c->input("sort")=="<?=$tc['name']?>@ASC"}}
+		{{a _page="." _query="c[sort]=<?=$tc['name']?>@DESC"}}<?=$tc['label']?>順▼{{/a}}
+	{{elseif $c->input("sort")=="<?=$tc['name']?>@DESC"}}
+		{{a _page="." _query="c[sort]=<?=$tc['name']?>@ASC"}}<?=$tc['label']?>順▲{{/a}}
+	{{else}}
+		{{a _page="." _query="c[sort]=<?=$tc['name']?>@ASC"}}<?=$tc['label']?>順▽{{/a}}
+	{{/if}}
 <? endforeach; ?>
 </div>
 <!-- /sort_module -->

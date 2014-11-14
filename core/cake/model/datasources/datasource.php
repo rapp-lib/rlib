@@ -270,7 +270,9 @@ class DataSource extends Object {
 		if ($this->cacheSources === false) {
 			return null;
 		}
-		$table = $model->tablePrefix . $model->table;
+		$table = is_string($model)
+				? $model
+				: $model->tablePrefix . $model->table;
 
 		if (isset($this->__descriptions[$table])) {
 			return $this->__descriptions[$table];

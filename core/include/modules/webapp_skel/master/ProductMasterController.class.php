@@ -17,16 +17,11 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		),
 		"sort" =>array(
 			"sort_param_name" =>"sort",
-			"default" =>"<?=$t['pkey']?> ASC",
-			"map" =>array(
-<? foreach ($this->filter_fields($t["fields"],"sort") as $tc): ?>
-				"<?=$tc['name']?>" =>"<?=$tc['name']?> ASC",
-<? endforeach; ?>
-			),
+			"default" =>"<?=$t['pkey']?>@ASC",
 		),
 		"paging" =>array(
-			"limit" =>20,
 			"offset_param_name" =>"offset",
+			"limit" =>20,
 			"slider" =>10,
 		),
 	);

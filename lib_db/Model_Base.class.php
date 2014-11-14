@@ -115,10 +115,20 @@ class Model_Base {
 		if ($list_setting["sort"]) {
 		
 			$setting =$list_setting["sort"];
-			$keys =$input[(string)$setting["sort_param_name"]];
+			$keys =(array)$input[(string)$setting["sort_param_name"]];
+			
+			// デフォルト設定
+			if ( ! $keys && $setting["default"]) {
+				
+				$keys =$setting["default"];
+			}
 			
 			// 単数、複数設定可能
-			if ( ! is_array($keys)) {
+			if (is_string($keys) && preg_match('!,!',$keys)) {
+				
+				$keys =explode($keys,",");
+				
+			} elseif ( ! is_array($keys)) {
 			
 				$keys =array($keys);
 			}
@@ -126,13 +136,22 @@ class Model_Base {
 			ksort($keys);
 			
 			foreach ($keys as $key) {
-			
-				$value =$setting["map"][$key];
 				
-				if ($value) {
+				if ($value =$setting["map"][$key]) {
 				
 					$query["order"][] =$value;
-				} 
+				
+				} elseif (preg_match('!^([\w\d_]+\.[\w\d_]+)(@ASC|@DESC)?$!',$key,$match)) {
+					
+					$query["order"][] =$match[1].($match[2]=="@DESC" ? " DESC" : " ASC");
+				
+				} else {
+					
+					report_warning("Invalid sort parameter",array(
+						"key" =>$key,
+						"map" =>$setting["map"],
+					));
+				}
 			}
 			
 			// 設定されれていない場合
@@ -140,8 +159,6 @@ class Model_Base {
 			
 				$query["order"] =$setting["default"];
 			}
-				
-			unset($query["sort"]);
 		}
 		
 		// ページング設定
@@ -169,8 +186,6 @@ class Model_Base {
 				
 				$query["paging_slider"] =(int)$setting["slider"];
 			}
-			
-			unset($query["paging"]);
 		}
 		
 		return $query;
