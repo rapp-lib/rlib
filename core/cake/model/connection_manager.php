@@ -218,6 +218,7 @@ class ConnectionManager extends Object {
 			$null = null;
 			return $null;
 		}
+		if ( ! $_this->config) { $_this->config = new stdClass; }
 		$_this->config->{$name} = $config;
 		$_this->_connectionsEnum[$name] = $_this->__connectionData($config);
 		$return =& $_this->getDataSource($name);
