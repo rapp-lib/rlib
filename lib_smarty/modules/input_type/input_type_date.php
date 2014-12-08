@@ -33,7 +33,7 @@
 		}
 		
 		// 初期選択値の組み立て
-		$d ="";
+		$d =array();
 		
 		if ($postset_value) {
 			
