@@ -21,22 +21,22 @@
 		http://www.kawa.net/works/ajax/ajaxzip2/ajaxzip2.html
 		※最新版をJPから取ってコンバートする方法もここにあります
 		※コードもこれを参考にしました
-		
+
 	このあたりに配置してあります:
 		dev.sharingseed.info toyosawa /test/zip/zipjson/
 		dev.sharingseed.info toyosawa /test/zip/zipjson.zip
-	
+
 ■Sample1:
 	このあたりに配置してあります:
 		dev.sharingseed.info toyosawa /test/zip/sample.php
-		
+
 ■Sample2:
 	<script>
 	$(function(){
 		$("#zipLoadButton").bind("click",function(){
 			rui.Zip.load(
 				$("input[name=zip]").val(),
-				"./zipjson/",
+				"//ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/zipdata/",
 				function(data){
 					//$("select[name=pref]").val(data.pref_code);
 					$("input[name=pref]").val(data.pref);
@@ -71,20 +71,20 @@ rui.Zip.prefs =[
     '宮崎県',   '鹿児島県', '沖縄県'
 ];
 rui.Zip.load =function (vzip, data_url, callback, callback_error) {
-	
+
 	if ( ! data_url) {
-	
+
 		data_url ="./zipjson/";
 	}
 	if ( ! callback) {
-	
+
 		callback =function(){};
 	}
 	if ( ! callback_error) {
-	
+
 		callback_error =function(){};
 	}
-	
+
     // 郵便番号を数字のみ7桁取り出す
     var nzip = '';
     for( var i=0; i<vzip.length; i++ ) {
@@ -98,7 +98,7 @@ rui.Zip.load =function (vzip, data_url, callback, callback_error) {
     // 郵便番号上位3桁でキャッシュデータを確認
     var data = rui.Zip.cache[nzip.substr(0,3)];
     if ( data ) return rui.Zip.parseZipJson(nzip,data,callback,callback_error);
-	
+
     // JSONファイルを受信する
     jQuery.ajax({
 		url: data_url+'/zip-'+nzip.substr(0,3)+'.json',
@@ -114,15 +114,15 @@ rui.Zip.load =function (vzip, data_url, callback, callback_error) {
 	});
 };
 rui.Zip.parseZipJson =function (nzip,data,callback,callback_error) {
-	
+
     var array = data[nzip];
-    
+
 	// Opera バグ対策：0x00800000 を超える添字は +0xff000000 されてしまう
     var opera = (nzip-0+0xff000000)+"";
     if ( ! array && data[opera] ) array = data[opera];
-	
+
 	if ( ! array || ! array[0]) return callback_error("response_error",nzip);
-		
+
 	return callback({
 	    pref_code: array[0], // 県ID
 	    pref: rui.Zip.prefs[array[0]], // 県名
