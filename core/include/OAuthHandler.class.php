@@ -78,7 +78,8 @@ class OAuthHandler {
 	public function oauth_request (
 			$url,
 			$params,
-			$use_post=false) {
+			$use_post=false,
+			$response_format="query_string") {
 		
 		$params['oauth_version'] = '1.0';
         $params['oauth_nonce'] = md5(mt_rand());
@@ -139,7 +140,19 @@ class OAuthHandler {
 		}
 		
 		// extract successful response
-		return $this->oauth_parse_str($response["body"]);
+		$response_body =$response["body"];
+		
+		if ($response_format == "query_string") {
+		
+			$response_body =$this->oauth_parse_str($response_body);
+		}
+		
+		if ($response_format == "json") {
+		
+			$response_body =json_to_array($response_body);
+		}
+		
+		return $response_body;
 	}
 	
 	//-------------------------------------

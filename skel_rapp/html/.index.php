@@ -133,6 +133,11 @@
 		
 		if ($cause == "error_report") {
 			
+			// 異常停止のログを記録
+			$log_file =registry("Path.tmp_dir")."/log/error_shutdown.log";
+			$msg ="-- ERROR ".date("Y/m/d H:i:s")." --\n".print_r($options,true)."\n\n";
+			file_put_contents($log_file,$msg,FILE_APPEND|LOCK_EX);
+
 			set_response_code(500);
 		}
 		
