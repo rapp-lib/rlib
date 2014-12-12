@@ -60,7 +60,7 @@ class LayoutRequestArray {
 				// 不正値
 				} else {
 				
-					$value =false;
+					$value ="";
 				}
 				
 			// 分割テキスト指定
