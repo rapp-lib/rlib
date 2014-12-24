@@ -111,6 +111,8 @@
 		elapse("webapp.action",true);
 		elapse("webapp.fetch");
 		
+		registry("Response.template_vars", $controller_obj->_tpl_vars);
+		
 		//-------------------------------------
 		// テンプレートファイルの読み込み
 		$template_file =registry("Response.template_file");
@@ -147,5 +149,6 @@
 			"Template" =>registry("Response.template_file"),
 			"ShutdownCause" =>$cause,
 			"Elapsed" =>elapse(),
+			"TemplateVars" =>registry("Response.template_vars"),
 		));
 	}
