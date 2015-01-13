@@ -145,6 +145,10 @@ class Model_Base {
 					
 					$query["order"][] =$match[1].($match[2]=="@DESC" ? " DESC" : " ASC");
 				
+				} elseif (preg_match('!^([\w\d_]+\.[\w\d_]+)( ASC| DESC)?$!',$key,$match)) {
+					
+					$query["order"][] =$match[1].($match[2]==" DESC" ? " DESC" : " ASC");
+				
 				} else {
 					
 					report_warning("Invalid sort parameter",array(
@@ -616,9 +620,16 @@ class Model_Base {
 				
 				// FieldsのKeyが値に入る場合の処理
 				if ($by_value) {
-				
-					$fields_flip =array_flip((array)$query["fields"]);
-					$target_col =$fields_flip[$target_col];
+					
+					$target_col ="";
+					
+					foreach ((array)$query["fields"] as $k_field => $v_field) {
+						
+						if ($v_field == $target_col) {
+							
+							$target_col =$k_field;
+						}
+					}
 				}
 				
 				if (isset($query["fields"][$target_col])) {

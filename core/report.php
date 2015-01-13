@@ -224,7 +224,7 @@
 			
 			if (registry("Report.report_backtraces")) {
 			
-				$message .='<br/> [BACKTRACES] :'.decorate_value($errdetail,true);
+				$message .='<br/> [BACKTRACES] :'.decorate_value($backtraces,true);
 			}
 			
 			$report_html .='<div class="ruiReport '.$elm_class.'" id="'.$elm_id.'" '
