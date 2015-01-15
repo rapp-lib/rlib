@@ -358,16 +358,7 @@ class SmartyExtended extends SmartyBC {
 				if (preg_match('!^_(.*)$!',$key,$match)) {
 					
 					$param_name =$match[1];
-					
-					if ($type == 'a') {
-						
-						$url_params[$param_name] =$value;
-					
-					} elseif ($type == 'form' || $type == "button") {
-					
-						$hidden_input_html .='<input type="hidden" name="'.
-								$param_name.'" value="'.$value.'"/>';
-					}
+					$url_params[$param_name] =$value;
 					
 				} else {
 					
