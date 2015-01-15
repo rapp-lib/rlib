@@ -621,8 +621,6 @@ class Model_Base {
 				// FieldsのKeyが値に入る場合の処理
 				if ($by_value) {
 					
-					$target_col ="";
-					
 					foreach ((array)$query["fields"] as $k_field => $v_field) {
 						
 						if ($v_field == $target_col) {
