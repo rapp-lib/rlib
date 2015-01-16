@@ -401,17 +401,17 @@ class Model_Base {
 	//
 	
 	//-------------------------------------
-	// SELECT/DELETE/UPDATEの前処理（table,conditionsを対象）
+	// SELECTの前処理（table,conditionsを対象）
 	public function before_read ( & $query) {
 		
-		$this->extend_fields_splice($query,true);
+		$this->extend_fields_splice_for_read($query);
 	}
 	
 	//-------------------------------------
-	// INSERT/UPDATEの前処理（table,fieldsを対象）
+	// INSERT/UPDATE/DELETEの前処理（table,fieldsを対象）
 	public function before_write ( & $query) {
 	
-		$this->extend_fields_splice($query);
+		$this->extend_fields_splice_for_write($query);
 	}
 	
 	//-------------------------------------
@@ -446,7 +446,6 @@ class Model_Base {
 	// UPDATEの前処理
 	public function before_update ( & $id, & $query) {
 		
-		$this->before_read($query);
 		$this->before_write($query);
 	}
 	
@@ -454,7 +453,7 @@ class Model_Base {
 	// DELETEの前処理
 	public function before_delete ( & $id, & $query) {
 		
-		$this->before_read($query);
+		$this->before_write($query);
 	}
 	
 	//-------------------------------------
@@ -601,8 +600,66 @@ class Model_Base {
 	}
 	
 	//-------------------------------------
+	// fields拡張/WRITE前の事前のSPLICE処理
+	public function extend_fields_splice_for_write ( & $query) {
+		
+		$this->spliced_fields =array();
+		
+		// Queryを参照して対象となるfields拡張設定を適用する
+		foreach ((array)registry("Model.extends.fields") as $table => $cols) {
+			
+			if ($query["table"] != $table) {
+				
+				continue;
+			}
+			
+			foreach ($cols as $col => $info) {
+				
+				$target_col =$table.".".$col;
+				
+				if (isset($query["fields"][$target_col])) {
+					
+					// SPLICE処理
+					$this->spliced_fields[$target_col] =$query["fields"][$target_col];
+					unset($query["fields"][$target_col]);
+				}
+			}
+		}
+	}
+	
+	//-------------------------------------
+	// fields拡張/READ前の事前のSPLICE処理
+	public function extend_fields_splice_for_read ( & $query) {
+		
+		$this->spliced_fields =array();
+		
+		$fields_flip =array_flip((array)$query["fields"]);
+		
+		// Queryを参照して対象となるfields拡張設定を適用する
+		foreach ((array)registry("Model.extends.fields") as $table => $cols) {
+			
+			if ($query["table"] != $table) {
+				
+				continue;
+			}
+			
+			foreach ($cols as $col => $info) {
+				
+				$target_col =$table.".".$col;
+				
+				if (isset($fields_flip[$target_col])) {
+					
+					// SPLICE処理
+					$this->spliced_fields[$target_col] =$query["fields"][$fields_flip[$target_col]];
+					unset($query["fields"][$fields_flip[$target_col]]);
+				}
+			}
+		}
+	}
+	
+	//-------------------------------------
 	// fields拡張/save前の事前のSPLICE処理
-	public function extend_fields_splice ( & $query, $by_value=false) {
+	public function extend_fields_splice ( & $query, $is_read) {
 		
 		$this->spliced_fields =array();
 		
@@ -619,24 +676,26 @@ class Model_Base {
 				$target_col =$table.".".$col;
 				
 				// FieldsのKeyが値に入る場合の処理
-				if ($by_value) {
+				if ($is_read) {
 					
-					foreach ((array)$query["fields"] as $k_field => $v_field) {
+					$fields_flip =array_flip($query["fields"]);
+					
+					if (isset($query["fields"][$target_col])) {
 						
-						if ($v_field == $target_col) {
-							
-							$target_col =$k_field;
-						}
+						// SPLICE処理
+						$this->spliced_fields[$target_col] =$query["fields"][$target_col];
+						unset($query["fields"][$target_col]);
+					}
+						
+				} else {
+				
+					if (isset($query["fields"][$target_col])) {
+						
+						// SPLICE処理
+						$this->spliced_fields[$target_col] =$query["fields"][$target_col];
+						unset($query["fields"][$target_col]);
 					}
 				}
-				
-				if (isset($query["fields"][$target_col])) {
-										
-					// SPLICE処理
-					$this->spliced_fields[$target_col] =$query["fields"][$target_col];
-				}
-				
-				unset($query["fields"][$target_col]);
 			}
 		}
 	}
