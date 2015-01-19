@@ -33,14 +33,14 @@
 		}
 		
 		// 初期選択値の組み立て
-		$d ="";
+		$d =array();
 		
-		if ($postset_value) {
+		if ($postset_value !== null) {
 			
 			$postset_value =input_type_date_parse_value($postset_value);
 			$d =longdate($postset_value);
 			
-		} elseif ($preset_value) {
+		} elseif ($preset_value !== null) {
 			
 			$preset_value =input_type_date_parse_value($preset_value);
 			$d =longdate($preset_value);

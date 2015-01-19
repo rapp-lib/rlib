@@ -332,7 +332,11 @@
 		// エラー時の処理停止
 		if ($options["errno"] & (E_ERROR | E_USER_ERROR)) {
 			
-			shutdown_webapp("error_report");
+			shutdown_webapp("error_report",array(
+				"errstr" =>$errstr, 
+				"report_params" =>$params,
+				"report_detail" =>$options,
+			));
 		}
 	}
 	

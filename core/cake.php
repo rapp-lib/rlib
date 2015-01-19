@@ -52,7 +52,7 @@
 			define("CONFIGS",dirname(__FILE__).'/cake/_config/');
 			
 			class App { 
-				function import() {} 
+				static function import() {} 
 				function core () {} 
 			}
 			

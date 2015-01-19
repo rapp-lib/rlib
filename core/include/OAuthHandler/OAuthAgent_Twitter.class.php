@@ -34,6 +34,7 @@ class OAuthAgent_Twitter {
 		$callback_oauth_verifier =$params["get_vars"]["oauth_verifier"];
 		$callback_url =$params["callback_url"];
 		$scope =$params["scope"];
+		$mode =$params["mode"] ? $params["mode"] : false;
 		
 		$result =array();
 		
@@ -67,8 +68,10 @@ class OAuthAgent_Twitter {
 				'oauth_consumer_key' =>$this->consumer_key,
 				'oauth_consumer_secret' =>$this->consumer_secret,
 				'oauth_callback' =>$callback_url,
-				'scope' =>$scope,
-			));
+				
+				// <CO 141113 Twitter認証の問題で削除>
+				//'scope' =>$scope,
+			),$mode);
 			
 			$oauth_secret =$response['oauth_token_secret'];
 			$result["oauth_token_secret"] =$response['oauth_token_secret'];

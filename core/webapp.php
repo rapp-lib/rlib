@@ -133,11 +133,16 @@
 			
 			$dync =(array)$_SESSION["__dync"];
 			
-			if ($_REQUEST[$dync_key] && ! $dync["auth"] 
-					&& ($sec =$_REQUEST["__ts"]) && ($min =floor(time()/60))
-					&& (encrypt_string(substr(md5($dync_key."/".($min-0)),12,12))==$sec
-					|| encrypt_string(substr(md5($dync_key."/".($min-1)),12,12))==$sec
-					|| encrypt_string(substr(md5($dync_key."/".($min+1)),12,12))==$sec)) {
+			$sec =$_REQUEST["__ts"];
+			$min =floor(time()/60);
+			$sec_list =array();
+			
+			foreach (range(-5,5) as $i) {
+				
+				$sec_list[$i] =encrypt_string(substr(md5($dync_key."/".($min+$i)),12,12));
+			}
+			
+			if ($_REQUEST[$dync_key] && $sec && (in_array($sec, $sec_list))) {
 						
 				$dync["auth"] =registry("Config.dync_auth_id");
 			}
@@ -163,7 +168,7 @@
 					"request_ts" =>$_REQUEST["__ts"],
 					"server_dync_key" =>$dync_key,
 					"server_min" =>date("Y/m/d H:i",time()),
-					"server_min_threashold" =>"+-1min",
+					"server_ts_threashold" =>$sec_list,
 					"request_dync" =>$_REQUEST[$dync_key],
 					"session_dync" =>$_SESSION["__dync"],
 				));

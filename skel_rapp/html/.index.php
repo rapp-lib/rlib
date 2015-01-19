@@ -111,6 +111,8 @@
 		elapse("webapp.action",true);
 		elapse("webapp.fetch");
 		
+		registry("Response.template_vars", $controller_obj->_tpl_vars);
+		
 		//-------------------------------------
 		// テンプレートファイルの読み込み
 		$template_file =registry("Response.template_file");
@@ -133,6 +135,11 @@
 		
 		if ($cause == "error_report") {
 			
+			// 異常停止のログを記録
+			$log_file =registry("Path.tmp_dir")."/log/error_shutdown.log";
+			$msg ="-- ERROR ".date("Y/m/d H:i:s")." --\n".print_r($options,true)."\n\n";
+			file_put_contents($log_file,$msg,FILE_APPEND|LOCK_EX);
+
 			set_response_code(500);
 		}
 		
@@ -142,5 +149,6 @@
 			"Template" =>registry("Response.template_file"),
 			"ShutdownCause" =>$cause,
 			"Elapsed" =>elapse(),
+			"TemplateVars" =>registry("Response.template_vars"),
 		));
 	}

@@ -67,7 +67,9 @@ class OAuthHandler {
 	public function get_agent ($service, $params=array()) {
 		
 		$class_name ="OAuthAgent_".$service;		
+		
 		require_once(dirname(__FILE__)."/OAuthHandler/".$class_name.".class.php");
+		
 		return new $class_name($this, $params);
 	}
 		
@@ -76,7 +78,8 @@ class OAuthHandler {
 	public function oauth_request (
 			$url,
 			$params,
-			$use_post=false) {
+			$use_post=false,
+			$response_format="query_string") {
 		
 		$params['oauth_version'] = '1.0';
         $params['oauth_nonce'] = md5(mt_rand());
@@ -97,9 +100,10 @@ class OAuthHandler {
 				$oauth_consumer_secret, 
 				$oauth_token_secret);
 
+
 		// Pass OAuth credentials in a separate header or in the query string
 		$query_parameter_string =$this->oauth_http_build_query($params,true);
-		$headers =array($this->build_oauth_header($params));
+		$headers =array("Authorization"=>$this->build_oauth_header($params));
 		
 		$response =array();
 		
@@ -136,7 +140,19 @@ class OAuthHandler {
 		}
 		
 		// extract successful response
-		return $this->oauth_parse_str($response["body"]);
+		$response_body =$response["body"];
+		
+		if ($response_format == "query_string") {
+		
+			$response_body =$this->oauth_parse_str($response_body);
+		}
+		
+		if ($response_format == "json") {
+		
+			$response_body =json_to_array($response_body);
+		}
+		
+		return $response_body;
 	}
 	
 	//-------------------------------------
@@ -249,7 +265,7 @@ class OAuthHandler {
 			}
 		}
 		
-		return 'Authorization: OAuth '.implode($headers,', ');
+		return 'OAuth '.implode($headers,', ');
 	}
 	
 	//-------------------------------------
