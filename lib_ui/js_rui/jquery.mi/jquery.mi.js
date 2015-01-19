@@ -513,7 +513,7 @@ jquery.mi
 			
 			$mi.find(".mi-item-id").each(function(){
 				
-				if (nextId <= $(this).val()) {
+				if (1*nextId <= 1*$(this).val()) {
 					
 					nextId =$(this).val();
 				}
