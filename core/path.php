@@ -158,7 +158,7 @@
 		$document_root_url =preg_replace('!/$!','',$document_root_url);
 		
 		// https指定であればURLの先頭を変更
-		if ($full_url == "https") {
+		if ($full_url === "https") {
 					
 			if ($document_root_ssl_url =registry('Path.document_root_ssl_url')) {
 			
@@ -170,7 +170,7 @@
 			}
 		
 		// httpから始まるURLを返す必要がなければ切り取る
-		} else {
+		} elseif ( ! $full_url) {
 			
 			$document_root_url =preg_replace('!^https?://[^/]+(/|$)!','',$document_root_url);
 		}
