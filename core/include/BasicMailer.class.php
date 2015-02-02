@@ -98,7 +98,7 @@
 // PEARメール送受信クラス
 class BasicMailer {
 	
-	protected $email_regex_pattern ='/(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|"[^\\\\\x80-\xff\n\015"]*(?:\\\\[^\x80-\xff][^\\\\\x80-\xff\n\015"]*)*")(?:\.(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|"[^\\\\\x80-\xff\n\015"]*(?:\\\\[^\x80-\xff][^\\\\\x80-\xff\n\015"]*)*"))*@(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|\[(?:[^\\\\\x80-\xff\n\015\[\]]|\\\\[^\x80-\xff])*\])(?:\.(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|\[(?:[^\\\\\x80-\xff\n\015\[\]]|\\\\[^\x80-\xff])*\]))*/';
+	protected $email_regex_pattern ='{(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|"[^\\\\\x80-\xff\n\015"]*(?:\\\\[^\x80-\xff][^\\\\\x80-\xff\n\015"]*)*")(?:\.(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|"[^\\\\\x80-\xff\n\015"]*(?:\\\\[^\x80-\xff][^\\\\\x80-\xff\n\015"]*)*"))*@(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|\[(?:[^\\\\\x80-\xff\n\015\[\]]|\\\\[^\x80-\xff])*\])(?:\.(?:[^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff]+(?![^(\040)<>@,;:".\\\\\[\]\000-\037\x80-\xff])|\[(?:[^\\\\\x80-\xff\n\015\[\]]|\\\\[^\x80-\xff])*\]))*}';
 	
 	//-------------------------------------
 	// メール送信
@@ -340,12 +340,12 @@ class BasicMailer {
 				if ($obj->ctype_secondary == 'plain') {
 				
 					$maildata["message"] 
-							.=trim(mb_convert_encoding($obj->body,'UTF-8','JIS'));
+							.=trim(mb_convert_encoding($obj->body,'UTF-8',$this->get_mail_charset()));
 				
 				} else {
 				
 					$maildata["message_".$obj->ctype_secondary] 
-							.=trim(mb_convert_encoding($obj->body,'UTF-8','JIS'));
+							.=trim(mb_convert_encoding($obj->body,'UTF-8',$this->get_mail_charset()));
 				}
 				
 			// 添付ファイル
@@ -445,10 +445,10 @@ class BasicMailer {
 		// SMTPへ送信元のパラメータを付加
 		$options["send_options"][] ="-f ".$options["from"];
 		
-		$message =mb_convert_encoding($options["message"],"ISO-2022-JP","UTF-8");
-		$subject =mb_encode_mimeheader($options["subject"], "ISO-2022-JP", "B", "\n");
+		$message =mb_convert_encoding($options["message"],$this->get_mail_charset(),"UTF-8");
+		$subject =mb_encode_mimeheader($options["subject"], $this->get_mail_charset(), "B", "\n");
 		
-		$fromname =mb_encode_mimeheader($options["fromname"], "ISO-2022-JP", "B", "\n");
+		$fromname =mb_encode_mimeheader($options["fromname"], $this->get_mail_charset(), "B", "\n");
 		$from =strlen($options["fromname"]) 
 				? $fromname."<".$options["from"].">" 
 				: $options["from"];
@@ -461,7 +461,7 @@ class BasicMailer {
 		
 		for ($i=0; $i<mb_strlen($message); $i++) {
 			
-			$substr= mb_substr($message, $i, 1, 'ISO-2022-JP');
+			$substr= mb_substr($message, $i, 1, $this->get_mail_charset());
 			$message_wrap .= $substr;
 			
 			// 改行コードを検知した場合は、桁数をリセット
@@ -525,8 +525,8 @@ class BasicMailer {
 		
 		// BODY部取得
 		$options["mime_body"] =$mime->get(array(
-			"head_charset" =>"ISO-2022-JP",
-			"text_charset" =>"ISO-2022-JP"
+			"head_charset" =>$this->get_mail_charset(),
+			"text_charset" =>$this->get_mail_charset(),
 		));
 		
 		// HEADERS部取得
@@ -585,5 +585,18 @@ class BasicMailer {
 				$options["send_options"]);
 		
 		return $options;
+	}
+	
+	//-------------------------------------
+	// メールで使用する文字コードの取得
+	protected function get_mail_charset () {
+		
+		// UTF-8やJIS-MSはリスクが大きいので一部文字化けるがISO-2022-JPが最適
+		$mail_charset =registry("Config.mail_charset");
+		$mail_charset =$mail_charset
+				? $mail_charset
+				: "ISO-2022-JP";
+		
+		return $mail_charset;
 	}
 }

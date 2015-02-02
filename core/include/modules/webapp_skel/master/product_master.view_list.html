@@ -118,7 +118,7 @@
 {{else}}
 	<span class="inactive">前へ</span>
 {{/if}}
-{{foreach from=$p.pages key="index" item="page_offset"}}
+{{foreach $p.pages as $index => $page_offset}}
 	{{if $index==$p.current}} 
 		{{a _page="." _query="c[offset]=`$page_offset`" class="current"}}{{$index}}{{/a}}
 	{{else}}
