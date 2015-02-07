@@ -22,7 +22,7 @@
 		
 	//-------------------------------------
 	// pageに対応するControllerのActionを実行
-	function raise_action ($page) {
+	function raise_action ($page, $options=array()) {
 		
 		list($controller_name, $action_name) =explode('.',$page,2);
 		$controller_class_name =str_camelize($controller_name)."Controller";
@@ -33,7 +33,9 @@
 			return false;
 		}
 		
-		$controller_obj =new $controller_class_name($controller_name,$action_name);
+		$controller_obj =new $controller_class_name(
+				$controller_name,$action_name,
+				array("parent_controller" =>$options["parent_controller"]));
 		
 		$controller_obj->before_act();
 		

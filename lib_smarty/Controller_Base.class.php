@@ -15,11 +15,11 @@ class Controller_Base extends SmartyExtended {
 	public function __construct (
 			$controller_name="",
 			$action_name="",
-			$parent_controller=null) {
+			$options=array()) {
 			
 		parent::__construct();
 		
-		$this->init($controller_name,$action_name,$parent_controller);
+		$this->init($controller_name,$action_name,$options);
 	}
 	
 	//-------------------------------------
@@ -27,14 +27,28 @@ class Controller_Base extends SmartyExtended {
 	public function init (
 			$controller_name="",
 			$action_name="",
-			$parent_controller=null) {
+			$options=array()) {
 		
 		$this->controller_name =$controller_name;
 		$this->action_name =$action_name;
-		$this->parent_controller =$parent_controller;
+		
 		$this->vars =& $this->_tpl_vars;
 		$this->vars =array();
 		$this->contexts =array();
+		
+		// Smarty上でincにより呼び出された場合、呼び出し元が設定される
+		if ($this->parent_controller =$options["parent_controller"]) {
+			
+			$this->parent_controller->inherit_state($this);
+		}
+	}
+	
+	//-------------------------------------
+	// ほかのControllerに状態を継承する処理
+	public function inherit_state ($sub_controller) {
+		
+		$sub_controller->set_vars($this->vars);
+		$sub_controller->set_contexts($this->contexts);
 	}
 	
 	//-------------------------------------
@@ -124,5 +138,19 @@ class Controller_Base extends SmartyExtended {
 	//-------------------------------------
 	// 
 	public function after_act () {
+	}
+	
+	//-------------------------------------
+	// varsのSetter
+	public function set_vars ($vars) {
+		
+		$this->vars =$vars;
+	}
+	
+	//-------------------------------------
+	// contextsのSetter
+	public function set_contexts ($contexts) {
+		
+		$this->contexts =$contexts;
 	}
 }
