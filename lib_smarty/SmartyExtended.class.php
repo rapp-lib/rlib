@@ -190,7 +190,7 @@ class SmartyExtended extends SmartyBC {
 			$no_output_filter = false,
 			$tpl_vars = array(),
 			$security = false) {
-		
+		report($this->_tpl_vars["pageid"]);
 		$resource =$this->createTemplate(
 				$template,
 				$cache_id, 

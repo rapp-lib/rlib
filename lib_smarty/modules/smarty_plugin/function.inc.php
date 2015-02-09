@@ -58,7 +58,7 @@
 			
 			if (is_numeric($k)) {
 				
-				$controller->_tpl_vars[$v] =$parent_controller->tpl_vars[$v]->value;
+				$controller->_tpl_vars[$v] =$smarty_template->tpl_vars[$v]->value;
 				
 			} elseif (is_string($k)) {
 				
