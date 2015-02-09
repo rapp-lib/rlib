@@ -47,8 +47,7 @@ class Controller_Base extends SmartyExtended {
 	// ほかのControllerに状態を継承する処理
 	public function inherit_state ($sub_controller) {
 		
-		$sub_controller->set_vars($this->vars);
-		$sub_controller->set_contexts($this->contexts);
+		$sub_controller->_tpl_vars =$this->_tpl_vars;
 	}
 	
 	//-------------------------------------
@@ -138,19 +137,5 @@ class Controller_Base extends SmartyExtended {
 	//-------------------------------------
 	// 
 	public function after_act () {
-	}
-	
-	//-------------------------------------
-	// varsのSetter
-	public function set_vars ($vars) {
-		
-		$this->vars =$vars;
-	}
-	
-	//-------------------------------------
-	// contextsのSetter
-	public function set_contexts ($contexts) {
-		
-		$this->contexts =$contexts;
 	}
 }

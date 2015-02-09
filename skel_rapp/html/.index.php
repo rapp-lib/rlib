@@ -4,7 +4,7 @@
 	
 	__start();
 	exit;
-	
+
 	//-------------------------------------
 	// start
 	function __start () {
@@ -13,7 +13,7 @@
 		registry("Request.request_uri",$_REQUEST['__REQUEST_URI__']);
 		unset($_REQUEST['__REQUEST_URI__']);
 		unset($_GET['__REQUEST_URI__']);
-		
+			
 		elapse("webapp");
 		elapse("webapp.setup");
 		
@@ -57,13 +57,13 @@
 		// Routing設定もなくHTMLファイルもない場合は404エラー
 		if ( ! $request_page && ! file_exists($request_file)) {
 			
-			report_warning("RequestError: Route and File NotFound",registry("Request"));
+			report_warning("Request Trouble: Route and File NotFound",registry("Request"));
 			
 			set_response_code(404);
 			
 			shutdown_webapp("notfound");
 		}
-	
+
 		// レスポンスの設定
 		$request_file =registry("Request.request_file");
 		registry("Response.template_file", $request_file);
@@ -71,47 +71,31 @@
 		$response_charset =registry("Config.external_charset");
 		registry("Response.content_type", 'text/html; charset='.$response_charset);
 		
-		//-------------------------------------
-		// ControllerとActionの解決
-		$request_page =registry("Request.request_page");
-		list($controller_name, $action_name) =explode('.',$request_page,2);
-		$controller_class_name =str_camelize($controller_name)."Controller";
-		$action_method_name ="act_".$action_name;
-		
-		registry(array(
-			"Request.controller_name" =>$controller_name,
-			"Request.action_name" =>$action_name,
-			"Request.controller_class_name" =>$controller_class_name,
-			"Request.action_method_name" =>$action_method_name,
-		));
-		
-		// Controllerクラスが存在しないエラー
-		if ( ! class_exists($controller_class_name)) {
-			
-			report_error("RoutingError: Controller NotFound",registry("Request"));
-		}
-		
 		elapse("webapp.setup",true);
 		elapse("webapp.action");
 		
 		//-------------------------------------
-		// Controllerのセットアップ、actionの実行
-		$controller_obj =new $controller_class_name($controller_name,$action_name);
+		// Controller/Actionの実行
+		$request_page =registry("Request.request_page");
 		
-		$controller_obj->before_act();
+		list($controller_name, $action_name) =explode('.',$request_page,2);
+		registry(array(
+			"Request.controller_name" => $controller_name,
+			"Request.action_name" => $action_name,
+		));
 		
-		if (is_callable(array($controller_obj,$action_method_name))) {
+		$controller_obj =raise_action($request_page);
+		
+		// Controller/Action実行エラー
+		if ( ! $controller_obj) {
 			
-			// Controller::act_*()の呼び出し
-			$controller_obj->$action_method_name();
+			report_error("Request Routing Error: Controller/Action raise error",registry("Request"));
 		}
-		
-		$controller_obj->after_act();
 		
 		elapse("webapp.action",true);
 		elapse("webapp.fetch");
 		
-		registry("Response.template_vars", $controller_obj->_tpl_vars);
+		registry("Response.controller_obj", $controller_obj);
 		
 		//-------------------------------------
 		// テンプレートファイルの読み込み
@@ -128,7 +112,7 @@
 		
 		shutdown_webapp("normal");
 	}
-	
+
 	//-------------------------------------
 	// __end
 	function __end ($cause, $options) {
@@ -149,6 +133,6 @@
 			"Template" =>registry("Response.template_file"),
 			"ShutdownCause" =>$cause,
 			"Elapsed" =>elapse(),
-			"TemplateVars" =>registry("Response.template_vars"),
+			"ResponseState" =>registry("Response.controller_obj"),
 		));
 	}
