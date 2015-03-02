@@ -246,26 +246,18 @@ class DBI_Base {
 	
 	//-------------------------------------
 	// トランザクションのRollback
-	public function rollback ($transaction_id="default") {
+	public function rollback () {
 		
 		if ( ! $this->transaction_stack) {
 			
-			report("Transaction has rollbacked, not rollback");
-		}
-		
-		$target_transaction_id =array_pop($this->transaction_stack);
-		
-		if ($transaction_id != $target_transaction_id) {
-			
-			report_error("Nested Transaction rollback  error",array(
-				"target_transaction" =>$transaction_id,
-				"missing_transaction" =>$target_transaction_id,
-			));
+			return false;
 		}
 		
 		$this->exec($this->ds->_commands['rollback']);
 		
 		$this->transaction_stack =array();
+		
+		return true;
 	}
 	
 	//-------------------------------------
@@ -361,11 +353,7 @@ class DBI_Base {
 				"Query" =>$query,
 			));
 			$ts =$this->fetch_all($result);
-			
-			foreach ($ts as $t) {
-			
-				$count +=(int)$t["count"];
-			}
+			$count =count($ts);
 			
 		// 件数を集計
 		} else {

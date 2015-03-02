@@ -1,6 +1,7 @@
 <?php
 	
 	load_cake();
+	register_shutdown_webapp_function("dbi_rollback_all");
 	
 	//-------------------------------------
 	// DBIインスタンスのファクトリ
@@ -31,6 +32,23 @@
 		}
 		
 		return $instance[$name];
+	}
+	
+	//-------------------------------------
+	// 全てのトランザクションのRollback
+	function dbi_rollback_all () {
+		
+		$instance =& ref_globals("loaded_dbi");
+		
+		foreach ((array)$instance as $dbi) {
+			
+			$result =$dbi->rollback();
+			
+			if ($result) {
+				
+				report_warning("Rollback unclosed Trunsaction");
+			}
+		}
 	}
 	
 	//-------------------------------------

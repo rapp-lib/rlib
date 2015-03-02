@@ -4,11 +4,17 @@
 	// URLの組み立て
 	function url ($base_url=null, $params=null, $anchor=null) {
 		
-		$url =null;
+		$url =$base_url;
 		
-		if (is_string($base_url)) {
+		// URL内アンカーの退避
+		if (preg_match('!^(.*?)#(.*)$!',$url,$match)) {
 			
-			$url .=$base_url;
+			list(,$url,$old_anchor) =$match;
+				
+			if ($anchor === null) {
+				
+				$anchor =$old_anchor;
+			}
 		}
 		
 		// URL内パラメータの解決
@@ -39,10 +45,7 @@
 		
 		if ($params) {
 			
-			if ($url !== null) {
-				
-				$url .=strpos($url,'?')===false ? '?' : '&';
-			}
+			$url .=strpos($url,'?')===false ? '?' : '&';
 			
 			if (is_string($params)) {
 			

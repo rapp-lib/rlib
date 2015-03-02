@@ -2,6 +2,8 @@
 
 	function smarty_function_input ($params, $smarty) {
 		
+		static $input_index_counter =array();
+		
 		$type =& $params["type"];
 		$name =& $params["name"];
 		
@@ -26,9 +28,11 @@
 		
 		// []の解決
 		if (strpos($name,"[]")!==false) {
-		
+			
+			report_error("Invalid input-name include [].",$params);
+			
 			$input_index_key =preg_replace('!\[\].*$!','',$name);
-			$input_index_value =++$smarty->_input_index[$input_index_key];
+			$input_index_value =++$input_index_counter[$input_index_key];
 			
 			$name =str_replace('[]','['.$input_index_value.']',$name);
 		}

@@ -101,7 +101,7 @@ class UserFileManager {
 	//-------------------------------------
 	// Codeに対応するファイルの配信URLを取得
 	public function get_url ($code, $group) {
-		
+	
 		// URLの解決方法の指定がある場合
 		if ($upload_url =$this->get_config("upload_url",$group)) {
 			

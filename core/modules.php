@@ -24,16 +24,13 @@
 				
 		$include_pathes =explode(PATH_SEPARATOR,get_include_path());
 		
-		if (is_resource($fp =@fopen($file_name,"r",true)) && fclose($fp)) {
-		
-			foreach ($include_pathes as $include_path) {
-				
-				$find_path =$include_path."/".$file_name;
+		foreach ($include_pathes as $include_path) {
 			
-				if (file_exists($find_path)) {
-					
-					return realpath($find_path);
-				}
+			$find_path =$include_path."/".$file_name;
+		
+			if (file_exists($find_path)) {
+				
+				return realpath($find_path);
 			}
 		}
 		

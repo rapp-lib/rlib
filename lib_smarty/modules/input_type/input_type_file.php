@@ -1,4 +1,16 @@
 <?php
+/*
+	■assign="file" の使用方法
+
+	{{$file.head}}
+	{{$file.upload}}
+	{{$file.message_area}}
+	{{$file.uploaded_set_head}}
+		<img src="{{$file.uploaded_url}}" class="uploadedFile"/>
+		<span onclick="{{$file.delete_js}}">削除</span>
+	{{$file.uploaded_set_foot}}
+	{{$file.foot}}
+*/
 
 	function input_type_file ($params, $preset_value, $postset_value, $smarty) {
 		
@@ -63,9 +75,10 @@
 		$html["uploaded_set_head"] ='<span id="uploaded_set_'.$html["elm_id"].'" class="uploadedSet"'
 				.($value ? '' : ' style="display:none"').'>';
 		$html["uploaded_set_foot"] ='</span>';
+		
+		$html["uploaded_url"] =$url;
 		$html["uploaded_link"] =$url ? '<a href="'.$url.'" target="_blank" class="uploadedFile">アップロード済み</a>' : "アップロード済み";
-		$html["uploaded_img"] =$url ? '<a href="'.$url.'" target="_blank" class="uploadedFile">'
-				.'<img src="'.$url.'" class="uploadedFile">'.'</a>' : "";
+		$html["uploaded_img"] ='<img src="'.$url.'" class="uploadedFile"/>';
 		$html["uploaded_delete"] ='<a href="javascript:void(0)"'
 				.' onclick="'.$html["delete_js"].'" class="delete">[削除]</a>';
 		
@@ -88,8 +101,7 @@
 		// テンプレート変数へのアサイン
 		if ($params["assign"]) {
 			
-			$ref =& ref_array($template->_tpl_vars,$params["assign"]);
-			$ref =$html;
+			$smarty->assign($params["assign"],$html);
 
 			return null;
 		}
