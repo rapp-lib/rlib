@@ -117,7 +117,7 @@
 	// __end
 	function __end ($cause, $options) {
 		
-		if ($cause == "error_report") {
+		if ($cause == "error_report" || $cause == "fatal_error_shutdown") {
 			
 			// 異常停止のログを記録
 			$log_file =registry("Path.tmp_dir")."/log/error_shutdown.log";
