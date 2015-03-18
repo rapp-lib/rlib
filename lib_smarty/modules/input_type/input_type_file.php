@@ -21,6 +21,7 @@
 			"value",
 			"group",
 			"assign", // 部品をアサインするテンプレート変数名
+			"mi_item_id",
 		);
 		$attr_html ="";
 		
@@ -39,6 +40,12 @@
 		
 		$html["alias"] =sprintf("LRA%09d",mt_rand());
 		$html["elm_id"] ='ELM_'.$html["alias"];
+		
+		if ($params["mi_item_id"]) {
+			
+			$html["alias"] .="_".$params["mi_item_id"];
+			$html["elm_id"] .="_".$params["mi_item_id"];
+		}
 		
 		// LRA共通ヘッダ／フッタ
 		$html["head"] ='<span class="vifUploadContainer">'

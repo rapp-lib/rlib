@@ -306,12 +306,12 @@
 	// 処理を停止するexit相当の機能/異常終了を正しく通知できる
 	function shutdown_webapp ($cause=null, $options=array()) {
 		
-		if (defined("RAPP_SHUTDOWN_CAUSE")) {
+		if (defined("WEBAPP_SHUTDOWN_CAUSE")) {
 			
 			return;
 		}
 		
-		define("RAPP_SHUTDOWN_CAUSE",$cause);
+		define("WEBAPP_SHUTDOWN_CAUSE",$cause);
 		
 		// 通常終了時はFlushMessageを削除
 		if ($cause == "normal") {
@@ -363,9 +363,7 @@
 			// shutdown_webappを経由しない不正な終了
 			} else {
 				
-				report($error['message'],array(),array(
-					"type" =>"illegal_shutdown",
-				));
+				report_warning("Illegal shutdown, Not routed shutdown_webapp");
 			}
 		}
 	}

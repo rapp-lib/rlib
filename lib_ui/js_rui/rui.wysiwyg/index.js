@@ -1,24 +1,24 @@
 /**
 -------------------------------------
-rui.wysiwig 
+rui.wysiwyg 
 
 rev:2013/02/08.modeac Y.Toyosawa
 -------------------------------------	
 
 ■概要：
 
-	wysiwigクラスを指定するとWysiwygになる。
+	wysiwygクラスを指定するとWysiwygになる。
 
 ■使用例：
 
-	<textarea class="wysiwig"></textarea>
+	<textarea class="wysiwyg"></textarea>
 */
 
 	rui.require_js("rui.wysiwyg/nicEdit.js");
 	rui.require_css("rui.wysiwyg/nicEdit.css");
 	
 	//-------------------------------------
-	// WysiwigテキストエリアUI
+	// WysiwygテキストエリアUI
 	window.rui.Wysiwyg ={};
 	window.rui.Wysiwyg.instances ={};
 	
