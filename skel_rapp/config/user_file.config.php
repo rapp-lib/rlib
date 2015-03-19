@@ -2,10 +2,11 @@
 
 	//-------------------------------------
 	// ファイルアップロード設定
+	registry("UserFile.user_file_dir", registry("Path.html_dir")."/user_file");
 	registry("UserFile.group", array(
 	
 		"public" =>array(
-			"upload_dir" =>registry("Path.html_dir").'/user_file/uploaded',
+			"upload_dir" =>registry("UserFile.user_file_dir").'/uploaded',
 			"allow_ext" =>array(
 				'jpg', 'jpeg', 'png', 'gif', 'pdf',
 			),
@@ -26,7 +27,3 @@
 		),
 	));
 	
-	//-------------------------------------
-	// リサイズ画像保存先の指定
-	registry("ImageResize.resized_image_dir.default",
-			registry("Path.html_dir").'/user_file/resized');

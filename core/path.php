@@ -218,3 +218,13 @@
 
 		return $url;
 	}
+		
+	//-------------------------------------
+	// 対象ファイルがDocumentRoot配下にあるか確認
+	function is_public_file ($file) {
+		
+		$dir =registry("Path.document_root_dir");
+		
+		return ! preg_match('!/\.\.+/!',$file) 
+				&& preg_match('!^'.preg_quote($dir,'!').'!',$file);
+	}
