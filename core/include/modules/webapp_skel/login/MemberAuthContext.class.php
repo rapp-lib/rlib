@@ -49,7 +49,7 @@ class <?=str_camelize($c["account"])?>AuthContext extends Context_App {
 		$this->logout();
 		
 		// ログインID/パスワードチェック
-		$id =($login_id == "test" && $login_pass == "pass")
+		$id =($login_id == "admin" && $login_pass == "cftyuhbvg")
 				? 1
 				: null;
 				
