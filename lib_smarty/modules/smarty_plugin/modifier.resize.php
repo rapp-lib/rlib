@@ -1,7 +1,12 @@
 <?php
 
-	function smarty_modifier_resize ($file_url, $format) {
+	function smarty_modifier_resize ($file_url, $format, $noimage_url=null) {
 	
+		if ( ! $file_url) {
+			
+			$file_url =$noimage_url;
+		}
+		
 		if ( ! $file_url) {
 			
 			return null;
