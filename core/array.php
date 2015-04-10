@@ -355,7 +355,12 @@
 			return array();
 		
 		// unserialize可能であれば展開
-		} elseif (is_string($value) && $unserialized =@unserialize($value)) {
+		} elseif (is_string($value) && ($unserialized =@unserialize($value)) !== false) {
+			
+			if ($value === "b:0;") {
+			
+				return false;
+			}
 			
 			return $unserialized;
 		}
