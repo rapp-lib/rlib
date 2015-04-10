@@ -30,6 +30,10 @@
 			"app/model",
 		),
 		
+		// php.ini設定
+		"Config.php_ini" =>array_escape(array(
+		)),
+		
 		// デバッグ設定
 		"Report.error_reporting" =>E_ALL&~E_NOTICE&~E_DEPRECATED,
 		"Report.buffer_enable" =>false,
@@ -70,7 +74,9 @@
 				"Config.env.env_id" =>$env_id,
 			));
 			
-			registry((array)registry("Config.envs.".$env_id.".overwrite_config"));
+			$env_config =registry("Config.envs.".$env_id.".overwrite_config");
+			
+			registry(array_escape((array)$env_config));
 			
 			break;
 		}
@@ -102,7 +108,7 @@
 					));
 				}
 				
-				registry((array)$site_config["overwrite_config"]);
+				registry(array_escape((array)$site_config["overwrite_config"]);
 				
 				break;
 			}

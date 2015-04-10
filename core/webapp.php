@@ -56,6 +56,12 @@
 				registry($k,$v);
 			}
 		}
+		
+		// php.ini設定
+		foreach ((array)registry("Config.php_ini") as $k => $v) {
+			
+			ini_set($k, $v);
+		}
 
 		// HTTPパラメータ構築
 		$_REQUEST =array_merge($_GET,$_POST);
