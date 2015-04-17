@@ -108,7 +108,7 @@
 					));
 				}
 				
-				registry(array_escape((array)$site_config["overwrite_config"]);
+				registry(array_escape((array)$site_config["overwrite_config"]));
 				
 				break;
 			}
