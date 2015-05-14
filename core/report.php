@@ -10,11 +10,12 @@
 			$errline=null, 
 			$errcontext=null) {
 		
-		if (error_reporting() == 0 || ! (error_reporting() & $errno)) {
+		if ( ! (get_webapp_dync("report") 
+				&& (registry("Report.error_reporting") & $errno))) {
 			
 			return; 
 		}
-
+		
 		report($errstr,array(),array(
 			"type" =>"error_handler",
 			"errno" =>$errno,
@@ -23,6 +24,7 @@
 			"errline" =>$errline,
 			"errcontext" =>$errcontext,
 		));
+		//throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 	}
 	
 	//-------------------------------------
@@ -224,7 +226,7 @@
 			
 			if (registry("Report.report_backtraces")) {
 			
-				$message .='<br/> [BACKTRACES] :'.decorate_value($errdetail,true);
+				$message .='<br/> [BACKTRACES] :'.decorate_value($backtraces,true);
 			}
 			
 			$report_html .='<div class="ruiReport '.$elm_class.'" id="'.$elm_id.'" '
@@ -330,7 +332,7 @@
 		}
 		
 		// エラー時の処理停止
-		if ($options["errno"] & (E_ERROR | E_USER_ERROR)) {
+		if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
 			
 			shutdown_webapp("error_report",array(
 				"errstr" =>$errstr, 

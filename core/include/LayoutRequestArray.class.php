@@ -75,6 +75,11 @@ class LayoutRequestArray {
 				
 				$setting =$settings[$request["splitmode"]];
 				
+				foreach ((array)$value as $k => $v) {
+					
+					$value[$k] =str_replace($setting["delim"],"",$v);
+				}
+				
 				$value =strlen(implode($value,""))
 						? implode($value,$setting["delim"])
 						: "";

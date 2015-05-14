@@ -31,6 +31,7 @@ jquery.mi
 				<a href="javascript:void(0);" class="mi-item-remove">[削除]</a>
 				
 				{{input type="text" name="c[Entry.tasks][<%=id%>][label]"}}
+				{{input type="file" name="c[Entry.tasks][<%=id%>][file]" mi_item_id="<%=id%>" group="public"}}
 				</select>
 			</li>
 		</script>
@@ -50,6 +51,7 @@ jquery.mi
 				<a href="javascript:void(0);" class="mi-item-remove">[削除]</a>
 				
 				{{input type="text" name="c[Entry.tasks][`$i`][label]" value=$v.label}}
+				{{input type="file" name="c[Entry.tasks][<%=id%>][file]" mi_item_id=$i group="public"}}
 			{{/foreach}}
 			
 			<li class="mi-anchor" style="display:none;"></li>
@@ -513,7 +515,7 @@ jquery.mi
 			
 			$mi.find(".mi-item-id").each(function(){
 				
-				if (nextId <= $(this).val()) {
+				if (1*nextId <= 1*$(this).val()) {
 					
 					nextId =$(this).val();
 				}

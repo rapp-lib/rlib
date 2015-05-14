@@ -139,23 +139,31 @@ class Context_Base {
 			
 			$value =$this->input($key);
 			
-			$is_empty =is_array($value)
-					? ! strlen(implode('',$value))
-					: ! strlen($value);
+			$module =load_module("rule","required",true);
+			$result =call_user_func_array($module,array(
+				$value,
+				null,
+				$key, 
+				$this,
+			));
 					
-			if ($is_empty) {
+			if ($result) {
 				
-				if ($errmsg_label =label("errmsg.input.required.".$key)) {
+				if ($rule["message"]) {
+				
+					$error =$rule["message"];
+					
+				} elseif ($errmsg_label =label("errmsg.input.required.".$key)) {
 				
 					$error =$errmsg_label;
 					
 				} elseif ($col_label =label("cols.".$key)) {
 				
-					$error =$col_label." : 必ず入力してください";
+					$error =$col_label." : ".$result;
 					
 				} else {
 				
-					$error =$key." : 必ず入力してください";
+					$error =$result;
 				}
 				
 				$this->errors($key.'.required',$error);
@@ -192,7 +200,7 @@ class Context_Base {
 				
 					$error =$rule["message"];
 					
-				} elseif ($errmsg_label =label("errmsg.input.required.".$key)) {
+				} elseif ($errmsg_label =label("errmsg.input.".$rule["type"].".".$key)) {
 				
 					$error =$errmsg_label;
 					

@@ -295,10 +295,14 @@ class SmartyExtended extends SmartyBC {
 					? $params["href"]
 					: $params["action"];
 			$anchor =$params["anchor"];
+			$method =$params["method"]
+					? $params["method"]
+					: "post";
 			
 			unset($params["href"]);
 			unset($params["action"]);
 			unset($params["anchor"]);
+			unset($params["method"]);
 			
 			// _page
 			if ($params["_page"]) {
@@ -358,16 +362,7 @@ class SmartyExtended extends SmartyBC {
 				if (preg_match('!^_(.*)$!',$key,$match)) {
 					
 					$param_name =$match[1];
-					
-					if ($type == 'a') {
-						
-						$url_params[$param_name] =$value;
-					
-					} elseif ($type == 'form' || $type == "button") {
-					
-						$hidden_input_html .='<input type="hidden" name="'.
-								$param_name.'" value="'.$value.'"/>';
-					}
+					$url_params[$param_name] =$value;
 					
 				} else {
 					
@@ -382,13 +377,13 @@ class SmartyExtended extends SmartyBC {
 			// タグ別の処理
 			if ($type == 'form') {
 			
-				$html .='<form method="post" action="'.$dest_url.'"'.$attr_html.'>';
+				$html .='<form method="'.$method.'" action="'.$dest_url.'"'.$attr_html.'>';
 				$html .=$hidden_input_html;
 				$html .=$content.'</form>';
 				
 			} elseif ($type == 'button') {
 			
-				$html .='<form method="post" action="'.$dest_url.'"'.$attr_html.'>';
+				$html .='<form method="'.$method.'" action="'.$dest_url.'"'.$attr_html.'>';
 				$html .='<input type="submit" value="'.$content.'" /></form>';
 				
 			} elseif ($type == 'a') {
@@ -498,6 +493,11 @@ class SmartyExtended extends SmartyBC {
 						.' value="'.$option_value.'"'
 						.($selected ? ' selected="selected"' : '')
 						.'>'.$option_label.'</option>'."\n";
+				$html["split_options"][$option_value] =array(
+					"value" =>$option_value,
+					"selected" =>$selected,
+					"label" =>$option_label,
+				);
 			}
 			
 		} elseif ($params["type"] == "radioselect") {
@@ -515,6 +515,12 @@ class SmartyExtended extends SmartyBC {
 						.($checked ? ' checked="checked"' : '')
 						.'> <span class="labeltext">'.$option_label
 						.'</span></label></nobr> &nbsp;'."\n";
+				$html["split_options"][$option_value] =array(
+					"name" =>$params["name"],
+					"value" =>$option_value,
+					"checked" =>$checked,
+					"label" =>$option_label,
+				);
 			}
 			
 		} elseif ($params["type"] == "checklist") {
@@ -553,6 +559,12 @@ class SmartyExtended extends SmartyBC {
 						.($checked ? ' checked="checked"' : '')
 						.'> <span class="labeltext">'.$option_label
 						.'</span></label></nobr> &nbsp;'."\n";
+				$html["split_options"][$option_value] =array(
+					"name" =>$params['name'].'['.$option_value.']',
+					"value" =>$option_value,
+					"checked" =>$checked,
+					"label" =>$option_label,
+				);
 			}
 			
 		} elseif ($params["type"] == "multiselect") {
@@ -588,6 +600,11 @@ class SmartyExtended extends SmartyBC {
 						.' value="'.$option_value.'"'
 						.($selected ? ' selected="selected"' : '')
 						.'>'.$option_label.'</option>'."\n";
+				$html["split_options"][$option_value] =array(
+					"value" =>$option_value,
+					"selected" =>$selected,
+					"label" =>$option_label,
+				);
 			}
 			
 		}

@@ -246,26 +246,18 @@ class DBI_Base {
 	
 	//-------------------------------------
 	// トランザクションのRollback
-	public function rollback ($transaction_id="default") {
+	public function rollback () {
 		
 		if ( ! $this->transaction_stack) {
 			
-			report("Transaction has rollbacked, not rollback");
-		}
-		
-		$target_transaction_id =array_pop($this->transaction_stack);
-		
-		if ($transaction_id != $target_transaction_id) {
-			
-			report_error("Nested Transaction rollback  error",array(
-				"target_transaction" =>$transaction_id,
-				"missing_transaction" =>$target_transaction_id,
-			));
+			return false;
 		}
 		
 		$this->exec($this->ds->_commands['rollback']);
 		
 		$this->transaction_stack =array();
+		
+		return true;
 	}
 	
 	//-------------------------------------
@@ -361,11 +353,7 @@ class DBI_Base {
 				"Query" =>$query,
 			));
 			$ts =$this->fetch_all($result);
-			
-			foreach ($ts as $t) {
-			
-				$count +=(int)$t["count"];
-			}
+			$count =count($ts);
 			
 		// 件数を集計
 		} else {
@@ -1140,7 +1128,7 @@ class DBI_Base {
 			
 			if ($t["table"]) { 
 				
-				$msg .=" , Table: ".$t["table"]; 
+				$msg .=" , Table=".$t["table"]; 
 			}
 			
 			if ($t["rows"]) { 
@@ -1150,38 +1138,51 @@ class DBI_Base {
 				
 			if ($t["key"]) { 
 				
-				$msg .=" , Index: ".$t["key"]; 
+				$msg .=" , Index=".$t["key"]; 
 			}
 			
 			if ($t["Extra"]) { 
 				
-				$msg .=" , (".implode("|",$t["Extra"]).")"; 
+				$msg .=" , ".implode(" , ",$t["Extra"]).""; 
 			}
 			
 			$explain["msg"][] =$msg;
 			
 			$full =$t;
 			$full["Extra"] =implode(",",$t["Extra"]);
+			$explain["full"][] =$full;
 			
 			if ($t["type"] == "index") {
 				
-				$explain["warn"][] ="[効果的ではないINDEX] ".$msg;
+				if ($t["select_type"] != "PRIMARY") {
+					
+					$explain["warn"][] ="[INDEX全件スキャン] ".$msg;
+				}
 			}
 			
 			if ($t["type"] == "ALL") {
 				
-				$explain["warn"][] ="[全件スキャン] ".$msg;
+				$explain["warn"][] ="[★全件スキャン] ".$msg;
 			}
 			
-			if ($t["select_type"] == "DEPENDENT SUBQUERY" && $t["type"] != "ref") {
+			if ($t["select_type"] == "DEPENDENT SUBQUERY") {
 				
-				$explain["warn"][] ="[INDEXなし相関SQ★] ".$msg;
-			
-			}
-			
-			if ($t["select_type"] == "DEPENDENT SUBQUERY" && $t["type"] == "ref") {
+				if ($t["type"] == "ref" || $t["type"] == "eq_ref") {
 				
-				$explain["warn"][] ="[INDEX相関SQ] ".$msg;
+					$explain["warn"][] ="[参照相関SQ] ".$msg;
+				
+				} elseif ($t["type"] == "unique_subquery") {
+				
+					$explain["warn"][] ="[U-INDEX相関SQ] ".$msg;
+				
+				} elseif ($t["type"] == "index_subquery") {
+				
+					$explain["warn"][] ="[INDEX相関SQ] ".$msg;
+					
+				} else {
+					
+					$explain["warn"][] ="[★★全件スキャン相関SQ] ".$msg;
+				}
 			}
 			
 			foreach ($t["Extra"] as $extra_msg) {
@@ -1200,7 +1201,7 @@ class DBI_Base {
 				
 				if ($extra_msg == "Using join buffer") {
 				
-					$explain["warn"][] ="[全件スキャンJOIN★] ".$msg;
+					$explain["warn"][] ="[★★全件スキャンJOIN] ".$msg;
 				}
 			}
 		}

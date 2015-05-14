@@ -30,6 +30,10 @@
 			"app/model",
 		),
 		
+		// php.ini設定
+		"Config.php_ini" =>array_escape(array(
+		)),
+		
 		// デバッグ設定
 		"Report.error_reporting" =>E_ALL&~E_NOTICE&~E_DEPRECATED,
 		"Report.buffer_enable" =>false,
@@ -60,17 +64,19 @@
 	
 	//-------------------------------------
 	// 環境別設定の上書き
-	foreach (glob(dirname(__FILE__).'/*.env-ident') as $env_ident_file) {
+	foreach ((array)glob(dirname(__FILE__).'/*.env-ident') as $env_ident_file) {
 		
 		if (preg_match('!/([^\./]+)\.env-ident$!',$env_ident_file,$match)) {
 			
 			$env_id =$match[1];
-			$config_files =glob(dirname(__FILE__).'/*.'.$env_id.'.env-config.php');
 			
-			foreach ($config_files as $config_file) {
-				
-				include_once($config_file);
-			}
+			registry(array(
+				"Config.env.env_id" =>$env_id,
+			));
+			
+			$env_config =registry("Config.envs.".$env_id.".overwrite_config");
+			
+			registry(array_escape((array)$env_config));
 			
 			break;
 		}
@@ -78,29 +84,34 @@
 	
 	//-------------------------------------
 	// ドメイン別設定の上書き
-	foreach (registry("Config.vhosts") as $site_id => $site_config) {
+	foreach ((array)registry("Config.vhosts") as $site_id => $site_config) {
 		
 		$server_names = ! is_array($site_config["server_name"]) 
 				? array($site_config["server_name"])
 				: $site_config["server_name"];
 		$server_name =$server_names[0];
 		
-		if (in_array($_SERVER["SERVER_NAME"],$server_names)) {
-			
-			registry(array(
-				"Path.document_root_url" =>"http://".$server_name,
-				"Path.document_root_url_https" =>"https://".$server_name,
-			));
-			registry((array)$site_config["overwrite_config"]);
-			
-			$config_files =glob(dirname(__FILE__).'/*.'.$site_id.'.site-config.php');
-			
-			foreach ($config_files as $config_file) {
+		foreach ($server_names as $server_name) {
+		
+			if ($_SERVER["SERVER_NAME"] == $server_name) {
 				
-				include_once($config_file);
+				registry(array(
+					"Config.vhost.site_id" =>$site_id,
+					"Config.vhost.server_name" =>$server_name,
+				));
+				
+				if ( ! registry("Path.document_root_url")) {
+					
+					registry(array(
+						"Path.document_root_url" =>"http://".$server_name,
+						"Path.document_root_url_https" =>"https://".$server_name,
+					));
+				}
+				
+				registry(array_escape((array)$site_config["overwrite_config"]));
+				
+				break;
 			}
-			
-			break;
 		}
 	}
 	

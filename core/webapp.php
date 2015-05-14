@@ -56,6 +56,12 @@
 				registry($k,$v);
 			}
 		}
+		
+		// php.ini設定
+		foreach ((array)registry("Config.php_ini") as $k => $v) {
+			
+			ini_set($k, $v);
+		}
 
 		// HTTPパラメータ構築
 		$_REQUEST =array_merge($_GET,$_POST);
@@ -72,6 +78,7 @@
 		spl_autoload_register("load_class");
 		set_error_handler("std_error_handler",E_ALL);
 		set_exception_handler('std_exception_handler');
+		register_shutdown_function('std_shutdown_handler');
 		
 		if ( ! get_cli_mode()) {
 		
@@ -305,6 +312,13 @@
 	// 処理を停止するexit相当の機能/異常終了を正しく通知できる
 	function shutdown_webapp ($cause=null, $options=array()) {
 		
+		if (defined("WEBAPP_SHUTDOWN_CAUSE")) {
+			
+			return;
+		}
+		
+		define("WEBAPP_SHUTDOWN_CAUSE",$cause);
+		
 		// 通常終了時はFlushMessageを削除
 		if ($cause == "normal") {
 		
@@ -331,6 +345,33 @@
 		
 		$funcs =& ref_globals('shutdown_webapp_function');
 		$funcs[] =$func;
+	}
+	
+	//-------------------------------------
+	// 標準PHP終了ハンドラ
+	function std_shutdown_handler () {
+		
+		$error =error_get_last();
+		
+		if ( ! defined("WEBAPP_SHUTDOWN_CAUSE")) {
+			
+			// FatalErrorによる強制終了
+        	if ($error) {
+				
+				report($error['message'],array(),array(
+					"type" =>"fatal_error_shutdown",
+					"errno" =>$error['type'],
+					"errstr" =>$error['message'],
+					"errfile" =>$error['file'],
+					"errline" =>$error['line'],
+				));
+				
+			// shutdown_webappを経由しない不正な終了
+			} else {
+				
+				report_warning("Illegal shutdown, Not routed shutdown_webapp");
+			}
+		}
 	}
 	
 	//-------------------------------------
@@ -448,7 +489,7 @@
 	
 	//-------------------------------------
 	//
-	function redirect ($url, $params=array(), $flush_message=null) {
+	function redirect ($url, $params=array(), $anchor=null) {
 		
 		if (preg_match('!^page:(.*)$!',$url,$match)) {
 			
@@ -476,9 +517,7 @@
 			$params[session_name()] =session_id();
 		}
 		
-		$url =url($url,$params);
-		
-		$flush_message =flush_message($flush_message);
+		$url =url($url,$params,$anchor);
 		
 		if (get_webapp_dync("report")) {
 			

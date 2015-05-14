@@ -161,7 +161,6 @@
 
 		// https指定であればURLの先頭を変更
 		if ($full_url === "https") {
-
 			if ($document_root_ssl_url =registry('Path.document_root_ssl_url')) {
 
 				$document_root_url =preg_replace('!/$!','',$document_root_ssl_url);
@@ -170,6 +169,11 @@
 
 				$document_root_url =preg_replace('!^http://!','https://',$document_root_url);
 			}
+		
+		// httpから始まるURLを返す必要がなければ切り取る
+		} elseif ( ! $full_url) {
+			
+			$document_root_url =preg_replace('!^https?://[^/]+(/|$)!','',$document_root_url);
 		}
 
 		$pattern ='!^'.preg_quote(registry('!Path.document_root_dir')).'/?!';
@@ -213,4 +217,14 @@
 		$url =file_to_url($file,$full_url);
 
 		return $url;
+	}
+		
+	//-------------------------------------
+	// 対象ファイルがDocumentRoot配下にあるか確認
+	function is_public_file ($file) {
+		
+		$dir =registry("Path.document_root_dir");
+		
+		return ! preg_match('!/\.\.+/!',$file) 
+				&& preg_match('!^'.preg_quote($dir,'!').'!',$file);
 	}

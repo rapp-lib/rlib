@@ -22,6 +22,10 @@ class SSHTransfar {
 	// SCPによる通信
 	protected function scp ($mode, $options=array()) {
 		
+		// KnownHostsを無視する設定
+		$options["params"][] ="-o StrictHostKeyChecking=no";
+		$options["params"][] ="-o UserKnownHostsFile=/dev/null";
+		
 		// 秘密鍵の指定
 		if ($options["identity_file"]) {
 			
@@ -93,6 +97,10 @@ class SSHTransfar {
 	//-------------------------------------
 	// SSHによるリモートコマンドの実行
 	public function ssh_remote_exec ($command, $options=array()) {
+		
+		// KnownHostsを無視する設定
+		$options["params"][] ="-o StrictHostKeyChecking=no";
+		$options["params"][] ="-o UserKnownHostsFile=/dev/null";
 		
 		// ユーザの指定
 		if ($options["user"]) {
