@@ -1,5 +1,22 @@
 <?php
-
+/*
+	// ユーザ検索
+	$url =url("https://api.twitter.com/1.1/users/lookup.json",array(
+		"screen_name" =>"test",
+	));
+	
+	// 投稿
+	$url =url("https://api.twitter.com/1.1/statuses/update.json",array(
+		'status' =>"test",
+	));
+	
+	$response =obj("OAuthHandler")->oauth_request($url,array(
+		'oauth_consumer_key' =>$oauth_config["consumer_key"],
+		'oauth_consumer_secret' =>$oauth_config["consumer_secret"],
+		'oauth_token' =>$oauth_result["oauth_token"],
+		'oauth_token_secret' =>$oauth_result["oauth_token_secret"],
+	),true);
+*/
 
 //-------------------------------------
 // 
