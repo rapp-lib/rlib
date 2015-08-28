@@ -83,6 +83,21 @@
 	}
 	
 	//-------------------------------------
+	// 読み込み元別設定の上書き
+	if (getenv("LOADER_ID")) {
+		
+		$loader_id =getenv("LOADER_ID");
+		
+		registry(array(
+			"Config.loader.loader_id" =>$loader_id,
+		));
+		
+		$loader_config =registry("Config.loaders.".$loader_id.".overwrite_config");
+		
+		registry(array_escape((array)$loader_config));
+	}
+	
+	//-------------------------------------
 	// ドメイン別設定の上書き
 	foreach ((array)registry("Config.vhosts") as $site_id => $site_config) {
 		

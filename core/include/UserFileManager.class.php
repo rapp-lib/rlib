@@ -10,14 +10,25 @@
 		));
 			
 	-------------------------------------
-	□サンプルコード（フォーム以外からのファイルアップロード）:
+	□サンプルコード（アップロード以外のファイルの保存）:
 
 		$result =obj("UserFileManager")->save_file(array(
 			"is_uploaded_resource" =>false,
 			"group" =>$request["group"],
 			"src_filename" =>$tmp_name, 
-			"src_filename_alias" =>$name, 
+			"src_filename_alias" =>$name, // 拡張子をつけない場合不要
 		));
+			
+	-------------------------------------
+	□サンプルコード（データの直接保存）:
+
+		$result =obj("UserFileManager")->save_file(array(
+			"is_uploaded_resource" =>false,
+			"group" =>$request["group"],
+			"src_data" =>$data, 
+			"src_filename_alias" =>$name,  // 拡張子をつけない場合不要
+		));
+		
 */
 
 //-------------------------------------
@@ -141,7 +152,8 @@ class UserFileManager {
 		$group =$params["group"];
 		
 		// アップロードファイルがない
-		if ( ! file_exists($params["src_filename"])) {
+		if (($params["src_filename"] && ! file_exists($params["src_filename"]))
+				|| ( ! $params["src_filename"] && ! strlen($params["src_data"]))) {
 
 			return array(
 				"status" =>"no_file",
@@ -223,9 +235,16 @@ class UserFileManager {
 		
 			$result =is_uploaded_file($params["src_filename"])
 					&& move_uploaded_file($params["src_filename"],$dest_filename);
-		} else {
+		
+		// ファイルのコピー
+		} elseif ($params["src_filename"]) {
 			
 			$result =copy($params["src_filename"],$dest_filename);
+		
+		// ファイルの直接保存
+		} else {
+			
+			$result =file_put_contents($dest_filename,$params["src_data"]);
 		}
 		
 		// ファイルの書き込みエラー

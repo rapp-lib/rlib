@@ -17,6 +17,11 @@ php_flag session.use_only_cookies Off
 #php_value session.save_path tcp://localhost:11211
 
 #-------------------------------------
+# Loader
+#
+#SetEnv LOADER_ID default
+
+#-------------------------------------
 # RewriteEngine
 #
 Options +FollowSymLinks

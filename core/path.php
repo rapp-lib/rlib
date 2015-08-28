@@ -76,6 +76,7 @@
 					$param_keys =$matches[1];
 					$to_path_ptn ='!'.preg_quote($to_path,'!').'!';
 					$to_path_ptn =preg_replace('!\\\\\[.*?\\\\\]!','(.*?)',$to_path_ptn);
+					$to_path_ptn =preg_replace('!\(\.\*\?\)\!$!','(.*)!',$to_path_ptn);
 
 					if (preg_match($to_path_ptn,$path,$match)) {
 
