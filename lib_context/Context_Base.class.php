@@ -57,16 +57,16 @@ class Context_Base {
 	
 	//-------------------------------------
 	// 
-	public function input ($name=null, $value=null) {
+	public function input ($name=null, $value=null, $escape=true) {
 	
-		return array_registry($this->session["__input"],$name,$value,true);
+		return array_registry($this->session["__input"],$name,$value,$escape);
 	}
 	
 	//-------------------------------------
 	// 
-	public function errors ($name=null, $value=null) {
+	public function errors ($name=null, $value=null, $escape=true) {
 	
-		return array_registry($this->session["__errors"],$name,$value,true);
+		return array_registry($this->session["__errors"],$name,$value,$escape);
 	}
 	
 	//-------------------------------------
@@ -105,31 +105,48 @@ class Context_Base {
 	public function validate (
 			$required=array(), 
 			$extra_rules=array(),
-			$groups=array()) {
+			$reset_errors=true,
+			$group_name=null) {
 			
-		$this->errors(false,false);
+		$errors =array();
 		
 		$rules =array_merge(
 				(array)registry("Validate.rules"),
 				(array)$extra_rules);
 		
-		// Group.X.Table.col形式の入力値の要素を適用対象とする
-		foreach ($groups as $group_name) {
+		// c[Group.X.Table.col]形式の入力値の要素を適用対象とする
+		if ($group_name) {
 			
-			$grouped_input =(array)$this->input($group_name);
+			$grouped_indeses =array();
 			
-			foreach (array_keys($grouped_input) as $index) {
+			foreach ($this->input() as $k=>$v) {
+				
+				list($target_group_name,$target_index,) =explode(".",$k,3);
+				
+				if ($target_group_name == $group_name) {
+					
+					$grouped_indeses[$target_index] =$target_index;
+				}
+			}
+			
+			$required_copy =$required;
+			$required =array();
+			
+			$rules_copy =$rules;
+			$rules =array();
+			
+			foreach ($grouped_indeses as $index) {
 				
 				// requiredの範囲拡張
-				foreach ($required_copy=$required as $v) {
+				foreach ($required_copy as $v) {
 					
 					$required[] =$group_name.".".$index.".".$v;
 				}
 				
 				// rulesの範囲拡張
-				foreach ($rules_copy=$rules as $k => $v) {
-					
-					$rules[$group_name.".".$index.".".$k] =$v;
+				foreach ($rules_copy as $k => $v) {
+					$v["target"] =$group_name.".".$index.".".$v["target"];
+					$rules[] =$v;
 				}
 			}
 		}
@@ -137,7 +154,7 @@ class Context_Base {
 		// Requiredチェック
 		foreach ($required as $key) {
 			
-			$value =$this->input($key);
+			$value =$this->input($key,null,fase);
 			
 			$module =load_module("rule","required",true);
 			$result =call_user_func_array($module,array(
@@ -166,7 +183,7 @@ class Context_Base {
 					$error =$result;
 				}
 				
-				$this->errors($key.'.required',$error);
+				$errors[$key.'.required'] =$error;
 			}
 		}
 		
@@ -184,7 +201,7 @@ class Context_Base {
 			}
 			
 			$key =$rule["target"];
-			$value =$this->input($key);
+			$value =$this->input($key,null,fase);
 			
 			$module =load_module("rule",$rule["type"],true);
 			$result =call_user_func_array($module,array(
@@ -213,8 +230,31 @@ class Context_Base {
 					$error =$result;
 				}
 				
-				$this->errors($key.'.'.$rule["type"],$error);
+				$errors[$key.'.'.$rule["type"]] =$error;
 			}
 		}
+		
+		// c[Group.X.Table.col]形式の入力値のエラーをerrors[Group][X]に分解する
+		if ($group_name) {
+			
+			foreach ($errors as $k=>$v) {
+				
+				list($error_group_name, $error_index, $error_k) =explode(".",$k,3);
+				
+				if ($error_group_name == $group_name) {
+					
+					unset($errors[$k]);
+					
+					$errors[$error_group_name][$error_index][$error_k] =$v;
+				}
+			}
+		}
+		
+		if ($reset_errors) {
+			
+			$this->errors(false,false);
+		}
+		
+		$this->errors($errors);
 	}
 }
