@@ -37,5 +37,5 @@
 		} elseif ($mode == "w") {
 		}
 		
-		return $value;
+		return $values;
 	}
