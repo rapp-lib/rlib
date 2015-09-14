@@ -1,50 +1,52 @@
-#tables,table,col,label,def,type,other
-#,,,,,,
-#,BlogEntry,,ブログ記事,,,pkey=id | del_flg=del_flg | update_date=update_date | reg_date=reg_date
-#,,artist_id,ユーザID,integer,,def.index=fk_artist_id
-#,,title,タイトル,text,text,
-#,,content,本文,text,textarea,
-#,,release_date,掲載日時,datetime,date,
-#,,status,ステータス,text,select,list=blog_entry_status
-#,,image_file,画像ファイル,text,file,group=public
-#,,movie,動画URL,text,text,
-#,,list_display_flg,一覧表示選択,text,select,list=blog_entry_list_display_flg
-#,,release_flg,公開範囲,text,select,list=blog_entry_release_flg
-#,,social_flgs,ソーシャル連携フラグ,text,checklist,list=blog_entry_social_flgs
-#,,blog_categories,カテゴリ,,checklist,list=blog_entry_categories | assoc.bridge=BlogEntryToBlogCategory
-#,,blog_comments,コメント,,,assoc.hasmany=BlogComment
-#,,id,ID,integer,,def.key=primary
-#,,reg_date,登録日時,datetime,,def.index=default
-#,,update_date,最終更新日時,timestamp,,
-#,,del_flg,削除フラグ,integer,,def.default=0 | def.index=default
-#,,,,,,
-#,BlogComment,,ブログコメント,,,pkey=id | del_flg=del_flg | update_date=update_date | reg_date=reg_date
-#,,blog_entry_id,ブログ記事ID,integer,,assoc.fkey=BlogEntry.id
-#,,artist_id,ユーザID,integer,,def.index=fk_artist_id
-#,,content,本文,text,textarea,
-#,,id,ID,integer,,def.key=primary
-#,,reg_date,登録日時,datetime,,def.index=default
-#,,update_date,最終更新日時,timestamp,,
-#,,del_flg,削除フラグ,integer,,def.default=0 | def.index=default
-#,,,,,,
-#,BlogCategory,,ブログカテゴリ,,,pkey=id | del_flg=del_flg | update_date=update_date | reg_date=reg_date
-#,,artist_id,ユーザID,integer,,def.index=fk_artist_id
-#,,name,カテゴリ名,text,text,
-#,,order_number,表示順序,integer,text,
-#,,id,ID,integer,,def.key=primary
-#,,reg_date,登録日時,datetime,,def.index=default
-#,,update_date,最終更新日時,timestamp,,
-#,,del_flg,削除フラグ,integer,,def.default=0 | def.index=default
-#,,,,,,
-#,BlogEntryToBlogCategory,,（相関）ブログ記事対カテゴリ,,,pkey=id
-#,,blog_entry_id,ブログ記事ID,integer,,assoc.fkey=BlogEntry.id
-#,,blog_category_id,ブログカテゴリID,integer,,assoc.fkey=BlogCategory.id
-#,,id,ID,integer,,def.key=primary
-#,,,,,,
-#controller,controller,label,type,table,account,other
-#,,,,,,
-#,blog_entry_master,書店ブログ,master,BlogEntry,,wrapper=admin
-#,inquiry,問い合わせ,master,InquiryMessage,,wrapper=default | usage=form
-#,news_list,記事一覧,master,News,,wrapper=default | usage=view
-#,user_login,ログイン,login,User,user,wrapper=login
-#,user_mypage,マイページ,index,,,wrapper=mypage
+#tables,table,col,label,def.type,type,required.default,rules,other
+#,,,,,,,,
+#,Product,,製品,,,,,pkey=id | del_flg=del_flg | update_date=update_date | reg_date=reg_date
+#,,name,名称,text,text,1,,
+#,,img,写真,text,file,,,
+#,,comment,コメント,text,textarea,,,
+#,,category,カテゴリ,text,select,1,,list=product_category
+#,,salt,塩分量,integer,text,,numeric,
+#,,food_value,栄養価,text,text,,numeric,
+#,,open_date,公開日時,text,datetime,,range,
+#,,id,ID,integer,,,,def.key=primary
+#,,reg_date,登録日時,datetime,,,,
+#,,update_date,最終更新日時,timestamp,,,,
+#,,del_flg,削除フラグ,integer,,,,def.default=0
+#,,,,,,,,
+#,Customer,,会員,,,,,pkey=id | del_flg=del_flg | update_date=update_date | reg_date=reg_date
+#,,name,氏名,text,text,1,,
+#,,mail,メールアドレス,text,text,1,mail,
+#,,password,パスワード,text,text,1,,
+#,,favorite_producs,お気に入り製品,,checklist,,,list=all_product
+#,,imgs,画像,text,mi,,,
+#,,id,ID,integer,,,,def.key=primary
+#,,reg_date,登録日時,datetime,,,,
+#,,update_date,最終更新日時,timestamp,,,,
+#,,del_flg,削除フラグ,integer,,,,def.default=0
+#,,,,,,,,
+#,FavoliteProductAssoc,,お気に入り製品,,,,,pkey=id
+#,,customer_id,会員ID,integer,,,,def.assoc=Customer.id
+#,,product_id,製品ID,integer,,,,def.assoc=Product.id
+#,,id,ID,integer,,,,def.key=primary
+#,,,,,,,,
+#pages,controller,action,label,type,table,wrapper,other,
+#,,,,,,,,
+#,index,,トップページ,index,,user,,
+#,,index,トップページ,index,,,,
+#,product_view,,製品一覧,master,Product,user,usage=view,
+#,,view_list,検索一覧表示,view_list,,,,
+#,customer_entry,,会員登録フォーム,master,Customer,user,usage=form,
+#,,entry_form,登録フォーム,entry_form,,,,
+#,,entry_confirm,確認画面,entry_form,,,,
+#,customer_login,,会員ログイン,login,Customer,user,acount=customer,
+#,,entry_form,ログインフォーム,entry_form,,,,
+#,customer_mypage,,会員マイページ,index,,user,,
+#,,index,トップページ,index,,,,
+#,admin_login,,管理者ログイン,login,,admin,acount=admin,
+#,,entry_form,ログインフォーム,entry_form,,,,
+#,product_master,,製品管理,master,Product,admin,use_csv=1,
+#,,view_list,検索一覧表示,view_list,,,,
+#,,entry_form,新規登録・編集フォーム,entry_form,,,,
+#,user_master,,ユーザ管理,master,Customer,admin,,
+#,,view_list,検索一覧表示,view_list,,,,
+#,,entry_form,新規登録・編集フォーム,entry_form,,,,
