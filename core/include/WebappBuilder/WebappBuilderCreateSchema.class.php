@@ -3,47 +3,63 @@
 //-------------------------------------
 // 
 class WebappBuilderCreateSchema extends WebappBuilder {
-	
+
 	//-------------------------------------
-	// Schemaファイルを生成する
+	// エントリポイント
 	public function create_schema () {
 		
-		report("HistoryKey: ".$this->history);
-		
-		$this->append_history(
-				"memo",
-				date("Y/m/d H:i"),
-				$_SERVER["REQUEST_URI"]."?".$_SERVER["QUERY_STRING"]);
-		
-		$dest_file =registry("Path.webapp_dir")."/config/schema.config.php";
-		$src_file_find_a5er =registry("Path.webapp_dir")."/config/schema.config.a5er";
-		$src_file_find_csv =registry("Path.webapp_dir")."/config/schema.config.csv";
-		$src_file_find =($this->options["src"] == "a5er")
-				? $src_file_find_a5er
-				: $src_file_find_csv;
-		$src_file =find_include_path($src_file_find);
-		
-		if ( ! $src_file) {
+		if ($this->src == "a5er") {
 			
-			report_warning("Schema-source-file is-not found.",array(
-				"src_file_find" =>$src_file_find,
-			));
-		
-		} elseif ($this->options["src"] == "a5er") {
-		
-			$src =$this->load_schema_a5er($src_file);
-			return $this->deploy_src($src_file_find_csv,$src);
+			$this->create_schema_csv_from_a5er();
 		
 		} else {
-		
-			$src =$this->load_schema_csv($src_file);
-			return $this->deploy_src($dest_file,$src);
-		
+			
+			$this->create_schema_registry_from_csv();
 		}
 	}
 	
 	//-------------------------------------
-	// A5ERファイルを読み込んでSchemaCSVを生成する
+	// csvからschema.config.phpを生成する
+	protected function create_schema_registry_from_csv () {
+		
+		report("HistoryKey: ".$this->history);
+		$this->append_history("memo", date("Y/m/d H:i"), "create_schema_registry_from_csv");
+		
+		$src_file =registry("Path.webapp_dir")."/config/schema.config.csv";
+		
+		if ( ! file_exists($src_file)) {
+		
+			report_error("src_file is-not exists",array(
+				"src_file" =>$src_file,
+			));
+		}
+		
+		$data =$this->load_schema_csv($src_file);
+		$this->deploy_src(registry("Path.webapp_dir")."/config/_schema.config.php", $data);
+	}
+
+	//-------------------------------------
+	// a5erからschema.config.csvを生成する
+	protected function create_schema_csv_from_a5er () {
+		
+		report("HistoryKey: ".$this->history);
+		$this->append_history("memo", date("Y/m/d H:i"), "create_schema_csv_from_a5er");
+		
+		$src_file =registry("Path.webapp_dir")."/config/schema.config.a5er";
+	
+		if ( ! file_exists($src_file)) {
+		
+			report_error("src_file is-not exists",array(
+				"src_file" =>$src_file,
+			));
+		}
+	
+		$data =$this->load_schema_a5er($src_file);
+		$this->deploy_src(registry("Path.webapp_dir")."/config/schema.config.csv", $data);
+	}		
+	
+	//-------------------------------------
+	// A5ER：A5ERファイルを読み込んで、SchemaCSVを生成する
 	protected function load_schema_a5er ($filename) {
 		
 		$st_cat ='';
@@ -163,7 +179,7 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 	}
 	
 	//-------------------------------------
-	// 
+	// A5ER：SQL型名の置換
 	protected function convert_sql_type ($sql_type) {
 	
 		$type ="text";
@@ -187,7 +203,7 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 	}
 	
 	//-------------------------------------
-	// 
+	// A5ER：各行の「=」以降のCSV形式部分の分解
 	protected function split_csv_line ($line, $e='"', $d=',') {
 		
 		$csv_pattern ='/('.$e.'[^'.$e.']*(?:'.$e.$e.'[^'
@@ -204,72 +220,97 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 	}
 	
 	//-------------------------------------
-	// CSVファイルを読み込んでSchemaのコードを生成する
+	// SchemaConfigPHP：SchemaCSVファイルを読み込んで、SchemaConfigのPHPを生成する
 	protected function load_schema_csv ($filename) {
 	
 		$csv =new CSVHandler($filename,"r",array(
 			"file_charset" =>"SJIS-WIN",
 		));
 		
-		$p ="nutral";
-		$t =array();
+		$special_names =array("other","table","col","controller","action");
+		
+		// 読み込みモード/切り替え行
+		$mode ="";
+		$header_line =array();
+		
+		// 親の情報にあたる行データ
+		$parent_data =array();
+		
+		// 組み立て結果となるSchema
 		$s =array();
 		
-		foreach ($csv->read_all() as $c) {
+		foreach ($csv->read_all() as $current_line) {
 			
-			// コメント
-			if ($c[0] == "#") {
+			// コメント行→無視
+			if ($current_line[0] == "#") { continue; }
+			
+			// コマンド列＝#xxx→読み込みモード切り替え
+			if (preg_match('!^#(.+)$!',$current_line[0],$match)) {
 				
+				$mode =$current_line[0];
+				$header_line =$current_line;
+				$parent_data =array();
 				continue;
 			}
 			
-			// 状態切り替え
-			if (preg_match('!^#(.+)$!',$c[0],$match)) {
+			// モード切替列で意味に関連付け
+			$current_data =array();
+			
+			foreach ($current_line as $k => $v) {
 				
-				$p =$match[1];
+				// コマンド列→無視
+				if ($k == 0) { continue; }
+				
+				$current_data[$header_line[$k]] =trim($v);
+			}
+			
+			// 空行
+			if ( ! $current_data) { continue; }
+			
+			// #tables:table行
+			if ($mode == "#tables" && strlen($current_data["table"])) {
+				
+				$parent_data =$current_data;
+				$ref =& $s["Schema.tables.".$current_data["table"]];
+				
+			// #tables:col行
+			} elseif ($mode == "#tables" && $parent_data["table"] && strlen($current_data["col"])) {
+				
+				$ref =& $s["Schema.cols.".$parent_data["table"]][$current_data["col"]];
+				
+			// #pages:controller行
+			} elseif ($mode == "#pages" && strlen($current_data["controller"])) {
+				
+				$parent_data =$current_data;
+				$ref =& $s["Schema.controller"][$current_data["controller"]];
+			
+			// #pages:action行
+			} elseif ($mode == "#pages" && $parent_data["controller"] && strlen($current_data["action"])) {
+				
+				$ref =& $s["Schema.page"][$parent_data["controller"]][$current_data["action"]];
+			
+			// 不正な行
+			} else {
+				
+				report_warning("Irregular schema-record",array(
+					"header_line" =>$header_line,
+					"parent_data" =>$parent_data,
+					"current_data" =>$current_data,
+				));
+				
 				continue;
 			}
-			
-			// p:tables（tables/colsノード）
-			// | table | col | label | def | type | other
-			if ($p == "tables") {
 				
-				// cols
-				// |  | col | label | def | type | other
-				if (strlen($c[2]) && $t[1]) {
+			// 参照へのデータ登録
+			foreach ($current_data as $k => $v) {
+				
+				if (strlen($v) && ! in_array($k,$special_names)) { 
 					
-					$r =& $s["Schema.cols.".$t[1]][$c[2]];
-					$this->parse_other($r, $c[3], "label");
-					$this->parse_other($r, $c[4], "def.type");
-					$this->parse_other($r, $c[5], "type");
-					$this->parse_other($r, $c[6]);
-				
-				// tables
-				// | table |  | label |  |  | 
-				} elseif ($c[1]) {
-				
-					$t[1] =$c[1];
-					
-					$r =& $s["Schema.tables.".$t[1]];
-					$this->parse_other($r, $c[3], "label");
-					$this->parse_other($r, $c[6]);
+					$this->parse_other($ref[$k], $v);
 				}
 			}
 			
-			// p:controller（controllerノード）
-			// | controller | label | type | table | account | other
-			if ($p == "controller") {
-				
-				if ($c[1]) {
-				
-					$r =& $s["Schema.controller"][$c[1]];
-					$this->parse_other($r, $c[2], "label");
-					$this->parse_other($r, $c[3], "type");
-					$this->parse_other($r, $c[4], "table");
-					$this->parse_other($r, $c[5], "account");
-					$this->parse_other($r, $c[6]);
-				}
-			}
+			$this->parse_other($ref, $current_data["other"]);
 		}
 		
 		report("Schema csv loaded.",array("schema" =>$s));
@@ -282,6 +323,7 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 				array("a",$this->get_array_script_node($s)),
 			)))
 		)));
+		
 		return $g->get_script();
 	}
 	
@@ -312,17 +354,17 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 	
 	//-------------------------------------
 	// other属性のパース（改行=区切り）
-	protected function parse_other ( & $ref, $str, $default_key=null) {
+	protected function parse_other ( & $ref, $str) {
 		
-		foreach (preg_split("!\n|\|!",$str) as $sets) {
+		foreach (preg_split("!(\r?\n)|\|!",$str) as $sets) {
 			
 			if (preg_match('!^(.+?)=(.+)$!',$sets,$match))  {
 				
 				$ref[trim($match[1])] =trim($match[2]);
 				
-			} elseif ($default_key) {
+			} elseif (strlen(trim($sets))) {
 			
-				$ref[$default_key] =trim($sets);
+				$ref =trim($sets);
 			}
 		}
 	}
