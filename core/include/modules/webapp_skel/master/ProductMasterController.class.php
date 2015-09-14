@@ -40,6 +40,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 <? endforeach; ?>
 		),
 		"filters" =>array(
+			array("filter" =>"sanitize"),
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
 <? if ($tc['list']): ?>
 			array("target" =>"<?=$tc['name']?>",
@@ -54,6 +55,9 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 					"filter" =>"date"),
 <? endif; /* $tc['type'] == "date" */ ?>
 <? endforeach; ?>
+			array("filter" =>"validate",
+					"required" =>array(),
+					"rules" =>array()),
 		),
 		"ignore_empty_line" =>true,
 	);
@@ -336,23 +340,6 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		dbi()->begin();
 
 		while (($t=$csv->read_line()) !== null) {
-			
-			$c_import =new Context_App;
-			$c_import->id($t["<?=$t['pkey']?>"]);
-			$c_import->input($t);
-			
-			$c_import->validate(array(
-			),array(
-			));
-			
-			// 入力チェック結果をCSVエラーに追加
-			if ($c_import->errors()) {
-
-				foreach ($c_import->errors() as $row => $message) {
-
-					$csv->register_error($message,true,$row);
-				}
-			}
 
 			// CSVフォーマットエラー
 			if ($errors =$csv->get_errors()) {

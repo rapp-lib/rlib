@@ -240,7 +240,7 @@ class OAuthHandler {
 					
 				} else {
 					
-					$query_array[$k] = $v;
+					$query_array[$k] = urldecode($v);
 				}
 			}
 		}
