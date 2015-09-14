@@ -19,6 +19,5 @@ class WebappBuilderReadme extends WebappBuilder {
 		$charset =registry("Config.external_charset");
 		echo '<html><head><meta charset="'.$charset.'">'
 				.'</head><body>'.$html.'</body></html>';
-		exit;
 	}
 }
