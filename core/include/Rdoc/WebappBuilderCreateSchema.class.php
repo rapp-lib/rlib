@@ -227,8 +227,6 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 			"file_charset" =>"SJIS-WIN",
 		));
 		
-		$special_names =array("other","table","col","controller","action");
-		
 		// 読み込みモード/切り替え行
 		$mode ="";
 		$header_line =array();
@@ -304,7 +302,9 @@ class WebappBuilderCreateSchema extends WebappBuilder {
 			// 参照へのデータ登録
 			foreach ($current_data as $k => $v) {
 				
-				if (strlen($v) && ! in_array($k,$special_names)) { 
+				if (strlen($v) 
+						&& ! ($mode == "#tables" && in_array($k,array("other","table","col")))
+						&& ! ($mode == "#pages" && in_array($k,array("other","controller","action")))) { 
 					
 					$this->parse_other($ref[$k], $v);
 				}

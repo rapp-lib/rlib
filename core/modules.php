@@ -41,8 +41,9 @@
 	// モジュール読み込み
 	function load_module ($module_group, $module_id, $force=false) {
 		
-		// メソッドがわたっていればそのまま返す
-		if (is_array($module_id) && function_exists($module_id)) {
+		// Closureかメソッドがわたっていればそのまま返す
+		if (is_callable($module_id)
+				|| (is_array($module_id) && function_exists($module_id))) {
 			
 			return $module_id;
 		}

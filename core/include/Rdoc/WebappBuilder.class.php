@@ -10,7 +10,7 @@ class WebappBuilder {
 	
 	//-------------------------------------
 	// 
-	public function webapp_build () {
+	public function webapp_build_DEPRECATED () {
 		
 		$options =registry("Config.dync.webapp_build");
 		

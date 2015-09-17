@@ -100,13 +100,9 @@
 			
 			load_lib($v);
 		}
-
-		// WebappBuild機能
-		if (get_webapp_dync("webapp_build") && $_REQUEST["exec"]) {
-			
-			obj("WebappBuilder")->webapp_build();
-			exit;
-		}
+		
+		// パラメータ確認
+		obj("Rdoc")->check();
 	}
 	
 	//-------------------------------------

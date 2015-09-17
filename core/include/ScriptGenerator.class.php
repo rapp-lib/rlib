@@ -149,6 +149,31 @@ class ScriptGenerator {
 	}
 	
 	//-------------------------------------
+	// 配列データからarray_nodeを生成する
+	public function make_array_node ($arr) {
+		
+		$n =array();
+		
+		foreach ($arr as $k => $v) {
+			
+			if (is_array($v)) {
+			
+				$n[$k] =array("a",$this->get_array_script_node($v));
+			
+			} elseif (is_numeric($v)) {
+			
+				$n[$k] =array("d",(int)$v);
+				
+			} else {
+			
+				$n[$k] =array("s",(string)$v);
+			}
+		}
+		
+		return $n;
+	}
+	
+	//-------------------------------------
 	// 
 	protected function node_root_php ($statement_nodes) {
 		

@@ -146,36 +146,24 @@
 			$backtrace =$backtraces[$i];
 			$backtrace['file'] =realpath($backtrace['file']);
 			
+			$errdetail[$i] ='';
+			$errdetail[$i] .=strstr($backtrace['file'],$libpath)!==false ? "rlib/" : "";
+			$errdetail[$i] .=basename($backtrace['file'])."(L".$backtrace['line'].") ";
+			$errdetail[$i] .=$backtrace['class'] ? $backtrace['class']."::" : "";
+			$errdetail[$i] .=$backtrace['function'] ? $backtrace['function'] : "";
+			
 			if ($i != count($backtraces)-1
 					&& ( ! strlen($backtrace['file']) 
-					|| strstr($backtrace['file'],$libpath))) {
-					
-				$errdetail[$i] .="@".basename($backtrace['file'])
-						."(".$backtrace['line'].") ";
-			
-				if (strlen($backtrace['class'])) {
-			
-					$errdetail[$i] .=$backtrace['class']."::".$backtrace['function'];
-			
-				} elseif (strlen($backtrace['function'])) {
-			
-					$errdetail[$i] .=$backtrace['function'];
-				}
+					|| strstr($backtrace['file'],$libpath)!==false)) {
 				
 				continue;
 			}
 		
 			$errfile =basename($backtrace['file']);
 			$errline =$backtrace['line'];
-			
-			if (strlen($backtrace['class'])) {
-		
-				$errpos =$backtrace['class']."::".$backtrace['function'];
-		
-			} elseif (strlen($backtrace['function'])) {
-		
-				$errpos =$backtrace['function'];
-			}
+			$errpos ="";
+			$errpos .=$backtrace['class'] ? $backtrace['class']."::" : "";
+			$errpos .=$backtrace['function'] ? $backtrace['function'] : "";
 		
 			break;
 		}
@@ -232,13 +220,17 @@
 			$report_html .='<div class="ruiReport '.$elm_class.'" id="'.$elm_id.'" '
 					.'onclick="var e=document.getElementById(\''.$elm_id.'\');'
 					.'e.style.height =\'auto\'; e.style.cursor =\'auto\';" '
+					.'ondblclick="var e=document.getElementById(\''.$elm_id.'_detail\');'
+					.'e.style.display =\'block\'; e.style.cursor =\'auto\';" '
 					.'style="font-size:14px;text-align:left;overflow:hidden;'
 					.'margin:1px;padding:2px;font-family:monospace;'
 					.'border:#888888 1px solid;background-color:'
 					.'#000000;cursor:hand;height:40px;color:'.$font_color.'">'
 					.$errfile.'('.$errline.') - '.$errpos
 					.'<div style="margin:0 0 0 10px">'
-					.$message.'</div></div>';
+					.$message.'</div>'
+					.'<div style="margin:0 0 0 10px;display:none;" id="'.$elm_id.'_detail">'
+					.'Backtrace: '.decorate_value(array_reverse($errdetail),true).'</div></div>';
 		
 		// 非HTML形式
 		} elseif ( ! $html_mode) {
