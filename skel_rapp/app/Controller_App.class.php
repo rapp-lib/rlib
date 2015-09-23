@@ -79,6 +79,12 @@ class Controller_App extends Controller_Base {
 			// contextの関連付け
 			$this->context($var_name,$var_name,false,$class_name);
 			
+			// model accessorの関連付け
+			model(null,$account)->init_accessor(array(
+				"account" =>$account,
+				"id" =>$this->$var_name->id(),
+			));
+			
 			// ログインしていない場合
 			if ( ! $this->$var_name->id()) {
 				
