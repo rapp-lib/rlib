@@ -4,22 +4,28 @@
 // 
 class Model_Base {
 	
-	protected static $instance =array();
+	protected $accessor =null;
+	protected static $accessors =array();
 	
 	//-------------------------------------
-	// インスタンスのファクトリ
-	public static function load ($name=null) {
+	// アクセス修飾の関連付け
+	public function bind_accessor ($accessor) {
 		
-		$name =$name
-				? $name."Model"
-				: "Model_App";
+		$this->accessor =$accessor;
+	}
+	
+	//-------------------------------------
+	// アクセス修飾のパラメータ初期化
+	public function init_accessor ($accessor_values) {
 		
-		if ( ! self::$instance[$name]) {
-			
-			self::$instance[$name] =new $name;
-		}
+		self::$accessors[$this->accessor] =$accessor_values;
+	}
+	
+	//-------------------------------------
+	// アクセス修飾のパラメータ取得
+	protected function get_accessor_value ($name) {
 		
-		return self::$instance[$name];
+		return self::$accessors[$this->accessor][$name];
 	}
 	
 	//-------------------------------------

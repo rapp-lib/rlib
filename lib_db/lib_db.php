@@ -53,18 +53,37 @@
 	
 	//-------------------------------------
 	// Modelインスタンスのファクトリ
-	function model ($name=null) {
+	function model ($name=null, $accessor=null) {
 		
 		$instance =& ref_globals("loaded_model");
 		
-		$name =$name
-				? $name."Model"
-				: "Model_App";
+		$class_name =$name ? $name."Model" : "Model_App";
 		
-		if ( ! $instance[$name]) {
+		$id =$class_name.($accessor ? ".".$accessor : "");
+		
+		if ( ! $instance[$id]) {
 			
-			$instance[$name] =new $name;
+			$instance[$id] =new $class_name;
+			$instance[$id]->bind_accessor($accessor);
 		}
 		
-		return $instance[$name];
+		return $instance[$id];
+	}
+	
+	//-------------------------------------
+	// Modelアクセス修飾の設定
+	function model_accessor ($accessor, $config=array()) {
+		
+		$instance =& ref_globals("loaded_model");
+		
+		$class_name =$name ? $name."Model" : "Model_App";
+		
+		$id =$class_name.($accessor ? ".".$accessor : "");
+		
+		if ( ! $instance[$id]) {
+			
+			$instance[$id] =new $class_name;
+		}
+		
+		return $instance[$id];
 	}

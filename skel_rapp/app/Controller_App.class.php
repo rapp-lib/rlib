@@ -20,6 +20,7 @@ class Controller_App extends Controller_Base {
 		// 認証設定
 		// $this->context("c_admin_auth","c_admin_auth",false,"AdminAuthContext");
 		// $this->c_admin_auth->check_auth();
+		// model(null,"admin")->init_accessor(array("id" =>$this->c_admin_auth->id()));
 	}
 	
 	//-------------------------------------
