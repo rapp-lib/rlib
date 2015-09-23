@@ -35,7 +35,7 @@
 		)),
 		
 		// デバッグ設定
-		"Report.error_reporting" =>E_ALL&~E_NOTICE&~E_DEPRECATED,
+		"Report.error_reporting" =>E_ALL&~E_NOTICE&~E_STRICT&~E_DEPRECATED,
 		"Report.buffer_enable" =>false,
 		"Report.output_to_file" =>null,
 		"Report.report_about_dync" =>false,

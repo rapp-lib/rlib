@@ -46,7 +46,7 @@
 			),
 			
 			// レポート出力設定
-			"Report.error_reporting" =>E_ALL&~E_NOTICE,
+			"Report.error_reporting" =>E_ALL&~E_NOTICE&~E_STRICT&~E_DEPRECATED,
 		);
 		
 		foreach ($registry_defaultset as $k => $v) {

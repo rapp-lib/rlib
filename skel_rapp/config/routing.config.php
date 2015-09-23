@@ -11,18 +11,8 @@
 		),
 		
 		// HTTPアクセス制限
-		"Routing.force_https.area" =>array(
+		"Routing.force_https.zone" =>array(
 		),
-		
-		// Vifアクセス制御
-		"Routing.force_vif.enable" =>false,
-		/*
-		"Routing.force_vif.target" =>array(
-			"sample" =>array(
-				"path" =>"/sample_frame.html",
-				"area" =>array(
-				),
-			),
+		"Routing.force_https.safe_zone" =>array(
 		),
-		*/
 	));

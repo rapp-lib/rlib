@@ -11,7 +11,8 @@
 			$errcontext=null) {
 		
 		if ( ! (get_webapp_dync("report") 
-				&& (registry("Report.error_reporting") & $errno))) {
+				&& (registry("Report.error_reporting") & $errno)
+				&& (error_reporting()!==0))) {
 			
 			return; 
 		}
