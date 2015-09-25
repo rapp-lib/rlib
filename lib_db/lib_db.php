@@ -57,32 +57,16 @@
 		
 		$instance =& ref_globals("loaded_model");
 		
-		$class_name =$name ? $name."Model" : "Model_App";
+		$class_name = ! $name 
+				? "Model_App" : (class_exists($name."Model_For".str_camelize($accessor))
+		 		? $name."Model_For".str_camelize($accessor) : $name."Model");
 		
-		$id =$class_name.($accessor ? ".".$accessor : "");
+		$id =($name ? $name : "_").($accessor ? ".".$accessor : "");
 		
 		if ( ! $instance[$id]) {
 			
 			$instance[$id] =new $class_name;
 			$instance[$id]->bind_accessor($accessor);
-		}
-		
-		return $instance[$id];
-	}
-	
-	//-------------------------------------
-	// Modelアクセス修飾の設定
-	function model_accessor ($accessor, $config=array()) {
-		
-		$instance =& ref_globals("loaded_model");
-		
-		$class_name =$name ? $name."Model" : "Model_App";
-		
-		$id =$class_name.($accessor ? ".".$accessor : "");
-		
-		if ( ! $instance[$id]) {
-			
-			$instance[$id] =new $class_name;
 		}
 		
 		return $instance[$id];
