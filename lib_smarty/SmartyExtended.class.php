@@ -470,7 +470,14 @@ class SmartyExtended extends SmartyBC {
 		} elseif ($params["type"] == "select" 
 				&& ! isset($params["nozerooption"])) {
 		
-			$options =array("" =>"") + $options;
+			$tmp_optioins =array("" =>"");
+			
+			foreach ($options as $k =>$v) {
+				
+				$tmp_optioins[$k] =$v;
+			}
+			
+			$options =$tmp_optioins;
 		}
 		
 		$html =array(
