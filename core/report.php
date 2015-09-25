@@ -133,10 +133,12 @@
 			$options["errstr"] .=']';
 		}
 	
-		$libpath =realpath(dirname(__FILE__));
+		$libpath =realpath(dirname(__FILE__)."/..");
+		$report_filepath =realpath(__FILE__);
 		$backtraces =debug_backtrace();
 	
 		$errdetail =array();
+		$errset =false;
 		$errfile ="-";
 		$errline ="-";
 		$errpos ="";
@@ -147,10 +149,17 @@
 			$backtrace =$backtraces[$i];
 			$backtrace['file'] =realpath($backtrace['file']);
 			
+			if ($backtrace['file'] == $report_filepath) {
+				
+				continue;
+			}
+			
 			$errdetail[$i] ='';
 			$errdetail[$i] .=strstr($backtrace['file'],$libpath)!==false ? "rlib/" : "";
-			$errdetail[$i] .=basename($backtrace['file'])."(L".$backtrace['line'].") ";
-			$errdetail[$i] .=$backtrace['class'] ? $backtrace['class']."::" : "";
+			$errdetail[$i] .=basename($backtrace['file']);
+			$errdetail[$i] .=($backtrace['line'] ? "(L".$backtrace['line'].") " : "");
+			$errdetail[$i] .=' - ';
+			$errdetail[$i] .=$backtrace['class'] ? $backtrace['class'].$backtrace['type'] : "";
 			$errdetail[$i] .=$backtrace['function'] ? $backtrace['function'] : "";
 			
 			if ($i != count($backtraces)-1
@@ -159,14 +168,18 @@
 				
 				continue;
 			}
-		
-			$errfile =basename($backtrace['file']);
-			$errline =$backtrace['line'];
-			$errpos ="";
-			$errpos .=$backtrace['class'] ? $backtrace['class']."::" : "";
-			$errpos .=$backtrace['function'] ? $backtrace['function'] : "";
-		
-			break;
+			
+			if ( ! $errset) {
+				
+				$errset =true;
+				$errfile ='';
+				$errfile .=strstr($backtrace['file'],$libpath)!==false ? "rlib/" : "";
+				$errfile .=basename($backtrace['file']);
+				$errline =$backtrace['line'];
+				$errpos ="";
+				$errpos .=$backtrace['class'] ? $backtrace['class'].$backtrace['type'] : "";
+				$errpos .=$backtrace['function'] ? $backtrace['function'] : "";
+			}
 		}
 		
 		$elm_id ="ELM".sprintf('%07d',rand(1,9999999));
@@ -227,7 +240,7 @@
 					.'margin:1px;padding:2px;font-family:monospace;'
 					.'border:#888888 1px solid;background-color:'
 					.'#000000;cursor:hand;height:40px;color:'.$font_color.'">'
-					.$errfile.'('.$errline.') - '.$errpos
+					.$errfile.($errline ? '(L'.$errline.')' : "").' - '.$errpos
 					.'<div style="margin:0 0 0 10px">'
 					.$message.'</div>'
 					.'<div style="margin:0 0 0 10px;display:none;" id="'.$elm_id.'_detail">'
