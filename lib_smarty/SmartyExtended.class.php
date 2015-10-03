@@ -370,6 +370,8 @@ class SmartyExtended extends SmartyBC {
 				}
 			}
 			
+			$dest_url =apply_url_rewrite_rules($dest_url);
+			
 			$dest_url =url($dest_url,$url_params,$anchor);
 			
 			$html ="";

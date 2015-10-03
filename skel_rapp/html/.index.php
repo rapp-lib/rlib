@@ -29,8 +29,8 @@
 		$document_root_dir =registry("Path.document_root_dir");
 		$html_dir =registry("Path.html_dir");
 		
-		$request_file =preg_replace('!/$!','/index.html',$document_root_dir.$request_uri);
-		$request_path =preg_replace('!^'.preg_quote($html_dir).'!','',$request_file);
+		$request_path =url_to_path($request_uri, "index.html");
+		$request_file =path_to_file($request_path);
 		list($request_page, $ext_path, $ext_params) =path_to_page($request_path,true);
 		
 		// 静的ページのStaticControllerへの対応付け

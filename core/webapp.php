@@ -278,6 +278,7 @@
 	}
 	
 	//-------------------------------------
+	// [Deprecated] SEO的に無差別にURLを書き換えることは問題が大きいため非推奨 151003
 	// URL書き換え対象のパラメータ追加
 	function output_rewrite_var ($name=null, $value=null) {
 	
@@ -295,6 +296,7 @@
 	}
 	
 	//-------------------------------------
+	// [Deprecated] 使用されていないため削除予定 151003
 	// 転送時に引き継ぐパラメータの設定
 	function redirect_rewrite_var ($name=null, $value=null) {
 	
@@ -302,6 +304,41 @@
 		$result =array_registry($rewrite_var,$name,$value);
 		
 		return $result;
+	}
+	
+	//-------------------------------------
+	// URL書き換え規則の追加
+	function add_url_rewrite_rule ($patterns, $var_name, $value, $info=array()) {
+	
+		$url_rewrite_rules =& ref_globals("url_rewrite_rules");
+		$url_rewrite_rules[] =array($patterns, $var_name, $value, $info);
+	}
+	
+	//-------------------------------------
+	// URL書き換え規則の適用
+	function apply_url_rewrite_rules ($url) {
+	
+		$url_rewrite_rules =& ref_globals("url_rewrite_rules");
+		
+		$path =url_to_path($url);
+		$params =array();
+		
+		foreach ((array)$url_rewrite_rules as $url_rewrite_rule) {
+			
+			list($patterns, $var_name, $value, $info) =$url_rewrite_rule;
+			
+			if ( ! is_array($patterns)) { 
+				
+				$patterns =array($patterns); 
+			}
+			
+			if (in_path($path,$patterns)) {
+				
+				$params[$var_name] =$value;
+			}
+		}
+		
+		return url($url, $params);
 	}
 	
 	//-------------------------------------
@@ -500,6 +537,8 @@
 				));
 			}
 		}
+		
+		$url =apply_url_rewrite_rules($url);
 		
 		$params =array_merge(
 			(array)$params,
