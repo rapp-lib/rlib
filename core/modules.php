@@ -42,7 +42,7 @@
 	function load_module ($module_group, $module_id, $force=false) {
 		
 		// Closureかメソッドがわたっていればそのまま返す
-		if (is_callable($module_id)
+		if (( ! is_string($module_id) && is_callable($module_id))
 				|| (is_array($module_id) && function_exists($module_id))) {
 			
 			return $module_id;
