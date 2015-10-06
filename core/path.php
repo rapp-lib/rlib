@@ -203,7 +203,7 @@
 		$document_root_dir =registry("Path.document_root_dir");
 		$html_dir =registry("Path.html_dir");
 		
-		$url =preg_replace('!^https?://[^/]!','',$url);
+		$url =preg_replace('!^https?://[^/]+!','',$url);
 		$url =preg_replace('!\#.*$!','',$url);
 		$url =preg_replace('!\?.*$!','',$url);
 		

@@ -331,7 +331,7 @@
 				
 				$patterns =array($patterns); 
 			}
-			
+			report(array($url,$path,$patterns));
 			if (in_path($path,$patterns)) {
 				
 				$params[$var_name] =$value;
