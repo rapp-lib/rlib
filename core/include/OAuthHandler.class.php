@@ -79,7 +79,8 @@ class OAuthHandler {
 			$url,
 			$params,
 			$use_post=false,
-			$response_format="query_string") {
+			$response_format="query_string",
+			$options=array()) {
 		
 		$params['oauth_version'] = '1.0';
         $params['oauth_nonce'] = md5(mt_rand());
@@ -100,10 +101,11 @@ class OAuthHandler {
 				$oauth_consumer_secret, 
 				$oauth_token_secret);
 
-
 		// Pass OAuth credentials in a separate header or in the query string
 		$query_parameter_string =$this->oauth_http_build_query($params,true);
-		$headers =array("Authorization"=>$this->build_oauth_header($params));
+		
+		$headers =(array)$options["request_heades"];
+		$headers["Authorization"] =$this->build_oauth_header($params);
 		
 		$response =array();
 		
