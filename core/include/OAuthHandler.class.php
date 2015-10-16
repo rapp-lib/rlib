@@ -112,16 +112,22 @@ class OAuthHandler {
 		// POST or GET the request
 		if ($use_post) {
 		
+			$post =array();
+			
+			foreach ($params as $k => $v) {
+				
+				if ($excludeOauthParams && substr($k, 0, 5) == 'oauth') { continue; }
+				$post[$k] =$v;
+			}
+			
 			$request_handler =new HTTPRequestHandler;
 			$response =$request_handler->request($url,array(
-				"post" =>$query_parameter_string,
+				"post" =>$post,
 				"headers" =>$headers,
 			));
 			
 		} else {
-		
-			$url .='?'.$query_parameter_string;
-
+			
 			$request_handler =new HTTPRequestHandler;
 			$response =$request_handler->request($url,array(
 				"headers" =>$headers,
