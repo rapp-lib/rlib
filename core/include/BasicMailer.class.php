@@ -459,7 +459,7 @@ class BasicMailer {
 		$message_wrap = "";
 		$count_col = 0;
 		
-		for ($i=0; $i<mb_strlen($message); $i++) {
+		for ($i=0; $i<mb_strlen($message, $this->get_mail_charset()); $i++) {
 			
 			$substr= mb_substr($message, $i, 1, $this->get_mail_charset());
 			$message_wrap .= $substr;

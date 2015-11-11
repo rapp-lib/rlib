@@ -1,4 +1,15 @@
-<!?php
+<?php
+	if ( ! function_exists("_model_instance")) {
+		function _model_instance($t,$c) {
+			$_ ='model("'.str_camelize($t["name"]).'"';
+			if ($c["accessor"]) {
+				$_ .=',"'.$c["accessor"].'"';
+			}
+			$_ .=')';
+			return $_;
+		}
+	}
+?><!?php
 
 //-------------------------------------
 // Controller: <?=$c["label"]?> 
@@ -40,6 +51,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 <? endforeach; ?>
 		),
 		"filters" =>array(
+			array("filter" =>"sanitize"),
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
 <? if ($tc['list']): ?>
 			array("target" =>"<?=$tc['name']?>",
@@ -54,6 +66,9 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 					"filter" =>"date"),
 <? endif; /* $tc['type'] == "date" */ ?>
 <? endforeach; ?>
+			array("filter" =>"validate",
+					"required" =>array(),
+					"rules" =>array()),
 		),
 		"ignore_empty_line" =>true,
 	);
@@ -85,7 +100,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		
 		// 入力情報の登録
 		$this->c->input($_REQUEST["c"]);
-		list($this->vars["ts"] ,$this->vars["p"]) =model("<?=str_camelize($t["name"])?>")
+		list($this->vars["ts"] ,$this->vars["p"]) =<?=_model_instance($t,$c)?> 
 				->get_by_search_form($this->list_setting,$this->c->input());
 	}
 
@@ -99,7 +114,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		$this->c->id($_REQUEST["id"]);
 		
 		// 登録データの取得
-		$this->vars["t"] =model("<?=str_camelize($t["name"])?>")->get_by_id($this->c->id());
+		$this->vars["t"] =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
 		
 		// 既存データの取得ができない場合の処理
 		if ( ! $this->vars["t"]) {
@@ -131,7 +146,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			$this->c->id($_REQUEST["id"]);
 			
 			// 既存データの取得
-			$input =model("<?=str_camelize($t["name"])?>")->get_by_id($this->c->id());
+			$input =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
 			
 			// 既存データの取得ができない場合の処理
 			if ( ! $input) {
@@ -204,7 +219,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				"<?=$tc['name']?>",
 <? endforeach; ?>
 			));
-			model("<?=str_camelize($t["name"])?>")->save($fields,$this->c->id());
+			<?=_model_instance($t,$c)?>->save($fields,$this->c->id());
 <? endif; /* $t["virtual"] */ ?>
 			
 			$this->c->session("complete",true);
@@ -227,7 +242,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		$this->c->id($_REQUEST["id"]);
 			
 		// 既存のデータを確認
-		$input =model("<?=str_camelize($t["name"])?>")->get_by_id($this->c->id());
+		$input =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
 		
 		// 既存データの確認ができない場合の処理
 		if ( ! $input) {
@@ -250,7 +265,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 				&& ! $this->c->session("complete")) {
 				
 			// データの削除
-			model("<?=str_camelize($t["name"])?>")->drop($this->c->id());
+			<?=_model_instance($t,$c)?>->drop($this->c->id());
 			
 			$this->c->session("complete",true);
 		}
@@ -269,7 +284,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	    
 		$this->context("c",1);
 	    
-		$res =model("<?=str_camelize($t["name"])?>")
+		$res =<?=_model_instance($t,$c)?> 
 				->get_by_search_form($this->list_setting,$this->c->input(),true);
 		
 		// CSVファイルの書き込み準備
@@ -336,23 +351,6 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		dbi()->begin();
 
 		while (($t=$csv->read_line()) !== null) {
-			
-			$c_import =new Context_App;
-			$c_import->id($t["<?=$t['pkey']?>"]);
-			$c_import->input($t);
-			
-			$c_import->validate(array(
-			),array(
-			));
-			
-			// 入力チェック結果をCSVエラーに追加
-			if ($c_import->errors()) {
-
-				foreach ($c_import->errors() as $row => $message) {
-
-					$csv->register_error($message,true,$row);
-				}
-			}
 
 			// CSVフォーマットエラー
 			if ($errors =$csv->get_errors()) {
@@ -365,10 +363,14 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			}
 
 			// DBへの登録
+			$c_import =new Context_App;
+			$c_import->id("<?=$t['pkey']?>");
+			$c_import->input($t);
+			
 			$keys =array_keys($this->csv_setting["rows"]);
 			$fields =$c_import->get_fields($keys);
 			
-			model("<?=str_camelize($t['name'])?>")->save($fields,$c_import->id());
+			<?=_model_instance($t,$c)?>->save($fields,$c_import->id());
 		}
 
 		dbi()->commit();

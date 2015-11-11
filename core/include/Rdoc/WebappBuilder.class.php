@@ -10,7 +10,7 @@ class WebappBuilder {
 	
 	//-------------------------------------
 	// 
-	public function webapp_build () {
+	public function webapp_build_DEPRECATED () {
 		
 		$options =registry("Config.dync.webapp_build");
 		
@@ -33,6 +33,7 @@ class WebappBuilder {
 		// ?exec=1
 		// &_[report]=1
 		// &_[webapp_build][schema]=1
+		// &_[webapp_build][src]=csv | a5er
 		// &_[webapp_build][force]=1 ... 上書きの許可
 		} elseif ($options["schema"]) {
 			

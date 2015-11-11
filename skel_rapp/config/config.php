@@ -35,7 +35,7 @@
 		)),
 		
 		// デバッグ設定
-		"Report.error_reporting" =>E_ALL&~E_NOTICE&~E_DEPRECATED,
+		"Report.error_reporting" =>E_ALL&~E_NOTICE&~E_STRICT&~E_DEPRECATED,
 		"Report.buffer_enable" =>false,
 		"Report.output_to_file" =>null,
 		"Report.report_about_dync" =>false,
@@ -80,6 +80,21 @@
 			
 			break;
 		}
+	}
+	
+	//-------------------------------------
+	// 読み込み元別設定の上書き
+	if (getenv("LOADER_ID")) {
+		
+		$loader_id =getenv("LOADER_ID");
+		
+		registry(array(
+			"Config.loader.loader_id" =>$loader_id,
+		));
+		
+		$loader_config =registry("Config.loaders.".$loader_id.".overwrite_config");
+		
+		registry(array_escape((array)$loader_config));
 	}
 	
 	//-------------------------------------

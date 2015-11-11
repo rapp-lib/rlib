@@ -1,5 +1,5 @@
 /* NicEdit - Micro Inline WYSIWYG
- * Copyright 2007-2010 Brian Kirchoff
+ * Copyright 2007-2014 Brian Kirchoff
  *
  * NicEdit is distributed under the terms of the MIT license
  * For more information visit http://nicedit.com/
@@ -7,7 +7,7 @@
  *
  * Japanese Version
  * Translated and Customized by CMONOS (http://cmonos.jp)
- * Last-Modified: 2012-08-30
+ * Last-Modified: 2014-12-12
  */
 var bkExtend = function(){
 	var args = arguments;
@@ -149,19 +149,43 @@ var bkElement = bkClass.extend({
 
 var bkLib = {
 	isMSIE : (navigator.appVersion.indexOf("MSIE") != -1),
-	supportTouch : ('createTouch' in document),
+	supportTouch : ((!window.navigator.msPointerEnabled && !window.navigator.pointerEnabled && ('createTouch' in document || 'ontouchstart' in document)) ? true : false),
 	
 	addEvent : function(obj, type, fn) {
-		type = (type == 'mousewheel' && typeof document.onmousewheel == 'undefined') ? 'DOMMouseScroll' : 
-			(!this.supportTouch) ? type : 
-			(type == 'mousedown') ? 'touchstart' : 
-			(type == 'mousemove') ? 'touchmove' : 
-			(type == 'mouseup') ? 'touchend' : 
-			(type == 'mouseout') ? 'touchend' : 
-			(type == 'mouseover') ? 'touchstart' : 
-			(type == 'click') ? 'touchend' : 
-			type;
-		(obj.addEventListener) ? obj.addEventListener( type, fn, false ) : obj.attachEvent("on"+type, fn);	
+		if (obj.addEventListener) {
+			type = (type == 'mousewheel' && typeof document.onmousewheel == 'undefined') ? 'DOMMouseScroll' : 
+				(bkLib.supportTouch) ? (
+					(navigator.userAgent.search(/iphone|ipad|android/i) != -1) ? (
+						(type == 'mousemove') ? 'touchmove' : 
+						(type == 'mouseup') ? 'touchend' : 
+						(type == 'mouseout') ? 'touchend' : 
+						(type == 'mouseover') ? 'touchstart' : 
+						(type == 'keypress') ? 'touchend' : 
+						(type == 'keydown') ? 'touchstart' : 
+						(type == 'keyup') ? 'touchend' : 
+						(type == 'click') ? 'touchend' : type) : 
+					(type == 'click') ? 'mouseup' : type) : 
+				(window.navigator.pointerEnabled) ? (
+					(type == 'mousedown') ? 'pointerdown' : 
+					(type == 'mouseup') ? 'pointerup' : 
+					(type == 'mouseout') ? 'pointerout' : 
+					(type == 'mouseover') ? 'pointerover' : 
+					(type == 'mousemove') ? 'pointermove' : type) : 
+				(window.navigator.msPointerEnabled) ? (
+					(type == 'mousedown') ? 'MSPointerDown' : 
+					(type == 'mouseup') ? 'MSPointerUp' : 
+					(type == 'mouseout') ? 'MSPointerOut' : 
+					(type == 'mouseover') ? 'MSPointerOver' : 
+					(type == 'mousemove') ? 'MSPointerMove' : type) : 
+				type;
+			obj.addEventListener( type, fn, false );
+			if (type.search(/pointer/i) != -1) {
+				obj.style.msTouchAction = 'none';
+				obj.style.touchAction = 'none';
+			}
+		} else {
+			obj.attachEvent("on"+type, fn);	
+		}
 	},
 	
 	toArray : function(iterable) {
@@ -292,7 +316,7 @@ var nicEditorConfig = bkClass.extend({
 	},
 	iconsPath : 'auto',
 	convertToText : true,
-	buttonList : ['save','bold','italic','underline','left','center','right','justify','ol','ul','fontSize','fontFamily','fontFormat','indent','outdent','image','upload','link','unlink','forecolor','bgcolor','undo','redo'],
+	buttonList : ['save','bold','italic','underline','left','center','right','ol','ul','fontSize','fontFamily','fontFormat','indent','outdent','image','upload','link','unlink','forecolor','bgcolor','undo','redo'],
 	iconList : {"xhtml":1,"bgcolor":2,"forecolor":3,"bold":4,"center":5,"hr":6,"indent":7,"italic":8,"justify":9,"left":10,"ol":11,"outdent":12,"removeformat":13,"right":14,"save":25,"strikethrough":16,"subscript":17,"superscript":18,"ul":19,"underline":20,"image":21,"link":22,"unlink":23,"close":24,"arrow":26,"undo":27,"redo":28},
 	externalCSS : ''
 });
@@ -338,7 +362,7 @@ var nicEditor = bkClass.extend({
 					o.xhtml = true;
 					o.buttonList = ['bold','italic','ol','ul','fontFormat','link','unlink','subscript','superscript','strikethrough','removeformat','hr','undo','redo'];
 				} else if (o.panelType == 'noimage') {
-					o.buttonList = ['bold','italic','underline','left','center','right','justify','ol','ul','fontSize','fontFamily','fontFormat','indent','outdent','link','unlink','forecolor','bgcolor','subscript','superscript','strikethrough','removeformat','hr','undo','redo'];
+					o.buttonList = ['bold','italic','underline','left','center','right','ol','ul','fontSize','fontFamily','fontFormat','indent','outdent','link','unlink','forecolor','bgcolor','subscript','superscript','strikethrough','removeformat','hr','undo','redo'];
 				} else if (o.panelType == 'mini') {
 					o.buttonList = ['bold','italic','left','center','right','ol','ul','link','unlink','removeformat','hr','undo','redo'];
 				} else if (o.panelType == 'nostylemini') {
@@ -379,8 +403,8 @@ var nicEditor = bkClass.extend({
 
 	addInstance : function(e,o) {
 		e = this.checkReplace($BK(e));
-//		if( e.contentEditable || !!window.opera ) {
-		if(( e.contentEditable || !!window.opera ) && navigator.userAgent.search(/Firefox\/[1-3]/i) == -1) {	// avoid error [0x80004005 (NS_ERROR_FAILURE)] for firefox
+		if( e.contentEditable || !!window.opera ) {
+//		if(( e.contentEditable || !!window.opera ) && navigator.userAgent.search(/Firefox\/[1-3]/i) == -1) {	// avoid error [0x80004005 (NS_ERROR_FAILURE)] for firefox
 			var newInstance = new nicEditorInstance(e,o,this);
 		} else {
 			var newInstance = new nicEditorIFrameInstance(e,o,this);
@@ -541,23 +565,10 @@ var nicEditorInstance = bkClass.extend({
 		return (window.getSelection) ? window.getSelection() : document.selection;
 	},
 	
-	getRng_130208 : function() {
+	getRng : function() {
 		var s = this.getSel();
 		if(!s) { return null; }
 		return (s.rangeCount > 0) ? s.getRangeAt(0) : s.createRange();
-	},
-	getRng : function() {
-		var s = this.getSel();
-		var rng;
-		if(!s) { return null; } 
-		if (s.rangeCount > 0) {
-			rng = s.getRangeAt(0);
-		} else if ( typeof s.createRange === 'undefined' ) {
-			rng = document.createRange();
-		} else {
-			rng = s.createRange(); 
-		}       
-		return rng;
 	},
 	
 	selRng : function(rng,s) {
@@ -607,14 +618,14 @@ var nicEditorInstance = bkClass.extend({
 	},
 	
 	selected : function(e,t) {
-		if(!t) {t = this.selElm()}
+		if(!t && !(t = this.selElm)) {t = this.selElm()}
 		if(!e.ctrlKey) {
 			var selInstance = this.ne.selectedInstance;
 			if(selInstance != this) {
 				if(selInstance) {
 					this.ne.fireEvent('blur',selInstance,t);
 				}
-				this.ne.selectedInstance = this;	
+				this.ne.selectedInstance = this;
 				this.ne.fireEvent('focus',selInstance,t);
 			}
 			this.ne.fireEvent('selected',selInstance,t);
@@ -668,7 +679,7 @@ var nicEditorInstance = bkClass.extend({
 	},
 	
 	textToHtml : function(thisText) {
-		return (!this.ne.options.convertToText) ? thisText : thisText.replace(/(?:\r\n\r\n|\n\n|\r\r)[\n\r]*/g,"</p><p>").replace(/<p>(?=<(?:table|caption|thead|tbody|tfoot|tr|th|td|ol|ul|li|dl|dt|dd|div|p|address|h\d|blockquote|fieldset|form|pre|hr)(?!\w)[^>]*>)/gi,'').replace(/(<\/(?:table|caption|thead|tbody|tfoot|tr|th|td|ol|ul|li|dl|dt|dd|div|p|address|h\d|blockquote|fieldset|form|pre|hr)>)<\/p>/gi,"$1").replace(/(?:\r\n|\n|\r)/g,"<br />").replace(/^(.*<\/p><p>)/,"<p>$1").replace(/(<\/p><p>.*)$/,"$1</p>");
+		return (!this.ne.options.convertToText) ? thisText : thisText.replace(/^[\n\r]+/,"").replace(/[\n\r]+$/,"").replace(/(?:\r\n\r\n|\n\n|\r\r)[\n\r]*/g,"</p><p>").replace(/<p>(?=<(?:table|caption|thead|tbody|tfoot|tr|th|td|ol|ul|li|dl|dt|dd|div|p|address|h\d|blockquote|fieldset|form|pre|hr)(?!\w)[^>]*>)/gi,'').replace(/(<\/(?:table|caption|thead|tbody|tfoot|tr|th|td|ol|ul|li|dl|dt|dd|div|p|address|h\d|blockquote|fieldset|form|pre|hr)>)<\/p>/gi,"$1").replace(/(<\/?(?:table|caption|thead|tbody|tfoot|tr|th|td|ol|ul|li|dl|dt|dd|div|p|address|h\d|blockquote|fieldset|form|pre|hr)>)[\n\r]*/gi,"$1").replace(/(?:\r\n|\n|\r)/g,"<br />").replace(/^(.*<\/p><p>)/,"<p>$1").replace(/(<\/p><p>.*)$/,"$1</p>");
 	},
 	
 	htmlToText : function(thisHtml) {
@@ -777,7 +788,7 @@ var nicEditorPanel = bkClass.extend({
 		var button = options.buttons[buttonName];
 		var type = (button['type']) ? eval('(typeof('+button['type']+') == "undefined") ? null : '+button['type']+';') : nicEditorButton;
 		var hasButton = bkLib.inArray(this.buttonList,buttonName);
-		if(type && (hasButton || this.ne.options.fullPanel)) {
+		if(type && (hasButton || (this.ne.options.fullPanel && buttonName != 'justify'))) {
 			this.panelButtons.push(new type(this.panelElm,buttonName,options,this.ne));
 			if(!hasButton) {	
 				this.buttonList.push(buttonName);
@@ -821,7 +832,7 @@ var nicEditorButton = bkClass.extend({
 		this.button.addEvent('mouseover', this.hoverOn.closure(this)).addEvent('mouseout',this.hoverOff.closure(this)).addEvent('mousedown',this.mouseClick.closure(this)).noSelect();
 		
 		if(!window.opera) {
-			this.button.onmousedown = this.button.onclick = bkLib.cancelEvent;
+			this.button.addEvent('mousedown', bkLib.cancelEvent).addEvent('click', bkLib.cancelEvent);
 		}
 		
 		nicEditor.addEvent('selected', this.enable.closure(this)).addEvent('blur', this.disable.closure(this)).addEvent('key',this.key.closure(this));
@@ -986,7 +997,7 @@ var nicEditorPane = bkClass.extend({
 		this.pane = new bkElement('div').setStyle({fontSize : '12px', border : '1px solid #ccc', 'overflow': 'hidden', padding : '4px', textAlign: 'left', backgroundColor : '#ffffc9'}).addClass('pane').setStyle(options).appendTo(this.contain);
 		
 		if(openButton && !openButton.options.noClose) {
-			this.close = new bkElement('div').setStyle({height: '16px', width : '16px', margin : ((navigator.appVersion.indexOf("Mac")!= -1) ? '0' : '0 0 0 auto'), cursor : 'pointer'}).setStyle(this.ne.getIcon('close',nicPaneOptions)).addEvent('mousedown',openButton.removePane.closure(this)).appendTo(this.pane);
+			this.close = new bkElement('div').setStyle({height: '16px', width : '16px', margin : ((navigator.appVersion.indexOf("Mac")!= -1 || (!document.documentMode || document.documentMode < 8)) ? '0' : '0 0 0 auto'), cursor : 'pointer'}).setStyle(this.ne.getIcon('close',nicPaneOptions)).addEvent('mousedown',openButton.removePane.closure(this)).appendTo(this.pane);
 		}
 		
 		this.contain.noSelect().appendTo(document.body);
@@ -1058,11 +1069,11 @@ var nicEditorAdvancedButton = nicEditorButton.extend({
 							textAlign : ((navigator.appVersion.indexOf("Mac")!= -1) ? 'left' : 'right'),
 							className : 'nicEditorPane',
 							border : '1px solid #666',
-							/*<MOD Y.Toyosawa 130305> opacity : 0.8, */
+							opacity : 0.8,
 							backgroundColor : '#000',
 							fontSize : '12px',
-							color : '#FFF'/*<MOD Y.Toyosawa 130305> ,
-							rawStyle : 'border-radius: 8px; -moz-border-radius: 8px; -webkit-border-radius: 8px; -o-border-radius: 8px; -ms-border-radius: 8px;' */
+							color : '#FFF',
+							rawStyle : 'border-radius: 8px; -moz-border-radius: 8px; -webkit-border-radius: 8px; -o-border-radius: 8px; -ms-border-radius: 8px;'
 						} 
 					),
 					this
@@ -1074,7 +1085,7 @@ var nicEditorAdvancedButton = nicEditorButton.extend({
 	},
 	
 	addForm : function(f,elm) {
-		this.form = new bkElement('form').setStyle({padding : 0, margin : 0}).addEvent('submit',this.submit.closureListener(this)).addEvent('keypress',function(e) { if (e.keyCode == 13 && e.preventDefault) { bkLib.keypressEvent = e ; } });
+		this.form = new bkElement('form').setStyle({padding : 0, margin : 0}).addEvent('submit',this.submit.closureListener(this)).addEvent('keypress',function(e) { if (e.keyCode && e.keyCode == 13 && e.preventDefault) { bkLib.keypressEvent = e ; } });
 		this.pane.append(this.form);
 		this.inputs = {};
 		var formTitle = 'OK';
@@ -1114,7 +1125,7 @@ var nicEditorAdvancedButton = nicEditorButton.extend({
 			}
 		}
 		new bkElement('input').setAttributes({'type' : 'submit', value : formTitle}).appendTo(new bkElement('div').setStyle({'textAlign' : 'right'}).appendTo(this.form));
-		this.form.onsubmit = bkLib.cancelEvent;
+		this.form.addEvent('submit', bkLib.cancelEvent);
 		this.pane.position();
 	},
 	
@@ -1197,7 +1208,9 @@ var nicEditorSelect = bkClass.extend({
 		this.txt = new bkElement('div').setStyle({overflow : 'hidden', 'float' : 'left', width : '66px', height : '14px', marginTop : '1px', fontFamily : 'sans-serif', textAlign : 'center', fontSize : '12px'}).addClass('selectTxt').appendTo(this.items);
 		
 		if(!window.opera) {
-			this.contain.onmousedown = this.control.onmousedown = this.txt.onmousedown = bkLib.cancelEvent;
+			this.contain.addEvent('mousedown', bkLib.cancelEvent);
+			this.control.addEvent('mousedown', bkLib.cancelEvent);
+			this.txt.addEvent('mousedown', bkLib.cancelEvent);
 		}
 		
 		this.margin.noSelect();
@@ -1240,7 +1253,7 @@ var nicEditorSelect = bkClass.extend({
 			itm.addEvent('click',this.update.closure(this,opt[0])).addEvent('mouseover',this.over.closure(this,itm)).addEvent('mouseout',this.out.closure(this,itm)).setAttributes('id',opt[0]);
 			this.pane.append(itmContain);
 			if(!window.opera) {
-				itm.onmousedown = bkLib.cancelEvent;
+				itm.addEvent('mousedown', bkLib.cancelEvent);
 			}
 		}
 	},
@@ -1271,7 +1284,7 @@ var nicEditorSelect = bkClass.extend({
 });
 
 var nicEditorFontSizeSelect = nicEditorSelect.extend({
-	sel : {1 : '極小', 2 : '小', 3 : '小さめ', 4 : '中', 5 : '大きめ', 6 : '大'},
+	sel : {1 : '小', 2 : '小さめ', 3 : '標準', 4 : '大きめ', 5 : '大', 6 : '極大'},
 	init : function() {
 		this.setDisplay('サイズ...');
 		for(itm in this.sel) {
@@ -1335,18 +1348,20 @@ var nicLinkButton = nicEditorAdvancedButton.extend({
 			alert("URLを入力して下さい。");
 			return false;
 		}
-		var attributes = {
-			href : this.inputs['href'].value,
-			title : this.inputs['title'].value,
-			target : this.inputs['target'].options[this.inputs['target'].selectedIndex].value
-		};
 		this.removePane();
+		
 		if(!this.ln) {
-			var tmp = 'javascript:nicTemp();';
+			var tmp = (navigator.userAgent.search(/Firefox/i) != -1) ? 'LINK' : (this.inputs['title'].value || this.inputs['href'].value || 'LINK');
 			this.ne.nicCommand("createlink",tmp);
 			this.ln = this.findElm('A','href',tmp);
 		}
-		if (this.ln) this.ln.setAttributes(attributes);
+		if(this.ln) {
+			this.ln.setAttributes({
+				href : this.inputs['href'].value,
+				title : this.inputs['title'].value,
+				target : this.inputs['target'].options[this.inputs['target'].selectedIndex].value
+			});
+		}
 	}
 });
 
@@ -1378,7 +1393,8 @@ var nicEditorColorButton = nicEditorAdvancedButton.extend({
 						var colorInner = new bkElement('DIV').setStyle({backgroundColor : colorCode, overflow : 'hidden', width : '11px', height : '11px'}).addEvent('click',this.colorSelect.closure(this,colorCode)).addEvent('mouseover',this.on.closure(this,colorBorder)).addEvent('mouseout',this.off.closure(this,colorBorder,colorCode)).appendTo(colorBorder);
 						
 						if(!window.opera) {
-							colorSquare.onmousedown = colorInner.onmousedown = bkLib.cancelEvent;
+							colorSquare.addEvent('mousedown', bkLib.cancelEvent);
+							colorInner.addEvent('mousedown', bkLib.cancelEvent);
 						}
 
 					}	
@@ -1484,8 +1500,8 @@ nicEditors.registerPlugin(nicPlugin,nicSaveOptions);
 
 var nicXHTML = bkClass.extend({
 	stripAttributes : ['_moz_dirty','_moz_resizing','_extended','construct','appendto','appendbefore','addevent','setcontent','pos','noselect','parenttag','hasclass','addclass','removeclass','setstyle','getstyle','remove','setattributes'],
-	noChild : ['br','hr','link','meta','base','textarea','input','option','img','object','embed','param','script','style','a','video','audio','source','iframe'],
-	noShort : ['style','title','script','textarea','option','object','embed','param','a','video','audio','source','iframe'],
+	noChild : ['br','hr','link','meta','base','textarea','input','option','img','object','embed','param','script','style','a','video','audio','source','iframe','td','th'],
+	noShort : ['style','title','script','textarea','option','object','embed','param','a','video','audio','source','iframe','td','th'],
 	objectAttributes : ['data','classid','codebase','codetype','name','width','height','border','standby','align','hspace','vspace','usemap','tabindex','class','rel'],
 	cssReplace : {'font-weight:bold;' : 'strong', 'font-style:italic;' : 'em', 'text-decoration:line-through;' : 'del'},
 	sizes : {1 : 'x-small', 2 : 'small', 3 : 'medium', 4 : 'large', 5 : 'x-large', 6 : 'xx-large'},
@@ -1571,6 +1587,7 @@ var nicXHTML = bkClass.extend({
 				}
 				
 				if(r) {
+					var alignFound = false;
 					for(var i=0;i<nAttributes.length;i++) {
 						var attr = nAttributes[i];
 						var attributeName = attr.nodeName.toLowerCase();
@@ -1588,6 +1605,11 @@ var nicXHTML = bkClass.extend({
 									}
 								}
 								if (css.search(/:/) != -1 && css.search(/;\s*$/) == -1) css += ';';
+								if (css.search(/text-align:(left|right|center)/i) != -1) {
+									cssTxt = cssTxt.replace(/text-align:\s*[^;]+;?/ig,"");
+								} else {
+									alignFound = true;
+								}
 								cssTxt += css;
 								attributeValue = "";
 							break;
@@ -1619,8 +1641,7 @@ var nicXHTML = bkClass.extend({
 								if (nName == "img") {
 									cssTxt = cssTxt.replace(/float:\s*[^;]+;?/ig,"");
 									cssTxt += "float:"+attributeValue+';';
-								} else {
-									cssTxt = cssTxt.replace(/text-align:\s*[^;]+;?/ig,"");
+								} else if (!alignFound) {
 									cssTxt += "text-align:"+attributeValue+';';
 								}
 								attributeValue = "";
@@ -1788,6 +1809,10 @@ var nicXHTML = bkClass.extend({
 										v = v.toLowerCase();
 										if (v != "" && v !="none") attrTxt += ' align="'+v+'"';
 										return "";
+									} else if (k == "text-align") {
+										v = v.toLowerCase();
+										attrTxt += ' align="'+v+'"';
+										return "";
 									}
 									return k+':'+v+';';
 								});
@@ -1910,12 +1935,12 @@ var nicCodeOptions = {
 /* END CONFIG */
 
 var nicCodeButton = nicEditorAdvancedButton.extend({
-	width : '560px',
+	width : '350px',
 		
 	addPane : function() {
 		this.addForm({
 			'' : {type : 'title', txt : 'HTMLソース編集'},
-			'code' : {type : 'content', 'value' : this.ne.selectedInstance.getContent(), style : {width: '550px', height : '320px'}}
+			'code' : {type : 'content', 'value' : this.ne.selectedInstance.getContent(), style : {width: '340px', height : '200px'}}
 		});
 	},
 	

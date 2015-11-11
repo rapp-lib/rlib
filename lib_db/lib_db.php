@@ -53,18 +53,21 @@
 	
 	//-------------------------------------
 	// Modelインスタンスのファクトリ
-	function model ($name=null) {
+	function model ($name=null, $accessor=null) {
 		
 		$instance =& ref_globals("loaded_model");
 		
-		$name =$name
-				? $name."Model"
-				: "Model_App";
+		$class_name = ! $name 
+				? "Model_App" : (class_exists($name."Model_For".str_camelize($accessor))
+		 		? $name."Model_For".str_camelize($accessor) : $name."Model");
 		
-		if ( ! $instance[$name]) {
+		$id =($name ? $name : "_").($accessor ? ".".$accessor : "");
+		
+		if ( ! $instance[$id]) {
 			
-			$instance[$name] =new $name;
+			$instance[$id] =new $class_name;
+			$instance[$id]->bind_accessor($accessor);
 		}
 		
-		return $instance[$name];
+		return $instance[$id];
 	}

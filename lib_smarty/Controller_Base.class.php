@@ -95,6 +95,12 @@ class Controller_Base extends SmartyExtended {
 					.str_underscore($this->controller_name)
 					."-".str_underscore($this->action_name);
 			
+			if ($fid_enable===true) {
+				
+				$fid_enable =str_underscore($this->controller_name)
+						.".".str_underscore($this->action_name);
+			}
+			
 		} elseif (is_numeric($sname) && $sname > 0) {
 		
 			$action_name =$this->action_name;
@@ -106,6 +112,12 @@ class Controller_Base extends SmartyExtended {
 			$sname ="ctx_by_pages-"
 					.str_underscore($this->controller_name)
 					."-".$action_name;
+			
+			if ($fid_enable===true) {
+				
+				$fid_enable =str_underscore($this->controller_name)
+						.".".$action_name."*";
+			}
 		
 		} else {
 			
@@ -122,8 +134,18 @@ class Controller_Base extends SmartyExtended {
 			
 			$sname .="-".$fid;
 			
-			output_rewrite_var($fid_name,$fid);
-			output_rewrite_var("_noindex","1");
+			// [Deprecated]全てのURLの書き換えを行う処理方式
+			if (registry("Context.fid_pass_by_rewrite")) {
+				
+				output_rewrite_var($fid_name,$fid);
+				output_rewrite_var("_noindex","1");
+				
+			} else {
+				
+				add_url_rewrite_rule($fid_enable, $fid_name, $fid, array(
+					"sname" =>$sname,
+				));
+			}
 		}
 		
 		$context->bind_session($sname);

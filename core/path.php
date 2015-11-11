@@ -76,6 +76,7 @@
 					$param_keys =$matches[1];
 					$to_path_ptn ='!'.preg_quote($to_path,'!').'!';
 					$to_path_ptn =preg_replace('!\\\\\[.*?\\\\\]!','(.*?)',$to_path_ptn);
+					$to_path_ptn =preg_replace('!\(\.\*\?\)\!$!','(.*)!',$to_path_ptn);
 
 					if (preg_match($to_path_ptn,$path,$match)) {
 
@@ -186,13 +187,30 @@
 	}
 
 	//-------------------------------------
-	// PageからURLを得る（主にRedirectやHREFに使用）
+	// PathからURLを得る（主にRedirectやHREFに使用）
 	function path_to_url ($page, $full_url=false) {
 
 		$file =path_to_file($page);
 		$url =file_to_url($file,$full_url);
 
 		return $url;
+	}
+
+	//-------------------------------------
+	// URLからPathを得る
+	function url_to_path ($url, $index_filename="index.html") {
+	
+		$document_root_dir =registry("Path.document_root_dir");
+		$html_dir =registry("Path.html_dir");
+		
+		$url =preg_replace('!^https?://[^/]+!','',$url);
+		$url =preg_replace('!\#.*$!','',$url);
+		$url =preg_replace('!\?.*$!','',$url);
+		
+		$file =preg_replace('!/$!','/'.$index_filename,$document_root_dir.$url);
+		$path =preg_replace('!^'.preg_quote($html_dir).'!','',$file);
+
+		return $path;
 	}
 
 	//-------------------------------------

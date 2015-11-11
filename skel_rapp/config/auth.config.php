@@ -5,7 +5,11 @@
 	registry(array(
 		
 		// （例）管理者認証
-		// "Auth.access_only.member" =>array(
-		// 	"product_master",
+		// "Auth.admin" =>array(
+		// 	"context_name" =>"admin_auth",
+		// 	"force_login.redirect_to" =>"page:admin_login.index",
+		// 	"force_login.zone" =>array(
+		// 		"product_master.*",
+		// 	),
 		// ),
 	));

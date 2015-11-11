@@ -10,16 +10,13 @@ class Controller_App extends Controller_Base {
 	
 		parent::before_act();
 		
-		$this->before_act_config_for_fp();
 		$this->before_act_force_https();
-		$this->before_act_setup_vif();
+		$this->before_act_auth();
+		//$this->before_act_config_for_fp();
+		//$this->before_act_setup_vif();
 		
 		// リクエスト変換処理
 		obj("LayoutRequestArray")->fetch_request_array();
-		
-		// 認証設定
-		// $this->context("c_admin_auth","c_admin_auth",false,"AdminAuthContext");
-		// $this->c_admin_auth->check_auth();
 	}
 	
 	//-------------------------------------
@@ -30,31 +27,23 @@ class Controller_App extends Controller_Base {
 	}
 	
 	//-------------------------------------
-	// ガラケー向け設定変更
-	protected function before_act_config_for_fp () {
-		
-		// Docomoガラケー向け設定
-		if (preg_match('!Docomo/[12]!',$_SERVER["HTTP_USER_AGENT"])) {
-			
-			output_rewrite_var(session_name(),session_id());
-			registry("Response.content_type", 'application/xhtml+xml');
-		}
-	}
-	
-	//-------------------------------------
 	// HTTPアクセス制限
 	protected function before_act_force_https () {
 		
 		$request_path =registry("Request.request_path");
 			
 		// HTTPS/HTTPアクセス制限の設定解決
-		if ($force_https =registry("Routing.force_https.area")) {
+		if ($force_https =registry("Routing.force_https.zone")) {
 			
 			$is_https =$_SERVER["HTTPS"];
 			$is_force_https =in_path($request_path,$force_https);
+			$is_safe =in_path($request_path,registry("Routing.force_https.safe_zone"));
+				
+			// 転送不要 safe_zone
+			if ($is_safe) {
 				
 			// HTTPSへ転送
-			if ($is_force_https && ! $is_https) {
+			} elseif ($is_force_https && ! $is_https) {
 				
 				$redirect_url =path_to_url($request_path,"https");
 				$redirect_url =url($redirect_url,$_GET);
@@ -68,6 +57,49 @@ class Controller_App extends Controller_Base {
 				$redirect_url =url($redirect_url,$_GET);
 				
 				redirect($redirect_url);
+			}
+		}
+	}
+	
+	//-------------------------------------
+	// 認証処理
+	protected function before_act_auth () {
+		
+		$request_path =registry("Request.request_path");
+		
+		foreach ((array)registry("Auth") as $account => $config) {
+			
+			$context_name =$config["context_name"];
+			$zone =$config["force_login"]["zone"];
+			$redirect_to =$config["force_login"]["redirect_to"];
+			
+			$var_name ="c_".$context_name;
+			$class_name =str_camelize($context_name)."Context";
+			
+			// contextの関連付け
+			$this->context($var_name,$var_name,false,$class_name);
+			
+			// model accessorの関連付け
+			model(null,$account)->init_accessor(array(
+				"account" =>$account,
+				"id" =>$this->$var_name->id(),
+			));
+			
+			// ログインしていない場合
+			if ( ! $this->$var_name->id()) {
+				
+				// ログインが必要な場合の転送処理
+				if ($zone && in_path($request_path,$zone)) {
+					
+					redirect($redirect_to,array(
+						"redirect_to" =>registry("Request.request_uri")."?".http_build_query($_GET),
+					));
+				}
+			
+			// 既にログインしている場合
+			} else {
+				
+				$this->$var_name->refresh();
 			}
 		}
 	}
@@ -151,6 +183,18 @@ class Controller_App extends Controller_Base {
 					report_error("Access Denied by Routing.force_vif",registry("Request"));
 				}
 			}
+		}
+	}
+	
+	//-------------------------------------
+	// ガラケー向け設定変更
+	protected function before_act_config_for_fp () {
+		
+		// Docomoガラケー向け設定
+		if (preg_match('!Docomo/[12]!',$_SERVER["HTTP_USER_AGENT"])) {
+			
+			output_rewrite_var(session_name(),session_id());
+			registry("Response.content_type", 'application/xhtml+xml');
 		}
 	}
 }
