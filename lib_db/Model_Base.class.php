@@ -803,9 +803,11 @@ class Model_Base {
 			return;
 		}
 		
-		if ( ! is_numeric(array_pop(array_keys($ts)))) {
+		$first_of_ts =array_keys($ts);
+		if ( ! is_numeric(array_pop($first_of_ts))) {
 			
-			return $this->merge_assoc($ts_copy =array(0=> & $ts),$query);
+			$ts_copy =array(0=> & $ts);
+			return $this->merge_assoc($ts_copy,$query);
 		}
 		
 		// パラメータの抽出
