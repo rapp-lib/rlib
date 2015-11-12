@@ -30,9 +30,9 @@ class WebappBuilderDeployFiles extends WebappBuilder {
 			// 共通パーツの生成
 			$c["wrapper"] =$c["wrapper"] ? $c["wrapper"] : 'default';
 			$c["header"] =$c["header"] ? $c["header"]
-					: '{{include file="path:/element/'.$c["wrapper"].'_header.html"}}';
+					: '{{inc path="/element/'.$c["wrapper"].'_header.html"}}';
 			$c["footer"] =$c["footer"] ? $c["footer"]
-					: '{{include file="path:/element/'.$c["wrapper"].'_footer.html"}}';
+					: '{{inc path="/element/'.$c["wrapper"].'_footer.html"}}';
 
 			if ( ! $wrapper_cache[$c["wrapper"]]) {
 
