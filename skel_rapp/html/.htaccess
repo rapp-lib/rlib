@@ -6,13 +6,13 @@ AddDefaultCharset UTF-8
 #-------------------------------------
 # PHP 
 #
-php_flag short_open_tag On
 php_flag display_errors Off
 php_value error_reporting 6135 
 php_value date.timezone Asia/Tokyo
+php_flag short_open_tag On
 php_flag mbstring.encoding_translation Off
+php_flag auto_detect_line_endings On
 php_flag session.use_trans_sid Off
-php_flag session.use_only_cookies On
 #php_value session.save_handler memcache
 #php_value session.save_path tcp://localhost:11211
 
