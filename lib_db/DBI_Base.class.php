@@ -551,7 +551,8 @@ class DBI_Base {
 		// conditions
 		$query["conditions"] =$this->ds->conditions($query["conditions"],true,false);
 		
-		$st =$this->ds->buildStatement($query,$model=null);
+		$model=null;
+		$st =$this->ds->buildStatement($query,$model);
 		
 		return $st;
 	}

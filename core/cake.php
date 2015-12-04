@@ -57,7 +57,7 @@
 			}
 			
 			class Configure { 
-				function read() {} 
+				public static function read() {} 
 			}
 			
 			class Cache { 

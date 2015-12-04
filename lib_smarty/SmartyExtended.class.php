@@ -427,6 +427,8 @@ class SmartyExtended extends SmartyBC {
 			
 			// Selectのみ
 			"nozerooption", // 非選択要素を自動的に追加しない指定
+			"optgroup_options", // OPTGROUPを生成するためのList名
+			"optgroup_options_params", // OPTGROUPを生成するためのList::optionsの引数
 		);
 		$attr_html ="";
 		
@@ -507,6 +509,32 @@ class SmartyExtended extends SmartyBC {
 					"selected" =>$selected,
 					"label" =>$option_label,
 				);
+			}
+			
+			// optgroupでまとめる
+			if ($params["optgroup_options"]) {
+				
+				$rels =$list_options->parents($params["parents_params"]);
+				$parent_list_options =get_list($params["optgroup_options"],$this);
+				$parent_options =$parent_list_options->options($params["optgroup_options_params"]);
+				
+				$option_htmls =$html["options"];
+				$html["options"] =array();
+				
+				foreach ($parent_options as $parent_k => $parent_label) {
+					
+					$html["options"][$parent_k] .='<optgroup label="'.$parent_label.'">';
+					
+					foreach ($option_htmls as $option_k => $option_html) {
+						
+						if ($rels[$option_k] == $parent_k) {
+							
+							$html["options"][$parent_k] .=$option_html;
+						}
+					}
+					
+					$html["options"][$parent_k] .='<optgroup>';
+				}
 			}
 			
 		} elseif ($params["type"] == "radioselect") {

@@ -363,6 +363,10 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			}
 
 			// DBへの登録
+			$c_import =new Context_App;
+			$c_import->id("<?=$t['pkey']?>");
+			$c_import->input($t);
+			
 			$keys =array_keys($this->csv_setting["rows"]);
 			$fields =$c_import->get_fields($keys);
 			

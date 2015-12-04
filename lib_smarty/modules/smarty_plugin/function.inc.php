@@ -10,6 +10,17 @@
 		$request_page =$params["page"];
 		$request_file =$params["file"];
 		
+		if ($request_file && preg_match('!^path:(.*?)$!',$request_file,$match)) {
+			
+			$request_path =$match[1];
+			$request_file =null;
+		
+		} elseif ($request_file && preg_match('!^page:(.*?)$!',$request_file,$match)) {
+			
+			$request_page =$match[1];
+			$request_file =null;
+		}
+		
 		if ($request_path) {
 			
 			$request_page =path_to_page($request_path);
