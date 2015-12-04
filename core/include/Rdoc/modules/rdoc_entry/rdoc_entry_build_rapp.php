@@ -1,8 +1,20 @@
-<?php
+<?php 
+	
+	//-------------------------------------
+	// schema.config.php→生成/展開
+	function rdoc_entry_build_rapp ($options=array()) {
+        
+        $obj =obj("Rdoc_Builder_WebappBuilderDeployFiles");
+        $obj->init(array(
+            "deploy" =>1,
+            "force" =>1,
+        ));
+        $obj->deploy_files();
+	}
 
 //-------------------------------------
 // 
-class WebappBuilderDeployFiles extends WebappBuilder {
+class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 
 	protected $tables =array();
 	protected $tables_def =array();

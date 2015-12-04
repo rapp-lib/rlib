@@ -1,8 +1,21 @@
-<?php
+<?php 
+	
+	//-------------------------------------
+	// schema.config.csv→config生成
+	function rdoc_entry_schema_csv_to_registry ($options=array()) {
+		
+        $obj =obj("Rdoc_Schema_WebappBuilderCreateSchema");
+        $obj->init(array(
+            "schema"=>1,
+            "src"=>"csv",
+            "force"=>1,
+        ));
+        $obj->create_schema();
+	}
 
 //-------------------------------------
 // 
-class WebappBuilderCreateSchema extends WebappBuilder {
+class Rdoc_Schema_WebappBuilderCreateSchema extends WebappBuilder {
 
 	//-------------------------------------
 	// エントリポイント
