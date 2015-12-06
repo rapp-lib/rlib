@@ -1,8 +1,20 @@
-<?php
+<?php 
+	
+	//-------------------------------------
+	// 文書生成
+	function rdoc_entry_profile_classes ($options=array()) {
+	
+        $obj =obj("Rdoc_Profile_WebappBuilderScriptScanner");
+        $obj->init(array(
+            "profile" =>1,
+            "target" =>$options["target"],
+        ));
+        $obj->profile_system();	
+	}
 
 //-----------------------------------------------
 // PHPでの定義情報を解析
-class WebappBuilderScriptScanner extends WebappBuilder {
+class Rdoc_Profile_WebappBuilderScriptScanner extends WebappBuilder {
 	
 	/*
 		.[class]
