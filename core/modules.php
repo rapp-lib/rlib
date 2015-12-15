@@ -140,6 +140,23 @@
 			require_once("default/".$file_name);
 			return $class_name;
 		}
+        
+        $dirs =str_replace('_',' / ',$class_name);
+        $dirs =str_underscore($dirs);
+        $dirs =str_replace(' ','',$dirs);
+        $dirs =explode("/",$dirs);
+        $path ="";
+        
+        foreach ($dirs as $dir) {
+            
+            $path .=$dir."/";
+            
+            if ($file =find_include_path($path.$class_name.".class.php")) {
+                
+                require_once($file);
+                return $class;
+            }
+        }
 		
 		return null;
 	}
