@@ -4,9 +4,10 @@
         
         $src =preg_replace_callback('!<\!--#include\s+virtual="([^"]+)"\s*-->!',function ($match) use ($smarty){
             $file =registry("Path.document_root_dir")."/".$match[1];
-            return $smarty->left_delimiter.'include file="'.$file.'"'.$smarty->right_delimiter;
+            return $smarty->left_delimiter.'ssi virtual="'.$file.'"'.$smarty->right_delimiter;
         },$src);
-        $src =preg_replace_callback('!<\!--#include\s+virtual="([^"]+)"\s*-->!',function ($match) use ($smarty){
+        
+        $src =preg_replace_callback('!<\!--#include\s+file="([^"]+)"\s*-->!',function ($match) use ($smarty){
             $file =$match[1];
             return $smarty->left_delimiter.'include file="'.$file.'"'.$smarty->right_delimiter;
         },$src);
