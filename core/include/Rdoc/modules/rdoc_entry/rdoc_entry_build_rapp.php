@@ -241,12 +241,13 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 			foreach ((array)registry("Schema.cols.".$t_name) as $tc_name => $tc) {
 				
 				$tc["name"] =$t_name.".".$tc_name;
+				$tc["short_name"] =$tc_name;
 				
 				// データ表現別のオプション付加
 				if ($tc['type'] == "date") {
 
 					$tc['modifier'] ='|date:"Y/m/d"';
-					$tc['input_option'] =' range="2007~+5" format="{%l}{%yp}{%mp}{%dp}{%datefix}"';
+					$tc['input_option'] =' range="2010~+5" format="{%l}{%yp}{%mp}{%dp}{%datefix}"';
 				}
 				
 				if ($tc['type'] == "textarea") {

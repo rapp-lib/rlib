@@ -101,6 +101,7 @@ body {
 	padding: 2px 4px;
 }
 
+.main_content button.button,
 .main_content input.button,
 .main_content a.button {	
 	color: #ffffff;		
@@ -116,11 +117,13 @@ body {
 	cursor: hand;
 	font-weight: bold;
 }
+.main_content button.button:hover,
 .main_content input.button:hover,
 .main_content a.button:hover {
 	background: #707070;		
 	color: #b4dc55;
 }	
+.main_content button.button.inactive,
 .main_content input.button.inactive,
 .main_content a.button.inactive, {		
 	background: #f8f8f8;	

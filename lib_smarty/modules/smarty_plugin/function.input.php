@@ -60,7 +60,7 @@
 				// input要素内が配列構造
 				if ($name_ref_complex) {
 					
-					// Serializeサれた文字列は展開
+					// Serializeされた文字列は展開
 					if (is_string($postset_value)) {
 						
 						$postset_value =unserialize($postset_value);

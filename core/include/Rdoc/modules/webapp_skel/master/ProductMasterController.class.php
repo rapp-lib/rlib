@@ -21,7 +21,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	protected $list_setting =array(
 		"search" =>array(
 <? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
-			"<?=$tc['name']?>" =>array(
+			"Search.<?=$tc['short_name']?>" =>array(
 					"type" =>'eq',
 					"target" =>"<?=$tc['name']?>"),
 <? endforeach; ?>
@@ -92,16 +92,17 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		
 		$this->context("c",0);
 		
-		// リスト取得条件の消去
 		if ($_REQUEST["reset"]) {
 		
 			$this->c->input(false,false);
 		}
 		
-		// 入力情報の登録
 		$this->c->input($_REQUEST["c"]);
+        
+        $input =$this->c->input();
+        
 		list($this->vars["ts"] ,$this->vars["p"]) =<?=_model_instance($t,$c)?> 
-				->get_by_search_form($this->list_setting,$this->c->input());
+				->get_by_search_form($this->list_setting,$input);
 	}
 
 	//-------------------------------------

@@ -1,21 +1,21 @@
-{{$page_title="<?=$c["label"]?>：一覧"}}
 <?=$c["header"]?> 
 
-<h1 class="page_label">{{$page_title}}</h1>
+<h1 class="page_label"><?=$c["label"]?>：一覧</h1>
 
 {{*
 <!-- search_module -->
-{{form _page="." _reset="1"}}
+{{form _page="."}}
+{{input type="hidden" name="reset" value="1"}}
 <table class="detail">
 <? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
 <tr>
 	<td class="label"><nobr><?=$tc['label']?></nobr></td>
-	<td class="cell">{{input name="c[<?=$tc['name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}</td>
+	<td class="cell">{{input name="c[Search.<?=$tc['short_name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}</td>
 </tr>
 <? endforeach; ?>
 <tr>
 	<td class="controll_cell" colspan="2">
-		{{input type="submit" value="検索" class="button"}}
+		<button type="submit" class="button">検索</button>
 		{{a _page="." _reset="1" class="button"}}リセット{{/a}}
 	</td>
 </tr>
@@ -29,8 +29,8 @@
 <div class="controll">
 	検索条件
 <? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
-	{{if $c->input("<?=$tc['name']?>")}}
-		| <?=$tc['label']?> : {{$c->input("<?=$tc['name']?>")<?=$tc['modifier']?>}}
+	{{if $c->input("Search.<?=$tc['short_name']?>")}}
+		| <?=$tc['label']?> : {{$c->input("Search.<?=$tc['short_name']?>")<?=$tc['modifier']?>}}
 	{{/if}}
 <? endforeach; ?>
 </div>
@@ -40,22 +40,9 @@
 {{*
 <!-- sort_module -->
 <div class="controll">
-	{{if $c->input("sort")=="" || $c->input("sort")=="<?=$t['pkey']?>@ASC"}}
-		{{a _page="." _query="c[sort]=<?=$t['pkey']?>@DESC"}}登録順▼{{/a}}
-	{{elseif $c->input("sort")=="<?=$t['pkey']?>@DESC"}}
-		{{a _page="." _query="c[sort]=<?=$t['pkey']?>@ASC"}}登録順▲{{/a}}
-	{{else}}
-		{{a _page="." _query="c[sort]=<?=$t['pkey']?>@ASC"}}登録順▽{{/a}}
-	{{/if}}
+	{{a _page="." _c=["sort"=>"<?=$t['pkey']?>@DESC"]}}登録順▼{{/a}}
 <? foreach ($this->filter_fields($t["fields"],"sort") as $tc): ?>
-	| 
-	{{if $c->input("sort")=="<?=$tc['name']?>@ASC"}}
-		{{a _page="." _query="c[sort]=<?=$tc['name']?>@DESC"}}<?=$tc['label']?>順▼{{/a}}
-	{{elseif $c->input("sort")=="<?=$tc['name']?>@DESC"}}
-		{{a _page="." _query="c[sort]=<?=$tc['name']?>@ASC"}}<?=$tc['label']?>順▲{{/a}}
-	{{else}}
-		{{a _page="." _query="c[sort]=<?=$tc['name']?>@ASC"}}<?=$tc['label']?>順▽{{/a}}
-	{{/if}}
+	{{a _page="." _c=["sort"=>"<?=$tc['name']?>@DESC"]}}<?=$tc['label']?>順▼{{/a}}
 <? endforeach; ?>
 </div>
 <!-- /sort_module -->
@@ -114,19 +101,19 @@
 <div class="pager">
 <span class="inactive">{{$p.current}} / {{$p.lastpage}}ページを表示中&nbsp;</span>
 {{if $p.prev !== null}}
-	{{a _page="." _query="c[offset]=`$p.prev`"}}前へ{{/a}}
+	{{a _page="." _c["offset"=>$p.prev]}}前へ{{/a}}
 {{else}}
 	<span class="inactive">前へ</span>
 {{/if}}
 {{foreach $p.pages as $index => $page_offset}}
 	{{if $index==$p.current}} 
-		{{a _page="." _query="c[offset]=`$page_offset`" class="current"}}{{$index}}{{/a}}
+		{{a _page="." _c["offset"=>$page_offset] class="current"}}{{$index}}{{/a}}
 	{{else}}
-		{{a _page="." _query="c[offset]=`$page_offset`"}}{{$index}}{{/a}}
+		{{a _page="." _c["offset"=>$page_offset]}}{{$index}}{{/a}}
 	{{/if}}
 {{/foreach}}
 {{if $p.next !== null}}
-	{{a _page="." _query="c[offset]=`$p.next`"}}次へ{{/a}}
+	{{a _page="." _c["offset"=>$p.next]}}次へ{{/a}}
 {{else}}
 	<span class="inactive">次へ</span>
 {{/if}}

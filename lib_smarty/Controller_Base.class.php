@@ -72,28 +72,30 @@ class Controller_Base extends SmartyExtended {
 			$var_name, 
 			$sname=null, 
 			$fid_enable=false,
-			$class_name="Context_App") {
+			$options=array()) {
 		
+        $class_name =is_string($options) ? $options : 
+                ($options["class"] ? $options["class"] : "Context_App");
+        
 		$context =new $class_name;
 		
 		$this->$var_name =$context;
 		$this->contexts[$var_name] =$context;
 		$this->vars[$var_name] =$context;
 		
+        // sname/fid_enable文字列の構成
 		if (is_object($sname) && is_subclass_of($sname,"Context_Base")) {
 			
-			$sname ="ctx_by_ctx-".$sname->get_sname();
-					
+			$sname =$sname->get_sname();
+			
 		} elseif (is_object($sname)) {
 			
-			$sname =str_underscore($var_name)
-					."ctx_by_class-".str_underscore(get_class($sname));
+			$sname =str_underscore(get_class($sname));
 		
 		} elseif ($sname === null || $sname === 0) {
 			
-			$sname ="ctx_by_page-"
-					.str_underscore($this->controller_name)
-					."-".str_underscore($this->action_name);
+			$sname =str_underscore($this->controller_name)
+					.".".str_underscore($this->action_name);
 			
 			if ($fid_enable===true) {
 				
@@ -109,8 +111,7 @@ class Controller_Base extends SmartyExtended {
 			$action_name =array_slice($action_name,0,-$sname);
 			$action_name =implode("_",$action_name);
 			
-			$sname ="ctx_by_pages-"
-					.str_underscore($this->controller_name)
+			$sname =str_underscore($this->controller_name)
 					."-".$action_name;
 			
 			if ($fid_enable===true) {
@@ -119,15 +120,19 @@ class Controller_Base extends SmartyExtended {
 						.".".$action_name."*";
 			}
 		
-		} else {
-			
-			$sname ="ctx_by_name-".$sname;
 		}
 		
+        // fid_enable設定によるURL書き換え処理の登録
 		if ($fid_enable && $sname) {
 			
 			$fid_name ="f_".substr(md5($sname),0,5);
 			
+            // fid_check指定がある場合、正常なfidがURLで渡らなければエラーとなる
+            if ( ! strlen($_REQUEST[$fid_name]) && $options["fid_check"]) {
+            
+                return false;
+            }
+            
 			$fid =strlen($_REQUEST[$fid_name])
 					? $_REQUEST[$fid_name]
 					: substr(md5(mt_rand(1,999999)),0,5);
@@ -149,6 +154,8 @@ class Controller_Base extends SmartyExtended {
 		}
 		
 		$context->bind_session($sname);
+        
+        return $context;
 	}
 	
 	//-------------------------------------

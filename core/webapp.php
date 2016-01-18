@@ -20,8 +20,6 @@
 			
 			// Dync機能設定
 			"Config.dync_key" =>null,
-			"Config.dync_auth_id" =>"e77989ed21758e78331b20e477fc5582",
-			"Config.dync_auth_pw" =>"547d913f6ee96d283eb4d50aea20acc1",
 			
 			// セッション設定
 			"Config.session_lifetime" =>86400,
@@ -146,8 +144,8 @@
 			}
 			
 			if ($_REQUEST[$dync_key] && $sec && (in_array($sec, $sec_list))) {
-						
-				$dync["auth"] =registry("Config.dync_auth_id");
+				
+				$dync["auth"] =$dync_key;
 			}
 			
 			if ($dync["auth"]) {
@@ -203,8 +201,9 @@
 			}
 			
 		} else {
-		
-			$input =str_replace(array("&","<",">"),array("&amp;","&lt;","&gt;"),$input);
+            
+			$input =str_replace(array("&","<",">",'"',"'"),
+                    array("&amp;","&lt;","&gt;","&quot;","&apos;"),$input);
 		}
 	}
 	

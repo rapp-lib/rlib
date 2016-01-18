@@ -346,12 +346,22 @@ class SmartyExtended extends SmartyBC {
 			
 			// _query
 			if ($params["_query"]) {
-				
-				foreach (explode("&",$params["_query"]) as $kvset) {
-					
-					list($k,$v) =explode("=",$kvset,2);
-					$url_params[$k] =$v;
-				}
+                
+                if (is_string($params["_query"])) {
+                    
+                    foreach (explode("&",$params["_query"]) as $kvset) {
+                        
+                        list($k,$v) =explode("=",$kvset,2);
+                        $url_params[$k] =$v;
+                    }
+                    
+                } else {
+                    
+                    foreach ($params["_query"] as $k => $v) {
+                        
+                        $url_params[$k] =$v;
+                    }
+                }    
 				
 				unset($params["_query"]);
 			}
@@ -362,7 +372,15 @@ class SmartyExtended extends SmartyBC {
 				if (preg_match('!^_(.*)$!',$key,$match)) {
 					
 					$param_name =$match[1];
-					$url_params[$param_name] =$value;
+                    
+                    if (is_array($url_params[$param_name]) && is_array($value)) {
+					    
+                        $url_params[$param_name] =array_merge($url_params[$param_name],$value);
+                        
+                    } else {
+                        
+                        $url_params[$param_name] =$value;
+                    }
 					
 				} else {
 					

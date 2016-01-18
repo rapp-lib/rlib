@@ -53,6 +53,7 @@
 			
 			} elseif (is_array($params)) {
 				
+                ksort($params);
 				$url .=http_build_query($params,null,'&');
 			}
 		}
