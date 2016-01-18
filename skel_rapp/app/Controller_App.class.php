@@ -12,8 +12,9 @@ class Controller_App extends Controller_Base {
 		
 		$this->before_act_force_https();
 		$this->before_act_auth();
-		//$this->before_act_config_for_fp();
+		$this->before_act_protect_against_csrf();
 		//$this->before_act_setup_vif();
+		//$this->before_act_config_for_fp();
 		
 		// リクエスト変換処理
 		obj("LayoutRequestArray")->fetch_request_array();
@@ -102,6 +103,30 @@ class Controller_App extends Controller_Base {
 				$this->$var_name->refresh();
 			}
 		}
+	}
+	
+	//-------------------------------------
+	// CSRF対策
+	protected function before_act_protect_against_csrf () {
+		
+        $config =registry("Security.csrf");
+        $protect_pages =$config["protect_pages"];
+        
+        $path =registry("Request.request_path");
+        $pac_ticket =substr(md5(session_id()),3,6);
+        
+        if ($protect_pages) {
+        
+            if (in_path($path,$protect_pages) && $_REQUEST["_pac_ticket"] !== $pac_ticket) {
+                
+                report_error("PA-CSRF ticket error",array(
+                    "pac_ticket" =>$pac_ticket,
+                    "request_pac_ticket" =>$_REQUEST["_pac_ticket"],
+                ));
+            }
+            
+            add_url_rewrite_rule($protect_pages, "_pac_ticket", $pac_ticket);
+        }
 	}
 	
 	//-------------------------------------
