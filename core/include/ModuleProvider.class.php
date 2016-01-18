@@ -27,7 +27,7 @@ class ModuleProvider {
         $this->modules[$module_name] =$options;
     }
     
-    public function get ($module_name) {
+    public function get ($module_name=null) {
         
         return $module_name
                 ? $this->modules[$module_name]

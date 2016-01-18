@@ -17,29 +17,41 @@
 			return; 
 		}
 		
-		report($errstr,array(),array(
-			"type" =>"error_handler",
+		report($errstr,array(
+        	"type" =>"error_handler",
+		),array(
 			"errno" =>$errno,
 			"errstr" =>$errstr,
 			"errfile" =>$errfile,
 			"errline" =>$errline,
 			"errcontext" =>$errcontext,
 		));
-		//throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 	}
 	
 	//-------------------------------------
 	// 標準例外ハンドラ
 	function std_exception_handler ($e) {
-	
-		report($e->getMessage(),array(),array(
-			"type" =>"exception_handler",
-			"errno" =>E_ERROR,
-			"errstr" =>$e->getMessage(),
-			"errfile" =>$e->getFile(),
-			"errline" =>$e->getLine(),
-			"errcontext" =>$e->getCode(),
-		));
+	    
+        try {
+            
+            if (is_a($e,"ReportError")) {
+                
+                throw $e;    
+            }
+            
+            report("[".get_class($e)."] ".$e->getMessage(),array(),array(
+    			"errno" =>E_ERROR,
+    			"errstr" =>$e->getMessage(),
+    			"errfile" =>$e->getFile(),
+    			"errline" =>$e->getLine(),
+    			"code" =>$e->getCode(),
+        		"exception" =>$e,
+    		));
+            
+        } catch (ReportError $e_report) {
+            
+            $e_report->shutdown();
+        }
 	}
 	
 	//-------------------------------------
@@ -340,11 +352,11 @@
 		// エラー時の処理停止
 		if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
 			
-			shutdown_webapp("error_report",array(
-				"errstr" =>$errstr, 
-				"report_params" =>$params,
-				"report_detail" =>$options,
-			));
+            throw new ReportError(array(
+                "errstr" =>$errstr,
+                "options" =>$options,
+                "params" =>$params,
+            ));
 		}
 	}
 	
@@ -363,32 +375,35 @@
 		$options["errno"] =E_USER_ERROR;
 		report($message,$params,$options);
 	}
-	
-	//-------------------------------------
-	//
-	function raise_exception ($message) { 
-		
-		$e =new Exception_App;
-		$e->message($message);
-		
-		throw $e;
-	}
 
 //-------------------------------------
 //
-class Exception_App extends Exception {
+class ReportError extends ErrorException {
 	
-	protected $message;
+	protected $report_vars;
 
 	//-------------------------------------
 	//
-	public function message ($message=null) {
+	public function __construct ($report_vars=array()) {
 		
-		if ($message !== null) {
+        parent::__construct(
+            $report_vars["options"]["errstr"], 
+            $report_vars["options"]["code"] ? $params["options"]["code"] : 0, 
+            $report_vars["options"]["errno"], 
+            $report_vars["options"]["errfile"], 
+            $report_vars["options"]["errline"]
+        );
+        $this->report_vars =$report_vars;
+	}
+
+	//-------------------------------------
+	//
+	public function shutdown () {
 		
-			$this->message =$message;
-		}
-		
-		return $this->message;
+        shutdown_webapp("error_report",array(
+            "errstr" =>$this->report_vars["errstr"], 
+            "params" =>$this->report_vars["params"],
+            "options" =>$this->report_vars["options"],
+        ));
 	}
 }
