@@ -10,6 +10,7 @@
 		$request_page =$params["page"];
 		$request_file =$params["file"];
 		
+        // file="path:..."指定
 		if ($request_file && preg_match('!^path:(.*?)$!',$request_file,$match)) {
 			
 			$request_path =$match[1];
@@ -21,20 +22,25 @@
 			$request_file =null;
 		}
 		
+        // path指定の解決
 		if ($request_path) {
 			
 			$request_page =path_to_page($request_path);
 			$request_file =path_to_file($request_path);
 			
+        // page指定の解決
 		} elseif ($request_page) {
 			
 			$request_path =page_to_path($request_path);
 			$request_file =path_to_file($request_path);
+            
+        } else {
 			
-		} elseif ($request_file) {
-			
-			$request_path =file_to_path($request_file);
-			$request_page =path_to_page($request_path);
+			report_error("Include Error: Invalid path or page",array(
+    			"path" =>$request_path,
+    			"page" =>$request_page,
+    			"file" =>$request_file,
+    		));
 		}
 		
 		// 静的ページのStaticIncludeControllerへの対応付け
@@ -43,16 +49,14 @@
 			$request_page ="static_include.index";
 		}
 		
-		$report_context =array(
-			"path" =>$request_path,
-			"page" =>$request_page,
-			"file" =>$request_file,
-		);
-		
 		// Routing設定もなくHTMLファイルもない場合は404エラー
 		if ( ! $request_page && ! file_exists($request_file)) {
 			
-			report_error("Include Error: Route and File NotFound",$report_context);
+			report_error("Include Error: Route and File NotFound",array(
+    			"path" =>$request_path,
+    			"page" =>$request_page,
+    			"file" =>$request_file,
+    		));
 		}
 		
 		$parent_controller =$smarty_template->smarty;
@@ -61,7 +65,11 @@
 		// Controller/Action実行エラー
 		if ( ! $controller) {
 			
-			report_error("Include Routing Error: Controller/Action raise failed",$report_context);
+			report_error("Include Routing Error: Controller/Action raise failed",array(
+    			"path" =>$request_path,
+    			"page" =>$request_page,
+    			"file" =>$request_file,
+    		));
 		}
 		
 		// テンプレート中で渡された値のAssign
@@ -77,8 +85,6 @@
 			}
 		}
 		
-		$html =$controller->fetch("file:".$request_file);
-		
-		return $html;
+		return $controller->fetch("file:".$request_file);
 	}
 	
