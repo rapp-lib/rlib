@@ -101,19 +101,19 @@
 <div class="pager">
 <span class="inactive">{{$p.current}} / {{$p.lastpage}}ページを表示中&nbsp;</span>
 {{if $p.prev !== null}}
-	{{a _page="." _c["offset"=>$p.prev]}}前へ{{/a}}
+	{{a _page="." _c=["offset"=>$p.prev]}}前へ{{/a}}
 {{else}}
 	<span class="inactive">前へ</span>
 {{/if}}
 {{foreach $p.pages as $index => $page_offset}}
 	{{if $index==$p.current}} 
-		{{a _page="." _c["offset"=>$page_offset] class="current"}}{{$index}}{{/a}}
+		{{a _page="." _c=["offset"=>$page_offset] class="current"}}{{$index}}{{/a}}
 	{{else}}
-		{{a _page="." _c["offset"=>$page_offset]}}{{$index}}{{/a}}
+		{{a _page="." _c=["offset"=>$page_offset]}}{{$index}}{{/a}}
 	{{/if}}
 {{/foreach}}
 {{if $p.next !== null}}
-	{{a _page="." _c["offset"=>$p.next]}}次へ{{/a}}
+	{{a _page="." _c=["offset"=>$p.next]}}次へ{{/a}}
 {{else}}
 	<span class="inactive">次へ</span>
 {{/if}}

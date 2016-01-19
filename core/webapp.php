@@ -70,7 +70,7 @@
 				registry("Config.internal_charset"),
 				registry("Config.external_charset"),
 				$_REQUEST);
-		sanitize_request_variables($_REQUEST);
+		$_REQUEST =sanitize($_REQUEST);
 		
 		// PHPの設定書き換え
 		spl_autoload_register("load_class");
@@ -99,7 +99,6 @@
 			load_lib($v);
 		}
 		
-		// パラメータ確認
 		obj("Rdoc")->check();
 	}
 	
@@ -187,24 +186,6 @@
 				registry("Config.internal_charset"));
 				
 		return $html;
-	}
-	
-	//-------------------------------------
-	// リクエスト値をサニタイズ
-	function sanitize_request_variables ( & $input) {
-		
-		if (is_array($input)) {
-		
-			foreach ($input as $k => $v) {
-			
-				sanitize_request_variables($input[$k]);
-			}
-			
-		} else {
-            
-			$input =str_replace(array("&","<",">",'"',"'"),
-                    array("&amp;","&lt;","&gt;","&quot;","&apos;"),$input);
-		}
 	}
 	
 	//-------------------------------------

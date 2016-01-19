@@ -215,11 +215,11 @@
 				$value[$k] =sanitize($v);
 			}
 			
-		} else {
+		} elseif (is_string($value)) {
 			
 			$value =str_replace(
-					array('&','<','>'),
-					array('&amp;','&lt;','&gt;'),
+					array("&","<",">",'"',"'"),
+                    array("&amp;","&lt;","&gt;","&quot;","&apos;"),
 					$value);
 		}
 		
@@ -237,11 +237,11 @@
 				$value[$k] =sanitize_decode($v);
 			}
 			
-		} else {
+		} elseif (is_string($value)) {
 			
 			$value =str_replace(
-					array('&amp;','&lt;','&gt;'),
-					array('&','<','>'),
+                    array("&amp;","&lt;","&gt;","&quot;","&apos;"),
+					array("&","<",">",'"',"'"),
 					$value);
 		}
 		
