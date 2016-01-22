@@ -623,12 +623,9 @@ class Model_Base {
 				
 				$target_col =$table.".".$col;
 				
-				if (isset($query["fields"][$target_col])) {
-					
-					// SPLICE処理
-					$this->spliced_fields[$target_col] =$query["fields"][$target_col];
-					unset($query["fields"][$target_col]);
-				}
+				// SPLICE処理
+				$this->spliced_fields[$target_col] =(array)$query["fields"][$target_col];
+				unset($query["fields"][$target_col]);
 			}
 		}
 	}
@@ -653,12 +650,9 @@ class Model_Base {
 				
 				$target_col =$table.".".$col;
 				
-				if (isset($fields_flip[$target_col])) {
-					
-					// SPLICE処理
-					$this->spliced_fields[$target_col] =$query["fields"][$fields_flip[$target_col]];
-					unset($query["fields"][$fields_flip[$target_col]]);
-				}
+				// SPLICE処理
+				$this->spliced_fields[$target_col] =(array)$query["fields"][$fields_flip[$target_col]];
+				unset($query["fields"][$fields_flip[$target_col]]);
 			}
 		}
 	}
@@ -685,22 +679,16 @@ class Model_Base {
 				if ($is_read) {
 					
 					$fields_flip =array_flip($query["fields"]);
-					
-					if (isset($query["fields"][$target_col])) {
 						
-						// SPLICE処理
-						$this->spliced_fields[$target_col] =$query["fields"][$target_col];
-						unset($query["fields"][$target_col]);
-					}
+					// SPLICE処理
+					$this->spliced_fields[$target_col] =(array)$query["fields"][$target_col];
+					unset($query["fields"][$target_col]);
 						
 				} else {
 				
-					if (isset($query["fields"][$target_col])) {
-						
-						// SPLICE処理
-						$this->spliced_fields[$target_col] =$query["fields"][$target_col];
-						unset($query["fields"][$target_col]);
-					}
+					// SPLICE処理
+					$this->spliced_fields[$target_col] =(array)$query["fields"][$target_col];
+					unset($query["fields"][$target_col]);
 				}
 			}
 		}
@@ -721,11 +709,6 @@ class Model_Base {
 			foreach ($cols as $col => $info) {
 				
 				$target_col =$table.".".$col;
-				
-				if ( ! isset($this->spliced_fields[$target_col])) {
-				
-					continue;
-				}
 					
 				$values_base =(array)$this->spliced_fields[$target_col];
 				

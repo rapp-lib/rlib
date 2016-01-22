@@ -57,23 +57,32 @@ class Context_Base {
 	
 	//-------------------------------------
 	// 
-	public function input ($name=null, $value=null, $escape=true) {
-	
-		return array_registry($this->session["__input"],$name,$value,$escape);
+	public function input ($name=null, $value=null) {
+	    
+		return array_registry($this->session["__input"],$name,$value,array(
+            "escape" =>true,
+            "no_array_merge" =>true,
+        ));
 	}
 	
 	//-------------------------------------
 	// 
-	public function errors ($name=null, $value=null, $escape=true) {
+	public function errors ($name=null, $value=null) {
 	
-		return array_registry($this->session["__errors"],$name,$value,$escape);
+		return array_registry($this->session["__errors"],$name,$value,array(
+            "escape" =>true,
+            "no_array_merge" =>true,
+        ));
 	}
 	
 	//-------------------------------------
 	// 
 	public function session ($name=null, $value=null) {
 	
-		return array_registry($this->session,$name,$value);
+		return array_registry($this->session,$name,$value,array(
+            "escape" =>true,
+            "no_array_merge" =>true,
+        ));
 	}
 	
 	//-------------------------------------
@@ -105,10 +114,10 @@ class Context_Base {
 	public function validate (
 			$required=array(), 
 			$extra_rules=array(),
-			$reset_errors=true,
+			$options=array(),
 			$group_name=null) {
 			
-		$errors =array();
+		$errors =$this->errors();
 		
 		$rules =array_merge(
 				(array)registry("Validate.rules"),
@@ -163,7 +172,7 @@ class Context_Base {
 				$key, 
 				$this,
 			));
-					
+            
 			if ($result) {
 				
 				if ($rule["message"]) {
@@ -184,7 +193,11 @@ class Context_Base {
 				}
 				
 				$errors[$key.'.required'] =$error;
-			}
+			
+            } else {
+                
+                unset($errors[$key.'.required']);
+            }
 		}
 		
 		// その他のチェック
@@ -231,7 +244,11 @@ class Context_Base {
 				}
 				
 				$errors[$key.'.'.$rule["type"]] =$error;
-			}
+                
+			} else {
+                
+                unset($errors[$key.'.'.$rule["type"]]);
+            }
 		}
 		
 		// c[Group.X.Table.col]形式の入力値のエラーをerrors[Group][X]に分解する
@@ -250,11 +267,7 @@ class Context_Base {
 			}
 		}
 		
-		if ($reset_errors) {
-			
-			$this->errors(false,false);
-		}
-		
+		$this->errors(false,false);
 		$this->errors($errors);
 	}
 }

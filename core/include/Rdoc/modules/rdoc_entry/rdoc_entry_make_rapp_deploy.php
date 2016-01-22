@@ -4,11 +4,24 @@
      * schema.config.php→生成/展開
      */ 
 	function rdoc_entry_rapper_deploy ($options=array()) {
+
+		$rapper =new Rapper(array("Rapper_Rule_Basic_Config"));
+        
+        $rapper->load_schema(registry("Schema"));
+        $rapper->deploy_all();
+	}
+
+/**
+ * 自動生成ルール
+ */
+class Rapper_Rule_Basic_Config {
+
+    /**
+     * ルールの適用
+     */
+    public static function apply ($mod) {
         
         $work_dir =registry("Path.tmp_dir")."/rapper/"."U".date("ymd-His-").sprintf("%03d",rand(001,999));
-        
-        $mod =new Rdoc_Mod;
-		$rapper =new Rdoc_Rapper($mod);
         
         // 設定
         $mod->config(array(
@@ -17,61 +30,80 @@
                     ? registry("Path.webapp_dir")
                     : $work_dir."/deploy",
             "work_dir" =>registry("Path.webapp_dir"),
+            "tmpl_dir" =>dirname(__FILE__).'/rapper_tmpl',
         ));
         
+        // configファイルリスト初期化設定
+        $mod->add_filter("config_list_init",array(), function ($rapper, $config_list) {
+            $config_list[] ="routing.config.php";
+            $config_list[] ="label.config.php";
+            $config_list[] ="auth.config.php";
+            $config_list[] ="install.sql";
+            return $config_list;
+		});
+        $mod->add_filter("config_deploy",array(), function ($rapper, $config) {
+        
+            $src =$this->find_skel("", "config/".$key);
+            $dest =registry("Path.webapp_dir")."/config/_".$key;
+            $this->arch_template($src,$dest,array(
+                    "s" =>registry("Schema"), 
+                    "ts"=>$this->table,
+                    "td"=>$this->table_def));
+        });
+        
         // table初期化設定
-        $mod->add_filter("table_init",array(), function ($mod, $t) {
+        $mod->add_filter("table_init",array(), function ($rapper, $t) {
             if ( ! $t["def"]["table"]) { $t["def"]["table"] =$t["name"]; }
             return $t;
 		});
         
         // col初期化設定
-        $mod->add_filter("col_init",array("type"=>"date"), function ($mod, $tc) {
+        $mod->add_filter("col_init",array("type"=>"date"), function ($rapper, $tc) {
             $tc['modifier'] ='|date:"Y/m/d"';
             $tc['input_option'] =' range="'.date("Y").'~+5" format="{%l}{%yp}{%mp}{%dp}{%datefix}"';
         	return $tc;
 		});
-        $mod->add_filter("col_init",array("type"=>"textarea"),function ($mod, $tc) {
+        $mod->add_filter("col_init",array("type"=>"textarea"),function ($rapper, $tc) {
             $tc['modifier'] ='|nl2br';
             $tc['input_option'] =' cols="40" rows="5"';
         	return $tc;
 		});
-        $mod->add_filter("col_init",array("type"=>"text"),function ($mod, $tc) {
+        $mod->add_filter("col_init",array("type"=>"text"),function ($rapper, $tc) {
             $tc['input_option'] =' size="40"';
         	return $tc;
 		});
-        $mod->add_filter("col_init",array("type"=>"password"),function ($mod, $tc) {
+        $mod->add_filter("col_init",array("type"=>"password"),function ($rapper, $tc) {
             $tc['modifier'] ='|hidetext';
             $tc['input_option'] =' size="40"';
         	return $tc;
 		});
-        $mod->add_filter("col_init",array("type"=>"file"),function ($mod, $tc) {
+        $mod->add_filter("col_init",array("type"=>"file"),function ($rapper, $tc) {
             $group =$tc['group'] ? $tc['group'] : "public";
             $tc['modifier'] ='|userfile:"'.$group.'"';
             $tc['input_option'] =' group="'.$group.'"';
         	return $tc;
 		});
-        $mod->add_filter("col_init",array("type"=>"checkbox"),function ($mod, $tc) {
+        $mod->add_filter("col_init",array("type"=>"checkbox"),function ($rapper, $tc) {
             $tc['modifier'] ='|selectflg';
             $tc['input_option'] =' value="1"';
         	return $tc;
 		});
-        $mod->add_filter("col_init",array("type"=>"select"),function ($mod, $tc) {
+        $mod->add_filter("col_init",array("type"=>"select"),function ($rapper, $tc) {
             $tc['modifier'] ='|select:"'.$tc['list'].'"';
             $tc['input_option'] =' options="'.$tc['list'].'"';
         	return $tc;
 		});
-        $mod->add_filter("col_init",array("type"=>"radioselect"),function ($mod, $tc) {
+        $mod->add_filter("col_init",array("type"=>"radioselect"),function ($rapper, $tc) {
             $tc['modifier'] ='|select:"'.$tc['list'].'"';
             $tc['input_option'] =' options="'.$tc['list'].'"';
         	return $tc;
 		});
-        $mod->add_filter("col_init",array("type"=>"checklist"),function ($mod, $tc) {
+        $mod->add_filter("col_init",array("type"=>"checklist"),function ($rapper, $tc) {
             $tc['modifier'] ='|select:"'.$tc['list'].'"|@tostring:" "';
             $tc['input_option'] =' options="'.$tc['list'].'"';
         	return $tc;
 		});
-        $mod->add_filter("col_init",array(),function ($mod, $tc) {
+        $mod->add_filter("col_init",array(),function ($rapper, $tc) {
             $tc['input_option'] .=' class="input-'.$tc['type'].'"';
             
             // DB上の定義用の参照設定
@@ -86,16 +118,20 @@
             
         	return $tc;
 		});
+        $mod->add_filter("col_init_after",array(),function ($rapper, $tc) {
+            $tc['html']['input'] ="";
+            $tc['html']['show'] ="";
+        });
         
         // controller初期化設定
-        $mod->add_filter("controller_init",array(),function ($mod, $c) {
+        $mod->add_filter("controller_init",array(),function ($rapper, $c) {
 			if ($c["wrapper"]) {
                 $c["element"]["header"] ="html/element/".$c["wrapper"].'_header.html';
 			    $c["element"]["footer"] ="html/element/".$c["wrapper"].'_footer.html';
             }
             return $c;
         });
-        $mod->add_filter("controller_init",array("type"=>"master"),function ($mod, $c) {
+        $mod->add_filter("controller_init",array("type"=>"master"),function ($rapper, $c) {
 			if ( ! $c["action"]) {
                 $c["action"]["index"] =array(
                     "type" =>"redirect",
@@ -137,7 +173,7 @@
             }
             return $c;
         });
-        $mod->add_filter("controller_init",array("type"=>"login"),function ($mod, $c) {
+        $mod->add_filter("controller_init",array("type"=>"login"),function ($rapper, $c) {
 			if ( ! $c["account"]) {
                 report_error("controller(.type=login)は.account=の設定が必須",array(
                     "controller" =>$c["name"],
@@ -163,7 +199,7 @@
         });
         
         // controller展開設定
-        $mod->add_filter("controller_deploy",array(),function ($mod, $c) {
+        $mod->add_filter("element_deploy",array("element"=>true),function ($rapper, $c) {
             
             // element.header/footerコピー
             if ($c["element"]["header"]) {
@@ -175,27 +211,55 @@
                 $rapper->deploy_file($c["element"]["footer"], $src);
             }
         });
-        $mod->add_filter("action_deploy",array("type"=>"redirect"),function ($mod, $a) {
+        $mod->add_filter("action_deploy",array("type"=>"redirect"),function ($rapper, $a) {
         });
         
-        $rapper->load_schema(registry("Schema"));
-        $rapper->deploy_all();
-	}
+        $mod->add_filter("table_deploy",function ($rapper, $list_option) {
+            
+            /*
+			if ( ! $t["nomodel"]) {
+				
+				// Modelの構築
+				$src =$this->find_skel($t["skel"],
+						"model/ProductModel.class.php");
+				$dest =registry("Path.webapp_dir")
+						."/app/model/".str_camelize($t["name"])."Model.class.php";
+				$this->arch_template($src,$dest,array("t" =>$t));
+			}
+            */
+        });
+        $mod->add_filter("list_deploy",function ($rapper, $list_option) {
+            /*
+            // Listの構築
+            $src =$this->find_skel($t["skel"],
+                    "list/ProductPriceList.class.php");
+            $dest =registry("Path.webapp_dir")
+                    ."/app/list/".str_camelize($tc["list"])."List.class.php";
+            $this->arch_template($src,$dest,array("t" =>$t, "tc" =>$tc));
+            */
+        });
+    }
+}
 
 /**
  * 自動生成エンジン
  */
-class Rdoc_Rapper {
+class Rapper {
     
-    protected $mod;
-    protected $schema;
+    public $mod;
+    public $schema;
     
     /**
      * 初期化
      */
-    public function __construct ($mod=null) {
+    public function __construct ($rules=array()) {
+           
+        $this->mod =new Rapper_Mod;
         
-        $this->mod =$mod ? $mod : new Rdoc_Mod;
+        foreach ($rules as $rule) {
+            
+            $rule->apply($this->mod);
+        }
     }
     
     /**
@@ -203,11 +267,53 @@ class Rdoc_Rapper {
      */
     public function deploy_all () {
         
-		foreach ((array)$this->schema["pages"] as $c) {
-    		
-            // 展開処理
+        // controller展開処理
+		foreach ((array)$this->schema["controller"] as $c) {
+            
             $c =$this->mod->apply_filter("controller_deploy",$c);
         }
+        
+        // action展開処理
+		foreach ((array)$this->schema["controller"] as $c) {
+            
+    		foreach ((array)$c["action"] as $a) {
+                
+                $a =$this->mod->apply_filter("action_deploy",$a);
+            }
+        }
+		
+        // table展開処理
+		foreach ((array)$this->schema["table"] as $t) {
+		
+            $t =$this->mod->apply_filter("table_deploy",$t);
+		}
+        
+        // col展開処理
+		foreach ((array)$this->schema["table"] as $t) {
+        
+			foreach ((array)$t["col"] as $tc_name => $tc) {
+				
+        		$tc =$this->mod->apply_filter("col_deploy",$tc);
+			}
+		}
+		
+        // account展開処理
+		foreach ((array)$this->schema["account"] as $account) {
+		    
+            $account =$mod->apply_filters("account_deploy",$account);
+		}
+		
+        // list展開処理
+		foreach ((array)$this->schema["list"] as $list_option) {
+		    
+            $list_option =$mod->apply_filters("list_deploy",$list_option);
+		}
+		
+        // config展開処理
+		foreach ((array)$this->schema["config"] as $config) {
+		    
+            $config =$mod->apply_filters("config_deploy",$config);
+		}
     }
     
     /**
@@ -217,11 +323,14 @@ class Rdoc_Rapper {
         
         $this->schema =array();
         
-		// Schema.tables/colsに対する処理
-		foreach ((array)$schema["tables"] as $t_name => $t) {
+        // Schema.configの処理
+        $schema["config"] =$mod->apply_filters("config_list_init",(array)$schema["config"]);
+        
+		// Schema.table/colに対する処理
+		foreach ((array)$schema["table"] as $t_name => $t) {
         
             // 参照設定
-            $this->schema["tables"][$t_name] = & $t;
+            $this->schema["table"][$t_name] = & $t;
 		    
             // 名前の設定
 			$t["name"] =$t_name;
@@ -232,13 +341,19 @@ class Rdoc_Rapper {
             // 加工
             $t =$this->mod->apply_filter("table_init",$t);
             
-			// Schema.colsに関する処理
-			foreach ((array)$schema["cols"][$t_name] as $tc_name => $tc) {
+			// Schema.colに関する処理
+			foreach ((array)$schema["col"][$t_name] as $tc_name => $tc) {
 				
                 // 参照設定
-                $this->schema["tables"][$t_name]["cols"][$tc_name] = & $tc;
+                $this->schema["table"][$t_name]["col"][$tc_name] = & $tc;
                 
-                // 名前付参照の設定
+                // ★ nameとfull_nameが逆になっているので注意
+                // 名前の設定
+                $tc["name"] =$tc_name;
+				$tc["full_name"] =$t_name.".".$tc_name;
+                $tc["table"] =$t_name;
+                
+                // tableの名前付参照の設定
 				foreach ((array)$tc["ref"] as $ref => $value) {
                     
                     if ($value) {
@@ -247,12 +362,13 @@ class Rdoc_Rapper {
                     }
                 }
                 
-                // ★ nameとfull_nameが逆になっているので注意
-                
-                // 名前の設定
-                $tc["name"] =$tc_name;
-				$tc["full_name"] =$t_name.".".$tc_name;
-                $tc["table"] =$t_name;
+                // listの設定
+				if ($list_name =$tc["list"]) {
+                    
+                    // 参照設定
+                    $this->schema["list"][$list_name]["name"] =$list_name;
+                    $this->schema["list"][$list_name]["col"][$t_name][$tc_name] =$t_name.".".$tc_name;
+                }
 				
 				// 加工
                 $tc =$this->mod->apply_filter("col_before_init",$tc);
@@ -264,7 +380,7 @@ class Rdoc_Rapper {
             $t =$this->mod->apply_filter("table_after_init",$t);
         }
         
-        // ★ tables_defを構築していないので、SQL生成時に構築すること
+        // ★ table_defを構築していないので、SQL生成時に構築すること
         
         // Schema.controllerの処理
 		foreach ((array)$schema["controller"] as $c_name => $c) {
@@ -274,6 +390,14 @@ class Rdoc_Rapper {
             
             // 名称の設定
 			$c["name"] =$c_name;
+            
+            // accountの設定
+            if ($account_name =$t["account"]) {
+                
+                // 参照設定
+                $this->schema["account"][$account_name]["name"] =$account_name;
+                $this->schema["account"][$account_name]["controllers"][$c_name] =$c_name;
+            }
             
             // 前加工
             $c =$this->mod->apply_filter("controller_before_init",$c);
@@ -304,7 +428,7 @@ class Rdoc_Rapper {
     }
         
     /**
-     * table内のcolsを用途に応じて取得
+     * table内のcolを用途に応じて取得
      */
     public function get_fields ($t_name, $ref_tmpl, $ref_page=null) {
         
@@ -313,20 +437,20 @@ class Rdoc_Rapper {
         // page側での限定があれば優先、なければtmpl中での指定に従う
         if ($ref_page) {
             
-            if ( ! $this->schema["tables"][$t_name]["refs"][$ref_page]) {
+            if ( ! $this->schema["table"][$t_name]["refs"][$ref_page]) {
                 
                 report_error("Schema.table ref参照解決エラー",array(
                     "ref_page" =>$ref_page,
                     "table" =>$t_name,
-                    "refs" =>$this->schema["tables"][$t_name]["refs"],
+                    "refs" =>$this->schema["table"][$t_name]["refs"],
                 ));
             }
              
-            $tc_names =$this->schema["tables"][$t_name]["refs"][$ref_page];
+            $tc_names =$this->schema["table"][$t_name]["refs"][$ref_page];
             
         } else {
             
-            $tc_names =(array)$this->schema["tables"][$t_name]["refs"][$ref_tmpl];
+            $tc_names =(array)$this->schema["table"][$t_name]["refs"][$ref_tmpl];
         }
         
         // refsに設定されたtc_nameに対応するfieldを返す
@@ -334,16 +458,16 @@ class Rdoc_Rapper {
         
         foreach ($tc_names as $tc_name) {
             
-            $fields[] =$this->schema["tables"][$t_name]["cols"][$tc_name];
+            $fields[] =$this->schema["table"][$t_name]["col"][$tc_name];
         }
         
         return $fields;
     }
-		
+    
 	/**
      * テンプレートファイルの検索
      */ 
-	public function fetch_template ($tmpl_path, $vars=array(), $options=array()) {
+	public function fetch_template ($tmpl_path, $vars=array()) {
 		
         // テンプレートファイルの検索
         $tmpl_file =null;
@@ -432,7 +556,7 @@ class Rdoc_Rapper {
 /**
  * 設定
  */
-class Rdoc_Mod {
+class Rapper_Mod {
 
     protected $config =array();
     protected $filters =array();
@@ -473,9 +597,76 @@ class Rdoc_Mod {
             }
             
             // 適用
-            $data =$filter["func"]($this, $data);
+            $data_result =$filter["func"]($this, $data);
+            
+            if ($data_result !== null) {
+                
+                $data =$data_result;
+            }
         }
         
         return $data;
     }
 }    
+
+/**
+ *
+ */
+class GitRepositry {
+    
+    protected $config;
+    
+    /**
+     *
+     */
+    public function __construct ($config=array()) {
+        
+        $this->config =$config;
+        
+        $this->config["git_dir"] =$this->config["git_dir"] 
+                ? $this->config["git_dir"] 
+                : ".";
+        $this->config["git_bin"] =$this->config["git_bin"] 
+                ? $this->config["git_bin"] 
+                : "git";
+    }
+    
+    /**
+     *
+     */
+    public function git_cmd ($git_cmd) {
+        
+        $chdir =chdir();
+        chdir($this->config["git_dir"]);
+        exec('"'.$this->config["git_bin"].'" '.$git_cmd, $output);
+        chdir($chdir);
+        
+        return $output;
+    }
+    
+    /**
+     *
+     */
+    public function get_current_branch () {
+        
+        $output =git_cmd('branch');
+    }
+    
+    /**
+     *
+     */
+    public function check_clean () {
+    }
+    
+    /**
+     *
+     */
+    public function fetch_checkout ($remote, $branch) {
+    }
+    
+    /**
+     *
+     */
+    public function check_fastforward ($branch) {
+    }
+}

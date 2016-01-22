@@ -589,9 +589,9 @@ class SmartyExtended extends SmartyBC {
 				$selected_value =(array)$selected_value;
 			}
 			
-			$html["head"] ='';
+			$html["head"] ='<input type="hidden" name="'.$params['name'].'" value="" />'."\n";
 			$html["foot"] ='';
-			
+                    
 			foreach ($options as $option_value => $option_label) {
 				
 				$checked =false;
@@ -606,9 +606,7 @@ class SmartyExtended extends SmartyBC {
 				}
 				
 				$html["options"][$option_value] =
-						'<input type="hidden" name="'.$params['name']
-						.'['.$option_value.']" value="" />'."\n"
-						.'<nobr><label>'.'<input type="checkbox"'
+						'<nobr><label>'.'<input type="checkbox"'
 						.' name="'.$params["name"].'['.$option_value.']'.'"'
 						.' value="'.$option_value.'"'.$attr_html
 						.($checked ? ' checked="checked"' : '')

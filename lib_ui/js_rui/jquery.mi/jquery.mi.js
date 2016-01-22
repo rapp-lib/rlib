@@ -17,6 +17,7 @@ jquery.mi
 	<div class="mi" id="tasksArea">
 		
 		<!-- mi設定 -->
+        <input type="hidden" name="c[Entry.tasks]" value=""/>
 		<input type="hidden" class="mi-config-minItems" value="0"/>
 		<input type="hidden" class="mi-config-maxItems" value="9999"/>
 		<input type="hidden" class="mi-config-maxRank" value="0"/>
@@ -51,7 +52,7 @@ jquery.mi
 				<a href="javascript:void(0);" class="mi-item-remove">[削除]</a>
 				
 				{{input type="text" name="c[Entry.tasks][`$i`][label]" value=$v.label}}
-				{{input type="file" name="c[Entry.tasks][<%=id%>][file]" mi_item_id=$i group="public"}}
+				{{input type="file" name="c[Entry.tasks][`$i`][file]" mi_item_id=$i group="public"}}
 			{{/foreach}}
 			
 			<li class="mi-anchor" style="display:none;"></li>
@@ -71,9 +72,11 @@ jquery.mi
 
 	<div class="mi mi-keybind" id="tasksArea">
 		
+        <input type="hidden" name="c[Entry.tasks]" value=""/>
 		<input type="hidden" class="mi-config-minItems" value="0"/>
 		<input type="hidden" class="mi-config-maxItems" value="9999"/>
 		<input type="hidden" class="mi-config-maxRank" value="2"/>
+        
 		<script type="text/template" class="mi-tmpl">
 			<li class="mi-item" id="list_<%=id%>">
 				<input type="hidden" name="c[Entry.tasks][<%=id%>][id]" class="mi-item-id" value="<%=id%>"/>

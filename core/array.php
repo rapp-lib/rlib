@@ -122,8 +122,15 @@
 	
 	//-------------------------------------
 	// 配列をregisry同様のストアとして利用する
-	function & array_registry ( & $arr, $name=null ,$value=null, $escape=false) {
+	function & array_registry ( & $arr, $name=null ,$value=null, $options=array()) {
 		
+        // [Deprecated] $escapeとして指定を行っていた場合の処理
+        if (is_bool($options)) {
+            
+            $escape =$options;
+            $options =array("escape"=>$escape);
+        }
+        
 		// 全取得
 		if ($name === null) {
 			
@@ -134,7 +141,7 @@
 			
 			foreach ($name as $a_name => $a_value) {
 			
-				array_registry($arr,$a_name,$a_value,$escape);
+				array_registry($arr,$a_name,$a_value,$options);
 			}
 			
 			return $arr;
@@ -154,7 +161,7 @@
 			
 				$ref =$arr;
 				
-			} elseif ($escape) {
+			} elseif ($options["escape"]) {
 				
 				$ref =$arr[$name];
 				
@@ -179,7 +186,7 @@
 		
 			$ref =& $arr;
 			
-		} elseif ($escape) {
+		} elseif ($options["escape"]) {
 			
 			$ref =& $arr[$name];
 			
@@ -195,7 +202,7 @@
 			
 				$arr =array();
 				
-			} elseif ($escape) {
+			} elseif ($options["escape"]) {
 				
 				unset($arr[$name]);
 				
@@ -220,11 +227,19 @@
 				$ref =array();
 			}
 			
-			foreach ($value as $a_name => $a_value) {
-			
-				array_registry($ref,$a_name,$a_value,$escape);
-			}
-		
+            // 配列指定の値をマージしない指定がある場合、上書き
+            if ($option["no_array_merge"]) {
+                
+                $ref =$value;
+                
+            } else {    
+                
+    			foreach ($value as $a_name => $a_value) {
+    			
+    				array_registry($ref,$a_name,$a_value,$options);
+    			}
+    		}
+            
 		// 値の設定
 		} else {
 		
