@@ -46,6 +46,8 @@
 			$d =longdate($preset_value);
 		}
 		
+        $d["y"] =$d["Y"];
+        
 		// 年指定の範囲の設定
 		$range =$params["range"]
 				? $params["range"]
@@ -53,28 +55,28 @@
 		list($y1,$y2) =input_type_date_parse_range($range);
 		
 		// 入力されている年数を含むように範囲を調整
-		if ($d && $d["Y"]) {
+		if ($d && $d["y"]) {
 			
 			if ($y1 < $y2) {
 			
-				if ($y1 > $d["Y"]) {
+				if ($y1 > $d["y"]) {
 					
-					$y1 =$d["Y"];
+					$y1 =$d["y"];
 				
-				} elseif ($y2 < $d["Y"]) {
+				} elseif ($y2 < $d["y"]) {
 					
-					$y2 =$d["Y"];
+					$y2 =$d["y"];
 				}
 			
 			} elseif ($y1 < $y2) {
 			
-				if ($y2 > $d["Y"]) {
+				if ($y2 > $d["y"]) {
 					
-					$y2 =$d["Y"];
+					$y2 =$d["y"];
 				
-				} elseif ($y1 < $d["Y"]) {
+				} elseif ($y1 < $d["y"]) {
 					
-					$y1 =$d["Y"];
+					$y1 =$d["y"];
 				}
 			}
 		}
@@ -94,7 +96,7 @@
 				.'<input type="hidden"'
 				.' name="_LRA['.$html["alias"].'][var_name]"'
 				.' value="'.$html["name"].'"/>';
-		
+        
 		// 数値のみ
 		$html["y"] =input_type_date_get_select(
 				$params['name']."[y]",$d["Y"],range($y1,$y2),
@@ -114,7 +116,7 @@
 		$html["s"] =input_type_date_get_select(
 				$params['name']."[s]",$d["s"],range(0,59),
 				$attr_html.$attr_html_part["s"],"");
-		
+        
 		// 年月日表記を含むもの
 		$html["yp"] =input_type_date_get_select(
 				$params['name']."[y]",$d["Y"],range($y1,$y2),
@@ -134,7 +136,18 @@
 		$html["sp"] =input_type_date_get_select(
 				$params['name']."[s]",$d["s"],range(0,59),
 				$attr_html.$attr_html_part["s"],"秒");
-		
+        
+        // 和暦表記年
+		$html["yw"] =input_type_date_get_select(
+				$params['name']."[y]",$d["Y"],range($y1,$y2),
+				$attr_html.$attr_html_part["y"],"",array("year_format" =>"wareki")); 
+		$html["ywh"] =input_type_date_get_select(
+				$params['name']."[y]",$d["Y"],range($y1,$y2),
+				$attr_html.$attr_html_part["y"],"",array("year_format" =>"wareki_heiki")); 
+        $html["ysh"] =input_type_date_get_select(
+				$params['name']."[y]",$d["Y"],range($y1,$y2),
+				$attr_html.$attr_html_part["y"],"",array("year_format" =>"seireki_heiki")); 
+                
 		// 固定Hidden入力
 		$html["yf"] ='<input type="hidden"'
 				.' name="'.$params['name'].'[y]'.'"'.' value="1970"/>';
@@ -184,8 +197,8 @@
 		
 		return $html["full"];
 	}
-
-	function input_type_date_get_select ($name, $value, $list, $attrs, $postfix) {
+    
+	function input_type_date_get_select ($name, $value, $list, $attrs, $postfix, $config=array()) {
 	
 		$html ="";
 		$html .='<select name="'.$name.'"'.$attrs.'>';
@@ -193,10 +206,29 @@
 		
 		foreach ($list as $v) {
 		
+            $label =$v;
+            
+            if ($postfix) { 
+                
+                $label =$v.$postfix;
+                
+            } elseif ($config["year_format"]=="wareki") {
+                
+                $label =get_japanese_year($v);
+                
+            } elseif ($config["year_format"]=="wareki_heiki") {
+                
+                $label =$v."(".get_japanese_year($v).")";
+                
+            } elseif ($config["year_format"]=="seireki_heiki") {
+                
+                $label =get_japanese_year($v)."(".$v.")";
+            }
+            
 			$selected =(strlen($value) && (int)$v == (int)$value);
-			$html .='<option value="'.$v.'"'
+            $html .='<option value="'.$v.'"'
 					.($selected ? ' selected="selected"' :'')
-					.'>'.$v.$postfix.'</option>';
+					.'>'.$label.'</option>';
 		}
 		
 		$html .='</select>';

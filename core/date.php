@@ -165,32 +165,32 @@
 		
 		if ($fulldate < 18680908) {
 			
-			$x_year =sprintf('%04d',$y);
+			$x_year =$y;
 			$longdate["x"] =$x_year;
 			$longdate["X"] =$x_year."年";
 			
 		} elseif ($fulldate <= 19120729) {
 		
-			$x_year =sprintf('%02d',$y-1867);
-			$longdate["x"] ='M'.$x_year;
+			$x_year =$y-1867;
+			$longdate["x"] ='M'.sprintf('%02d',$x_year);
 			$longdate["X"] ='明治'.($x_year > 1 ? $x_year : "元")."年";
 			
 		} elseif ($fulldate <= 19261224) {
 		
-			$x_year =sprintf('%02d',$y-1911);
-			$longdate["x"] ='T'.$x_year;
+			$x_year =$y-1911;
+			$longdate["x"] ='T'.sprintf('%02d',$x_year);
 			$longdate["X"] ='大正'.($x_year > 1 ? $x_year : "元")."年";
 			
 		} elseif ($fulldate <= 19890107) {
 		
-			$x_year =sprintf('%02d',$y-1925);
-			$longdate["x"] ='S'.$x_year;
+			$x_year =$y-1925;
+			$longdate["x"] ='S'.sprintf('%02d',$x_year);
 			$longdate["X"] ='昭和'.($x_year > 1 ? $x_year : "元")."年";
 			
 		} else {
 		
-			$x_year =sprintf('%02d',$y-1988);
-			$longdate["x"] ='H'.$x_year;
+			$x_year =$y-1988;
+			$longdate["x"] ='H'.sprintf('%02d',$x_year);
 			$longdate["X"] ='平成'.($x_year > 1 ? $x_year : "元")."年";
 		}
 		
