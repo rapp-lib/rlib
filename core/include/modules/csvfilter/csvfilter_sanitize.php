@@ -19,7 +19,7 @@
 		// CSV読み込み時
 		if ($mode == "r") {
 			
-			sanitize_request_variables($values);
+			$values =sanitize($values);
 			
 		// CSV書き込み時
 		} elseif ($mode == "w") {
