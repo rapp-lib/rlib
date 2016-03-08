@@ -158,7 +158,7 @@ class ScriptGenerator {
 			
 			if (is_array($v)) {
 			
-				$n[$k] =array("a",$this->get_array_script_node($v));
+				$n[$k] =array("a",$this->make_array_node($v));
 			
 			} elseif (is_numeric($v)) {
 			

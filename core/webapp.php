@@ -371,14 +371,20 @@
 			// FatalErrorによる強制終了
         	if ($error) {
 				
-				report($error['message'],array(),array(
-					"type" =>"fatal_error_shutdown",
-					"errno" =>$error['type'],
-					"errstr" =>$error['message'],
-					"errfile" =>$error['file'],
-					"errline" =>$error['line'],
-				));
-				
+                try {
+                    
+                    std_error_handler(
+            			$error['type'], 
+            			"Fatal Error. ".$error['message'], 
+            			$error['file'], 
+            			$error['line']
+                    );
+    				
+                } catch (ReportError $e_report) {
+                    
+                    $e_report->shutdown();
+                }
+                
 			// shutdown_webappを経由しない不正な終了
 			} else {
 				

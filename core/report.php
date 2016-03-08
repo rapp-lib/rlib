@@ -16,9 +16,12 @@
 			
 			return; 
 		}
-		
+            
 		report($errstr,array(
         	"type" =>"error_handler",
+			"errfile" =>$errfile,
+			"errline" =>$errline,
+			"errcontext" =>$errcontext,
 		),array(
 			"errno" =>$errno,
 			"errstr" =>$errstr,

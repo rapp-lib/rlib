@@ -27,7 +27,7 @@
 			print get_preview_doc_html($map,$data);
 		
 		// ダウンロード
-		} elseif ($output_mode == "dpwnload") {
+        } else if ($output_mode == "download") {
 		
 			$dest_file =registry("Path.tmp_dir")
 					."/doc_output/".$doc_type."-".date("Ymd-His")."-"
@@ -42,23 +42,22 @@
 				"download" =>basename($dest_file),
 				"file" =>$dest_file,
 			));
-		
-		// 配置
-		} elseif ($output_mode == "deploy") {
-		
-			$dest_file =registry("Path.webapp_dir")."/config/_".$doc_type.".doc.csv";
-			
-			$s =new RdocSession;
-			
-			$s->deploy_src($dest_file, function($dest_file) use ($map, $data) {
-				
-				$csv =new CSVHandler($dest_file, "w", array(
-					"file_charset"=>"SJIS-WIN",
-					"map" =>$map,
-				));
-				$csv->write_lines($csv_data);
-			});
-		}
+            
+        // 配置
+        } elseif ($output_mode == "deploy") {
+
+        	$dest_file =registry("Path.webapp_dir")."/config/_".$doc_type.".doc.csv";
+        	
+        	$s =new RdocSession;
+        	$s->deploy_src($dest_file, function($dest_file) use ($map, $data) {
+        		
+        		$csv =new CSVHandler($dest_file, "w", array(
+        			"file_charset"=>"SJIS-WIN",
+        			"map" =>$map,
+        		));
+        		$csv->write_lines($csv_data);
+        	});
+        }
 	}
 		
 	//-------------------------------------
@@ -78,7 +77,7 @@
 		foreach ($data as $n => $line) {
 			
 			$html .='<tr>';
-			$html .='<td>['.sprintf('%03d',$n+1).']</td>';
+			$html .='<td>['.sprintf('%04d',$n+1).']</td>';
 			
 			foreach ($map as $v) {
 				$html .='<td>'.$line[$v].'</td>';

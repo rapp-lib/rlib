@@ -49,7 +49,7 @@ class CSVHandler {
 		
 		$this->file_charset =isset($options["file_charset"])
 				? $options["file_charset"]
-				: "UTF-8";
+				: "SJIS-WIN";
 		$this->data_charset =isset($options["data_charset"])
 				? $options["data_charset"]
 				: "UTF-8";
