@@ -624,7 +624,7 @@ class Model_Base {
 				$target_col =$table.".".$col;
 				
 				// SPLICE処理
-				$this->spliced_fields[$target_col] =true;
+				$this->spliced_fields[$target_col] =(array)$query["fields"][$target_col];
 				unset($query["fields"][$target_col]);
 			}
 		}
