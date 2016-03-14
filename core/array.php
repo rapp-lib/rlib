@@ -228,7 +228,7 @@
 			}
 			
             // 配列指定の値をマージしない指定がある場合、上書き
-            if ($option["no_array_merge"]) {
+            if ($options["no_array_merge"]) {
                 
                 $ref =$value;
                 
