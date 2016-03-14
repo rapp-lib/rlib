@@ -64,7 +64,7 @@ class Rapper_Base {
         }
         
         $this->mods[$mod_id] =array(
-            "mod_id" =>$mod_id,
+            "id" =>$mod_id,
             "mods" =>array(),
             "filters" =>array(),
         );
@@ -93,14 +93,14 @@ class Rapper_Base {
     public function add_filter ($type, $options, $func) {
         
         $filter =$options;
-        $filter["filter_id"] =$filter["filter_id"] ? $filter["filter_id"] 
-                : $type."-".substr(md5(serialize($filter)),0,8);
+        $filter["id"] =$filter["id"] ? $filter["id"] 
+                : $type."-".substr(md5(rand(0,999999)),0,8);
         $filter["type"] =$type;
         $filter["func"] =$func;
-        $filter["mod_id"] =$this->current_mod;
+        $filter["mod_id"] =$this->current_mod["id"];
         
         // 同名のフィルタが追加された場合エラー
-        if ($filter_exists =$this->filters[$type][$filter["filter_id"]]) {
+        if ($filter_exists =$this->filters[$type][$filter["id"]]) {
         
             report_error("同名のfilterが登録されています",array(
                 "filter" =>$filter,
@@ -109,9 +109,9 @@ class Rapper_Base {
         }
             
         // 適用中のModに関連付ける
-        $this->current_mod["filters"][$filter["type"]][$filter["filter_id"]] =$filter;
+        $this->current_mod["filters"][$filter["type"]][$filter["id"]] =$filter;
         
-        $this->filters[$filter["type"]][$filter["filter_id"]] =$filter;
+        $this->filters[$filter["type"]][$filter["id"]] =$filter;
     }
     
     /**
@@ -144,5 +144,37 @@ class Rapper_Base {
         }
         
         return $data;
+    }
+    
+    /**
+     * 
+     */
+    public function parse_schema_csv_file ($schema_csv_file) {
+        
+        $parser =new SchemaCsvParser;
+        $schema =$parser->parse_schema_csv($schema_csv_file);
+        return $schema;
+    }
+    
+    /**
+     * 
+     */
+    public function label ($schema_index, $id) {
+        
+        // 配列指定時には要素を処理して返す
+        if (is_array($id)) {
+            
+            $labels =array();
+            
+            foreach ($id as $k=>$v) {
+                
+                $labels[$k] =$this->label($schema_index,$v);
+            }
+            
+            return $labels;
+        }
+        
+        $label =$this->schema($schema_index.".".$id.".label");
+        return strlen($label) ? $label : $id;
     }
 }    
