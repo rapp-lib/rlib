@@ -11,13 +11,14 @@ class Rapper extends Rapper_Base {
  */
 class Rapper_Base {
     
-    protected $config =array();
     protected $schema =array();
     protected $deploy =array();
     
     protected $current_mod;
     protected $mods =array();
     protected $filters =array();
+    
+    protected $registered_method =array();
         
     /**
      * 初期化
@@ -28,9 +29,28 @@ class Rapper_Base {
     /**
      * 
      */
-    public function & config ($name=null, $value=null) {
+    public function __call ($method_name, $args) {
         
-        return array_registry($this->config,$name,$value);
+        if ($callback =$this->registered_method[$method_name]) {
+            
+            array_unshift($args, $this);
+            return call_user_func_array($callback, $args);
+        
+        } else {
+            
+            report_error("メソッドが登録されていません",array(
+                "method_name" =>$method_name,
+                "registered_method" =>array_keys($this->registered_method),
+            ));
+        }
+    }
+    
+    /**
+     * 
+     */
+    public function register_method ($method_name, $callback) {
+        
+        $this->registered_method[$method_name] =$callback;
     }
     
     /**
@@ -46,7 +66,7 @@ class Rapper_Base {
      */
     public function & deploy ($name=null, $value=null) {
         
-        return array_registry($this->deploy,$name,$value);
+        return array_registry($this->deploy,$name,$value,array("escape"=>true));
     }
 	
     /**
@@ -176,5 +196,31 @@ class Rapper_Base {
         
         $label =$this->schema($schema_index.".".$id.".label");
         return strlen($label) ? $label : $id;
+    }
+    
+    /**
+     * 
+     */
+    public function parse_php_tmpl ($tmpl_file_path,$tmpl_vars) {
+        
+        // tmpl_fileの検索
+        $tmpl_file =find_include_path("modules/rapper_tmpl/".$tmpl_file_path);
+        
+        if ( ! $tmpl_file) {
+            
+            report_error("テンプレートファイルがありません",array(
+                "tmpl_file" =>"modules/rapper_tmpl/".$tmpl_file_path,
+            ));
+        }
+        
+        // tmpl_varsのアサイン
+        extract($tmpl_vars,EXTR_REFS);
+        
+        ob_start();
+        include($tmpl_file);
+        $src =ob_get_clean();
+        $src =str_replace('<!?','<?',$src);
+        
+        return $src;
     }
 }    

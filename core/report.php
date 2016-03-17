@@ -17,17 +17,12 @@
 			return; 
 		}
             
-		report($errstr,array(
+		report($errstr,$errcontext,array(
         	"type" =>"error_handler",
-			"errfile" =>$errfile,
-			"errline" =>$errline,
-			"errcontext" =>$errcontext,
-		),array(
 			"errno" =>$errno,
 			"errstr" =>$errstr,
 			"errfile" =>$errfile,
 			"errline" =>$errline,
-			"errcontext" =>$errcontext,
 		));
 	}
 	
@@ -43,6 +38,7 @@
             }
             
             report("[".get_class($e)."] ".$e->getMessage(),array(),array(
+            	"type" =>"exception_handler",
     			"errno" =>E_ERROR,
     			"errstr" =>$e->getMessage(),
     			"errfile" =>$e->getFile(),
@@ -135,28 +131,25 @@
 			$errstr, 
 			$params=null,
 			$options=array()) {
-			
-		if ($options["errfile"] !== null) {
-		
-			$options["errstr"] .=' ['.basename($options["errfile"]);
-		
-			if ($options["errline"]) {
-			
-				$options["errstr"] .='('.$options["errline"].')';
-			}
-		
-			$options["errstr"] .=']';
-		}
-	
+    	
 		$libpath =realpath(dirname(__FILE__)."/..");
 		$report_filepath =realpath(__FILE__);
 		$backtraces =debug_backtrace();
 	
 		$errdetail =array();
 		$errset =false;
-		$errfile ="-";
-		$errline ="-";
+		$errfile ="";
+		$errline ="";
 		$errpos ="";
+			
+		if ($options["errfile"]) {
+            
+            $errset =true;
+            $errfile ='';
+            $errfile .=strstr($options['errfile'],$libpath)!==false ? "rlib/" : "";
+            $errfile .=basename($options['errfile']);
+            $errline =$options["errline"];
+		}
 		
 		// backtraceの選択
 		for ($i=0; $i < count($backtraces); $i++) {
@@ -177,16 +170,8 @@
 			$errdetail[$i] .=$backtrace['class'] ? $backtrace['class'].$backtrace['type'] : "";
 			$errdetail[$i] .=$backtrace['function'] ? $backtrace['function'] : "";
 			
-			if ($i != count($backtraces)-1
-					&& ( ! strlen($backtrace['file']) 
-					|| strstr($backtrace['file'],$libpath)!==false)) {
-				
-				continue;
-			}
-			
 			if ( ! $errset) {
 				
-				$errset =true;
 				$errfile ='';
 				$errfile .=strstr($backtrace['file'],$libpath)!==false ? "rlib/" : "";
 				$errfile .=basename($backtrace['file']);
@@ -195,8 +180,13 @@
 				$errpos .=$backtrace['class'] ? $backtrace['class'].$backtrace['type'] : "";
 				$errpos .=$backtrace['function'] ? $backtrace['function'] : "";
 			}
+            
+			if (strlen($backtrace['line']) && strstr($backtrace['file'],$libpath)===false) {
+				
+				$errset =true;
+			}
 		}
-		
+        
 		$elm_id ="ELM".sprintf('%07d',rand(1,9999999));
 		
 		$html_mode = ! get_cli_mode() && ! registry("Report.output_to_file");

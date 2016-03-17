@@ -23,14 +23,14 @@
                 );
                 $data =array();
                 
-                foreach ($r->schema("controller") as $c) {
+                foreach ((array)$r->schema("controller") as $c) {
                     
                     $data[] =array(
                         "wrapper"=>$r->label("wrapper",$c["wrapper"]),
                         "controller"=>$r->label("controller",$c["_id"]),
                     );
                     
-                    foreach ($r->schema("action.".$c["_id"]) as $a) {
+                    foreach ((array)$r->schema("action.".$c["_id"]) as $a) {
                         
                         $data[] =array(
                             "action"=>$r->label("action",$a["_id"]), 

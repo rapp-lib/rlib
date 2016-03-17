@@ -6,7 +6,7 @@
     function rapper_mod_proc_doc_csv ($r) {
 		
         // ダウンロード処理
-        $r->add_filter("proc_download",array("cond"=>array("data_type"=>"doc_csv")),function($r, $deploy) {
+        $r->add_filter("proc.src.deploy",array("cond"=>array("data_type"=>"doc_csv")),function($r, $deploy) {
             
             $dest_file =$deploy["dest_file"];
             
@@ -23,14 +23,13 @@
             $csv_str =stream_get_contents($fp);
             fclose($fp);
             
-            clean_output_shutdown(array(
-				"download" =>basename($dest_file),
-				"data" =>$csv_str,
-			));
+            $deploy["src"] =$csv_str;
+            
+            return $deploy;
 		});
         
         // プレビュー処理
-        $r->add_filter("proc_preview",array("cond"=>array("data_type"=>"doc_csv")),function($r, $deploy) {
+        $r->add_filter("proc.preview.deploy",array("cond"=>array("data_type"=>"doc_csv")),function($r, $deploy) {
             
             $deploy_data =$deploy["data_callback"]($r);
             $rows =$deploy_data["rows"];
@@ -62,6 +61,8 @@
     		
     		$html .='</table>';
             
-            print $html;
+            $deploy["preview"] =$html;
+            
+            return $deploy;
 		});
 	}

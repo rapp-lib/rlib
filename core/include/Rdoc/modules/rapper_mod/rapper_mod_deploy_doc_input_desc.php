@@ -36,7 +36,7 @@
                         $data[] =array(
                             "type"=>"認証",
                             "item"=>"",
-                            "cond" =>$r->label("user",$c["auth"])."でログインしていない状態",
+                            "cond" =>$r->label("account",$c["auth"])."でログインしていない状態",
                             "trigger" =>"各画面へのアクセス",
                             "expect" =>"ログイン画面へ転送される",
                         );

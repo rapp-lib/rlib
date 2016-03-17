@@ -47,6 +47,12 @@ class SchemaCsvParser {
                     if (preg_match('!^#(.+)$!',$v,$match)) {
 
                         $v =$match[1];
+                        
+                        if ($parent_data) {
+                            
+                            $s["schema"][$v]["parents"] =array_keys($parent_data);
+                        }
+                        
     				    $parent_data[$v] =null;
                     }
 
