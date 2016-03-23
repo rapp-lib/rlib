@@ -527,7 +527,7 @@ class Model_Base {
 				
 				// auto_loadがtrueの場合fieldsに明示されなくても取得
 				if ( ! $info["auto_load"]
-						&& ! in_array($target_col,(array)$this->spliced_fields)) {
+						&& ! $this->spliced_fields[$target_col]) {
 					
 					continue;
 				}

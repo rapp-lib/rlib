@@ -2,11 +2,11 @@
 
 //-------------------------------------
 //
-class SchemaCsvLoader {
+class SchemaCsvParser {
 
 	//-------------------------------------
 	// SchemaCSVファイルを読み込む
-	public function load_schema_csv ($filename) {
+	public function parse_schema_csv ($filename) {
 
 		$csv =new CSVHandler($filename,"r",array(
 			"file_charset" =>"SJIS-WIN",
@@ -47,6 +47,12 @@ class SchemaCsvLoader {
                     if (preg_match('!^#(.+)$!',$v,$match)) {
 
                         $v =$match[1];
+                        
+                        if ($parent_data) {
+                            
+                            $s["schema"][$v]["parents"] =array_keys($parent_data);
+                        }
+                        
     				    $parent_data[$v] =null;
                     }
 
