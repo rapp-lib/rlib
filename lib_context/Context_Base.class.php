@@ -141,19 +141,30 @@ class Context_Base {
             $group_name,
     		$required=array(), 
     		$extra_rules=array()) {
+        
+        // group_name以下を排他
+        foreach ($this->errors() as $error_index => $message) {
+            
+            if (strpos($error_index,$group_name.".")===0) {
                 
+                $this->errors($error_index,false);
+            }
+        }
+        
         foreach ($this->input($group_name) as $i => $values) {
             
             foreach ((array)$required as $target) {
                 
                 $rule =array("type"=>"required","target"=>$target);
                 $rule["input_name"] =$group_name.".".$i.".".$target;
+                $rule["value"] =$values[$target];
                 $this->apply_rule($rule);
             }
             
             foreach ((array)$extra_rules as $rule) {
                 
                 $rule["input_name"] =$group_name.".".$i.".".$rule["target"];
+                $rule["value"] =$values[$rule["target"]];
                 $this->apply_rule($rule);
             }
         }
@@ -165,7 +176,7 @@ class Context_Base {
         
         $input_name =$rule["input_name"] ? $rule["input_name"] : $rule["target"];
         $error_index =$input_name.".".$rule["type"];
-        $value =$this->input($input_name);
+        $value =$rule["value"] ? $rule["value"] : $this->input($input_name);
         
         $module =load_module("rule",$rule["type"],true);
         $result =call_user_func_array($module,array(
