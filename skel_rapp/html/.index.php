@@ -117,12 +117,18 @@
 	// __end
 	function __end ($cause, $options) {
 		
-		if ($cause == "error_report" || $cause == "fatal_error_shutdown") {
+		if ($cause == "error_report") {
 			
 			// 異常停止のログを記録
-			$log_file =registry("Path.tmp_dir")."/log/error_shutdown.log";
-			$msg ="-- ERROR ".date("Y/m/d H:i:s")." --\n".print_r($options,true)."\n\n";
-			file_put_contents($log_file,$msg,FILE_APPEND|LOCK_EX);
+            // cat /var/log/httpd/error_log| grep "RAPP_ERROR" | less
+            $msg ="";
+            $msg .="RAPP_ERROR ";
+            $msg .=($_SERVER["HTTPS"] ? "https" : "http")."://".$_SERVER["SERVER_NAME"]."] : ";
+            $msg .=registry("Request.request_uri");
+            $msg .=report_template($options["errstr"],$options["params"],
+                    $options["options"],$options["backtraces"],array("output_format"=>"plain"));
+			$msg .=" | Request = ".decorate_value($_REQUEST,false);
+            error_log($msg,0);
 
 			set_response_code(500);
 		}
