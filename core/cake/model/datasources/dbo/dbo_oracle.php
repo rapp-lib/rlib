@@ -583,7 +583,7 @@ class DboOracle extends DboSource {
  */
 	function constraint($action, $table) {
 		if (empty($table)) {
-			trigger_error(__('Must specify table to operate on constraints', true));
+			trigger_error(__esc('Must specify table to operate on constraints', true));
 		}
 
 		$table = strtoupper($table);
@@ -641,7 +641,7 @@ class DboOracle extends DboSource {
 					return $constraints;
 					break;
 				default:
-					trigger_error(__('DboOracle::constraint() accepts only enable, disable, or list', true));
+					trigger_error(__esc('DboOracle::constraint() accepts only enable, disable, or list', true));
 			}
 		}
 		return true;
@@ -994,7 +994,7 @@ class DboOracle extends DboSource {
 		if ($query = $this->generateAssociationQuery($model, $linkModel, $type, $association, $assocData, $queryData, $external, $resultSet)) {
 			if (!isset($resultSet) || !is_array($resultSet)) {
 				if (Configure::read() > 0) {
-					echo '<div style = "font: Verdana bold 12px; color: #FF0000">' . sprintf(__('SQL Error in model %s:', true), $model->alias) . ' ';
+					echo '<div style = "font: Verdana bold 12px; color: #FF0000">' . sprintf(__esc('SQL Error in model %s:', true), $model->alias) . ' ';
 					if (isset($this->error) && $this->error != null) {
 						echo $this->error;
 					}
@@ -1144,7 +1144,7 @@ class DboOracle extends DboSource {
  */
 		function dropSchema($schema, $table = null) {
 			if (!is_a($schema, 'CakeSchema')) {
-				trigger_error(__('Invalid schema object', true), E_USER_WARNING);
+				trigger_error(__esc('Invalid schema object', true), E_USER_WARNING);
 				return null;
 			}
 			$out = '';

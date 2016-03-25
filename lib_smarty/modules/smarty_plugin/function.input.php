@@ -68,7 +68,8 @@
 					
 					// 参照可能であれば、下層のデータを抽出
 					if ($postset_value && is_array($postset_value)) {
-					
+                        
+                        $name_ref_complex =str_replace('.','..',$name_ref_complex);
 						$name_ref_complex =str_replace('][','.',$name_ref_complex);
 						$name_ref_complex =str_replace('[','',$name_ref_complex);
 						$name_ref_complex =str_replace(']','',$name_ref_complex);

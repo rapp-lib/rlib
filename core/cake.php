@@ -87,7 +87,7 @@
 				}
 			}
 		
-			function __($str,$flg) {
+			function __esc($str,$flg) {
 				return $str;
 			}
 			
