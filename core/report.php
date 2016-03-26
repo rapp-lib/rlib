@@ -188,7 +188,7 @@
 			}
 		}
         
-		$elm_id ="ELM".sprintf('%07d',rand(1,9999999));
+		$elm_id ="ELM".sprintf('%07d',mt_rand(1,9999999));
 		
 		// レポートの整形と出力
 		$report_html ="";
@@ -310,7 +310,7 @@
 		if (get_webapp_dync("report") 
 				&& (registry("Report.error_reporting") & $options["errno"])) {
         	
-            $config =array();	
+            $config =array();
         	$config["output_format"] = ! get_cli_mode() && ! registry("Report.output_to_file") ? "html" : "plain";
 			$html =report_template($errstr,$params,$options,$backtraces,$config);
 			
