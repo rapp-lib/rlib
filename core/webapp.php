@@ -329,7 +329,7 @@
             $res["response"] =& $clean_output_buffer;
         }
         
-        if (get_webapp_dync("report")) {
+        if (get_webapp_dync("report") && $cause!="normal") {
             
             $res["report"] ="on";
             $res["buffer"] =& $clean_output_buffer;
