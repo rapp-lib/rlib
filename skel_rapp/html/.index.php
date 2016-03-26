@@ -20,6 +20,12 @@
 		// 終端処理の登録
 		register_shutdown_webapp_function("__end");
 		
+        // Ajaxr応答への変換処理の登録
+        if ($_SERVER["HTTP_X_AJAXR"] || $_REQUEST["__ajaxr"]) {
+            
+            register_shutdown_webapp_function("shutdown_webapp_for_ajaxr");
+        }
+		
 		// 初期設定の適応
 		start_webapp();
 		
