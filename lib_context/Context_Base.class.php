@@ -143,7 +143,7 @@ class Context_Base {
     		$extra_rules=array()) {
         
         // group_name以下を排他
-        foreach ($this->errors() as $error_index => $message) {
+        foreach ((array)$this->errors() as $error_index => $message) {
             
             if (strpos($error_index,$group_name.".")===0) {
                 

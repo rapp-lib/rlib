@@ -32,9 +32,14 @@
 				// *.INDEX.ELM_NAMEのパターンに該当する要素を取り出す
 				if (preg_match('!^'.preg_quote($target_base).'\.([^\.]+)\.(.*?)$!',$k,$match)) {
 					
+						
 					list(,$mi_index,$mi_elm_name) =$match;
 					
-					$value[$target_base][$mi_index][$mi_elm_name] =$v;
+					if (strlen($v)) {
+						
+						$value[$target_base][$mi_index][$mi_elm_name] =$v;
+					}
+					
 					unset($value[$k]);
 				}
 			}
