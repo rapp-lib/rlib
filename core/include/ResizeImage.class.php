@@ -5,8 +5,9 @@
 		x100 ... 100以内に高さを収める
 		100x ... 100以内に幅を収める
 		100 ... 100x100と同義
-		100-t ... 100に短編を合わせて、100x100の正方形にトリミング
-	
+		100-t ... 100に短辺を合わせて、100x100の正方形にトリミング
+	    730x280t ... 幅730に縮小して、高さを280に中心からトリミング
+        
 	キャッシュファイルの保存場所の設定
 		registry("UserFile.resize_dir") または、
 		registry("UserFile.user_file_dir")."/resized"
@@ -56,9 +57,17 @@ class ResizeImage {
 		// フォーマット指定の解釈
 		$size_w =0;
 		$size_h =0;
+		$size_w_t =0;
+		$size_h_t =0;
 		$mode ="resize";
 
-		if (preg_match('!^(\d+)(-t)?$!',$format,$match)) {
+		if (preg_match('!^(\d+)x(\d+)(t)$!',$format,$match)) {
+
+			$size_w =0+$match[1];
+            $size_h_t =0+$match[2];
+			$mode ="resize_and_trim";
+
+		} else if (preg_match('!^(\d+)(-t)?$!',$format,$match)) {
 
 			$size_w =0+$match[1];
 			$size_h =0+$match[1];
@@ -93,7 +102,7 @@ class ResizeImage {
 
 		// キャッシュがないか、古ければければ生成
 		if ( ! file_exists($cache_file)
-				|| filemtime($cache_file) < filemtime($src_file)) {
+				|| filemtime($cache_file) < filemtime($src_file) || true) {
 
 			// 画像の取り込み
 			$image =new ImageHandler($src_file);
@@ -117,6 +126,11 @@ class ResizeImage {
 
 				$image->square();
 				$image->squeeze($size_w,$size_h);
+			
+            } elseif ($mode == "resize_and_trim") {
+
+				$image->squeeze($size_w,$size_h);
+                $image->trim_center($size_w_t,$size_h_t);
 			}
 
 			// フォルダ作成
