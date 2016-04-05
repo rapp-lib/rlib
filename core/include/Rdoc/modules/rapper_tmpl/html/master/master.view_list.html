@@ -3,11 +3,11 @@
 <h1 class="page_label"><?=$c["label"]?>：一覧</h1>
 
 {{*
-<!-- search_module -->
+<!-- search_form -->
 {{form _page="."}}
 {{input type="hidden" name="reset" value="1"}}
 <table class="detail">
-<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
+<? foreach ($r->get_fields($c["_id"],"search") as $tc): ?>
 <tr>
 	<td class="label"><nobr><?=$tc['label']?></nobr></td>
 	<td class="cell">{{input name="c[Search.<?=$tc['short_name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}</td>
@@ -21,34 +21,34 @@
 </tr>
 </table>
 {{/form}}
-<!-- /search_module -->
+<!-- /search_form -->
 *}}
 
 {{*
-<!-- search_crit_module -->
+<!-- search_crit -->
 <div class="controll">
 	検索条件
-<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
+<? foreach ($r->get_fields($c["_id"],"search") as $tc): ?>
 	{{if $c->input("Search.<?=$tc['short_name']?>")}}
 		| <?=$tc['label']?> : {{$c->input("Search.<?=$tc['short_name']?>")<?=$tc['modifier']?>}}
 	{{/if}}
 <? endforeach; ?>
 </div>
-<!-- /search_crit_module -->
+<!-- /search_crit -->
 *}}
 
 {{*
-<!-- sort_module -->
+<!-- sort -->
 <div class="controll">
 	{{a _page="." _c=["sort"=>"<?=$t['pkey']?>@DESC"]}}登録順▼{{/a}}
-<? foreach ($this->filter_fields($t["fields"],"sort") as $tc): ?>
+<? foreach ($r->get_fields($c["_id"],"sort") as $tc): ?>
 	{{a _page="." _c=["sort"=>"<?=$tc['name']?>@DESC"]}}<?=$tc['label']?>順▼{{/a}}
 <? endforeach; ?>
 </div>
-<!-- /sort_module -->
+<!-- /sort -->
 *}}
 
-<!-- controll_module -->
+<!-- controll -->
 <div class="controll">
 <? if ($c["usage"] != "view"): ?>
 	{{a _page=".entry_form" class="button"}}新規登録{{/a}}
@@ -60,16 +60,16 @@
 	{{a _page=".entry_csv_form" class="button"}}CSV一括インポート{{/a}}
 <? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 </div>
-<!-- /controll_module -->
+<!-- /controll -->
 
-<!-- list_module -->
+<!-- show_list -->
 <div class="list_wrap">
 <table class="list">
 <tr>
 	<td class="label">
 		&nbsp;
 	</td>
-<? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
+<? foreach ($r->get_fields($c["_id"],"show_list") as $tc): ?>
 	<td class="label">
 		<nobr><?=$tc['label']?></nobr>
 	</td>
@@ -86,7 +86,7 @@
 <? endif; /* $c["usage"] != "view" */ ?>
 			</nobr>
 		</td>
-<? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
+<? foreach ($r->get_fields($c["_id"],"show_list") as $tc): ?>
 		<td class="cell">
 			{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}
 		</td>
@@ -95,9 +95,9 @@
 {{/foreach}}
 </table>
 </div>
-<!-- /list_module -->
+<!-- /show_list -->
 
-<!-- pager_module -->
+<!-- pager -->
 <div class="pager">
 <span class="inactive">{{$p.current}} / {{$p.lastpage}}ページを表示中&nbsp;</span>
 {{if $p.prev !== null}}
@@ -118,6 +118,6 @@
 	<span class="inactive">次へ</span>
 {{/if}}
 </div>
-<!-- /pager_module -->
+<!-- /pager -->
 
 <?=$c["footer"]?> 

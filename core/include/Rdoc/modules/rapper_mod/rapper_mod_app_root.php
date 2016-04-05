@@ -273,7 +273,7 @@
             
             $r->deploy("model.".$model["_id"],array(
                 "data_type" =>"php_tmpl",
-                "tmpl_file" =>"model/ProductModel.class.php",
+                "tmpl_file" =>"model/XxxModel.class.php",
                 "dest_file" =>"app/model/".$model["_id"]."Model.class.php",
             ));
         });
@@ -300,7 +300,7 @@
             
             $r->deploy("list_option.".$list_option["_id"],array(
                 "data_type" =>"php_tmpl",
-                "tmpl_file" =>"list/CategoryList.class.php",
+                "tmpl_file" =>"list/XxxList.class.php",
                 "dest_file" =>"app/list/".str_camelize($list_option["_id"])."List.class.php",
             ));
         });
@@ -327,7 +327,7 @@
             
             $r->deploy("auth_context.".$account["_id"],array(
                 "data_type" =>"php_tmpl",
-                "tmpl_file" =>"context/AdminAuthContext.class.php",
+                "tmpl_file" =>"context/XxxAuthContext.class.php",
                 "dest_file" =>"app/context/".str_camelize($account["_id"])."AuthContext.class.php",
             ));
         });
@@ -355,12 +355,12 @@
             
             $r->deploy("wrapper.".$wrapper["_id"]."_header",array(
                 "data_type" =>"php_tmpl",
-                "tmpl_file" =>"html/element/default_header.html",
+                "tmpl_file" =>"html/element/xxx_header.html",
                 "dest_file" =>"html/element/".$wrapper["_id"]."_header.html",
             ));
             $r->deploy("wrapper.".$wrapper["_id"]."_footer",array(
                 "data_type" =>"php_tmpl",
-                "tmpl_file" =>"html/element/default_footer.html",
+                "tmpl_file" =>"html/element/xxx_footer.html",
                 "dest_file" =>"html/element/".$wrapper["_id"]."_footer.html",
             ));
         });
@@ -404,12 +404,12 @@
             $_id =$a["_id"];
             $r->deploy("action_html.".$_id,array(
                 "data_type" =>"php_tmpl",
-                "tmpl_file" =>"html/product_master/product_master.".$a["type"].".html",
+                "tmpl_file" =>"html/master/".$a["type"].".html",
                 "dest_file" =>"html/".$a["path"],
             ));
             $r->deploy("action_method.".$_id,array(
                 "data_type" =>"php_tmpl",
-                "tmpl_file" =>"controller/ProductMaster/".$a["type"].".php",
+                "tmpl_file" =>"controller/master/".$a["type"].".php",
             ));
         });
         

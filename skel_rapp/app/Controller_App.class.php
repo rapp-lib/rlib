@@ -78,7 +78,10 @@ class Controller_App extends Controller_Base {
 			$class_name =str_camelize($context_name)."Context";
 			
 			// contextの関連付け
-			$this->context($var_name,$var_name,false,$class_name);
+			$this->context($var_name,$var_name,false,array(
+                "scope"=>"global",
+                "class"=>$class_name,
+            ));
 			
 			// model accessorの関連付け
 			model(null,$account)->init_accessor(array(

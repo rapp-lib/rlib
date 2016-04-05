@@ -1,12 +1,15 @@
 <?php
-	$f_model_instance =function ($t,$c) {
-		$_ ='model("'.str_camelize($t["name"]).'"';
-		if ($c["accessor"]) {
-			$_ .=',"'.$c["accessor"].'"';
-		}
-		$_ .=')';
-		return $_;
-	};
+    /*
+    fields
+        search
+    c.has.list_setting
+    c.has.csv_setting
+    */
+	$r->register_method("get_fields",function ($r, $c_id, $type) {
+    });
+    
+    $model_obj ='$this->model("'.$c["table"].'"'.($c["accessor"] ? ',"'.$c["accessor"].'"': '').')';
+    
 ?><!?php
 
 /**
@@ -14,14 +17,14 @@
 */
 class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 
-<? if ($c["has"]["search"]): ?>
+<? if ($c["has"]["list_setting"]): ?>
 	/**
     * 検索フォーム設定
     */
 	protected $list_setting =array(
 		"search" =>array(
-<? foreach ($c["fields"]["search"] as $field): ?>
-			"<?=$field["col"]?>" =>array("type" =>'eq', "target" =>"<?=$field["col"]?>"),
+<? foreach ($r->get_fields($c["_id"],"search_input") as $f): ?>
+			"<?=$f["_id"]?>" =>array("type" =>'eq', "target" =>"<?=$f["_id"]?>"),
 <? endforeach; ?>
 		),
 		"sort" =>array(
@@ -35,33 +38,33 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 		),
 	);
 	
-<? endif /* $c["fields"]["search_form"] */ ?>
-<? if ($c["has"]["csv"]): ?>
+<? endif /* $c["has"]["list_setting"] */ ?>
+<? if ($c["has"]["csv_setting"]): ?>
 	/**
     * CSV設定
     */
 	protected $csv_setting = array(
 		"rows" =>array(
 			"<?=$t['pkey']?>" =>"#ID",
-<? foreach ($c["fields"]["csv"] as $field): ?>
-			"<?=$field['col']?>" =>"<?=$field['label']?>",
+<? foreach ($r->get_fields($c["_id"],"csv") as $f): ?>
+			"<?=$f['_id']?>" =>"<?=$f['label']?>",
 <? endforeach; ?>
 		),
 		"filters" =>array(
 			array("filter" =>"sanitize"),
-<? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
-<? if ($tc['list']): ?>
-			array("target" =>"<?=$tc['name']?>",
+<? foreach ($r->get_fields($c["_id"],"csv") as $f): ?>
+<? if ($f['list']): ?>
+			array("target" =>"<?=$f['name']?>",
 					"filter" =>"list_select", 
-<? if ($tc['type'] == "checklist"): ?>
+<? if ($f['type'] == "checklist"): ?>
 					"delim" =>"/", 
-<? endif; /* $tc['type'] == "checklist" */ ?>
-					"list" =>"<?=$tc['list']?>"),
-<? endif; /* $tc['list'] */ ?>
-<? if ($tc['type'] == "date"): ?>
-			array("target" =>"<?=$tc['name']?>",
+<? endif; /* $f['type'] == "checklist" */ ?>
+					"list" =>"<?=$f['list']?>"),
+<? endif; /* $f['list'] */ ?>
+<? if ($f['type'] == "date"): ?>
+			array("target" =>"<?=$f['name']?>",
 					"filter" =>"date"),
-<? endif; /* $tc['type'] == "date" */ ?>
+<? endif; /* $f['type'] == "date" */ ?>
 <? endforeach; ?>
 			array("filter" =>"validate",
 					"required" =>array(),
@@ -70,9 +73,10 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 		"ignore_empty_line" =>true,
 	);
 	
-<? endif; /* $c["use_csv"] */ ?>
-	//-------------------------------------
-	// Action: トップ
+<? endif /* $c["has"]["csv_setting"] */ ?>
+	/**
+    *
+    */
 	public function act_index () {
 	
 <? if ($c["usage"] == "form"): ?>
@@ -82,9 +86,10 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 <? endif; ?>
 	}
 	
-<? if ($c["usage"] != "form"): /* ------------------- act_view_* ------------------ */ ?>
-	//-------------------------------------
-	// Action: 一覧
+<? if ($c["usage"] != "form"): ?>
+	/**
+    * 
+    */
 	public function act_view_list () {
 		
 		$this->context("c",0);
@@ -98,7 +103,7 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
         
         $input =$this->c->input();
         
-		list($this->vars["ts"] ,$this->vars["p"]) =<?=_model_instance($t,$c)?> 
+		list($this->vars["ts"] ,$this->vars["p"]) =<?=$model_obj?> 
 				->get_by_search_form($this->list_setting,$input);
 	}
 
@@ -112,7 +117,7 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 		$this->c->id($_REQUEST["id"]);
 		
 		// 登録データの取得
-		$this->vars["t"] =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
+		$this->vars["t"] =<?=$model_obj?>->get_by_id($this->c->id());
 		
 		// 既存データの取得ができない場合の処理
 		if ( ! $this->vars["t"]) {
@@ -144,7 +149,7 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 			$this->c->id($_REQUEST["id"]);
 			
 			// 既存データの取得
-			$input =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
+			$input =<?=$model_obj?>->get_by_id($this->c->id());
 			
 			// 既存データの取得ができない場合の処理
 			if ( ! $input) {
@@ -213,11 +218,11 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 <? else: /* $t["virtual"] */ ?>
 			// データの記録
 			$fields =$this->c->get_fields(array(
-<? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
-				"<?=$tc['name']?>",
+<? foreach ($r->get_fields($c["_id"],"input") as $f): ?>
+				"<?=$f['name']?>",
 <? endforeach; ?>
 			));
-			<?=_model_instance($t,$c)?>->save($fields,$this->c->id());
+			<?=$model_obj?>->save($fields,$this->c->id());
 <? endif; /* $t["virtual"] */ ?>
 			
 			$this->c->session("complete",true);
@@ -240,7 +245,7 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 		$this->c->id($_REQUEST["id"]);
 			
 		// 既存のデータを確認
-		$input =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
+		$input =<?=$model_obj?>->get_by_id($this->c->id());
 		
 		// 既存データの確認ができない場合の処理
 		if ( ! $input) {
@@ -263,7 +268,7 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 				&& ! $this->c->session("complete")) {
 				
 			// データの削除
-			<?=_model_instance($t,$c)?>->drop($this->c->id());
+			<?=$model_obj?>->drop($this->c->id());
 			
 			$this->c->session("complete",true);
 		}
@@ -282,7 +287,7 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 	    
 		$this->context("c",1);
 	    
-		$res =<?=_model_instance($t,$c)?> 
+		$res =<?=$model_obj?> 
 				->get_by_search_form($this->list_setting,$this->c->input(),true);
 		
 		// CSVファイルの書き込み準備
@@ -368,7 +373,7 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 			$keys =array_keys($this->csv_setting["rows"]);
 			$fields =$c_import->get_fields($keys);
 			
-			<?=_model_instance($t,$c)?>->save($fields,$c_import->id());
+			<?=$model_obj?>->save($fields,$c_import->id());
 		}
 
 		dbi()->commit();
