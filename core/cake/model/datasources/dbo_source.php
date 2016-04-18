@@ -681,11 +681,11 @@ class DboSource extends DataSource {
 		if (Configure::read() > 0) {
 			$out = null;
 			if ($error) {
-				trigger_error('<span style="color:Red;text-align:left"><b>' . __('SQL Error:', true) . "</b> {$this->error}</span>", E_USER_WARNING);
+				trigger_error('<span style="color:Red;text-align:left"><b>' . __esc('SQL Error:', true) . "</b> {$this->error}</span>", E_USER_WARNING);
 			} else {
-				$out = ('<small>[' . sprintf(__('Aff:%s Num:%s Took:%sms', true), $this->affected, $this->numRows, $this->took) . ']</small>');
+				$out = ('<small>[' . sprintf(__esc('Aff:%s Num:%s Took:%sms', true), $this->affected, $this->numRows, $this->took) . ']</small>');
 			}
-			//pr(sprintf('<p style="text-align:left"><b>' . __('Query:', true) . '</b> %s %s</p>', $sql, $out));
+			//pr(sprintf('<p style="text-align:left"><b>' . __esc('Query:', true) . '</b> %s %s</p>', $sql, $out));
 		}
 	}
 
@@ -920,7 +920,7 @@ class DboSource extends DataSource {
 		if ($query = $this->generateAssociationQuery($model, $linkModel, $type, $association, $assocData, $queryData, $external, $resultSet)) {
 			if (!isset($resultSet) || !is_array($resultSet)) {
 				if (Configure::read() > 0) {
-					echo '<div style = "font: Verdana bold 12px; color: #FF0000">' . sprintf(__('SQL Error in model %s:', true), $model->alias) . ' ';
+					echo '<div style = "font: Verdana bold 12px; color: #FF0000">' . sprintf(__esc('SQL Error in model %s:', true), $model->alias) . ' ';
 					if (isset($this->error) && $this->error != null) {
 						echo $this->error;
 					}
@@ -2517,7 +2517,7 @@ class DboSource extends DataSource {
  */
 	function length($real) {
 		if (!preg_match_all('/([\w\s]+)(?:\((\d+)(?:,(\d+))?\))?(\sunsigned)?(\szerofill)?/', $real, $result)) {
-			trigger_error(__("FIXME: Can't parse field: " . $real, true), E_USER_WARNING);
+			trigger_error(__esc("FIXME: Can't parse field: " . $real, true), E_USER_WARNING);
 			$col = str_replace(array(')', 'unsigned'), '', $real);
 			$limit = null;
 
@@ -2628,7 +2628,7 @@ class DboSource extends DataSource {
  */
 	function createSchema($schema, $tableName = null) {
 		if (!is_a($schema, 'CakeSchema')) {
-			trigger_error(__('Invalid schema object', true), E_USER_WARNING);
+			trigger_error(__esc('Invalid schema object', true), E_USER_WARNING);
 			return null;
 		}
 		$out = '';
@@ -2690,7 +2690,7 @@ class DboSource extends DataSource {
  */
 	function dropSchema($schema, $table = null) {
 		if (!is_a($schema, 'CakeSchema')) {
-			trigger_error(__('Invalid schema object', true), E_USER_WARNING);
+			trigger_error(__esc('Invalid schema object', true), E_USER_WARNING);
 			return null;
 		}
 		$out = '';
@@ -2716,12 +2716,12 @@ class DboSource extends DataSource {
 		extract(array_merge(array('null' => true), $column));
 
 		if (empty($name) || empty($type)) {
-			trigger_error(__('Column name or type not defined in schema', true), E_USER_WARNING);
+			trigger_error(__esc('Column name or type not defined in schema', true), E_USER_WARNING);
 			return null;
 		}
 
 		if (!isset($this->columns[$type])) {
-			trigger_error(sprintf(__('Column type %s does not exist', true), $type), E_USER_WARNING);
+			trigger_error(sprintf(__esc('Column type %s does not exist', true), $type), E_USER_WARNING);
 			return null;
 		}
 

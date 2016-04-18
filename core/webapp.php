@@ -192,13 +192,6 @@
 	// 出力と同時に終了
 	function clean_output_shutdown ($output) {
 		
-		registry("Report.buffer_enable",true);
-		
-		while (ob_get_level()) {
-			
-			ob_end_clean();
-		}
-		
 		// download
 		if (is_array($output) && $output["download"]) {
 		
@@ -224,11 +217,15 @@
 			
 			header("Content-Type: ".$output["content_type"]);
 		
-		} elseif (is_array($output) && $output["download"]) {
+		} else if (is_array($output) && $output["download"]) {
 		
 			header("Content-Type: application/octet-stream");
+		
+		} else if (is_array($output) && $output["json"]) {
+		
+			header("Content-Type: application/json");
 			
-		} elseif (is_array($output) && $output["file"]) {
+		} else if (is_array($output) && $output["file"]) {
 			
 			$info =getimagesize($output["file"]);
 			
@@ -238,24 +235,108 @@
 			}
 		}
 		
+        // ここまでの出力をバッファに転送
+        $clean_output_buffer =& ref_globals("clean_output_buffer");
+		
+		while (ob_get_level()) {
+			
+			$clean_output_buffer .=ob_get_clean();
+		}
+		
+        // 出力部分をバッファ経由で出力
+        ob_start();
+        
 		// output
 		if (is_string($output)) {
 			
 			echo $output;
 		
 		// data
-		} elseif (is_array($output) && $output["data"]) {
+		} else if (is_array($output) && $output["data"]) {
 			
 			echo $output["data"];
 		
+		// json
+        } else if (is_array($output) && $output["json"]) {
+			
+			echo array_to_json((array)$output["json"]);
+		
 		// file
-		} elseif (is_array($output) && $output["file"]) {
+		} else if (is_array($output) && $output["file"]) {
 			
 			readfile($output["file"]);
 		}
 		
+        // 以降の出力をバッファに転送
+        ob_start("send_to_clean_output_buffer");
+        
 		shutdown_webapp("clean_output");
 	}
+    
+    //-------------------------------------
+    // clean_output_shutdown以降の出力をバッファに転送するob処理
+	function send_to_clean_output_buffer ($output) {
+        
+        $clean_output_buffer =& ref_globals("clean_output_buffer");
+        
+        $clean_output_buffer .=$output;
+        
+        return "";
+    }
+
+	//-------------------------------------
+	// ajaxrレスポンスへの出力変換を行うshutdown_webapp_function
+	function shutdown_webapp_for_ajaxr ($cause, $options) {
+        
+        $res =array();
+        
+        $clean_output_buffer =& ref_globals("clean_output_buffer");
+        
+        if ($cause=="clean_output") {
+            
+            ob_end_clean();
+            
+        } else {
+            
+            while (ob_get_level()) {
+                
+                $clean_output_buffer .=ob_get_clean();
+            }
+        }
+        
+        $res["type"] =$cause;
+            
+        if ($cause=="clean_output") {
+            
+            $res["response"] =ob_get_clean();
+            
+        } else if ($cause=="redirect") {
+            
+            $res["url"] =$options["url"];
+            
+        } else if ($cause=="error_report") {
+            
+            if (get_webapp_dync("report")) {
+                
+                $res["message"] =$options["errstr"];
+            
+            } else {
+                
+                $res["message"] ="ERROR";
+            }
+        } else if ($cause=="normal") {
+        
+            $res["response"] =& $clean_output_buffer;
+        }
+        
+        if (get_webapp_dync("report") && $cause!="normal") {
+            
+            $res["report"] ="on";
+            $res["buffer"] =& $clean_output_buffer;
+        }
+        
+        print array_to_json($res);
+    }
 	
 	//-------------------------------------
 	// [Deprecated] SEO的に無差別にURLを書き換えることは問題が大きいため非推奨 151003
@@ -341,7 +422,7 @@
 		// register_shutdown_webapp_functionで登録された処理の実行
 		$funcs =& ref_globals('shutdown_webapp_function');
 		
-		foreach (array_reverse((array)$funcs) as $func) {
+		foreach ((array)$funcs as $func) {
 			
 			call_user_func_array($func,array(
 				$cause,
@@ -552,7 +633,9 @@
 			header("Location: ".$url);
 		}
 		
-		shutdown_webapp("redirect");
+		shutdown_webapp("redirect",array(
+            "url" =>$url,
+        ));
 	}
 	
 	//-------------------------------------

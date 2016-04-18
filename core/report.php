@@ -130,11 +130,12 @@
 	function report_template (
 			$errstr, 
 			$params=null,
-			$options=array()) {
+			$options=array(),
+            $backtraces=array(),
+            $config=array()) {
     	
 		$libpath =realpath(dirname(__FILE__)."/..");
 		$report_filepath =realpath(__FILE__);
-		$backtraces =debug_backtrace();
 	
 		$errdetail =array();
 		$errset =false;
@@ -187,15 +188,13 @@
 			}
 		}
         
-		$elm_id ="ELM".sprintf('%07d',rand(1,9999999));
-		
-		$html_mode = ! get_cli_mode() && ! registry("Report.output_to_file");
+		$elm_id ="ELM".sprintf('%07d',mt_rand(1,9999999));
 		
 		// レポートの整形と出力
 		$report_html ="";
 		
 		// HTML形式
-		if ($html_mode) {
+		if ($config["output_format"]=="html") {
 			
 			$font_color ="#00ff00";
 			$elm_class ="";
@@ -267,7 +266,7 @@
 				$report_html .="[WARNING] ";
 			}
 			
-			$report_html .=$errfile.'('.$errline.') - '.$errpos."\n";
+			$report_html .=$errfile.'(L'.$errline.') - '.$errpos."\n";
 			
 			if (is_string($errstr)) {
 			
@@ -280,7 +279,12 @@
 			
 			if (is_array($params)) {
 			
-				$report_html .=' :'.decorate_value($params,false);
+				$report_html .=' : '.decorate_value($params,false);
+			}
+			
+			if (is_array($errdetail)) {
+			
+				$report_html .=' : Backtrace='.decorate_value(array_reverse($errdetail),false);
 			}
 			
 			$report_html .="\n\n";
@@ -295,26 +299,20 @@
 			$errstr, 
 			$params=null,
 			$options=array()) {
-		
+        
 		$options["errno"] =$options["errno"]
 				? $options["errno"]
 				: E_USER_NOTICE;
-		
-		// Resq2との互換性（移行過渡期の暫定措置）
-		if ($params === E_USER_NOTICE
-				|| $params === E_USER_WARNING
-				|| $params === E_USER_ERROR) {
-			
-			$options["errno"] =$params;
-			$params =null;
-			$errstr ="(Legacy) ".$errstr;
-		}
+    		
+    	$backtraces =debug_backtrace();
 		
 		// レポート出力判定
 		if (get_webapp_dync("report") 
 				&& (registry("Report.error_reporting") & $options["errno"])) {
-			
-			$html =report_template($errstr,$params,$options);
+        	
+            $config =array();
+        	$config["output_format"] = ! get_cli_mode() && ! registry("Report.output_to_file") ? "html" : "plain";
+			$html =report_template($errstr,$params,$options,$backtraces,$config);
 			
 			$report_buffer =& ref_globals("report_buffer");
 			
@@ -349,6 +347,7 @@
                 "errstr" =>$errstr,
                 "options" =>$options,
                 "params" =>$params,
+                "backtraces" =>$backtraces,
             ));
 		}
 	}
@@ -393,10 +392,6 @@ class ReportError extends ErrorException {
 	//
 	public function shutdown () {
 		
-        shutdown_webapp("error_report",array(
-            "errstr" =>$this->report_vars["errstr"], 
-            "params" =>$this->report_vars["params"],
-            "options" =>$this->report_vars["options"],
-        ));
+        shutdown_webapp("error_report",$this->report_vars);
 	}
 }

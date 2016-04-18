@@ -108,166 +108,96 @@ class Context_Base {
 		
 		return $fields;
 	}
-	
+    
 	//-------------------------------------
-	// 入力値のチェックロジックの実効
+	// 入力チェック
 	public function validate (
 			$required=array(), 
 			$extra_rules=array(),
 			$options=array(),
 			$group_name=null) {
-			
-		$errors =$this->errors();
-		
-		$rules =array_merge(
-				(array)registry("Validate.rules"),
-				(array)$extra_rules);
-		
-		// c[Group.X.Table.col]形式の入力値の要素を適用対象とする
-		if ($group_name) {
-			
-			$grouped_indeses =array();
-			
-			foreach ($this->input() as $k=>$v) {
-				
-				list($target_group_name,$target_index,) =explode(".",$k,3);
-				
-				if ($target_group_name == $group_name) {
-					
-					$grouped_indeses[$target_index] =$target_index;
-				}
-			}
-			
-			$required_copy =$required;
-			$required =array();
-			
-			$rules_copy =$rules;
-			$rules =array();
-			
-			foreach ($grouped_indeses as $index) {
-				
-				// requiredの範囲拡張
-				foreach ($required_copy as $v) {
-					
-					$required[] =$group_name.".".$index.".".$v;
-				}
-				
-				// rulesの範囲拡張
-				foreach ($rules_copy as $k => $v) {
-					$v["target"] =$group_name.".".$index.".".$v["target"];
-					$rules[] =$v;
-				}
-			}
-		}
-		
-		// Requiredチェック
-		foreach ($required as $key) {
-			
-			$value =$this->input($key,null,fase);
-			
-			$module =load_module("rule","required",true);
-			$result =call_user_func_array($module,array(
-				$value,
-				null,
-				$key, 
-				$this,
-			));
+        
+        // [Deprecated] 同時指定
+        if ($group_name) {
             
-			if ($result) {
-				
-				if ($rule["message"]) {
-				
-					$error =$rule["message"];
-					
-				} elseif ($errmsg_label =label("errmsg.input.required.".$key)) {
-				
-					$error =$errmsg_label;
-					
-				} elseif ($col_label =label("cols.".$key)) {
-				
-					$error =$col_label." : ".$result;
-					
-				} else {
-				
-					$error =$result;
-				}
-				
-				$errors[$key.'.required'] =$error;
-			
-            } else {
+            return $this->validate_each($group_name,$required,$extra_rules);
+        }
+        
+        foreach ((array)$required as $target) {
+            
+            $rule =array("type"=>"required","target"=>$target);
+            $this->apply_rule($rule);
+        }
+        
+        foreach ((array)$extra_rules as $rule) {
+            
+            $this->apply_rule($rule);
+        }
+    }
+	
+	//-------------------------------------
+	// c[Base][n][Table.col]形式の入力チェック
+	public function validate_each (
+            $group_name,
+    		$required=array(), 
+    		$extra_rules=array()) {
+        
+        // group_name以下を排他
+        foreach ((array)$this->errors() as $error_index => $message) {
+            
+            if (strpos($error_index,$group_name.".")===0) {
                 
-                unset($errors[$key.'.required']);
+                $this->errors($error_index,false);
             }
-		}
-		
-		// その他のチェック
-		foreach ($rules as $rule) {
-			
-			if ( ! $rule["target"] || ! $rule["type"]) {
-				
-				report_error("Rule is-not valid.",array(
-					"type" =>$rule["type"],
-					"target" =>$rule["target"],
-					"option" =>$rule["option"],
-					"message" =>$rule["message"],
-				));
-			}
-			
-			$key =$rule["target"];
-			$value =$this->input($key,null,fase);
-			
-			$module =load_module("rule",$rule["type"],true);
-			$result =call_user_func_array($module,array(
-				$value,
-				$rule["option"],
-				$key, 
-				$this,
-			));
-			
-			if ($result) {
-				
-				if ($rule["message"]) {
-				
-					$error =$rule["message"];
-					
-				} elseif ($errmsg_label =label("errmsg.input.".$rule["type"].".".$key)) {
-				
-					$error =$errmsg_label;
-					
-				} elseif ($col_label =label("cols.".$key)) {
-				
-					$error =$col_label." : ".$result;
-					
-				} else {
-				
-					$error =$result;
-				}
-				
-				$errors[$key.'.'.$rule["type"]] =$error;
+        }
+        
+        foreach ($this->input($group_name) as $i => $values) {
+            
+            foreach ((array)$required as $target) {
                 
-			} else {
-                
-                unset($errors[$key.'.'.$rule["type"]]);
+                $rule =array("type"=>"required","target"=>$target);
+                $rule["input_name"] =$group_name.".".$i.".".$target;
+                $rule["value"] =$values[$target];
+                $this->apply_rule($rule);
             }
-		}
-		
-		// c[Group.X.Table.col]形式の入力値のエラーをerrors[Group][X]に分解する
-		if ($group_name) {
-			
-			foreach ($errors as $k=>$v) {
-				
-				list($error_group_name, $error_index, $error_k) =explode(".",$k,3);
-				
-				if ($error_group_name == $group_name) {
-					
-					unset($errors[$k]);
-					
-					$errors[$error_group_name][$error_index][$error_k] =$v;
-				}
-			}
-		}
-		
-		$this->errors(false,false);
-		$this->errors($errors);
+            
+            foreach ((array)$extra_rules as $rule) {
+                
+                $rule["input_name"] =$group_name.".".$i.".".$rule["target"];
+                $rule["value"] =$values[$rule["target"]];
+                $this->apply_rule($rule);
+            }
+        }
 	}
+	
+	//-------------------------------------
+	// 入力値のチェックロジックの実効
+	private function apply_rule ($rule) {
+        
+        $input_name =$rule["input_name"] ? $rule["input_name"] : $rule["target"];
+        $error_index =$input_name.".".$rule["type"];
+        $value =$rule["value"] ? $rule["value"] : $this->input($input_name);
+        
+        $module =load_module("rule",$rule["type"],true);
+        $result =call_user_func_array($module,array(
+            $value, $rule["option"], $rule["target"], $this,
+        ));
+        
+        if ( ! $result) {
+            
+            $this->errors($error_index,false);
+            
+        } else if ($rule["message"]) {
+                
+            $this->errors($error_index,$rule["message"]);
+            
+        } else if ($col_label =label("cols.".$rule["target"])) {
+            
+            $this->errors($error_index,$col_label." : ".$result);
+                
+        } else {
+            
+            $this->errors($error_index,$result);
+        }
+    }
 }

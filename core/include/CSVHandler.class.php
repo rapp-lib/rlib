@@ -245,17 +245,24 @@ class CSVHandler {
 		
 		$this->current_line_num++;
 		
-		if (strlen(implode("",$csv_data))) {
+		// 空行判定
+		$is_empty_line =true;
 			
-			return $csv_data;
+		foreach ($csv_data as & $v) {
 			
-		} elseif ($this->ignore_empty_line) {
+			if ((is_array($v) && count($v)) || ( ! is_array($v) && strlen($v))) {
 				
+				$is_empty_line =false;
+			}
+		}
+		
+		if ($is_empty_line && $this->ignore_empty_line) {
+			
 			return $this->read_line();
 			
 		} else {
 			
-			return array();
+			return $csv_data;
 		}
 	}
 	
