@@ -551,6 +551,7 @@ class Model_Base {
 					unset($query_sub["auto_load"]);
 					unset($query_sub["col_name"]);
 					unset($query_sub["parent_pk"]);
+					unset($query_sub["affect_fields"]);
 					model()->merge_assoc($ts,$query_sub);
 				
 				// MetaKVSのmerge処理
@@ -582,6 +583,7 @@ class Model_Base {
 					unset($query_sub["auto_load"]);
 					unset($query_sub["col_name"]);
 					unset($query_sub["parent_pk"]);
+					unset($query_sub["affect_fields"]);
 					model()->merge_assoc($ts,$query_sub);
 					
 					// Metadataの再構築
@@ -624,7 +626,8 @@ class Model_Base {
 				$target_col =$table.".".$col;
 				
 				// SPLICE処理
-				$this->spliced_fields[$target_col] =(array)$query["fields"][$target_col];
+				$this->spliced_fields[$target_col] =is_array($query["fields"][$target_col])
+						? $query["fields"][$target_col] : false;
 				unset($query["fields"][$target_col]);
 			}
 		}
@@ -658,43 +661,6 @@ class Model_Base {
 	}
 	
 	//-------------------------------------
-	// fields拡張/save前の事前のSPLICE処理
-	public function extend_fields_splice ( & $query, $is_read) {
-		
-		$this->spliced_fields =array();
-		
-		// Queryを参照して対象となるfields拡張設定を適用する
-		foreach ((array)registry("Model.extends.fields") as $table => $cols) {
-			
-			if ($query["table"] != $table) {
-				
-				continue;
-			}
-			
-			foreach ($cols as $col => $info) {
-				
-				$target_col =$table.".".$col;
-				
-				// FieldsのKeyが値に入る場合の処理
-				if ($is_read) {
-					
-					$fields_flip =array_flip($query["fields"]);
-						
-					// SPLICE処理
-					$this->spliced_fields[$target_col] =(array)$query["fields"][$target_col];
-					unset($query["fields"][$target_col]);
-						
-				} else {
-				
-					// SPLICE処理
-					$this->spliced_fields[$target_col] =(array)$query["fields"][$target_col];
-					unset($query["fields"][$target_col]);
-				}
-			}
-		}
-	}
-	
-	//-------------------------------------
 	// fields拡張/更新処理時のAffect処理
 	public function extend_fields_affect ( & $id, & $query) {
 		
@@ -710,7 +676,13 @@ class Model_Base {
 				
 				$target_col =$table.".".$col;
 					
-				$values_base =(array)$this->spliced_fields[$target_col];
+				$values_base =$this->spliced_fields[$target_col];
+				
+				// fieldsに指定が無ければ処理を行わない
+				if ($values_base === false) {
+					
+					continue;
+				}
 				
 				// KVSのmerge処理
 				if ($info["type"]=="assoc_bridge") {
@@ -841,11 +813,11 @@ class Model_Base {
 		
 		// パラメータの抽出
 		$ds =$query["ds"];
-		$base_fields =(array)$query["fields"];
+		$base_fields =(array)$query["affect_fields"];
 		$parent_key =$query["parent_key"];
 		$child_key =$query["child_key"];
 		unset($query["ds"]);
-		unset($query["fields"]);
+		unset($query["affect_fields"]);
 		unset($query["parent_key"]);
 		unset($query["child_key"]);
 		
