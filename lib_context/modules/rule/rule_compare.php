@@ -1,9 +1,9 @@
-
+<?php
 	function rule_compare ($value, $option) {
 		
 		$op =$option["op"];
 		$target =$option["target"];
-		
+		report(array($value, $option));
 		if ( ! strlen($value) || ! strlen($target)) {
 			
 			return false;

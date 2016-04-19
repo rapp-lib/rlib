@@ -109,7 +109,7 @@ class DboSource extends DataSource {
  *
  * @var array
  */
-	protected $_result = null;
+	public $_result = null;
 
 /**
  * Queries count.

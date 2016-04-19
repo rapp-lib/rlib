@@ -76,26 +76,30 @@ class Controller_Base extends SmartyExtended {
 		
         $class_name =is_string($options) ? $options : 
                 ($options["class"] ? $options["class"] : "Context_App");
+        $sname_scope =isset($options["scope"]) 
+                ? $options["scope"] : str_underscore($this->controller_name);
         
 		$context =new $class_name;
 		
 		$this->$var_name =$context;
 		$this->contexts[$var_name] =$context;
 		$this->vars[$var_name] =$context;
-		
-        // sname/fid_enable文字列の構成
+        
 		if (is_object($sname) && is_subclass_of($sname,"Context_Base")) {
 			
 			$sname =$sname->get_sname();
 			
-		} elseif (is_object($sname)) {
+		} else if (is_object($sname)) {
 			
 			$sname =str_underscore(get_class($sname));
 		
-		} elseif ($sname === null || $sname === 0) {
+		} else if (is_string($sname)) {
+		    
+            $sname =$sname_scope.".".$sname;
+                  
+		} else if ($sname === null || $sname === 0) {
 			
-			$sname =str_underscore($this->controller_name)
-					.".".str_underscore($this->action_name);
+			$sname =$sname_scope.".".str_underscore($this->action_name);
 			
 			if ($fid_enable===true) {
 				
@@ -103,7 +107,7 @@ class Controller_Base extends SmartyExtended {
 						.".".str_underscore($this->action_name);
 			}
 			
-		} elseif (is_numeric($sname) && $sname > 0) {
+		} else if (is_numeric($sname) && $sname > 0) {
 		
 			$action_name =$this->action_name;
 			$action_name =str_underscore($action_name);
@@ -111,7 +115,7 @@ class Controller_Base extends SmartyExtended {
 			$action_name =array_slice($action_name,0,-$sname);
 			$action_name =implode("_",$action_name);
 			
-			$sname =str_underscore($this->controller_name)
+			$sname =$sname_scope
 					."-".$action_name;
 			
 			if ($fid_enable===true) {

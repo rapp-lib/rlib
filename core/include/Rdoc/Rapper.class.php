@@ -214,6 +214,7 @@ class Rapper_Base {
         }
         
         // tmpl_varsのアサイン
+        $r =$this;
         extract($tmpl_vars,EXTR_REFS);
         
         ob_start();
