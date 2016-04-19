@@ -160,7 +160,7 @@ class DBI_Base {
 			return null;
 		}
 		
-		$this->ds->resultSet($this->ds->_result);
+		$this->ds->resultSet($result_source);
 		$result =$this->ds->fetchResult();
 		
 		// データがなければnullを返す
@@ -542,7 +542,7 @@ class DBI_Base {
 		// conditions
 		$query["conditions"] =$this->ds->conditions($query["conditions"],true,false);
 		
-		$model=null;
+		$model =class_exists("Model") ? new Model() : null;
 		$st =$this->ds->buildStatement($query,$model);
 		
 		return $st;

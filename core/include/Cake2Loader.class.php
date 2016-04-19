@@ -18,10 +18,12 @@ class Cake2Loader {
     */
     public function get_cake_datasource ($ds_name, $connect_info) {
         
-        if ($connect_info["driver"]) {
-        
-            require_once(LIBS.'/model/datasources/dbo/'
-                    .'dbo_'.$connect_info["driver"].'.php');
+        require_once(constant("CAKE_DIR").'/Model/ConnectionManager.php');
+
+        // [Deprecated] 旧cakeとの互換処理
+        if ($connect_info["driver"] && ! $connect_info["datasource"]) {
+            
+            $connect_info["datasource"] ='Database/'.str_camelize($connect_info["driver"]);
         }
         
         ConnectionManager::create($ds_name,$connect_info);
