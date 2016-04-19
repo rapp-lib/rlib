@@ -230,7 +230,7 @@ class SmartyExtended extends SmartyBC {
 		}
 		
 		$html_source =$resource->fetch(
-				$template, 
+				$resource, 
 				$cache_id, 
 				$compile_id, 
 				$parent, 
