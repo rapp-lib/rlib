@@ -1,6 +1,5 @@
 <?php
 	
-	load_cake();
 	register_shutdown_webapp_function("dbi_rollback_all");
 	
 	//-------------------------------------

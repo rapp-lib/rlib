@@ -21,16 +21,7 @@ class DBI_Base {
 	// DB接続
 	public function connect ($connect_info) {
 		
-		$this->driver_name =$connect_info["driver"];
-		
-		if ($connect_info["driver"]) {
-		
-			require_once(LIBS.'/model/datasources/dbo/'
-					.'dbo_'.$connect_info["driver"].'.php');
-		}
-		
-		ConnectionManager::create($this->name,$connect_info);
-		$this->ds =ConnectionManager::getDataSource($this->name);
+		$this->ds =cake_lib()->get_cake_datasource($this->name,$connect_info);
 	}
 	
 	//-------------------------------------
