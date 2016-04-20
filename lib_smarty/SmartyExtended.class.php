@@ -191,11 +191,10 @@ class SmartyExtended extends SmartyBC {
 			$tpl_vars = array(),
 			$security = false) {
 		
-		$resource =$this->createTemplate(
-				$template,
-				$cache_id, 
-				$compile_id);
-				
+        $parent =$parent ? $parent : $this->parent;
+        
+		$resource =$this->createTemplate($template, $cache_id, $compile_id, $parent, false);
+        
 		// 変数アサイン
 		array_extract($this->_tpl_vars);
 		$resource->assign($this->_tpl_vars);

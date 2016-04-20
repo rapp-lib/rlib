@@ -5,7 +5,6 @@
 	function smarty_function_inc ($params, $smarty_template) {
 		
 		$vars =(array)$params["vars"];
-		
 		$request_path =$params["path"];
 		$request_page =$params["page"];
 		$request_file =$params["file"];
@@ -59,8 +58,11 @@
     		));
 		}
 		
-		$parent_controller =$smarty_template->smarty;
-		$controller =raise_action($request_page, array("parent_controller" =>$parent_controller));
+		$controller =raise_action($request_page, array(
+            "parent_controller" =>$smarty_template->smarty,
+            "parent_smarty_template" =>$smarty_template,
+            "vars" =>$vars,
+        ));
 		
 		// Controller/Action実行エラー
 		if ( ! $controller) {

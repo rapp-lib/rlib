@@ -8,7 +8,7 @@ class Controller_Base extends SmartyExtended {
 	protected $action_name;
 	protected $vars;
 	protected $contexts;
-	protected $parent_controller;
+    protected $parent_controller;
 	
 	//-------------------------------------
 	// 
@@ -37,6 +37,8 @@ class Controller_Base extends SmartyExtended {
 		$this->contexts =array();
 		
 		// Smarty上でincにより呼び出された場合、呼び出し元が設定される
+        $this->parent =$options["parent_smarty_template"];
+        
 		if ($this->parent_controller =$options["parent_controller"]) {
 			
 			$this->parent_controller->inherit_state($this);

@@ -33,9 +33,7 @@
 			return false;
 		}
 		
-		$controller_obj =new $controller_class_name(
-				$controller_name,$action_name,
-				array("parent_controller" =>$options["parent_controller"]));
+		$controller_obj =new $controller_class_name($controller_name,$action_name,$options);
 		
 		$controller_obj->before_act();
 		
