@@ -41,13 +41,19 @@ class Controller_Base extends SmartyExtended {
 			
 			$this->parent_controller->inherit_state($this);
 		}
+        
+        // 外部からVarsを追加指定
+        foreach ((array)$options["vars"] as $k => $v) {
+            
+            $this->vars[$k] =$v;
+        }
 	}
 	
 	//-------------------------------------
 	// ほかのControllerに状態を継承する処理
 	public function inherit_state ($sub_controller) {
 		
-		$sub_controller->_tpl_vars =$this->_tpl_vars;
+		$sub_controller->vars =$this->vars;
 	}
 	
 	//-------------------------------------

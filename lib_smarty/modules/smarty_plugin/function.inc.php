@@ -60,7 +60,10 @@
 		}
 		
 		$parent_controller =$smarty_template->smarty;
-		$controller =raise_action($request_page, array("parent_controller" =>$parent_controller));
+		$controller =raise_action($request_page, array(
+            "parent_controller" =>$parent_controller,
+            "vars" =>$vars,
+        ));
 		
 		// Controller/Action実行エラー
 		if ( ! $controller) {
@@ -70,19 +73,6 @@
     			"page" =>$request_page,
     			"file" =>$request_file,
     		));
-		}
-		
-		// テンプレート中で渡された値のAssign
-		foreach ($vars as $k => $v) {
-			
-			if (is_numeric($k)) {
-				
-				$controller->_tpl_vars[$v] =$smarty_template->tpl_vars[$v]->value;
-				
-			} elseif (is_string($k)) {
-				
-				$controller->_tpl_vars[$k] =$v; 
-			}
 		}
 		
 		return $controller->fetch("file:".$request_file);

@@ -34,8 +34,13 @@
 		}
 		
 		$controller_obj =new $controller_class_name(
-				$controller_name,$action_name,
-				array("parent_controller" =>$options["parent_controller"]));
+			$controller_name,
+            $action_name,
+			array(
+                "parent_controller" =>$options["parent_controller"],
+                "vars" =>$options["vars"],
+            )
+        );
 		
 		$controller_obj->before_act();
 		
