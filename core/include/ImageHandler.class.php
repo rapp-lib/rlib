@@ -84,7 +84,7 @@ class ImageHandler {
 		
 		$width =$this->width;
 		$height =$this->height;
-			
+		
 		if ($width_limit && $this->width > $width_limit) {
 			
 			$this->width =$width_limit;
@@ -96,24 +96,25 @@ class ImageHandler {
 			$this->height =$height_limit;
 			$this->width =$this->height*$width/$height;
 		}
-		
+
 		$this->width =round($this->width);
 		$this->height =round($this->height);
+
 	}
 	
 	//-------------------------------------
 	// 短辺に併せて中心を正方形にトリム
 	public function square ($size=null) {
-
+		
 		if ($this->crop_width > $this->crop_height) {
 		
-			$this->crop_top =round(($this->crop_width-$this->crop_height)/2);
+			$this->crop_left =round(($this->crop_width-$this->crop_height)/2);
 			$this->crop_width =$this->crop_height;
 		}
 
 		if ($this->crop_height > $this->crop_width) {
 		
-			$this->crop_left =round(($this->crop_height-$this->crop_width)/2);
+			$this->crop_top =round(($this->crop_height-$this->crop_width)/2);
 			$this->crop_height =$this->crop_width;
 		}
 		
@@ -134,18 +135,20 @@ class ImageHandler {
 	//-------------------------------------
 	// 中心から指定した幅、高さでトリム
 	public function trim_center ($width=0, $height=0) {
-
-		if ($width) {
+		
+		if ($width && ($width < $this->width)) {
 			
-			$this->crop_left =round($this->crop_width/2-$width/2);
-			$this->crop_width =$width;
+		    $new_width_raw =$width*($this->width_raw/$this->width);
+            $this->crop_left =round($this->width_raw/2-$new_width_raw/2);
+			$this->crop_width =$new_width_raw;
 			$this->width =$width;
 		}
-
-		if ($height) {
-		
-			$this->crop_top =round($this->crop_height/2-$height/2);
-			$this->crop_height =$height;
+        
+		if ($height && ($height < $this->height)) {
+            
+		    $new_height_raw =$height*($this->height_raw/$this->height);
+            $this->crop_top =round($this->height_raw/2-$new_height_raw/2);
+			$this->crop_height =$new_height_raw;
 			$this->height =$height;
 		}
 	}
@@ -153,6 +156,9 @@ class ImageHandler {
 	//-------------------------------------
 	// 画像を出力
 	public function save ($dst_filename=null) {
+	
+		$memory_limit_old =ini_get("memory_limit");
+		ini_set('memory_limit', -1);
 		
 		// 元画像ハンドラの作成
 		$src_image =null;
@@ -180,7 +186,7 @@ class ImageHandler {
 		// 変形させてコピー
 		imagecopyresampled(
 				$dst_image, $src_image,
-				$this->top, $this->left, $this->crop_top, $this->crop_left, 
+				$this->left, $this->top, $this->crop_left, $this->crop_top,
 				$this->width, $this->height, $this->crop_width, $this->crop_height);
 				
 		// ファイルに保存
@@ -191,6 +197,8 @@ class ImageHandler {
 		// ハンドラ開放
 		imagedestroy($src_image); 
 		imagedestroy($dst_image);
+		
+		ini_set("memory_limit",$memory_limit_old);
 	}
 	
 	//-------------------------------------

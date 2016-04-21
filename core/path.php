@@ -213,9 +213,9 @@
 		$url =preg_replace('!\#.*$!','',$url);
 		$url =preg_replace('!\?.*$!','',$url);
 		
-		$file =preg_replace('!/$!','/'.$index_filename,$document_root_dir.$url);
+		$file =preg_replace('!(/[^\.]*?)/?$!','$1/'.$index_filename,$document_root_dir.$url);
 		$path =preg_replace('!^'.preg_quote($html_dir).'!','',$file);
-
+		
 		return $path;
 	}
 

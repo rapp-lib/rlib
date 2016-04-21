@@ -124,7 +124,7 @@ class LayoutRequestArray {
 					));
 
 				} elseif ($result["status"] == "error") {
-
+					
 					report_error($result["message"],array(
 						"request" =>$request,
 						"result" =>$result,

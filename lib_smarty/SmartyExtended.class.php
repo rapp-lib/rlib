@@ -544,6 +544,11 @@ class SmartyExtended extends SmartyBC {
 				$option_htmls =$html["options"];
 				$html["options"] =array();
 				
+				if (isset($option_htmls[""])) {
+		
+					$html["options"] =array("" =>$option_htmls[""]);
+				}
+		
 				foreach ($parent_options as $parent_k => $parent_label) {
 					
 					$html["options"][$parent_k] .='<optgroup label="'.$parent_label.'">';
