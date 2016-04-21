@@ -228,7 +228,7 @@ class SmartyExtended extends SmartyBC {
 			
 			$resource->enableSecurity();	
 		}
-		report($resource);
+		
 		$html_source =$resource->fetch(
 				$template, 
 				$cache_id, 
