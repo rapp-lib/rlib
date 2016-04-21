@@ -228,7 +228,7 @@ class SmartyExtended extends SmartyBC {
 			
 			$resource->enableSecurity();	
 		}
-		
+		report($resource);
 		$html_source =$resource->fetch(
 				$template, 
 				$cache_id, 
@@ -304,8 +304,15 @@ class SmartyExtended extends SmartyBC {
 			unset($params["anchor"]);
 			unset($params["method"]);
 			
-			// _page
-			if ($params["_page"]) {
+            // URLの決定
+            
+            // href/actionによるURL指定
+            if ($dest_url) {
+                
+    			$dest_url =apply_url_rewrite_rules($dest_url);
+                
+			// _pageによるURL指定
+            } else if ($params["_page"]) {
 				
 				$dest_url =page_to_url($params["_page"]);
 				
@@ -317,10 +324,9 @@ class SmartyExtended extends SmartyBC {
 				}
 				
 				unset($params["_page"]);
-			}
 			
-			// _path
-			if ($params["_path"]) {
+            // _pathでのURL指定
+			} elseif ($params["_path"]) {
 				
 				// 相対指定
 				if (preg_match('!^\.!',$params["_path"])) {
@@ -344,6 +350,8 @@ class SmartyExtended extends SmartyBC {
 				unset($params["_path"]);
 			}
 			
+            // URLパラメータの付与
+            
 			// _query
 			if ($params["_query"]) {
                 
@@ -387,8 +395,6 @@ class SmartyExtended extends SmartyBC {
 					$attr_html .=' '.$key.'="'.$value.'"';
 				}
 			}
-			
-			$dest_url =apply_url_rewrite_rules($dest_url);
 			
 			$dest_url =url($dest_url,$url_params,$anchor);
 			
