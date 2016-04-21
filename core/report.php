@@ -318,50 +318,34 @@
         	$config["output_format"] = ! get_cli_mode() && ! registry("Report.output_to_file") ? "html" : "plain";
 			$html =report_template($errstr,$params,$options,$backtraces,$config);
 			
-			$report_buffer =& ref_globals("report_buffer");
-			
+			// ファイル出力
+			if ($file_name =registry("Report.output_to_file")) {
+				
+				file_put_contents($file_name,$html,FILE_APPEND|LOCK_EX);
+				chmod($file_name,0777);
+                
 			// Report.buffer_enableによる出力抑止
-			if (registry("Report.buffer_enable")) {
-				
-				$report_buffer .=$html;
-				
+            } else if ($buffer_level =registry("Report.buffer_enable")) {
+    				
+        		$report_buffer =& ref_globals("report_buffer");
+    			$report_buffer[$buffer_level] .=$html;
+    				
+			// 直接出力
 			} else {
-				
-				$html =$report_buffer.$html;
-				$report_buffer ="";
-				
-				// ファイル出力
-				if ($file_name =registry("Report.output_to_file")) {
-					
-					file_put_contents($file_name,$html,FILE_APPEND|LOCK_EX);
-					chmod($file_name,0777);
-					
-				// 直接出力
-				} else {
-				
-					print $html;
-				}
+			
+				print $html;
 			}
 		}
 		
 		// エラー時の処理停止
 		if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
 			
-            $e =new ReportError(array(
+            throw new ReportError(array(
                 "errstr" =>$errstr,
                 "options" =>$options,
                 "params" =>$params,
                 "backtraces" =>$backtraces,
             ));
-            
-            if (registry("Report.throw_exception_on_error")) {
-                
-                throw $e;
-            
-            } else {
-                
-                $e->shutdown();
-            }
 		}
 	}
 	
@@ -379,6 +363,48 @@
 		
 		$options["errno"] =E_USER_ERROR;
 		report($message,$params,$options);
+	}
+	
+	//-------------------------------------
+	//
+	function report_buffer_start () {
+		
+        $buffer_level =registry("Report.buffer_enable");
+        registry("Report.buffer_enable",$buffer_level+1);
+	}
+	
+	//-------------------------------------
+	//
+	function report_buffer_end ($all=false) { 
+    
+        $buffer_level =registry("Report.buffer_enable");
+        
+        // 開始していなければ処理を行わない
+        if ( ! $buffer_level) {
+            
+            return;
+        }
+    		
+        $report_buffer =& ref_globals("report_buffer");
+        $output =$report_buffer[$buffer_level];
+        unset($report_buffer[$buffer_level]);
+        
+        registry("Report.buffer_enable",--$buffer_level);
+        
+        if ($buffer_level > 0) {
+            
+            $report_buffer[$buffer_level] .=$output;
+        
+        } else {
+            
+            print $output;
+        }
+        
+        // 全件終了
+        if ($all) {
+            
+            report_buffer_end($all);
+        }
 	}
 
 //-------------------------------------
@@ -405,6 +431,7 @@ class ReportError extends ErrorException {
 	//
 	public function shutdown () {
 		
+        report_buffer_end(true);
         shutdown_webapp("error_report",$this->report_vars);
 	}
 }
