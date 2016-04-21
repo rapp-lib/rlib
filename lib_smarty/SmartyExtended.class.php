@@ -228,7 +228,11 @@ class SmartyExtended extends SmartyBC {
 			
 			$resource->enableSecurity();	
 		}
-		report($resource);
+		
+        // SmartyがExceptionを補足するとReport出力を消してしまうことに対する対処
+        $throw_exception_on_error =registry("Report.throw_exception_on_error");
+        registry("Report.throw_exception_on_error",false);
+        
 		$html_source =$resource->fetch(
 				$template, 
 				$cache_id, 
@@ -237,7 +241,9 @@ class SmartyExtended extends SmartyBC {
 				$display, 
 				$merge_tpl_vars, 
 				$no_output_filter);
-		
+                
+        registry("Report.throw_exception_on_error",$throw_exception_on_error);
+        
 		unset($resource);
 		
 		return $html_source;

@@ -37,7 +37,9 @@
                 throw $e;    
             }
             
-            report("[".get_class($e)."] ".$e->getMessage(),array(),array(
+            report("[".get_class($e)."] ".$e->getMessage(),array(
+                "exception" =>$e,
+            ),array(
             	"type" =>"exception_handler",
     			"errno" =>E_ERROR,
     			"errstr" =>$e->getMessage(),
@@ -304,7 +306,9 @@
 				? $options["errno"]
 				: E_USER_NOTICE;
     		
-    	$backtraces =debug_backtrace();
+		$backtraces =$options["backtraces"]
+				? $options["backtraces"]
+				: debug_backtrace();
 		
 		// レポート出力判定
 		if (get_webapp_dync("report") 
@@ -343,12 +347,21 @@
 		// エラー時の処理停止
 		if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
 			
-            throw new ReportError(array(
+            $e =new ReportError(array(
                 "errstr" =>$errstr,
                 "options" =>$options,
                 "params" =>$params,
                 "backtraces" =>$backtraces,
             ));
+            
+            if (registry("Report.throw_exception_on_error")) {
+                
+                throw $e;
+            
+            } else {
+                
+                $e->shutdown();
+            }
 		}
 	}
 	
