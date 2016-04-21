@@ -34,6 +34,9 @@
 		"Config.php_ini" =>array_escape(array(
 		)),
 		
+        // cake設定
+        "Config.cake_lib" =>"rlib_cake2",
+        
 		// デバッグ設定
 		"Report.error_reporting" =>E_ALL&~E_NOTICE&~E_STRICT&~E_DEPRECATED,
 		"Report.buffer_enable" =>false,

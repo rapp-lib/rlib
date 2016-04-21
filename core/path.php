@@ -162,6 +162,7 @@
 
 		// https指定であればURLの先頭を変更
 		if ($full_url === "https") {
+            
 			if ($document_root_ssl_url =registry('Path.document_root_ssl_url')) {
 
 				$document_root_url =preg_replace('!/$!','',$document_root_ssl_url);
@@ -178,11 +179,16 @@
 		}
 
 		$pattern ='!^'.preg_quote(registry('!Path.document_root_dir')).'/?!';
-
-		$url =preg_match($pattern,$file)
-				? preg_replace($pattern,$document_root_url."/",$file)
-				: null;
-
+        
+        // DocumentRoot外のファイルにURLは存在しない
+		if ( ! preg_match($pattern,$file)) {
+            
+            return null;
+        }
+        
+		$url =preg_replace($pattern,$document_root_url."/",$file);
+		$url =apply_url_rewrite_rules($url);
+        
 		return $url;
 	}
 
