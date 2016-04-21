@@ -2,40 +2,52 @@
 
 	//-------------------------------------
 	// URLの組み立て
-	function url ($base_url=null, $params=null, $anchor=null) {
+	function url ($base_url=null, $params=array(), $anchor=null) {
 		
 		$url =$base_url;
 		
-		// URL内アンカーの退避
+        // 文字列形式のURLパラメータを配列に変換
+        if (is_string($params)) {
+            
+			parse_str($params,$tmp_params);
+            $params =$tmp_params;
+        }
+        
+		// アンカーの退避
 		if (preg_match('!^(.*?)#(.*)$!',$url,$match)) {
 			
 			list(,$url,$old_anchor) =$match;
-				
+			
 			if ($anchor === null) {
 				
 				$anchor =$old_anchor;
 			}
 		}
 		
-		// URL内パラメータの解決
-		$ptn_url_param ='!^([^\[\?]*\[[^\[\?]+\][^\?]*)(\?.*)?$!';
-		
-		if (preg_match($ptn_url_param,$url,$match)) {
+		// QSの退避
+		if (preg_match('!^([^\?]+)\?(.*)!',$url,$match)) {
 			
 			list(,$url,$qs) =$match;
+			parse_str($qs,$qs_params);
+            array_replace_recursive($qs_params, $params);
+            
+            $params =$qs_params;
+		}
+		
+		// URLパス内パラメータの適用
+		$ptn_url_param ='!\[([^\]]+)\]!';
+		
+		if (preg_match($ptn_url_param,$url)) {
 			
 			$tmp_url_params =& ref_globals("tmp_url_params");
 			$tmp_url_params =$params;
-			
-			$url =preg_replace_callback('!\[([^\]]+)\]!',"url_param_replace",$url);
-			
+			$url =preg_replace_callback($ptn_url_param,"url_param_replace",$url);
 			$params =$tmp_url_params;
 			
-			$url .=$qs;
-			
+            // 置換漏れの確認
 			if (preg_match($ptn_url_param,$url)) {
 				
-				report_warning("URL params wasnot resolved",array(
+				report_warning("URL params was-not resolved, remain",array(
 					"url" =>$url,
 					"base_url" =>$base_url,
 					"params" =>$params,
@@ -43,21 +55,15 @@
 			}
 		}
 		
+        // QSの設定
 		if ($params) {
 			
+            ksort($params);
 			$url .=strpos($url,'?')===false ? '?' : '&';
-			
-			if (is_string($params)) {
-			
-				$url .=$params;
-			
-			} elseif (is_array($params)) {
-				
-                ksort($params);
-				$url .=http_build_query($params,null,'&');
-			}
+            $url .=http_build_query($params,null,'&');
 		}
 		
+        // アンカーの設定
 		if (strlen($anchor)) {
 			
 			$url .='#'.$anchor;
