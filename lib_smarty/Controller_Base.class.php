@@ -39,7 +39,7 @@ class Controller_Base extends SmartyExtended {
 		// Smarty上でincにより呼び出された場合、呼び出し元が設定される
 		if ($this->parent_controller =$options["parent_controller"]) {
 			
-			$this->parent_controller->inherit_state($this);
+			$this->parent_controller->inherit_state($this, $options);
 		}
         
         // 外部からVarsを追加指定
@@ -51,9 +51,13 @@ class Controller_Base extends SmartyExtended {
 	
 	//-------------------------------------
 	// ほかのControllerに状態を継承する処理
-	public function inherit_state ($sub_controller) {
+	public function inherit_state ($sub_controller, $options) {
 		
-		$sub_controller->vars =$this->vars;
+        // 親からVarsを追加指定
+        foreach ((array)$this->_tpl_vars as $k => $v) {
+            
+            $sub_controller->_tpl_vars[$k] =$v;
+        }
 	}
 	
 	//-------------------------------------
@@ -125,7 +129,6 @@ class Controller_Base extends SmartyExtended {
 				$fid_enable =str_underscore($this->controller_name)
 						.".".$action_name."*";
 			}
-		
 		}
 		
         // fid_enable設定によるURL書き換え処理の登録

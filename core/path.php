@@ -243,6 +243,6 @@
 		
 		$dir =registry("Path.document_root_dir");
 		
-		return ! preg_match('!/\.\.+/!',$file) 
-				&& preg_match('!^'.preg_quote($dir,'!').'!',$file);
+		return preg_match('!^'.preg_quote($dir,'!').'(.*?)$!',$file,$match)
+				&& ! preg_match('!/\.\.+/!',$match[1]);
 	}
