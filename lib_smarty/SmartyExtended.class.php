@@ -34,14 +34,7 @@ class SmartyExtended extends SmartyBC {
 		$this->php_handling =self::PHP_ALLOW;
 		$this->allow_php_templates =true;
 	}
-
-	//-------------------------------------
-	// 無効なメソッド呼び出し
-	public function __call ($method, $args) {
-	
-		report_warning(get_class($this).'::'.$method.' is-not callable. ');
-	}
-	
+    
 	//-------------------------------------
 	// メンバ変数取得(overload Smarty::__get)
 	public function __get ($name) {
