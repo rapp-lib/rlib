@@ -445,6 +445,8 @@
 	// 標準PHP終了ハンドラ
 	function std_shutdown_handler () {
 		
+        report_buffer_end(true);
+        
 		$error =error_get_last();
 		
 		if ( ! defined("WEBAPP_SHUTDOWN_CAUSE")) {

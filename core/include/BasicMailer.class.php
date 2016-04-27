@@ -445,10 +445,13 @@ class BasicMailer {
 		// SMTPへ送信元のパラメータを付加
 		$options["send_options"][] ="-f ".$options["from"];
 		
-		$message =mb_convert_encoding($options["message"],$this->get_mail_charset(),"UTF-8");
-		$subject =mb_encode_mimeheader($options["subject"], $this->get_mail_charset(), "B", "\n");
+		$message =mb_convert_encoding($this->convert_kana($options["message"]),
+                $this->get_mail_charset(),"UTF-8");
+		$subject =mb_encode_mimeheader($this->convert_kana($options["subject"]),
+                $this->get_mail_charset(), "B", "\n");
 		
-		$fromname =mb_encode_mimeheader($options["fromname"], $this->get_mail_charset(), "B", "\n");
+		$fromname =mb_encode_mimeheader($this->convert_kana($options["fromname"]), 
+                $this->get_mail_charset(), "B", "\n");
 		$from =strlen($options["fromname"]) 
 				? $fromname."<".$options["from"].">" 
 				: $options["from"];
@@ -599,4 +602,18 @@ class BasicMailer {
 		
 		return $mail_charset;
 	}
+	
+	//-------------------------------------
+	// メールで使用する半角カナの置換
+	protected function convert_kana ($value) {
+		
+		if ($this->get_mail_charset() == "ISO-2022-JP") {
+            
+            $value =mb_convert_kana($value,"KV");
+        }
+		
+		return $value;
+	}
+    
+    
 }

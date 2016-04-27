@@ -29,12 +29,10 @@
 			
 			list(,$url,$qs) =$match;
 			parse_str($qs,$qs_params);
-            array_replace_recursive($qs_params, $params);
-            
-            $params =$qs_params;
+            $params =array_replace_recursive($qs_params, $params);
 		}
 		
-		// URLパス内パラメータの適用
+		// URLパス内パラメータの置換
 		$ptn_url_param ='!\[([^\]]+)\]!';
 		
 		if (preg_match($ptn_url_param,$url)) {
@@ -58,8 +56,8 @@
         // QSの設定
 		if ($params) {
 			
-            ksort($params);
-			$url .=strpos($url,'?')===false ? '?' : '&';
+            url_param_ksort_recursive($params);
+            $url .=strpos($url,'?')===false ? '?' : '&';
             $url .=http_build_query($params,null,'&');
 		}
 		
@@ -89,6 +87,22 @@
 		return $replaced;
 	}
 	
+	//-------------------------------------
+	// URL内パラメータの整列処理
+	function url_param_ksort_recursive ( & $params) {
+        
+        if ( ! is_array($params)) {
+            
+            return;
+        }
+        
+        ksort($params);
+            
+        foreach ($params as & $v) {
+            
+            url_param_ksort_recursive($v);
+        }
+	}
 	
 	//-------------------------------------
 	// HTMLタグの組み立て
