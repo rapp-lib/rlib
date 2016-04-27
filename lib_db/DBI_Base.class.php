@@ -203,8 +203,16 @@ class DBI_Base {
 	public function begin ($transaction_id="default") {
 		
 		if ( ! $this->transaction_stack) {
-		
-			$this->exec($this->ds->_commands['begin']);
+		    
+            // [Deprecated] cake1互換処理
+            if (isset($this->ds->_commands)) {
+                
+                return $this->exec($this->ds->_commands['begin']);
+            
+            } else {
+			
+                $this->ds->begin();
+            }
 		}
 		
 		array_push($this->transaction_stack,$transaction_id);
@@ -230,8 +238,16 @@ class DBI_Base {
 		}
 		
 		if ( ! $this->transaction_stack) {
-		
-			$this->exec($this->ds->_commands['commit']);
+            
+            // [Deprecated] cake1互換処理
+            if (isset($this->ds->_commands)) {
+                
+                $this->exec($this->ds->_commands['commit']);
+            
+            } else {
+			
+                $this->ds->commit();
+            }
 		}
 	}
 	
@@ -244,7 +260,15 @@ class DBI_Base {
 			return false;
 		}
 		
-		$this->exec($this->ds->_commands['rollback']);
+        // [Deprecated] cake1互換処理
+        if (isset($this->ds->_commands)) {
+            
+            return $this->exec($this->ds->_commands['rollback']);
+        
+        } else {
+		
+            $this->ds->rollback();
+        }
 		
 		$this->transaction_stack =array();
 		

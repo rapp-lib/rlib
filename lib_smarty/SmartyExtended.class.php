@@ -228,6 +228,9 @@ class SmartyExtended extends SmartyBC {
 			$resource->enableSecurity();	
 		}
 		
+        // SmartyがExceptionを補足するとReport出力を消してしまうことに対する対処
+        report_buffer_start();
+        
 		$html_source =$resource->fetch(
 				$resource, 
 				$cache_id, 
@@ -236,7 +239,9 @@ class SmartyExtended extends SmartyBC {
 				$display, 
 				$merge_tpl_vars, 
 				$no_output_filter);
-		
+        
+        report_buffer_end();
+        
 		unset($resource);
 		
 		return $html_source;

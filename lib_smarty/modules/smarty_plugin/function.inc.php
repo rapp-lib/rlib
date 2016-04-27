@@ -35,11 +35,12 @@
             
         } else {
 			
-			report_error("Include Error: Invalid path or page",array(
+			report_error("inc Error: Invalid path or page",array(
     			"path" =>$request_path,
     			"page" =>$request_page,
     			"file" =>$request_file,
     		));
+            return;
 		}
 		
 		// 静的ページのStaticIncludeControllerへの対応付け
@@ -51,11 +52,12 @@
 		// Routing設定もなくHTMLファイルもない場合は404エラー
 		if ( ! $request_page && ! file_exists($request_file)) {
 			
-			report_error("Include Error: Route and File NotFound",array(
+			report_error("inc Error: Route and File NotFound",array(
     			"path" =>$request_path,
     			"page" =>$request_page,
     			"file" =>$request_file,
     		));
+            return;
 		}
 		
 		$controller =raise_action($request_page, array(
@@ -67,7 +69,7 @@
 		// Controller/Action実行エラー
 		if ( ! $controller) {
 			
-			report_error("Include Routing Error: Controller/Action raise failed",array(
+			report_error("inc Routing Error: Controller/Action raise failed",array(
     			"path" =>$request_path,
     			"page" =>$request_page,
     			"file" =>$request_file,
