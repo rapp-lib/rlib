@@ -431,7 +431,6 @@ class ReportError extends ErrorException {
 	//
 	public function shutdown () {
 		
-        report_buffer_end(true);
         shutdown_webapp("error_report",$this->report_vars);
 	}
 }
