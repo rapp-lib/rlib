@@ -1,0 +1,208 @@
+@charset "UTF-8";
+
+@import url(http://fonts.googleapis.com/earlyaccess/notosansjapanese.css);
+
+html { overflow-y:scroll; }
+ol, ul, li, dl, dt, dd, h1, h2, h3, h4, h5, h6, h7, form, p { margin:0; padding:0; }
+img { border:0; }
+li { list-style-type:none; }
+
+body {
+	width:100%; margin:0; padding:0;
+	text-align:center; font-size:15px; line-height:1.8;
+	color:#4c4948; background:#fff;
+	font-family: 'Noto Sans Japanese', "Droid Sans","ヒラギノ角ゴ ProN W3", "Hiragino Kaku Gothic ProN", "メイリオ", Meiryo, "ＭＳ Ｐゴシック", sans-serif;
+}
+
+table td,table th { font-size:14px; }
+table tr { vertical-align:top; }
+
+a {
+	overflow:hidden;
+	-webkit-transition:.2s linear;
+	-moz-transition:.2s linear;
+	-o-transition:.2s linear; }
+a:link		{ color:#000; }
+a:visited	{ color:#000; }
+a:hover		{ color:#006eb9; text-decoration:none; }
+a:active	{  }
+
+/* clearfix */
+.clearfix:after {  
+	visibility: hidden;  
+	display: block;  
+	font-size: 0;  
+	content: " ";  
+	clear: both;  
+	height: 0;  
+}  
+* html .clearfix { zoom: 1; } /* IE6 */  
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */  
+
+.float_l { float:left; }
+.float_r { float:right; }
+.txt_c { text-align:center; }
+.sub { font-size:88%; color:#666; }
+
+#wrapper { text-align:left; }
+
+header { height:68px; background:#c6bfb4; box-shadow:0px 1px 5px rgba(0,0,0,0.3); }
+header .con { width:1000px; margin:auto; position:relative; }
+	h1 { position:absolute; top:11px; left:7px; }
+	h1 a {
+		display:inline-block; width:213px; height:40px; text-indent:-9999px;
+		background:url("../img/logo.gif") 0 0 no-repeat; }
+  
+	header span {
+		position:absolute; top:20px; right:50px; text-align:right; font-size:16px; color:#fff; }
+  
+	.btn { top:10px; margin-right:-10px; position:relative; }
+	.btn div { position:absolute; top:10px; width:30px; height:30px; }
+	.btn a   { display:block; text-indent:-9999px; }
+	.btn a:hover { opacity:0; }
+	
+	#btn_logout   { background:url("../img/btn_logout_o.png") 0 0 no-repeat; }
+	#btn_logout a { background:url("../img/btn_logout.png") 0 0 no-repeat; }
+	
+	#btn_logout, #btn_logout a { width:30px; height:30px; background-size:30px 30px; }
+	#btn_logout { right:0; }
+
+#contents { width:1000px; margin:auto; padding:30px 0; text-align:left; }
+	.left { width:230px; float:left; }
+	.right { width:740px; float:right; }
+
+#main { width:430px; margin:auto; padding:50px 0; }
+
+/* nav */
+nav { background:#ebe9e8; }
+	nav h2 { padding:25px 25px 0; font-size:14px; font-weight:normal; letter-spacing:2px; font-family: 'Noto Sans Japanese', serif; }
+	nav dl { padding:20px 0; }
+	nav dt { font-size:14px; }
+	nav li { font-size:12px; text-indent:1em; }
+	nav a { display:block; text-decoration:none; padding:4px 25px; }
+	nav .current a,nav a:hover { background:#006eb9; color:#fff; }
+
+/* title */
+.admin_h2 {
+	margin:50px 0 25px; font-size:22px; line-height:45px; border-bottom:1px solid #ccc; color:#006eb9; }
+.admin_h2 span { font-size:18px; }
+.admin_h2:before { vertical-align:-4px; margin:0 15px; }
+	h2#user:before { content:url("../img/h2_user.png"); }
+	h2#event:before { content:url("../img/h2_event.png"); }
+.admin_h2:first-child { margin-top:0; }
+
+.h2_login { margin-bottom:30px; font-size:16px; font-weight:normal; letter-spacing:2px; font-family: 'Noto Sans Japanese', serif; }
+
+/* form */
+.login { width:80%; margin:30px 0 50px; padding:30px; background:#f0f0f0; }
+.login dt { color:#666; }
+.login dd { margin-bottom:20px; }
+.login input[type="text"],.login input[type="password"] { width:100%; font-size:24px; box-sizing:border-box; }
+.login .ad_btn { margin:40px 0 0; }
+.forget { font-size:12px; }
+.forget a { color:#666666; }
+
+input[type="text"], input[type="password"], button, textarea {
+	margin: 0; padding: 3px;
+	background:#fff; border:1px solid #b3b3b3; outline: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	font-size:15px;
+	border-radius:3px; }
+textarea { width:100%; box-sizing:border-box; height:10em; }
+
+h3 { margin-bottom:10px; font-size:16px; }
+
+.ad_btn { margin-bottom:20px; }
+.ad_btn a { display:inline-block; padding:5px 20px; border-radius:20px; background:#C8B380; color:#fff; text-decoration:none; }
+.ad_btn a:hover { color:#fff; }
+	.ad_btn #add		{ float:left; }
+	.ad_btn #dl		{ float:right; }
+	.ad_btn #search	{ float:right; margin-right:15px; margin-top:10px; }
+	.ad_btn #add:hover		{ background:#d6674d; }
+	.ad_btn #dl:hover		{ background:#52834e; }
+	.ad_btn #search:hover	{ background:#588faf; }
+	.ad_btn #login,.ad_btn #submit { background:#006eb9; }
+	.ad_btn #login:hover,.ad_btn #submit:hover { background:#405094; }
+.ad_btn i { vertical-align:1px; margin-right:10px; }
+
+.tbl_admin {
+	width:100%; border-collapse:collapse; }
+.tbl_admin th,.tbl_admin td { padding:3px 5px; }
+.tbl_admin th { border:1px solid #ad9864; background:#c8b380; font-weight:normal; }
+.tbl_admin td { border:1px solid #cacaca; }
+.tbl_admin i { line-height:25px; }
+.tbl_admin i.fa-check-circle { color:#049708; }
+.tbl_admin i.fa-minus-circle { color:#999; }
+
+.list { text-align:center; }
+.list tr:nth-child(even) { background-color:#ebe9e8; }
+.list tr:nth-child(odd) { background-color:#fff; }
+.list tr:hover { background:#f5eba9; }
+
+.detail { margin-bottom:20px; }
+.detail th,.detail td { padding:8px 10px; }
+.detail th { width:120px; border:1px solid #ad9864; white-space:nowrap; }
+
+/* pager */
+.pager { margin-top:50px; text-align:center; }
+.pager p { font-size:13px; color:#666; margin-bottom:10px; }
+.pager ul { height:32px; }
+.pager li { display:inline-block; width:33px; height:30px; margin:0 8px; }
+.pager a {
+	display:block; line-height:30px; font-size:16px; text-decoration:none;
+	background:#EBE9E8; border:1px solid #ccc; }
+.pager .prev a,.pager .next a { color:#666; }
+.pager .current a,.pager a:hover { background:#006eb9; color:#fff; border-color:#006eb9; }
+
+/*-------------------------------------------------
+ css for member-login
+----------------------------------------------------*/
+header.mmb { height:68px; background:#006eb9; box-shadow:0px 1px 5px rgba(0,0,0,0.3); }
+header.mmb .m-con { width:1000px; margin:auto; position:relative; }
+	h1.mem { position:absolute; top:11px; left:7px; }
+	h1.mem a {
+		display:inline-block; width:213px; height:40px; text-indent:-9999px;
+		background:url("../img/m-logo.png") 0 0 no-repeat; }
+
+/* 
+=============================================================
+mod:soeda 20151027 会員登録・編集デザイン調整
+=============================================================
+*/
+.loginBtn:hover {
+  background: #405094 none repeat scroll 0% 0%;
+  cursor:pointer;
+}
+.errmsg {
+	color: #ff4422;
+}
+.ad_btn .rBtn {
+	float: right;
+	background: #c8b380 none repeat scroll 0 0;
+	border-radius: 20px;
+	color: #fff;
+	display: inline-block;
+	padding: 5px 20px;
+	text-decoration: none;
+	margin: 10px;
+}
+.ad_btn .sBtn {
+  background: #c8b380 none repeat scroll 0 0;
+  border-radius: 20px;
+  color: #fff;
+  display: inline-block;
+  padding: 5px 20px;
+	margin: 10px;
+	border-style: none;
+	font-family: Roboto,"Droid Sans","ヒラギノ角ゴ ProN W3","Hiragino Kaku Gothic ProN","メイリオ",Meiryo,"ＭＳ Ｐゴシック",sans-serif;
+  font-size: 15px;
+}
+.ad_btn .rBtn:hover {
+  background: #405094 none repeat scroll 0% 0%;
+}
+.ad_btn .sBtn:hover {
+  background: #405094 none repeat scroll 0% 0%;
+  cursor:pointer;
+

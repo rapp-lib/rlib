@@ -1,32 +1,33 @@
 <?=$c["header"]?> 
 
-<h1 class="page_label"><?=$c["label"]?>：CSV一括インポート</h1>
-
-<!-- errors_module -->
-{{if $c->errors()}}
-	<div class="errors">
+<div class="right">
+  <!--CSVインポートボックス-->
+  <!-- errors_module -->
+  {{if $c->errors()}}
 	{{foreach $c->errors() as $input_name => $error_message}}
-		<div class="errmsg">{{$error_message}}</div>
-	{{/foreach}}
-	</div>
-{{/if}}
-<!-- /errors_module -->
+  		<div class="errmsg">{{$error_message}}</div>
+  	{{/foreach}}
+  {{/if}}
+  <!-- /errors_module -->
 
-<!-- entry_module -->
-{{form _page=".entry_csv_confirm" enctype="multipart/form-data"}}
-<table class="detail">
-<tr>
-	<td class="label"><nobr>CSVファイル</nobr></td>
-	<td class="cell">{{input name="c[Import.csv_file]" type="file" group="private"}}</td>
-</tr>
-<tr>
-	<td class="controll_cell" colspan="2">
-		{{input type="submit" value="確認" class="button bindConfirmPost"}}
-		{{a _page=".index" class="button"}}戻る{{/a}}
-	</td>
-</tr>
-</table>
-{{/form}}
-<!-- /entry_module -->
+  <!-- entry_module -->
+  {{form _page=".entry_csv_confirm" enctype="multipart/form-data"}}
+    <table class="tbl_admin detail">
+      <tr>
+        <th>CSVファイル</th>
+        <td>
+        {{input name="c[Import.csv_file]" type="file" group="private"}}
+        </td>
+      </tr>
+    </table>
+    
+    <div class="ad_btn">
+      {{input type="submit" value="確認" class="sBtn"}}
+      {{a _page=".index" class="button rBtn"}}戻る{{/a}}
+    </div>
+  {{/form}}
+  <!-- /entry_module -->
+  
+</div><!--right-->
 
 <?=$c["footer"]?> 

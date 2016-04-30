@@ -1,32 +1,28 @@
 <?=$c["header"]?> 
 
-<h1 class="page_label"><?=$c["label"]?>：一覧</h1>
+<div class="right">
 
-{{*
 <!-- search_module -->
+<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 検索</span></h2>
 {{form _page="."}}
 {{input type="hidden" name="reset" value="1"}}
-<table class="detail">
+	<div class="ad_btn clearfix">
+		<table class="tbl_admin search">
 <? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
-<tr>
-	<td class="label"><nobr><?=$tc['label']?></nobr></td>
-	<td class="cell">{{input name="c[Search.<?=$tc['short_name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}</td>
-</tr>
+			<tr>
+				<th><?=$tc['label']?></th>
+				<td>{{input name="c[Search.<?=$tc['short_name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}</td>
+			</tr>
 <? endforeach; ?>
-<tr>
-	<td class="controll_cell" colspan="2">
-		<button type="submit" class="button">検索</button>
-		{{a _page="." _reset="1" class="button"}}リセット{{/a}}
-	</td>
-</tr>
-</table>
+		</table>
+		<a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" id="search"><i class="fa fa-search"></i>検索</a>
+	</div>
 {{/form}}
-<!-- /search_module -->
-*}}
+
 
 {{*
 <!-- search_crit_module -->
-<div class="controll">
+<div>
 	検索条件
 <? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
 	{{if $c->input("Search.<?=$tc['short_name']?>")}}
@@ -39,7 +35,7 @@
 
 {{*
 <!-- sort_module -->
-<div class="controll">
+<div>
 	{{a _page="." _c=["sort"=>"<?=$t['pkey']?>@DESC"]}}登録順▼{{/a}}
 <? foreach ($this->filter_fields($t["fields"],"sort") as $tc): ?>
 	{{a _page="." _c=["sort"=>"<?=$tc['name']?>@DESC"]}}<?=$tc['label']?>順▼{{/a}}
@@ -48,76 +44,65 @@
 <!-- /sort_module -->
 *}}
 
-<!-- controll_module -->
-<div class="controll">
+<!-- list_module -->
+<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 一覧</span></h2>
+
+<div class="ad_btn clearfix">
 <? if ($c["usage"] != "view"): ?>
-	{{a _page=".entry_form" class="button"}}新規登録{{/a}}
+	{{a _page=".entry_form" id="add"}}新規登録{{/a}}
 <? endif; /* $c["usage"] != "view" */ ?>
 <? if ($c["usage"] != "form" && $c["use_csv"]): ?>
-	{{a _page=".view_csv" class="button"}}CSV一括ダウンロード{{/a}}
+	{{a _page=".view_csv" id="dl"}}CSV一括ダウンロード{{/a}}
 <? endif; /* $c["usage"] != "form" && $c["use_csv"] */ ?>
 <? if ($c["usage"] != "view" && $c["use_csv"]): ?>
-	{{a _page=".entry_csv_form" class="button"}}CSV一括インポート{{/a}}
+	{{a _page=".entry_csv_form" id="dl"}}CSV一括インポート{{/a}}
 <? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 </div>
-<!-- /controll_module -->
 
-<!-- list_module -->
-<div class="list_wrap">
-<table class="list">
-<tr>
-	<td class="label">
-		&nbsp;
-	</td>
-<? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
-	<td class="label">
-		<nobr><?=$tc['label']?></nobr>
-	</td>
-<? endforeach; ?>
-</tr>
-{{foreach $ts as $t}}
+<table class="tbl_admin list">
+	
 	<tr>
-		<td class="cell menu">
-			<nobr>
+<? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
+		<th><?=$tc['label']?></th>
+<? endforeach; ?>
+		<th>&nbsp;</th>
+	</tr>
+	{{foreach $ts as $t}}
+	<tr>
+<? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
+		<td>
+			{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}
+		</td>
+<? endforeach; ?>
+		<td>
 			{{* {{a _page=".view_detail" _id=$t.<?=$t['pkey']?> class="button"}}詳細{{/a}} *}}
 <? if ($c["usage"] != "view"): ?>
 			{{a _page=".entry_form" _id=$t.<?=$t['pkey']?> class="button"}}編集{{/a}}
 			{{a _page=".delete_confirm" _id=$t.<?=$t['pkey']?> class="button bindConfirmDelete"}}削除{{/a}}
 <? endif; /* $c["usage"] != "view" */ ?>
-			</nobr>
 		</td>
-<? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
-		<td class="cell">
-			{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}
-		</td>
-<? endforeach; ?>
 	</tr>
-{{/foreach}}
+	{{/foreach}}
 </table>
-</div>
-<!-- /list_module -->
 
-<!-- pager_module -->
 <div class="pager">
-<span class="inactive">{{$p.current}} / {{$p.lastpage}}ページを表示中&nbsp;</span>
-{{if $p.prev !== null}}
-	{{a _page="." _c=["offset"=>$p.prev]}}前へ{{/a}}
-{{else}}
-	<span class="inactive">前へ</span>
-{{/if}}
-{{foreach $p.pages as $index => $page_offset}}
-	{{if $index==$p.current}} 
-		{{a _page="." _c=["offset"=>$page_offset] class="current"}}{{$index}}{{/a}}
-	{{else}}
-		{{a _page="." _c=["offset"=>$page_offset]}}{{$index}}{{/a}}
+<p>全{{$p.total}}件中 {{$p.from}}件～{{$p.to}}件を表示</p>
+<ul class="clearfix">
+	{{if $p.prev !== null}}
+		<li class="prev">{{a _page="." _query="c[offset]=`$p.prev`"}}前{{/a}}</li>
 	{{/if}}
-{{/foreach}}
-{{if $p.next !== null}}
-	{{a _page="." _c=["offset"=>$p.next]}}次へ{{/a}}
-{{else}}
-	<span class="inactive">次へ</span>
-{{/if}}
+	{{foreach $p.pages as $index => $page_offset}}
+		{{if $index==$p.current}} 
+			<li class="current">{{a _page="." _query="c[offset]=`$page_offset`" class="current"}}{{$index}}{{/a}}</li>
+		{{else}}
+			<li>{{a _page="." _query="c[offset]=`$page_offset`"}}{{$index}}{{/a}}</li>
+		{{/if}}
+	{{/foreach}}
+	{{if $p.next !== null}}
+		<li class="next">{{a _page="." _query="c[offset]=`$p.next`"}}次{{/a}}</li>
+	{{/if}}
+</ul>
 </div>
-<!-- /pager_module -->
+</div><!--right-->
 
 <?=$c["footer"]?> 

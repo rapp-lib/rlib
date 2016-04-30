@@ -2,36 +2,37 @@
 
 <!-- Viframeでは読み込まないページとしてマーク -->
 <a class="vifPreventLoad"></a>
-	
-<h1 class="page_label"><?=$c["label"]?></h1>
+
+<div id="main">
+
+<!--ログイン-->
+
+<h2 class="h2_login"><?=$c["label"]?></h2>
+<p>IDとパスワードを入力し、 ログインしてください。</p>
 
 <!-- errors_module -->
 {{if $c->errors()}}
-	<div class="errors">
-	{{foreach $c->errors() as $error_message}}
-		<div class="errmsg">{{$error_message}}</div>
-	{{/foreach}}
-	</div>
+    {{foreach $c->errors() as $error_message}}
+        <font color="red"><span>{{$error_message}}</span></font>
+    {{/foreach}}
 {{/if}}
 <!-- /errors_module -->
 
 <!-- entry_module -->
 {{form _page=".entry_confirm"}}
-<table class="detail">
-<tr>
-	<td class="label"><nobr>ログインID</nobr></td>
-	<td class="cell">{{input name="c[login_id]" type="text"}}</td>
-</tr>
-<tr>
-	<td class="label"><nobr>パスワード</nobr></td>
-	<td class="cell">{{input name="c[login_pass]" type="password"}}</td>
-</tr>
-<td class="controll_cell" colspan="2">
-	{{input type="submit" value="ログイン" class="button"}}
-	{{a _path="/index.html" class="button"}}戻る{{/a}}
-</td>
-</table>
+    <div class="login">
+    <dl>
+    <dt>ID</dt>
+    <dd>{{input type="text" name="c[login_id]" value=""}}</dd>
+    <dt>パスワード</dt>
+    <dd>{{input type="password" name="c[login_pass]" value=""}}</dd>
+    </dl>
+    <div class="ad_btn txt_c">
+        <a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" id="login"><i class="fa fa-arrow-right"></i>ログイン</a></div>
+    </div>
 {{/form}}
 <!-- /entry_module -->
+
+</div><!--main-->
 
 <?=$c["footer"]?> 

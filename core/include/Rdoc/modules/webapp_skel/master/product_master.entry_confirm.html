@@ -1,22 +1,24 @@
 <?=$c["header"]?>  
 
-<h1 class="page_label"><?=$c["label"]?>：編集確認</h1>
-
+<div class="right">
+	<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 登録・編集</span></h2>
+	
 <!-- show_module -->
-<table class="detail">
+	<h3>基本情報</h3>
+	<table class="tbl_admin detail">
 <? foreach ($this->filter_fields($t["fields"],"input") as $tc): ?>
-<tr>
-	<td class="label"><nobr><?=$tc['label']?></nobr></td>
-	<td class="cell">{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}</td>
-</tr>
+		<tr>
+			<th><?=$tc['label']?></th>
+			<td>{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}</td>
+		</tr>
 <? endforeach; ?>
-<tr>
-	<td class="controll_cell" colspan="2">
-		{{a _page=".entry_exec" class="button"}}登録{{/a}}
-		{{a _page=".entry_form" class="button"}}戻る{{/a}}
-	</td>
-</tr>
-</table>
+	</table>
+	<div class="ad_btn">
+		{{a _page=".entry_exec" class="sBtn"}}登録{{/a}}
+		{{a _page=".entry_form" class="rBtn"}}戻る{{/a}}
+	</div>
 <!-- /show_module -->
+
+</div><!--right-->
 
 <?=$c["footer"]?> 
