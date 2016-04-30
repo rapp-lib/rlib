@@ -8,14 +8,8 @@
 	//-------------------------------------
 	// start
 	function __start () {
-		
-		// リクエストURLの取得
-		registry("Request.request_uri",$_REQUEST['__REQUEST_URI__']);
-		unset($_REQUEST['__REQUEST_URI__']);
-		unset($_GET['__REQUEST_URI__']);
-			
-		elapse("webapp");
-		elapse("webapp.setup");
+        
+        elapse("webapp.setup");
 		
 		// 終端処理の登録
 		register_shutdown_webapp_function("__end");
@@ -25,6 +19,9 @@
             
             register_shutdown_webapp_function("shutdown_webapp_for_ajaxr");
         }
+		
+		// リクエストURLの取得
+		registry("Request.request_uri",$_SERVER['REQUEST_URI']);
 		
 		// 初期設定の適応
 		start_webapp();
@@ -78,7 +75,7 @@
 		registry("Response.content_type", 'text/html; charset='.$response_charset);
 		
 		elapse("webapp.setup",true);
-		elapse("webapp.action");
+		elapse("webapp.raise_action");
 		
 		//-------------------------------------
 		// Controller/Actionの実行
@@ -98,8 +95,8 @@
 			report_error("Request Routing Error: Controller/Action raise error",registry("Request"));
 		}
 		
-		elapse("webapp.action",true);
-		elapse("webapp.fetch");
+		elapse("webapp.raise_action",true);
+		elapse("webapp.fetch_template");
 		
 		registry("Response.controller_obj", $controller_obj);
 		
@@ -113,8 +110,7 @@
 		header("Content-type: ".$content_type);
 		print($output);
 		
-		elapse("webapp.fetch",true);
-		elapse("webapp",true);
+		elapse("webapp.fetch_template",true);
 		
 		shutdown_webapp("normal");
 	}
