@@ -157,8 +157,8 @@
 				
 				if ($dync["report"]) {
 					
-					ini_set("display_errors",true);
-					ini_set("error_reporting",registry("Report.error_reporting"));
+					//ini_set("display_errors",true);
+					//ini_set("error_reporting",registry("Report.error_reporting"));
 				}
 			}
 			

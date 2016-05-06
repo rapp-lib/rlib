@@ -161,7 +161,7 @@
 			
 				$ref =$arr;
 				
-			} elseif ($options["escape"]) {
+			} elseif (isset($options["escape"])) {
 				
 				$ref =$arr[$name];
 				
