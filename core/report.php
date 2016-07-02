@@ -67,6 +67,10 @@
 			
 			$result ="Report depth ".$level." too deep.";
 		
+		} elseif ($info =VarsProfiler::profile_function($target_value)) {
+
+			$result .='function: '.$info["name"].'@'.$info["file_short"].'[L'.$info["line"].']'.$br_code;
+
 		} elseif (is_array($target_value)) {
 		
 			$result .='array('.count($target_value).'):'.$br_code;
