@@ -19,3 +19,7 @@
 	add_include_path(RLIB_ROOT_DIR.'/core/include/');
 	add_include_path(RLIB_ROOT_DIR.'/core/pear/');
 	
+	// [Transit] NS対応版のautoloadの読み込み
+	require_once(dirname(__FILE__).'/core/include/Transit.class.php');
+	Transit::installAutoload();
+

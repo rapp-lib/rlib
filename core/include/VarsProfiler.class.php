@@ -56,7 +56,7 @@ class VarsProfiler {
 		$info =array();
 		$ref =null;
 		
-		if ( ! is_callable($func)) {
+		if (is_string($func) || ! is_callable($func)) {
 
 			return array();
 		}
@@ -80,6 +80,7 @@ class VarsProfiler {
 		
 		$info["params"] =array();
 
+		/*
 		foreach ($ref->getParameters() as $ref_param) {
 
 			$info["params"][] =array(
@@ -90,7 +91,8 @@ class VarsProfiler {
 				"default_value_const" =>$ref_param->getDefaultValueConstantName(),
 			);
 		}
-
+		*/
+	
 		return $info;
 	}
 

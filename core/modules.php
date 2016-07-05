@@ -67,6 +67,12 @@
 			
 			return $func;
 		}
+
+		// [Transit] NS対応版から読み込む
+		if ($func =Transit::loadModule($module_group, $module_id)) {
+			
+			return $func;
+		}
 		
 		if ($force) {
 		

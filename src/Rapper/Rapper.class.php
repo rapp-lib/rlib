@@ -3,13 +3,7 @@
 /**
  * 自動生成エンジン
  */
-class Rapper extends Rapper_Base {
-}
-
-/**
- * 自動生成エンジンを構成する機能セット
- */
-class Rapper_Base {
+class Rapper {
     
     protected $schema =array();
     protected $deploy =array();
