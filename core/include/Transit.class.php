@@ -100,4 +100,15 @@ class Transit
 			}
 		}
 	}
+
+	/**
+	 * 
+	 */
+	public static function loadRapper ($mod, $options)
+	{
+		$r =new R\Lib\Rapper\Rapper;
+        $r->require_mod($mod);
+        $r->apply_filters("init",$options);
+        $r->apply_filters("proc",$options);
+	}
 }
