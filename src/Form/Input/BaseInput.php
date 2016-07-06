@@ -22,11 +22,10 @@ abstract class BaseInput
 
 	/**
 	 * [__construct description]
-	 * @param [type] $name   [description]
 	 * @param [type] $value  [description]
 	 * @param [type] $params [description]
 	 */
-	public function __construct ($name, $value, $params) 
+	public function __construct ($value, $params) 
 	{
 		$this->html ="";
 		$this->assign =array();

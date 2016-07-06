@@ -6,7 +6,7 @@ use R\Lib\Core\Html;
 /**
  * 
  */
-class Text extends BaseInput
+class Textarea extends BaseInput
 {
 	/**
 	 * @override
@@ -15,11 +15,18 @@ class Text extends BaseInput
 	{
 		list($params,$attrs) =$this->filterAttrs($attrs,array(
 		));
-		$attrs["type"] ="text";
 		$attrs["name"] =$name;
-		$attrs["value"] =$value;
+		$attr_html ="";
 		
-		$this->html =Html::tag("input",$attrs);
+		foreach($attrs as $k => $v ){
+			$attr_html .=' '.$k.'="'.str_replace('"','&quot;',$v).'"';
+		}
+		
+		$html ='';
+		$html .='<textarea'.$attr_html;
+		$html .='>'.$value.'</textarea>';
+		
+		$this->html =$html;
 		$this->assign =array();
 	}
 }

@@ -47,13 +47,12 @@ class Transit
 
 				return function ($params, $preset_value, $postset_value, $smarty) use ($input_class) {
 
-					$name =$params["name"];
-					$value =$params["value"];
+					$value =isset($postset_value)
+						? $postset_value
+						: $preset_value;
 					unset($params["type"]);
-					unset($params["name"]);
-					unset($params["value"]);
 					
-					$input =new $input_class($name,$value,$params);
+					$input =new $input_class($value,$params);
 					
 					if ($assignVars =$input->getAssign()) {
 					

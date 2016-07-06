@@ -6,7 +6,7 @@ use R\Lib\Core\Html;
 /**
  * 
  */
-class Text extends BaseInput
+class Hidden extends BaseInput
 {
 	/**
 	 * @override
@@ -15,7 +15,7 @@ class Text extends BaseInput
 	{
 		list($params,$attrs) =$this->filterAttrs($attrs,array(
 		));
-		$attrs["type"] ="text";
+		$attrs["type"] ="hidden";
 		$attrs["name"] =$name;
 		$attrs["value"] =$value;
 		

@@ -6,7 +6,7 @@ use R\Lib\Core\Html;
 /**
  * 
  */
-class Text extends BaseInput
+class Password extends BaseInput
 {
 	/**
 	 * @override
@@ -18,8 +18,13 @@ class Text extends BaseInput
 		$attrs["type"] ="text";
 		$attrs["name"] =$name;
 		$attrs["value"] =$value;
+
+		if ($attrs["autocomplete"] != "on") {
 		
-		$this->html =Html::tag("input",$attrs);
+			$attrs["autocomplete"] ="off";
+		}
+		
+		$this->html =Html::tag("password",$attrs);
 		$this->assign =array();
 	}
 }
