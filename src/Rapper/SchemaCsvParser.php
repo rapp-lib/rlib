@@ -1,11 +1,17 @@
 <?php
 
-//-------------------------------------
-//
+namespace R\Lib\Rapper;
+
+/**
+ * 
+ */
 class SchemaCsvParser {
 
-	//-------------------------------------
-	// SchemaCSVファイルを読み込む
+	/**
+     * SchemaCSVファイルを読み込む
+     * @param  [type] $filename [description]
+     * @return [type]           [description]
+     */
 	public function parse_schema_csv ($filename) {
 
 		$csv =new CSVHandler($filename,"r",array(

@@ -46,13 +46,13 @@ class ClassLoader
 
 		foreach (self::$map as $_ns => $_includePaths) {
 
-			// NSが適合しない場合はスキップ
+			// 基底NSが適合しない場合はスキップ
 			if ($_ns.'\\' !== substr($className, 0, strlen($_ns.'\\'))) {
 
 				continue;
 			}
 
-			// NS部分を切り捨てる（PSR-0不適合の仕様）
+			// 基底NS部分を切り捨てる（PSR-0不適合の仕様）
 			$className =substr($className, strlen($_ns.'\\'));
 			
 			$fileName = '';
@@ -77,5 +77,33 @@ class ClassLoader
 				}
 			}
 		}
+	}
+
+	/**
+	 * NSに対応するDIRを探索
+	 */
+	public static function getNsDirs($ns)
+	{
+		$nsDirs = array();
+
+		foreach (self::$map as $baseNs => $includePaths) {
+
+			// 基底NSが適合しない場合はスキップ
+			if ($baseNs.'\\' !== substr($ns, 0, strlen($baseNs.'\\'))) {
+
+				continue;
+			}
+			
+			// 基底NS部分を切り捨てる（PSR-0不適合の仕様）
+			$ns =substr($ns, strlen($baseNs.'\\'));
+			$dirName = str_replace('\\', '/', $ns);
+			
+			foreach ($includePaths as $includePath) {
+				
+				$nsDirs[] =$includePath . '/' . $dirName;
+			}
+		}
+
+		return $nsDirs;
 	}
 }
