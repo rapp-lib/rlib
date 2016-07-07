@@ -16,7 +16,7 @@ class AppRoot extends BaseMod {
 		
 		// Schema CSVファイルの読み込み（サーバ上から読み込み）
 		$r->add_filter("init",array("cond"=>array("schema_csv_file"=>"config")),function($r, $config) {
-			
+			report("test2");
 			$schema_csv_file =registry("Path.webapp_dir")."/config/schema.config.csv";
 			
 			// CSV読み込み
