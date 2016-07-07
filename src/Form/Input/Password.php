@@ -11,13 +11,15 @@ class Password extends BaseInput
 	/**
 	 * @override
 	 */
-	public function __construct ($name, $value, $attrs) 
+	public function __construct ($value, $attrs) 
 	{
 		list($params,$attrs) =$this->filterAttrs($attrs,array(
 		));
-		$attrs["type"] ="text";
-		$attrs["name"] =$name;
-		$attrs["value"] =$value;
+		
+		if (isset($value)) {
+			
+			$attrs["value"] =$value;
+		}
 
 		if ($attrs["autocomplete"] != "on") {
 		

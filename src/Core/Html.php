@@ -1,6 +1,6 @@
 <?php
 /*
-	2016/07/06
+	2016/07/06 
 		core/html.php内の全関数の移行完了
 		sanitize/sanitize\decodeはStringに移行
  */
@@ -134,7 +134,7 @@ class Html {
 	 * @param  [type] $content [description]
 	 * @return [type]          [description]
 	 */
-	private static function tag ($name, $attrs=null, $content=null) {
+	public static function tag ($name, $attrs=null, $content=null) {
 		
 		$html ='';
 		

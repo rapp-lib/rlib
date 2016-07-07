@@ -6,7 +6,7 @@ use R\Lib\Core\Html;
 /**
  * 
  */
-class Text extends BaseInput
+class Button extends BaseInput
 {
 	/**
 	 * @override
@@ -15,11 +15,6 @@ class Text extends BaseInput
 	{
 		list($params,$attrs) =$this->filterAttrs($attrs,array(
 		));
-		
-		if (isset($value)) {
-			
-			$attrs["value"] =$value;
-		}
 		
 		$this->html =Html::tag("input",$attrs);
 		$this->assign =array();

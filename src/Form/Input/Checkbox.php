@@ -11,16 +11,26 @@ class Checkbox extends BaseInput
 	/**
 	 * @override
 	 */
-	public function __construct ($name, $value, $attrs) 
+	public function __construct ($value, $attrs) 
 	{
 		
 		list($params,$attrs) =$this->filterAttrs($attrs,array(
 		));
-		$attrs["name"] =$name;
+
+		if ((strlen($value) && $attrs["value"] == $value)
+				|| ( ! strlen($value) && $attrs["checked"])) {
+			
+			$attrs['checked'] ="checked";
+
+		} else {
+
+			unset($attrs['checked']);
+		}
 
 		$attr_html ="";
 		
 		foreach ($attrs as $k => $v) {
+			
 			$attr_html .=' '.$k.'="'.$v.'"';
 		}
 		
@@ -28,14 +38,13 @@ class Checkbox extends BaseInput
 		$html .=(
 			'<input'
 			.' type="hidden"'
-			.' name="'.$name.'"'
+			.' name="'.$attrs["name"].'"'
 			.' value=""'
 			.' />'."\n"
 		);
 		$html .=(
 			'<input'
 			.' type="checkbox"'
-			.' value="'.$value.'"'
 			.$attr_html
 			.' />'
 		);

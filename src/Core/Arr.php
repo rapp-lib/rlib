@@ -8,7 +8,7 @@ namespace R\Lib\Core;
 /**
  * 
  */
-class Array {
+class Arr {
 
 	/**
 	 * [extract description]
@@ -23,10 +23,10 @@ class Array {
 				
 				if (is_array($arr[$k])) {
 					
-					Array::extract($arr[$k]);
+					Arr::extract($arr[$k]);
 				}
 				
-				$ref =& Array::ref($arr,$k);
+				$ref =& Arr::ref($arr,$k);
 				$ref =$arr[$k];
 			}
 		
@@ -40,7 +40,7 @@ class Array {
 	 * @param  array  $root_k [description]
 	 * @return [type]         [description]
 	 */
-	pblic static function archive ( & $root, $node=null, $root_k=array()) 
+	public static function archive ( & $root, $node=null, $root_k=array()) 
 	{
 		
 		if ($node === null) {
@@ -55,7 +55,7 @@ class Array {
 			
 			if (is_array($node[$k])) {
 			
-				Array::archive($root,$node[$k],$root_k_copy);
+				Arr::archive($root,$node[$k],$root_k_copy);
 				
 			} else {
 
@@ -143,6 +143,7 @@ class Array {
 		}
 		
 		return $arr_escaped;
+		
 	}
 	
 	/**
@@ -198,7 +199,7 @@ class Array {
 				
 			} else {
 				
-				$ref =Array::ref($arr, $name);
+				$ref =Arr::ref($arr, $name);
 			}
 			
 			// 必須エラー
@@ -223,7 +224,7 @@ class Array {
 			
 		} else {
 			
-			$ref =& Array::ref($arr, $name);
+			$ref =& Arr::ref($arr, $name);
 		}
 		
 		// 消去（value=false）
@@ -241,7 +242,7 @@ class Array {
 				
 				if (preg_match('!^(.*?[^\.])\.([^\.]+)$!',$name,$match)) {
 				
-					$ref =& Array::ref($arr, $match[1]);
+					$ref =& Arr::ref($arr, $match[1]);
 					unset($ref[$match[2]]);
 					
 				} else {

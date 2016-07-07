@@ -11,20 +11,28 @@ class Textarea extends BaseInput
 	/**
 	 * @override
 	 */
-	public function __construct ($name, $value, $attrs) 
+	public function __construct ($value, $attrs) 
 	{
 		list($params,$attrs) =$this->filterAttrs($attrs,array(
+			"type",
+			"value",
 		));
-		$attrs["name"] =$name;
-		$attr_html ="";
+
+		if (isset($value)) {
+			
+			$params["value"] =$value;
+		}
 		
+		$attr_html ="";
+
 		foreach($attrs as $k => $v ){
+			
 			$attr_html .=' '.$k.'="'.str_replace('"','&quot;',$v).'"';
 		}
 		
 		$html ='';
 		$html .='<textarea'.$attr_html;
-		$html .='>'.$value.'</textarea>';
+		$html .='>'.$params["value"].'</textarea>';
 		
 		$this->html =$html;
 		$this->assign =array();
