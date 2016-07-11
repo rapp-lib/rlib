@@ -5,7 +5,7 @@ namespace R\Lib\Form\Rule;
 /**
  * 
  */
-class Mail extends BaseRule {
+class MailLeft extends BaseRule {
 
 	/**
 	 * override
@@ -17,6 +17,6 @@ class Mail extends BaseRule {
 	 */
 	public function check ($value) {
 
-		return  ! strlen($value) || preg_match('/^([a-z0-9_]|\-|\.|\+)+@(([a-z0-9_]|\-)+\.)+[a-z]{2,6}$/i', $value);
+		return  (! strlen($value)) || preg_match('/^([a-z0-9_]|\-|\.|\+)+@(([a-z0-9_]|\-)+\.)+[a-z]{2,6}$/i', $value."@docomo.ne.jp");
 	}
 }

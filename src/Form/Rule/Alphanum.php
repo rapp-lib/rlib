@@ -15,7 +15,7 @@ class Alphanum extends BaseRule {
 	/**
 	 * override
 	 */
-	public function check ($value, $params) {
+	public function check ($value) {
 
 		return  ! strlen($value) || ctype_alnum($value);
 	}
