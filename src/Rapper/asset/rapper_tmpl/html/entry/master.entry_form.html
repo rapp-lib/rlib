@@ -1,9 +1,9 @@
 <?=$c["header"]?> 
 
-<h1 class="page_label"><?=$c["label"]?>：編集</h1>
+<h2 class="page_label"><?=$c["label"]?>：編集</h1>
 
 <!-- errors_module -->
-{{if $c->errors()}}
+{{if $c && $c->errors()}}
 	<div class="errors">
 	{{foreach $c->errors() as $input_name => $error_message}}
 		<div class="errmsg">{{$error_message}}</div>

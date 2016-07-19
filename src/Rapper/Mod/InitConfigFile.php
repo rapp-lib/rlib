@@ -14,27 +14,23 @@ class InitConfigFile extends BaseMod {
 		
 		$r =$this->r;
 		
-		// init.schema ["routing","label","auth","install_sql"]
-		// ->[config_file]
-		$r->add_filter("init.schema",array(),function($r, $s) {
-			
-			$s["config_file"]["routing"] =array("_id" =>"routing_config", "file" =>"routing.config.php");
-			$s["config_file"]["label"] =array("_id" =>"label_config", "file" =>"label.config.php");
-			$s["config_file"]["auth"] =array("_id" =>"auth_config", "file" =>"auth.config.php");
-			$s["config_file"]["install_sql"] =array("_id" =>"install_sql", "file" =>"install.sql");
-			
-			return $s;
-		});
-		
-		// init.deploy [config_file]
+		// init.deploy
 		// ->{id=config_file.xxx ,dest_file=/config/xxx.config.php, data_type=php_tmpl}
-		$r->add_filter("init.deploy.config_file",array(),function($r, $config_file) {
+		$r->add_filter("init.deploy",array(),function($r, $d) {
 			
-			$r->deploy("config_file.".$config_file["_id"],array(
-				"data_type" =>"php_tmpl",
-				"tmpl_file" =>"config_file/".$config_file["file"],
-				"dest_file" =>"app/config/".$config_file["file"],
-			));
+			$config_files =array(
+				"routing_config" => array("file" =>"routing.config.php"),
+				"routing_config" => array("file" =>"label.config.php"),
+				"routing_config" => array("file" =>"auth.config.php"),
+				"routing_config" => array("file" =>"install.sql"),
+			);
+			foreach ($config_files as $config_file) {
+				$r->deploy("config_file.".$config_file["_id"],array(
+					"data_type" =>"php_tmpl",
+					"tmpl_file" =>"config_file/".$config_file["file"],
+					"dest_file" =>"app/config/".$config_file["file"],
+				));
+			}
 		});
 	}
 }

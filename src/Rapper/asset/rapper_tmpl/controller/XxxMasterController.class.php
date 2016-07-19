@@ -1,20 +1,23 @@
 <?php
-    $model_obj ='$this->model("'.$c["table"].'"'.($c["accessor"] ? ',"'.$c["accessor"].'"': '').')';
-    
-?><!?php
+	$modelCall =$r->mod("app_root")->getModelCallOnController($c);
+    //$model_obj ='$this->model("'.$c["table"].'"'.($c["accessor"] ? ',"'.$c["accessor"].'"': '').')';
+	$filedsSearch =$r->mod("app_root")->getFields($c,"search");
+	$filedsCsv =$r->mod("app_root")->getFields($c,"csv");
+	
+?><@?php
 
 /**
 * <?=$c["label"]?> 
 */
-class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
-
+class <?=str_camelize($c["_id"])?>Controller extends Controller_App 
+{
 <? if ($c["has"]["list_setting"]): ?>
 	/**
     * 検索フォーム設定
     */
 	protected $list_setting =array(
 		"search" =>array(
-<? foreach ($r->get_fields($c["_id"],"search_input") as $f): ?>
+<? foreach ($fieldsSearch as $f): ?>
 			"<?=$f["_id"]?>" =>array("type" =>'eq', "target" =>"<?=$f["_id"]?>"),
 <? endforeach; ?>
 		),
@@ -37,7 +40,7 @@ class <?=str_camelize($c["_id"])?>Controller extends Controller_App {
 	protected $csv_setting = array(
 		"rows" =>array(
 			"<?=$t['pkey']?>" =>"#ID",
-<? foreach ($r->get_fields($c["_id"],"csv") as $f): ?>
+<? foreach ($r->mod("app_root")->getFields($c,"csv") as $f): ?>
 			"<?=$f['_id']?>" =>"<?=$f['label']?>",
 <? endforeach; ?>
 		),

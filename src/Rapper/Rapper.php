@@ -1,9 +1,9 @@
-<?php 
+<?php
 
 namespace R\Lib\Rapper;
+use R\Lib\Core\Arr;
 use R\Lib\Core\String;
 use R\Lib\Core\ClassLoader;
-use R\Lib\Core\Report;
 use R\Lib\Core\Profiler;
 
 /**
@@ -12,45 +12,43 @@ use R\Lib\Core\Profiler;
 class Rapper 
 {
 	/**
-	 * [$schema description]
+	 * schemaレジストリ
 	 * @var array
 	 */
 	protected $schema =array();
 
 	/**
-	 * [$deploy description]
+	 * deployレジストリ
 	 * @var array
 	 */
 	protected $deploy =array();
 	
 	/**
-	 * [$installModId description]
-	 * @var [type]
-	 */
-	protected $installModId;
-	
-	/**
-	 * [$mods description]
+	 * 登録されているModのリスト
 	 * @var array
 	 */
 	protected $mods =array();
 
 	/**
-	 * [$filters description]
+	 * 登録されているFilterのリスト
 	 * @var array
 	 */
 	protected $filters =array();
 	
 	/**
-	 * 
+	 * install()処理中のmod_id
+	 * @var [type]
 	 */
-	public function mod ($mod_id)
-	{
-		return $this->mods[$mod_id];
-	}
+	private $installModId;
 	
 	/**
-	 * 
+	 * $installModIdの退避用スタック
+	 * @var [type]
+	 */
+	private $installModIdStack =array();
+	
+	/**
+	 * schemaレジストリ操作
 	 */
 	public function & schema ($name=null, $value=null) {
 		
@@ -58,7 +56,7 @@ class Rapper
 	}
 	
 	/**
-	 * 
+	 * deployレジストリ操作
 	 */
 	public function & deploy ($name=null, $value=null) {
 		
@@ -66,31 +64,34 @@ class Rapper
 	}
 	
 	/**
-	 * 
+	 * Modのインストール
 	 */
 	public function require_mod ($mod_id) 
 	{
+		// 登録済みであればinstall()処理はスキップ
 		if ($this->mods[$mod_id]) {
 			return;
 		}
 
+		// Modのインスタンス生成
 		$mod_class ='R\\Lib\\Rapper\\Mod\\'.String::camelize($mod_id);
 		$mod =new $mod_class($this);
 		$this->mods[$mod_id] =$mod;
 		
-		// Mod\*->install
+		// Mod->install()の呼び出し
+		array_push($this->installModIdStack, $this->installModId);
 		$this->installModId =$mod_id;
 		$mod->install();
-		$this->installModId =null;
+		$this->installModId =array_pop($this->installModIdStack);
 	}
 	
 	/**
-	 * 
+	 * Filterの登録
 	 */
 	public function add_filter ($type, $options, $func) 
 	{
 		if ( ! $this->installModId) {
-			Report::error("Mod->install()外ではfilter登録できません");
+			report_error("Mod->install()外ではfilter登録できません");
 		}
 
 		$filter =$options;
@@ -100,9 +101,10 @@ class Rapper
 		$filter["mod_id"] =$this->installModId;
 		
 		if ($filter_exists =$this->filters[$filter["type"]][$filter["id"]]) {
-			Report::error("同名のfilterが登録されています",array(
-				"filter" =>$filter,
-				"filter_exists" =>$filter_exists,
+			report_error("同名のfilterが登録されています",array(
+				"filter_id" =>$filter["id"],
+				"filter_1" =>$filter_exists,
+				"filter_2" =>$filter,
 			));
 		}
 		
@@ -110,10 +112,10 @@ class Rapper
 	}
 	
 	/**
-	 * 
+	 * Filterの適用
 	 */
-	public function apply_filters ($type, $data=null) {
-		
+	public function apply_filters ($type, $data=null) 
+	{
 		foreach ((array)$this->filters[$type] as $filter) {
 			// 適用条件判定
 			foreach ((array)$filter["cond"] as $k => $v) {
@@ -133,60 +135,5 @@ class Rapper
 		}
 
 		return $data;
-	}
-	
-	/**
-	 * 
-	 */
-	public function parse_schema_csv_file ($schema_csv_file) 
-	{
-		$parser =new SchemaCsvParser;
-		$schema =$parser->parse_schema_csv($schema_csv_file);
-		return $schema;
-	}
-	
-	/**
-	 * 
-	 */
-	public function label ($schema_index, $id) 
-	{
-		// 配列指定時には要素を処理して返す
-		if (is_array($id)) {
-			$labels =array();
-			foreach ($id as $k=>$v) {
-				$labels[$k] =$this->label($schema_index,$v);
-			}
-			return $labels;
-		}
-		
-		$label =$this->schema($schema_index.".".$id.".label");
-		return strlen($label) ? $label : $id;
-	}
-	
-	/**
-	 * 
-	 */
-	public function parse_php_tmpl ($tmpl_file_path,$tmpl_vars) 
-	{
-		$tmpl_asset_path ="asset/rapper_tmpl/".$tmpl_file_path;
-		$tmpl_file =ClassLoader::findAsset('R\\Lib\\Rapper',$tmpl_asset_path);
-
-		// tmpl_fileの検索
-		if ( ! $tmpl_file) {
-			Report::error("テンプレートファイルがありません",array(
-				"tmpl_file" =>$tmpl_asset_path,
-			));
-		}
-		
-		// tmpl_varsのアサイン
-		$r =$this;
-		extract($tmpl_vars,EXTR_REFS);
-		
-		ob_start();
-		include($tmpl_file);
-		$src =ob_get_clean();
-		$src =str_replace('<!?','<?',$src);
-		
-		return $src;
 	}
 }

@@ -5,134 +5,102 @@ namespace R\Lib\Rapper\Mod;
 /**
  * 起動用Mod
  */
-class AppRoot extends BaseMod {
+class AppRoot extends BaseMod 
+{
+	/**
+	 * 
+	 */ 
+	public function install () 
+	{
+		$this->installLoadSchemaCsv();
+		$this->installAddFilters();
+		$this->installProc();
+	}
 
 	/**
 	 * 
 	 */ 
-	public function install () {
-		
+	private function installLoadSchemaCsv () 
+	{
 		$r =$this->r;
-		
+
 		// Schema CSVファイルの読み込み（サーバ上から読み込み）
-		$r->add_filter("init",array("cond"=>array("schema_csv_file"=>"config")),function($r, $config) {
-			report("test2");
+		$r->add_filter("init",array("cond"=>array("schema_csv_file"=>"config")),function($r, $config) 
+		{
 			$schema_csv_file =registry("Path.webapp_dir")."/config/schema.config.csv";
 			
 			// CSV読み込み
-			$schema =$r->parse_schema_csv_file($schema_csv_file);
+			$schema =SchemaCsvParser::parse($schema_csv_file);
 			$r->schema($schema);
 		});
 		
 		// Schema CSVファイルの読み込み（アップロード）
-		$r->add_filter("init",array("cond"=>array("schema_csv_file"=>"upload")),function($r, $config) {
-			
+		$r->add_filter("init",array("cond"=>array("schema_csv_file"=>"upload")),function($r, $config) 
+		{
 			$schema_csv_file =$_FILES["schema_csv_file"]["tmp_name"];
 			
 			// CSV読み込み
-			$schema =$r->parse_schema_csv_file($schema_csv_file);
+			$schema =SchemaCsvParser::parse($schema_csv_file);
 			$r->schema($schema);
 		});
-		
+
 		// Modの読み込み→Schema/Deployの各種初期化フィルタの呼び出し
-		$r->add_filter("init",array(),function($r, $config) {
-			
+		$r->add_filter("init",array(),function($r, $config) 
+		{
 			$schema = & $r->schema();
 			
 			// modの読み込み
 			foreach ((array)$schema["mod"] as $mod_id => $mod) {
-				
 				$r->require_mod($mod_id);
 			}
-			
-			// トラバーサルにapply_filtersを行う処理
-			$f =function ($filter, & $schema_item, $parents, $overwrite=true) use ( & $f, $r) {
-				
-				if ($parents) {
-					
-					$parent =array_shift($parents);
-					
-					foreach ($schema_item as & $schema_item_elm) {
-						
-						$f($filter, $schema_item_elm, $parents, $overwrite);
-					}
-				
-				} else {
-				
-					foreach ($schema_item as & $schema_item_elm) {
-						
-						if ($overwrite) {
-							
-							$schema_item_elm =$r->apply_filters($filter, $schema_item_elm);
-						
-						} else {
-							
-							$r->apply_filters($filter, $schema_item_elm);
-						}
-					}
-				}
-			};
-			
+
 			// schema情報の初期化
 			$schema =$r->apply_filters("init.schema",$schema);
 			
 			foreach ($schema as $si => & $schema_item) {
-				
-				$f("pre_init.schema.".$si,$schema_item,$schema["schema"][$si]["parents"],true);
-			}
-			
-			foreach ($schema as $si => & $schema_item) {
-				
-				$f("init.schema.".$si,$schema_item,$schema["schema"][$si]["parents"],true);
-			}
-			
-			foreach ($schema as $si => & $schema_item) {
-				
-				$f("post_init.schema.".$si,$schema_item,$schema["schema"][$si]["parents"],true);
+				$schema_item = $r->apply_filters("init.schema.".$si, $schema_item);
 			}
 			
 			report("Schemaの初期化完了",$r->schema());
 
-			// deploy（生成物）情報の初期化
+			// deploy情報の初期化
 			$r->apply_filters("init.deploy");
 			
-			foreach ($schema as $si => & $schema_item) {
-				
-				$f("init.deploy.".$si,$schema_item,$schema["schema"][$si]["parents"],false);
+			foreach ($schema as $si => $schema_item) {
+				$r->apply_filters("init.deploy.".$si, $r->getSchemaElement($si));
 			}
 			
 			report("Deployの初期化完了",$r->deploy());
 		});
 		
 		// テストの実行
-		$r->add_filter("proc",array("cond"=>array("mode"=>"test")),function($r, $config) {
-			
+		$r->add_filter("proc",array("cond"=>array("mode"=>"test")),function($r, $config) 
+		{
 			report("test実行",$config);
 			
 			$ds = & $r->deploy();
 			
 			foreach ($ds as $d) {
-				
 				report($d);
-				
 				$d =$r->apply_filters("proc.preview.deploy",$d);
-				
 				print $d["preview"];
 			}
 		});
 		
 		// 対象を指定したプレビュー表示の実行
-		$r->add_filter("proc",array("cond"=>array("mode"=>"preview")),function($r, $config) {
-			
+		$r->add_filter("proc",array("cond"=>array("mode"=>"preview")),function($r, $config) 
+		{
 			report("preview実行",$config);
 			
 			$d = & $r->deploy($config["target"]);
 			$r->apply_filters("proc.preview.deploy",$d);
+			
+			print $d["preview"];
 		});
 		
 		// 対象を指定したダウンロードの実行
-		$r->add_filter("proc",array("cond"=>array("target","mode"=>"download")),function($r, $config) {
-			
+		$r->add_filter("proc",array("cond"=>array("target","mode"=>"download")),function($r, $config) 
+		{
 			report("download実行",$config);
 		
 			$deploy = & $r->deploy($config["target"]);
@@ -143,14 +111,6 @@ class AppRoot extends BaseMod {
 				"data" =>$deploy["src"],
 			));
 		});
-		
-		// controller.*のtypeによるActionの補完
-		/*
-			init.schema [controller](type=["master","login"])
-				->[action]
-		*/
-		$r->require_mod("init_controller_master");
-		$r->require_mod("init_controller_login");
 		
 		// テスト仕様書のDeploy登録
 		/*
@@ -189,10 +149,7 @@ class AppRoot extends BaseMod {
 		$r->require_mod("init_model");
 		
 		/*
-			init.schema [col]
-				->[list_option]
-			init.deploy [list_option]
-				->app/list/XxxListOptions.class.php
+		
 		*/
 		$r->require_mod("init_list_option");
 		

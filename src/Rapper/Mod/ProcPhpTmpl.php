@@ -1,6 +1,7 @@
 <?php
 
 namespace R\Lib\Rapper\Mod;
+use R\Lib\Rapper\PhpTmplParser;
 
 /**
  * deploy(data_type=php_tmpl)に対する処理
@@ -25,7 +26,7 @@ class ProcPhpTmpl extends BaseMod {
 			}
 			
 			// tmpl_fileの検索
-			$src =$r->parse_php_tmpl($deploy["tmpl_file"],$tmpl_vars);
+			$src =PhpTmplParser::parse($deploy["tmpl_file"],$tmpl_vars);
 			
 			$deploy["preview"] ='<code>'.nl2br(htmlspecialchars($src)).'</code>';
 			
@@ -43,7 +44,7 @@ class ProcPhpTmpl extends BaseMod {
 			}
 			
 			// tmpl_fileの検索
-			$src =$r->parse_php_tmpl($deploy["tmpl_file"],$tmpl_vars);
+			$src =PhpTmplParser::parse($deploy["tmpl_file"],$tmpl_vars);
 			
 			$deploy["preview"] ='<code>'.$src.'</code>';
 			

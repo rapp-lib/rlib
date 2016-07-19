@@ -1,13 +1,15 @@
-<!?php
+<@?php
 
-//-------------------------------------
-// Model: <?=$t["label"]?> 
-class <?=str_camelize($t["name"])?>Model extends Model_App {
-
-	//-------------------------------------
-	// ID指定で1件取得
-	public function get_by_id ($id) {
-	
+/**
+ * Model: <?=$t["label"]?>
+ */
+class <?=str_camelize($t["name"])?>Model extends Model_App 
+{
+	/**
+	 * ID指定で1件取得
+	 */
+	public function get_by_id ($id) 
+	{
 		$query =array(
 			"table" =>"<?=$t["name"]?>",
 			"conditions" =>array(
@@ -22,31 +24,11 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 		return $t;
 	}
 
-	//-------------------------------------
-	// 無条件での全件取得
-	public function get_all () {
-	
-		$query =array(
-			"table" =>"<?=$t["name"]?>",
-			"conditions" =>array(
-<? if ($t['del_flg']): ?>
-				"<?=$t['del_flg']?>" =>"0",
-<? endif; ?>
-			),
-<? if ($t['reg_date']): ?>
-			"order" =>"<?=$t['reg_date']?>",
-<? endif; ?>
-			
-		);
-		$ts =$this->select($query);
-		
-		return $ts;
-	}
-
-	//-------------------------------------
-	// 検索フォームの結果取得
-	public function get_by_search_form ($list_setting, $input, $is_forcsv=false) {
-		
+	/**
+	 * 検索フォームの結果取得
+	 */
+	public function get_by_search_form ($list_setting, $input, $is_forcsv=false) 
+	{
 		// 条件を指定して要素を取得
 		$query =$this->get_list_query($list_setting, $input);
 		$query =$this->merge_query($query, array(
@@ -72,8 +54,9 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 		return array($ts,$p);
 	}
 
-	//-------------------------------------
-	// フォームからのデータ更新/新規登録
+	/**
+	 * フォームからのデータ更新/新規登録
+	 */
 	public function save ($fields, $id=null) {
 		
 		// IDの指定があれば更新
@@ -120,8 +103,9 @@ class <?=str_camelize($t["name"])?>Model extends Model_App {
 		return $id;
 	}
 
-	//-------------------------------------
-	// 削除
+	/**
+	 * 削除
+	 */
 	public function drop ($id) {
 	
 <? if ($t['del_flg']): ?>

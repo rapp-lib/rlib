@@ -31,10 +31,10 @@ class InitModel extends BaseMod {
 		// ->/app/model/XxxModel.class.php
 		$r->add_filter("init.deploy.model",array(),function($r, $model) {
 			
-			$r->deploy("model.".$model["_id"],array(
+			$r->deploy("model.".$model->getId(),array(
 				"data_type" =>"php_tmpl",
 				"tmpl_file" =>"model/XxxModel.class.php",
-				"dest_file" =>"app/model/".$model["_id"]."Model.class.php",
+				"dest_file" =>"app/model/".$model->getClassName().".class.php",
 			));
 		});
 	}

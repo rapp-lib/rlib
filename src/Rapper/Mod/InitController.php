@@ -13,89 +13,98 @@ class InitController extends BaseMod {
 	public function install () {
 		
 		$r =$this->r;
-		
-		$r->register_method("get_fields",function ($r, $c_id, $type){
+	
+		// type=index→actionの補完
+		$r->add_filter("init.schema.controller",array("cond"=>array("type"=>"index")),function($r,$c) 
+		{
+			// 空白ページ
+			$c["action"]["index"] = array(
+				"name" =>"index",
+			);
+		});
+	
+		// type=master→actionの補完
+		$r->add_filter("init.schema.controller",array("cond"=>array("type"=>"master")),function($r,$c) 
+		{
+			if ($c["usage"] != "form") {
+				// 表示
+				$c["action"]["list"] = array(
+					"name" =>"list",
+				);
+				$c["action"]["detail"] = array(
+					"name" =>"detail",
+				);
+				// CSV出力
+				if ($c["use_csv"]) {
+					$c["action"]["export_csv"] = array(
+						"name" =>"export_csv",
+					);
+				}
+			}
 			
-			$c =$r->schema("controller.".$c_id);
+			if ($c["usage"] != "view") {
+				// フォーム入力
+				$c["action"]["entry"] = array(
+					"name" =>"entry",
+				);
+				if ($c["use_csv"]) {
+					// CSV登録
+					$c["action"]["import_csv"] = array(
+						"name" =>"import_csv",
+					);
+				}
+			}
 			
-			$table =$a["table"] ? $a["table"] : ($c["table"] ? $c["table"] : "");
-			$rel_id =$a["rel"] ? $a["rel"] : ($c["rel"] ? $c["rel"] : "default");
-			
-			// 関連するtableがなければ対象外
-			if ( ! $table) { continue; }
-			
-			foreach ((array)$r->schema("col.".$table) as $col_id => $col) {
-				
-				// 関係する入力項目（rel=input|required）以外を除外
-				$rel =$col["rels"][$rel_id];
-				if ($rel != "input" && $rel != "required") { continue; }
+			if ($c["usage"] != "form" && $c["usage"] != "view") {
+				// 削除
+				$c["action"]["delete"] = array(
+					"name" =>"delete",
+				);
 			}
 		});
 	
-		// 親子関係のあるSchemaの定義補完
-		$r->add_filter("init.schema",array(),function($r, $schema) {
-			
-			$schema["schema"]["action"]["parents"] =array("controller");
-			return $schema;
-		});
-		
-		// init.deploy [action]
-		// ->{id=action_method.xxx.xxx, method_name=act_xxx()}
-		// ->html/xxx/xxx.xxx.html
-		$r->add_filter("init.deploy.action",array(),function($r, $a) {
-			
-			$c =$r->schema("controller.".$a["controller"]);
-			$_id =$a["_id"];
-			
-			$r->deploy("action_method.".$_id,array(
-				"data_type" =>"php_tmpl",
-				"tmpl_file" =>"controller/".$c["type"]."/".$a["type"].".php",
-			));
-			
-			// HTMLなし
-			if ( ! $a["no_html"]) {
-				
-				$r->deploy("action_html.".$_id,array(
-					"data_type" =>"php_tmpl",
-					"tmpl_file" =>"html/".$c["type"]."/".$a["type"].".html",
-					"dest_file" =>"html/".$a["path"],
-				));
-			}
+		// type=login→actionの補完
+		$r->add_filter("init.schema.controller",array("cond"=>array("type"=>"login")),function($r,$c) 
+		{
+			// ログイン
+			$c["action"]["login"] = array(
+				"name" =>"login",
+			);
 		});
 		
 		// init.deploy [controller]
-		// ->app/controller/XxxController.class.php
-		//   class XxxController
-		//   proc.deploy [action]
+		// ->action_method.xxx.xxx
+		// ->html/xxx/xxx.html
+		// ->controller_class.xxx
 		$r->add_filter("init.deploy.controller",array(),function($r, $c) {
-			
-			$r->deploy("controller_class.".$c["_id"],array(
+
+			foreach ($c->getActions() as $a) {
+				
+				$r->deploy("action_method.".$c->getId().".".$a->getId(),array(
+					"data_type" =>"php_tmpl",
+					"tmpl_file" =>"controller/action/".$a->getType().".php",
+					"assign" =>array("c" =>$c, "a" =>$a),
+				));
+
+				foreach ($a->getPages() as $page) {
+
+					if ($page->hasHtml()) {
+						$r->deploy("page_html.".$_id,array(
+							"data_type" =>"php_tmpl",
+							"tmpl_file" =>"html/action/".$a->getType()."/".$page->getType().".html",
+							"dest_file" =>"html/".$page->getPath(),
+							"assign" =>array("c" =>$c, "a" =>$a, "page" =>$page),
+						));
+					}
+				}
+			}
+
+			$r->deploy("controller_class.".$c->getId(),array(
 				"data_type" =>"php_tmpl",
-				"tmpl_file" =>"controller/Xxx".str_camelize($c["type"])."Controller.class.php",
-				"dest_file" =>"app/controller/".str_camelize($c["_id"])."Controller.class.php",
-				"tmpl_schema" =>array(
-					"c" =>"controller.".$c["_id"],
-				),
+				"tmpl_file" =>"controller/XxxController.class.php",
+				"dest_file" =>"app/controller/".$c->getClassName().".class.php",
+				"assign" =>array("c" =>$c),
 			));
-		});
-		
-		// ダミー関数
-		$r->register_method("filter_fields",function ($r, $cols, $type) {
-		});
-		
-		// Fieldの絞り込み取得
-		$r->register_method("get_fields",function ($r, $c_id, $type) {
-			/*
-			fields
-				search
-			c.has.list_setting
-			c.has.csv_setting
-			*/
-		});
-		
-		// Controllerクラス内でのメソッドのソースを取得
-		$r->register_method("get_controller_method",function ($r, $c_id) {
-			return array();
 		});
 	}
 }
