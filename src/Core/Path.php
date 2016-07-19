@@ -3,26 +3,25 @@
 	2016/07/06
 		core/string.php内の全関数の移行
 		fileToUrl以外は置き換え終了。fileToUrlはWebapp.class作成する必要あり。
-		
-		registry -> Vars::registry
 
 		getPageToPathMap 確認OK
-		relativePath 確認PreOK (fileToUrlは以前のapply_url_rewrite_rulesを使用)
+		relativePath 確認OK
 		relativePage 確認OK
-		pathToPage 確認PreOK (fileToUrlは以前のapply_url_rewrite_rulesを使用)
+		pathToPage 確認OK 
 		inPath 
 		pageToPath 確認OK
 		pathToFile 確認OK
-		fileToUrl 確認PreOK 以前のapply_url_rewrite_rulesを使用
+		fileToUrl 確認OK 
 		pathToUrl 確認OK
 		urlToPath 確認OK
 		pageToFile 確認OK
-		pageToUrl 確認PreOK (fileToUrlは以前のapply_url_rewrite_rulesを使用)
+		pageToUrl 確認OK
 		isPublicFile
  */
 namespace R\Lib\Core;
 
 use R\Lib\Core\Vars;
+use R\Lib\Core\Webapp;
 /**
  * 
  */
@@ -245,7 +244,7 @@ class Path {
 		}
 
 		$url =preg_replace($pattern,$document_root_url."/",$file);
-		$url =apply_url_rewrite_rules($url);
+		$url =Webapp::applyUrlRewriteRules($url);
 
 		return $url;
 	}

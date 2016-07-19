@@ -5,18 +5,18 @@ namespace R\Lib\Form\Rule;
 /**
  * 
  */
-class Alphabet extends BaseRule {
+class Unmatch extends BaseRule {
 
 	/**
 	 * override
 	 */
-	protected $message ="英字のみで入力してください";
+	protected $message ="一致していません";
 
 	/**
 	 * override
 	 */
 	public function check ($value) {
 
-		return  ! strlen($value) || ctype_alpha($value);
+		return  strcmp($value,$this->params["option"]) == 0;
 	}
 }

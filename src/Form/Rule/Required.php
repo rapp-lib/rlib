@@ -15,7 +15,7 @@ class Required extends BaseRule {
 	/**
 	 * override
 	 */
-	public function check ($value, $params) {
+	public function check ($value) {
 
 		if (is_array($value)) {
 
