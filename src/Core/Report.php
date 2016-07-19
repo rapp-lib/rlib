@@ -8,7 +8,8 @@ namespace R\Lib\Core;
 
 use R\Lib\Core\Vars;
 use R\Lib\Core\Webapp;
-use R\Lib\Core\ReportError;
+use R\Lib\Core\Report\ReportError;
+
 /**
  * 
  */
