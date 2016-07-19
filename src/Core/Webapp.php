@@ -4,17 +4,24 @@
 		置き換え対象が多いためメモ
 		registry -> Vars::registry		
 		ref_globals -> Vars::refGlobals
+		ref_session -> Vars::refSession
 		sanitize -> String::sanitizeRequest
 		encrypt_string -> String::encrypt
-		add_include_path -> Modules::addIncludePath(予定)
-		load_lib -> Modules::loadLib(予定)
-		report -> Report::report(予定)
+		add_include_path -> Modules::addIncludePath
+		load_lib -> Modules::loadLib
+		report -> Report::report
+		report_buffer_end -> Report::reportBufferEnd
+		report_error -> Report::reportError
+		tag -> Html::tag
  */
 namespace R\Lib\Core;
 
 use R\Lib\Core\Vars;
 use R\Lib\Core\String;
 use R\Lib\Core\Path;
+use R\Lib\Core\Report;
+use R\Lib\Core\Html;
+
 /**
  * 
  */
@@ -111,13 +118,13 @@ class Webapp {
 		// include_pathの設定
 		foreach ((array)Vars::registry("Config.webapp_include_path") as $k => $v) {
 			
-			add_include_path(Vars::registry("Path.webapp_dir")."/".$v);
+			Modules::addIncludePath(Vars::registry("Path.webapp_dir")."/".$v);
 		}
 
 		// ライブラリの読み込み
 		foreach ((array)Vars::registry("Config.load_lib") as $k => $v) {
 			
-			load_lib($v);
+			Modules::loadLib($v);
 		}
 		
 		obj("Rdoc")->check();
@@ -187,7 +194,7 @@ class Webapp {
 			
 			if (Vars::registry("Report.report_about_dync")) {
 			
-				report("Dync status-report.",array(
+				Report::report("Dync status-report.",array(
 					"request_ts" =>$_REQUEST["__ts"],
 					"server_dync_key" =>$dync_key,
 					"server_min" =>date("Y/m/d H:i",time()),
@@ -299,7 +306,7 @@ class Webapp {
 		// 以降の出力をバッファに転送
 		ob_start("send_to_clean_output_buffer");
 
-		shutdown_webapp("clean_output");
+		Webapp::shutdownWebapp("clean_output");
 	}
 
 	/**
@@ -354,7 +361,7 @@ class Webapp {
 
 		} else if ($cause=="error_report") {
 
-			if (get_webapp_dync("report")) {
+			if (Webapp::getWebappDync("report")) {
 
 				$res["message"] =$options["errstr"];
 
@@ -367,7 +374,7 @@ class Webapp {
 			$res["response"] =& $clean_output_buffer;
 		}
 
-		if (get_webapp_dync("report") && $cause!="normal") {
+		if (Webapp::getWebappDync("report") && $cause!="normal") {
 
 			$res["report"] ="on";
 			$res["buffer"] =& $clean_output_buffer;
@@ -456,7 +463,7 @@ class Webapp {
 			}
 		}
 		
-		return url($url, $params);
+		return Html::url($url, $params);
 	}
 
 	/**
@@ -478,7 +485,7 @@ class Webapp {
 		// 通常終了時はFlushMessageを削除
 		if ($cause == "normal") {
 		
-			flush_message(false);
+			Webapp::flushMessage(false);
 		}
 		
 		// register_shutdown_webapp_functionで登録された処理の実行
@@ -513,7 +520,7 @@ class Webapp {
 	// 標準PHP終了ハンドラ
 	public static function stdShutdownHandler () {
 		
-		report_buffer_end(true);
+		Report::reportBufferEnd(true);
 
 		$error =error_get_last();
 		
@@ -539,7 +546,7 @@ class Webapp {
 			// shutdown_webappを経由しない不正な終了
 			} else {
 				
-				report_warning("Illegal shutdown, Not routed shutdown_webapp");
+				Report::reportWarning("Illegal shutdown, Not routed shutdown_webapp");
 			}
 		}
 	}
@@ -655,7 +662,7 @@ class Webapp {
 			
 		} else {
 			
-			report_error("Invalid Response Code",array(
+			Report::reportError("Invalid Response Code",array(
 				"response_code" =>$response_code,
 			));
 		}
@@ -677,24 +684,24 @@ class Webapp {
 		
 		if (preg_match('!^page:(.*)$!',$url,$match)) {
 			
-			if ($tmp_url =page_to_url($match[1])) {
+			if ($tmp_url =Path::pageToUrl($match[1])) {
 			
 				$url =$tmp_url;
 			
 			} else {
 			
-				report_error("Redirect page is-not routed.",array(
+				Report::reportError("Redirect page is-not routed.",array(
 					"page" =>$match[1],
 				));
 			}
 		}
 		
-		$url =apply_url_rewrite_rules($url);
+		$url =Webapp::applyUrlRewriteRules($url);
 		
 		$params =array_merge(
 			(array)$params,
-			(array)output_rewrite_var(),
-			(array)redirect_rewrite_var()
+			(array)Webapp::outputRewriteVar(),
+			(array)Webapp::redirectRewriteVar()
 		);
 		
 		if (ini_get("session.use_trans_sid")
@@ -703,21 +710,21 @@ class Webapp {
 			$params[session_name()] =session_id();
 		}
 		
-		$url =url($url,$params,$anchor);
+		$url =Html::url($url,$params,$anchor);
 		
-		if (get_webapp_dync("report")) {
+		if (Webapp::getWebappDync("report")) {
 			
 			$redirect_link_html ='<div style="padding:20px;'
 					.'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
 					.'Redirect ... '.$url.'</div>';
-			print tag("a",array("href"=>$url),$redirect_link_html);
+			print Html::tag("a",array("href"=>$url),$redirect_link_html);
 			
 		} else {
 			
 			header("Location: ".$url);
 		}
 		
-		shutdown_webapp("redirect",array(
+		Webapp::shutdownWebapp("redirect",array(
 			"url" =>$url,
 		));
 	}
@@ -744,7 +751,7 @@ class Webapp {
 	// FlushMessageの設定/取得
 	public static function flushMessage ($flush_message=null) {
 		
-		$s_flush_message =& ref_session("flush_message");
+		$s_flush_message =& Vars::refSession("flush_message");
 		
 		if ($flush_message === false) {
 			
