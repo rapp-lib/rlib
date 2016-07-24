@@ -4,8 +4,8 @@
 
 <!-- search_module -->
 <h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 検索</span></h2>
-{{form _page="."}}
-{{input type="hidden" name="reset" value="1"}}
+{{form _page="." method="GET"}}
+	<input name="c" value="" type="hidden"/>
 	<div class="ad_btn clearfix">
 		<table class="tbl_admin search">
 <? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>

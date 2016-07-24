@@ -109,7 +109,7 @@ class Controller_Base extends SmartyExtended {
 		    
             $sname =$sname_scope.".".$sname;
                   
-		} else if ($sname === null || $sname === 0) {
+		} else if ($sname === 0) {
 			
 			$sname =$sname_scope.".".str_underscore($this->action_name);
 			

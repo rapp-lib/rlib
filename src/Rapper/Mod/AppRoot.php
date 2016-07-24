@@ -1,6 +1,7 @@
 <?php
 
 namespace R\Lib\Rapper\Mod;
+use R\Lib\Rapper\SchemaCsvParser;
 
 /**
  * 起動用Mod
@@ -12,15 +13,16 @@ class AppRoot extends BaseMod
 	 */ 
 	public function install () 
 	{
-		$this->installLoadSchemaCsv();
-		$this->installAddFilters();
+		$this->installSchemaCsvLoader();
+		$this->installApplyFilters();
 		$this->installProc();
+		$this->installMod();
 	}
 
 	/**
 	 * 
 	 */ 
-	private function installLoadSchemaCsv () 
+	private function installSchemaCsvLoader () 
 	{
 		$r =$this->r;
 
@@ -43,6 +45,14 @@ class AppRoot extends BaseMod
 			$schema =SchemaCsvParser::parse($schema_csv_file);
 			$r->schema($schema);
 		});
+	}
+
+	/**
+	 * 
+	 */
+	private function installApplyFilters () 
+	{
+		$r =$this->r;
 
 		// Modの読み込み→Schema/Deployの各種初期化フィルタの呼び出し
 		$r->add_filter("init",array(),function($r, $config) 
@@ -67,12 +77,20 @@ class AppRoot extends BaseMod
 			$r->apply_filters("init.deploy");
 			
 			foreach ($schema as $si => $schema_item) {
-				$r->apply_filters("init.deploy.".$si, $r->getSchemaElement($si));
+				$r->apply_filters("init.deploy.".$si, $r->factorySchemaObject($si, $schema_item));
 			}
 			
 			report("Deployの初期化完了",$r->deploy());
 		});
-		
+	}
+
+	/**
+	 * 
+	 */ 
+	private function installProc () 
+	{
+		$r =$this->r;
+
 		// テストの実行
 		$r->add_filter("proc",array("cond"=>array("mode"=>"test")),function($r, $config) 
 		{
@@ -111,7 +129,15 @@ class AppRoot extends BaseMod
 				"data" =>$deploy["src"],
 			));
 		});
-		
+	}
+
+	/**
+	 * 
+	 */ 
+	private function installMod () 
+	{
+		$r =$this->r;
+
 		// テスト仕様書のDeploy登録
 		/*
 			init.deploy 
