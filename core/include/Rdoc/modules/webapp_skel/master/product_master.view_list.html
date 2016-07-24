@@ -36,9 +36,9 @@
 {{*
 <!-- sort_module -->
 <div>
-	{{a _page="." _c=["sort"=>"<?=$t['pkey']?>@DESC"]}}登録順▼{{/a}}
+	{{a _page="." _c=$c->merge_input(["sort"=>"<?=$t['pkey']?>@DESC"])}}登録順▼{{/a}}
 <? foreach ($this->filter_fields($t["fields"],"sort") as $tc): ?>
-	{{a _page="." _c=["sort"=>"<?=$tc['name']?>@DESC"]}}<?=$tc['label']?>順▼{{/a}}
+	{{a _page="." _c=$c->merge_input(["sort"=>"<?=$tc['name']?>@DESC"])}}<?=$tc['label']?>順▼{{/a}}
 <? endforeach; ?>
 </div>
 <!-- /sort_module -->
@@ -89,17 +89,17 @@
 <p>全{{$p.total}}件中 {{$p.from}}件～{{$p.to}}件を表示</p>
 <ul class="clearfix">
 	{{if $p.prev !== null}}
-		<li class="prev">{{a _page="." _query="c[offset]=`$p.prev`"}}前{{/a}}</li>
+		<li class="prev">{{a _page="." _c=$c->merge_input("offset"=>$p.prev])}}前{{/a}}</li>
 	{{/if}}
 	{{foreach $p.pages as $index => $page_offset}}
 		{{if $index==$p.current}} 
-			<li class="current">{{a _page="." _query="c[offset]=`$page_offset`" class="current"}}{{$index}}{{/a}}</li>
+			<li class="current">{{a _page="." _c=$c->merge_input("offset"=>$page_offset]) class="current"}}{{$index}}{{/a}}</li>
 		{{else}}
-			<li>{{a _page="." _query="c[offset]=`$page_offset`"}}{{$index}}{{/a}}</li>
+			<li>{{a _page="." _c=$c->merge_input("offset"=>$page_offset])}}{{$index}}{{/a}}</li>
 		{{/if}}
 	{{/foreach}}
 	{{if $p.next !== null}}
-		<li class="next">{{a _page="." _query="c[offset]=`$p.next`"}}次{{/a}}</li>
+		<li class="next">{{a _page="." _c=$c->merge_input("offset"=>$p.next])}}次{{/a}}</li>
 	{{/if}}
 </ul>
 </div>
