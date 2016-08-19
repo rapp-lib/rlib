@@ -200,4 +200,52 @@ class Context_Base {
             $this->errors($error_index,$result);
         }
     }
+
+	/**
+	 * 値の消去
+	 */
+	public function clear () 
+	{
+		$this->session(false,false);
+	}
+
+	/**
+	 * 正常値が設定されているかどうか
+	 */
+	public function has_valid_input ($flag=null) 
+	{
+		if ($flag!==null) {
+			$this->session("_has_valid_input",$flag);
+		}
+		return $this->session("_has_valid_input");
+	}
+
+	/**
+	 * 検索結果ページへのリンクパラメータ組み立て
+	 */
+	public function merge_input ($params) 
+	{
+		$input =$this->input();
+		$input =array_merge($input,$params);
+		$this->filter_empty_value($input);
+		return $input;
+	}
+
+	/**
+	 * 空白要素の削除
+	 */
+	private function filter_empty_value ( & $values) 
+	{
+		foreach ($values as $k => $v) {
+			if (is_array($v)) {
+				$v =$this->filter_empty_value($v);
+				if ( ! $v) {
+					unset($values[$k]);
+				}
+			} else if (strlen($v)===0) {
+				unset($values[$k]);
+			}
+		}
+		return $values;
+	}
 }

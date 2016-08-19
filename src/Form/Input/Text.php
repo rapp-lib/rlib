@@ -15,8 +15,9 @@ class Text extends BaseInput
 	{
 		list($params,$attrs) =$this->filterAttrs($attrs,array(
 		));
-		$attrs["type"] ="text";
+		$attrs["name"] =$name;
 		$attrs["value"] =$value;
+		$attrs["type"] ="text";
 		
 		$this->html =Html::tag("input",$attrs);
 		$this->assign =array();
