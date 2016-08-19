@@ -11,13 +11,15 @@ class Text extends BaseInput
 	/**
 	 * @override
 	 */
-	public function __construct ($name, $value, $attrs) 
+	public function __construct ($value, $attrs) 
 	{
 		list($params,$attrs) =$this->filterAttrs($attrs,array(
 		));
-		$attrs["name"] =$name;
-		$attrs["value"] =$value;
-		$attrs["type"] ="text";
+		
+		if (isset($value)) {
+			
+			$attrs["value"] =$value;
+		}
 		
 		$this->html =Html::tag("input",$attrs);
 		$this->assign =array();

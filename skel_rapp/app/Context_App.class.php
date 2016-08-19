@@ -5,16 +5,29 @@
 class Context_App extends Context_Base {
 
 	//-------------------------------------
-	// act_*前処理
-	public function before_act () {
-	
-		parent::before_act();
+	// 検索結果ページへのリンクパラメータ組み立て
+	public function merge_input ($params) 
+	{
+		$input =$this->input();
+		$input =array_merge($input,$params);
+		$this->filter_empty_value($input);
+		return $input;
 	}
-	
+
 	//-------------------------------------
-	// act_*後処理
-	public function after_act () {
-	
-		parent::after_act();
+	// 空白要素の削除
+	private function filter_empty_value ( & $values) 
+	{
+		foreach ($values as $k => $v) {
+			if (is_array($v)) {
+				$v =$this->filter_empty_value($v);
+				if ( ! $v) {
+					unset($values[$k]);
+				}
+			} else if (strlen($v)===0) {
+				unset($values[$k]);
+			}
+		}
+		return $values;
 	}
 }

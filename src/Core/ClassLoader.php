@@ -7,6 +7,10 @@ namespace R\Lib\Core;
  */
 class ClassLoader 
 {
+	/**
+	 * [$map description]
+	 * @var array
+	 */
 	protected static $map =array();
 
 	/**
@@ -43,39 +47,51 @@ class ClassLoader
 	 */
 	public static function loadClass($className)
 	{
+		if (false !== ($lastNsPos = strripos($className, '\\'))) {
+			
+			// クラス名からNSを分離
+			$ns = substr($className, 0, $lastNsPos);
+			$className = substr($className, $lastNsPos + 1);
+			$fileName = str_replace('_', '/', $className).'.php';
+			
+			if ($found =self::findAsset($ns,$fileName)) {
 
+				require_once($found);
+			}
+		}
+	}
+
+	/**
+	 * NS上のファイルを探索する
+	 * @param  [type] $ns [description]
+	 * @param  [type] $path [description]
+	 * @return [type]     [description]
+	 */
+	public static function findAsset($ns, $path)
+	{
 		foreach (self::$map as $_ns => $_includePaths) {
 
-			// NSが適合しない場合はスキップ
-			if ($_ns.'\\' !== substr($className, 0, strlen($_ns.'\\'))) {
+			// 基底NSが適合しない場合はスキップ
+			if ($_ns.'\\' !== substr($ns, 0, strlen($_ns.'\\'))) {
 
 				continue;
 			}
 
-			// NS部分を切り捨てる（PSR-0不適合の仕様）
-			$className =substr($className, strlen($_ns.'\\'));
+			// 基底NS部分を切り捨てる（PSR-0不適合の仕様）
+			$ns =substr($ns, strlen($_ns.'\\'));
 			
-			$fileName = '';
-
-			// クラス名からNSを分離
-			if (false !== ($lastNsPos = strripos($className, '\\'))) {
-				
-				$ns = substr($className, 0, $lastNsPos);
-				$className = substr($className, $lastNsPos + 1);
-				$fileName = str_replace('\\', '/', $ns) . '/';
-			}
-
-			$fileName .= str_replace('_', '/', $className).'.php';
+			$fileName = str_replace('\\', '/', $ns) . '/' . $path;
 
 			foreach ($_includePaths as $dir) {
 				
 				if (file_exists($found = $dir . '/' .$fileName)) {
 
-					// 対象のファイルが発見された場合はrequire後探索終了
-					require_once($found);
-					return;
+					// 対象のファイルが発見された場合は探索終了
+					return $found;
 				}
 			}
 		}
+
+		return null;
 	}
 }

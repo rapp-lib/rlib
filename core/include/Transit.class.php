@@ -47,13 +47,10 @@ class Transit
 
 				return function ($params, $preset_value, $postset_value, $smarty) use ($input_class) {
 
-					$name =$params["name"];
-					$value =$params["value"];
-					unset($params["type"]);
-					unset($params["name"]);
-					unset($params["value"]);
+					$value =$postset_value;
+					$params["value"] =$preset_value;
 					
-					$input =new $input_class($name,$value,$params);
+					$input =new $input_class($value,$params);
 					
 					if ($assignVars =$input->getAssign()) {
 					
@@ -99,5 +96,17 @@ class Transit
 				};
 			}
 		}
+	}
+
+
+	/**
+	 * 
+	 */
+	public static function loadRapper ($mod, $options)
+	{
+		$r =new R\Lib\Rapper\Rapper;
+        $r->require_mod($mod);
+        $r->apply_filters("init",$options);
+        $r->apply_filters("proc",$options);
 	}
 }

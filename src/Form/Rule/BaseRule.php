@@ -8,11 +8,20 @@ namespace R\Lib\Form\Rule;
 abstract class BaseRule {
 
 	protected $message ="入力が不正です";
+	protected $params =array();
 
 	/**
 	 * 
 	 */
-	public function check ($value, $params) {
+	public function __construct ($params)  {
+
+		$this->params =$params;
+	}
+
+	/**
+	 * 
+	 */
+	public function check ($value) {
 
 		return false;
 	}
