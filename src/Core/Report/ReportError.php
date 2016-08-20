@@ -4,14 +4,14 @@
 		core/report.php内にあるReportErrorクラスの分離・置き換え
 
  */
-namespace R\Lib\Core;
+namespace R\Lib\Core\Report;
 
 use R\Lib\Core\Webapp;
 
 /**
  * 
  */
-class ReportError extends ErrorException 
+class ReportError extends \ErrorException 
 {
 	protected $report_vars;
 
