@@ -210,42 +210,58 @@ class Context_Base {
 	}
 
 	/**
-	 * 入力値の設定と入力チェック
+	 * 入力チェックルールの設定
 	 */
-	public function validate_input ($values, $rules) 
+	public function set_rules ($rules) 
 	{
-		$this->clear();
-		$this->input($values);
-		
+		$this->session("__errors",false);
+		$this->session("__has_valid_input",false);
+		$this->session("__rules",false);
+
 		foreach ($rules as $k=>$v) {
 			if (is_string($v)) {
 				$rules[$k] =array($v, "required");
 			}
 		}
 
-		// [Deprecated]旧Validateの仕様への過渡的互換処理
+		$this->session("__rules",$rules);
+	}
+
+	/**
+	 * 入力値の設定と入力チェック
+	 */
+	public function validate_input ($values) 
+	{
+		$this->session("__input",false);
+		$this->session("__errors",false);
+		$this->session("__has_valid_input",false);
+		
+		$this->input($values);
+		$rules =$this->session("__rules");
+
+		// [Deprecated]旧仕様への過渡的互換処理
 		$rules_old =array();
+		$rules_old_each =array();
 		foreach ($rules as $k=>$v) {
+			$v["options"] =$v;
+			$v["type"] =$v[1];
 			if (preg_match('!^([^\*]+)\.\*\.([^\*]+)$!', $v[0], $match)) {
-				$v["options"] =$v;
 				$v["target"] =$match[2];
-				$v["type"] =$v[1];
-				$rules_old["each"][$match[1]] =$v;
+				$rules_old_each[$match[1]] =$v;
 			} else {
-				$v["options"] =$v;
 				$v["target"] =$v[0];
-				$v["type"] =$v[1];
-				$rules_old["root"][] =$v;
+				$rules_old[] =$v;
 			}
 		}
 
-		$this->validate(array(), (array)$rules_old["root"]);
+		$this->validate(array(), (array)$rules_old);
 		
-		foreach ((array)$rules_old["each"] as $base=>$ruleset) {
+		foreach ((array)$rules_old_each as $base=>$ruleset) {
 			$this->validate_each($base, array(), (array)$ruleset);
 		}
 		
 		$is_valid = ! $this->errors();
+		
 		$this->has_valid_input($is_valid);
 	}
 
@@ -255,9 +271,58 @@ class Context_Base {
 	public function has_valid_input ($flag=null) 
 	{
 		if ($flag!==null) {
-			$this->session("_has_valid_input",$flag);
+			$this->session("__has_valid_input",(boolean)$flag);
 		}
-		return $this->session("_has_valid_input");
+		return $this->session("__has_valid_input");
+	}
+
+	/**
+	 * 入力値を取得
+	 */
+	public function get_input () 
+	{
+		return $this->input();
+	}
+
+	/**
+	 * 正常値を取得
+	 */
+	public function get_valid_input () 
+	{
+		return $this->has_valid_input() ? $this->input() : array();
+	}
+
+	/**
+	 * 入力エラーを取得
+	 */
+	public function get_errors () 
+	{
+		$errors =array();
+		foreach ((array)$this->errors() as $k => $message) {
+			if (preg_match('!^([^\.]+)\.([^\.]+)$!',$k, $match)) {
+				list(, $name, $type) =$match;
+				$errors[] =array(
+					"name" =>$name,
+					"type" =>$type,
+					"message" =>$message,
+				);
+			} else if (preg_match('!^([^\.]+)(\.[^\.]+)+\.([^\.]+)$!',$k, $match)) {
+				list(, $name, $name_keys, $type) =$match;
+				$name_attr =$name.'['.str_replace('.','][',substr($name_keys,1)).']';
+				$errors[] =array(
+					"name" =>$name.$name_keys,
+					"name_attr" =>$name_attr,
+					"type" =>$type,
+					"message" =>$message,
+				);
+			} else {
+				$errors[] =array(
+					"name" =>$k,
+					"message" =>$message,
+				);
+			}
+		}
+		return $errors;
 	}
 
 	/**
