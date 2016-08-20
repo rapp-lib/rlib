@@ -1,8 +1,17 @@
 {
+    "name": "rlib/rlib",
+    "description": "Simple webapp library",
+    "type": "library",
+    "license": "MIT",
 	"require": {
 		"doctrine/orm": "*",
-		"smarty/smarty": "*"
+		"smarty/smarty": "*",
+        "pear-pear.php.net/PEAR": "*@stable"
 	},
+	"repositories": [
+		{"type": "pear", "url": "http://pear.php.net"},
+        {"type": "vcs", "url": "https://bitbucket.org/sharingseed/rlib.git"}
+	],
 	"autoload": {
 		"psr-4": {
 			"R\\Lib\\": "src/"
