@@ -91,18 +91,14 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	public function act_view_list () {
 		
 		$this->context("c",0);
-		
-		if ($_REQUEST["reset"]) {
-		
+
+		if (isset($_REQUEST["c"])) {
 			$this->c->input(false,false);
-		}
-		
-		$this->c->input($_REQUEST["c"]);
+			$this->c->input($_REQUEST["c"]);
+        }
         
-        $input =$this->c->input();
-        
-		list($this->vars["ts"] ,$this->vars["p"]) =<?=_model_instance($t,$c)?> 
-				->get_by_search_form($this->list_setting,$input);
+		list($this->vars["ts"] ,$this->vars["p"]) =model("Product") 
+				->get_by_search_form($this->list_setting, $this->c->input());
 	}
 
 	//-------------------------------------

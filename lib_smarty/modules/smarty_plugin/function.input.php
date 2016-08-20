@@ -84,6 +84,16 @@
 			}
 		}
 
+		// formで指定された値
+		if ($smarty->current_form) {
+			$values =$smarty->current_form["values"];
+			// Contextが指定されている
+			if (is_a($values,"Context_Base")) {
+				$values =$values->input();
+			}
+			$postset_value =ref_array($values,$name_ref);
+		}
+
 		// HTML上で指定したvalue属性
 		$preset_value =$params['value'];
 		unset($params['value']);

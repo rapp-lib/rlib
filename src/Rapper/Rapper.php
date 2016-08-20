@@ -136,4 +136,19 @@ class Rapper
 
 		return $data;
 	}
+
+	/**
+	 * Schemaに対応するSchemaオブジェクトを生成
+	 * @param  [type] $si [description]
+	 * @return [type]     [description]
+	 */
+	public function factorySchemaObject ($si, $schema_item) 
+	{
+		$schemaClass ='R\\Lib\\Rapper\\Schema\\'.String::camelize($si);
+		if ( ! class_exists($schemaClass)) {
+			$schemaClass ='R\\Lib\\Rapper\\Schema\\General';
+		}
+		$schemaObject =new $schemaClass($schema_item["_id"],$schema_item);
+		return $schemaObject;
+	}
 }

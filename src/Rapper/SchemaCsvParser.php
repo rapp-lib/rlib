@@ -13,7 +13,7 @@ class SchemaCsvParser {
      * @param  [type] $filename [description]
      * @return [type]           [description]
      */
-	public function parse_schema_csv ($filename) {
+	public function parse ($filename) {
 
 		$csv =new CSVHandler($filename,"r",array(
 			"file_charset" =>"SJIS-WIN",

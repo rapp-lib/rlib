@@ -18,6 +18,14 @@ class Controller extends BaseSchema
 	/**
 	 * 
 	 */
+	public function getActions()
+	{\report($this->schema);
+		return $this->schema["actions"];
+	}
+
+	/**
+	 * 
+	 */
 	public function getAction($actionName)
 	{
 		return $this->schema["actions"][$actionName];

@@ -8,6 +8,7 @@ class SmartyBC extends Smarty {}
 class SmartyExtended extends SmartyBC {
 	
 	public $_tpl_vars;
+	public $current_form;
 	
 	//-------------------------------------
 	// 初期化
@@ -280,10 +281,18 @@ class SmartyExtended extends SmartyBC {
 		
 		// 開始タグ処理
 		if ($repeat) {
-		
+			
+			if ($type == "form") {
+				$this->current_form = & $params;
+			}
+
 		// 終了タグ処理
 		} else {
 			
+			if ($type == "form") {
+				unset($this->current_form);
+			}
+
 			$attr_html ="";
 			$url_params =array();
 			$hidden_input_html ="";
@@ -295,11 +304,13 @@ class SmartyExtended extends SmartyBC {
 			$method =$params["method"]
 					? $params["method"]
 					: "post";
+			$values =$params["values"];
 			
 			unset($params["href"]);
 			unset($params["action"]);
 			unset($params["anchor"]);
 			unset($params["method"]);
+			unset($params["values"]);
 			
             // URLの決定
             
