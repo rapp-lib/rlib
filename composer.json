@@ -1,0 +1,11 @@
+{
+	"require": {
+		"doctrine/orm": "*",
+		"smarty/smarty": "*"
+	},
+	"autoload": {
+		"psr-4": {
+			"R\\Lib\\": "src/"
+		}
+	}
+}
