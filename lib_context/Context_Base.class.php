@@ -230,11 +230,15 @@ class Context_Base {
 	/**
 	 * 入力値の設定と入力チェック
 	 */
-	public function validate_input ($values) 
+	public function validate_input ($values, $rules=null) 
 	{
 		$this->session("__input",false);
 		$this->session("__errors",false);
 		$this->session("__has_valid_input",false);
+		
+		if ($rules!==null) {
+			$this->set_rules($rules);
+		}
 		
 		$this->input($values);
 		$rules =$this->session("__rules");
