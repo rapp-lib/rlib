@@ -281,13 +281,17 @@ class SmartyExtended extends SmartyBC {
 		
 		// 開始タグ処理
 		if ($repeat) {
-		
-			$this->current_form = & $params;
+			
+			if ($type == "form") {
+				$this->current_form = & $params;
+			}
 
 		// 終了タグ処理
 		} else {
 			
-			unset($this->current_form);
+			if ($type == "form") {
+				unset($this->current_form);
+			}
 
 			$attr_html ="";
 			$url_params =array();

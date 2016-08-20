@@ -210,6 +210,46 @@ class Context_Base {
 	}
 
 	/**
+	 * 入力値の設定と入力チェック
+	 */
+	public function validate_input ($values, $rules) 
+	{
+		$this->clear();
+		$this->input($values);
+		
+		foreach ($rules as $k=>$v) {
+			if (is_string($v)) {
+				$rules[$k] =array($v, "required");
+			}
+		}
+
+		// [Deprecated]旧Validateの仕様への過渡的互換処理
+		$rules_old =array();
+		foreach ($rules as $k=>$v) {
+			if (preg_match('!^([^\*]+)\.\*\.([^\*]+)$!', $v[0], $match)) {
+				$v["options"] =$v;
+				$v["target"] =$match[2];
+				$v["type"] =$v[1];
+				$rules_old["each"][$match[1]] =$v;
+			} else {
+				$v["options"] =$v;
+				$v["target"] =$v[0];
+				$v["type"] =$v[1];
+				$rules_old["root"][] =$v;
+			}
+		}
+
+		$this->validate(array(), (array)$rules_old["root"]);
+		
+		foreach ((array)$rules_old["each"] as $base=>$ruleset) {
+			$this->validate_each($base, array(), (array)$ruleset);
+		}
+		
+		$is_valid = ! $this->errors();
+		$this->has_valid_input($is_valid);
+	}
+
+	/**
 	 * 正常値が設定されているかどうか
 	 */
 	public function has_valid_input ($flag=null) 
