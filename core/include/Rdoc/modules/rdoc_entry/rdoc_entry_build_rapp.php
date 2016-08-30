@@ -168,7 +168,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 		
 		// HTMLの構築
 		foreach (array(
-			array("name"=>"entry_form", "label"=>"ログイン"),
+			array("name"=>"login", "label"=>"ログイン"),
 		) as $a) {
 		
 			$src =$this->find_skel($c["skel"],
@@ -232,7 +232,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 				
 				if ($t[$key]) { 
 					
-					$t[$key] =$t_name.".".$t[$key]; 
+					//$t[$key] =$t_name.".".$t[$key]; 
 					$syskeys[$key] =$t[$key];
 				}
 			}
@@ -240,7 +240,8 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 			// カラムごとに処理
 			foreach ((array)registry("Schema.cols.".$t_name) as $tc_name => $tc) {
 				
-				$tc["name"] =$t_name.".".$tc_name;
+				//$tc["name"] =$t_name.".".$tc_name;
+				$tc["name"] =$tc_name;
 				$tc["short_name"] =$tc_name;
 				
 				// データ表現別のオプション付加

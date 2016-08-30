@@ -1,13 +1,39 @@
 <?php
 
-//-------------------------------------
-// Controller基本クラス
-class Controller_App extends Controller_Base {
+/**
+ * 親Controller
+ */
+class Controller_App extends Controller_Base 
+{
+	/**
+	 * メール送信
+	 */
+	protected function send_mail ($options)
+	{
+		if ($options["template"] && ! $options["template_file"]) {
+			$options["template_file"] =registry("Path.webapp_dir")."/mail/".$options["template"].".php";
+		}
+		if ($options["vars"] && ! $options["template_options"]) {
+			$options["template_options"] =$options["vars"];
+		}
+		/*
+		$options["send_mode"] ="smtp";
+		$options["send_options"] =array(
+				"host" =>"example.com",
+				"port" =>"587",
+				"auth" =>true,
+				"username" =>"info@example.com",
+				"password" =>"password",
+		);
+		*/
+		obj("BasicMailer")->send_mail($options);
+	}
 
-	//-------------------------------------
-	// act_*前処理
-	public function before_act () {
-	
+	/**
+	 * act_*前処理
+	 */
+	public function before_act () 
+	{
 		parent::before_act();
 		
 		$this->before_act_force_https();
@@ -20,17 +46,19 @@ class Controller_App extends Controller_Base {
 		obj("LayoutRequestArray")->fetch_request_array();
 	}
 	
-	//-------------------------------------
-	// act_*後処理
-	public function after_act () {
-	
+	/**
+	 * act_*後処理
+	 */
+	public function after_act () 
+	{
 		parent::after_act();
 	}
-	
-	//-------------------------------------
-	// HTTPアクセス制限
-	protected function before_act_force_https () {
-		
+
+	/**
+	 * HTTPアクセス制限
+	 */
+	protected function before_act_force_https () 
+	{
 		$request_path =registry("Request.request_path");
 			
 		// HTTPS/HTTPアクセス制限の設定解決
@@ -61,11 +89,12 @@ class Controller_App extends Controller_Base {
 			}
 		}
 	}
-	
-	//-------------------------------------
-	// 認証処理
-	protected function before_act_auth () {
-		
+
+	/**
+	 * 認証処理
+	 */
+	protected function before_act_auth () 
+	{
 		$request_path =registry("Request.request_path");
 		
 		foreach ((array)registry("Auth") as $account => $config) {
@@ -79,9 +108,9 @@ class Controller_App extends Controller_Base {
 			
 			// contextの関連付け
 			$this->context($var_name,$var_name,false,array(
-                "scope"=>"global",
-                "class"=>$class_name,
-            ));
+				"scope"=>"global",
+				"class"=>$class_name,
+			));
 			
 			// model accessorの関連付け
 			model(null,$account)->init_accessor(array(
@@ -108,32 +137,34 @@ class Controller_App extends Controller_Base {
 		}
 	}
 	
-	//-------------------------------------
-	// CSRF対策
-	protected function before_act_protect_against_csrf () {
+	/**
+	 * CSRF対策
+	 */
+	protected function before_act_protect_against_csrf () 
+	{
+		$config =registry("Security.csrf");
+		$protect_pages =$config["protect_pages"];
 		
-        $config =registry("Security.csrf");
-        $protect_pages =$config["protect_pages"];
-        
-        $path =registry("Request.request_path");
-        $pac_ticket =substr(md5(session_id()),3,6);
-        
-        if ($protect_pages) {
-        
-            if (in_path($path,$protect_pages) && $_REQUEST["_pac_ticket"] !== $pac_ticket) {
-                
-                report_error("PA-CSRF ticket error",array(
-                    "pac_ticket" =>$pac_ticket,
-                    "request_pac_ticket" =>$_REQUEST["_pac_ticket"],
-                ));
-            }
-            
-            add_url_rewrite_rule($protect_pages, "_pac_ticket", $pac_ticket);
-        }
+		$path =registry("Request.request_path");
+		$pac_ticket =substr(md5(session_id()),3,6);
+		
+		if ($protect_pages) {
+		
+			if (in_path($path,$protect_pages) && $_REQUEST["_pac_ticket"] !== $pac_ticket) {
+				
+				report_error("PA-CSRF ticket error",array(
+					"pac_ticket" =>$pac_ticket,
+					"request_pac_ticket" =>$_REQUEST["_pac_ticket"],
+				));
+			}
+			
+			add_url_rewrite_rule($protect_pages, "_pac_ticket", $pac_ticket);
+		}
 	}
 	
-	//-------------------------------------
-	// Vifリクエスト処理
+	/**
+	 * Vifリクエスト処理
+	 */
 	protected function before_act_setup_vif () {
 		
 		$vif_request =$_SERVER["HTTP_X_VIF_REQUEST"] ? true : false;
@@ -214,10 +245,11 @@ class Controller_App extends Controller_Base {
 		}
 	}
 	
-	//-------------------------------------
-	// ガラケー向け設定変更
-	protected function before_act_config_for_fp () {
-		
+	/**
+	 * ガラケー向け設定変更
+	 */
+	protected function before_act_config_for_fp () 
+	{
 		// Docomoガラケー向け設定
 		if (preg_match('!Docomo/[12]!',$_SERVER["HTTP_USER_AGENT"])) {
 			

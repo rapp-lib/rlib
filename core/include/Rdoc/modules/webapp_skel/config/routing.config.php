@@ -9,8 +9,7 @@
 			"<?=$c['name']?>.index" =>"/<?=$c['name']?>/index.html",
 <? elseif ($c["type"] == "login"): ?>
 			"<?=$c['name']?>.index" =>"/<?=$c['name']?>/index.html",
-			"<?=$c['name']?>.login_form" =>"/<?=$c['name']?>/login_form.html",
-			"<?=$c['name']?>.login_confirm" =>"/<?=$c['name']?>/login_confirm.html",
+			"<?=$c['name']?>.login" =>"/<?=$c['name']?>/login.html",
 			"<?=$c['name']?>.logout" =>"/<?=$c['name']?>/logout.html",
 <? elseif ($c["type"] == "master"): ?>
 			"<?=$c['name']?>.index" =>"/<?=$c['name']?>/index.html",

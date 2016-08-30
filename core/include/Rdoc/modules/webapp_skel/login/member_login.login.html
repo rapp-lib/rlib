@@ -1,0 +1,36 @@
+<?=$c["header"]?> 
+
+<!-- Viframeでは読み込まないページとしてマーク -->
+<a class="vifPreventLoad"></a>
+
+<div id="main">
+
+<!--ログイン-->
+
+<h2 class="h2_login"><?=$c["label"]?></h2>
+<p>IDとパスワードを入力し、 ログインしてください。</p>
+
+{{if $login_error}}
+<p style="color:#ff0000;">※IDまたはパスワードに誤りがあります。</p>
+{{/if}}
+
+<!-- entry_module -->
+{{form action="."|page_to_url method="post" values=$c}}
+    <input type="hidden" name="_i" value="c"/>
+    <div class="login">
+        <dl>
+            <dt>ID</dt>
+            <dd>{{input type="text" name="login_id" value=""}}</dd>
+            <dt>パスワード</dt>
+            <dd>{{input type="password" name="login_pass" value=""}}</dd>
+        </dl>
+        <div class="ad_btn txt_c">
+            <a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" id="login"><i class="fa fa-arrow-right"></i>ログイン</a></div>
+        </div>
+    </div>
+{{/form}}
+<!-- /entry_module -->
+
+</div><!--main-->
+
+<?=$c["footer"]?> 

@@ -9,13 +9,13 @@
 <? foreach ($this->filter_fields($t["fields"],"input") as $tc): ?>
 		<tr>
 			<th><?=$tc['label']?></th>
-			<td>{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}</td>
+			<td>{{$t.<?=$tc['short_name']?><?=$tc['modifier']?>}}</td>
 		</tr>
 <? endforeach; ?>
 	</table>
 	<div class="ad_btn">
-		{{a _page=".entry_exec" class="sBtn"}}登録{{/a}}
-		{{a _page=".entry_form" class="rBtn"}}戻る{{/a}}
+		<a href='{{".entry_exec"|page_to_url}}' class="sBtn">登録</a>
+		<a href='{{".entry_form"|page_to_url}}' class="rBtn">戻る</a>
 	</div>
 <!-- /show_module -->
 

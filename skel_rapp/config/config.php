@@ -100,36 +100,3 @@
 		registry(array_escape((array)$loader_config));
 	}
 	
-	//-------------------------------------
-	// ドメイン別設定の上書き
-	foreach ((array)registry("Config.vhosts") as $site_id => $site_config) {
-		
-		$server_names = ! is_array($site_config["server_name"]) 
-				? array($site_config["server_name"])
-				: $site_config["server_name"];
-		$server_name =$server_names[0];
-		
-		foreach ($server_names as $server_name) {
-		
-			if ($_SERVER["SERVER_NAME"] == $server_name) {
-				
-				registry(array(
-					"Config.vhost.site_id" =>$site_id,
-					"Config.vhost.server_name" =>$server_name,
-				));
-				
-				if ( ! registry("Path.document_root_url")) {
-					
-					registry(array(
-						"Path.document_root_url" =>"http://".$server_name,
-						"Path.document_root_url_https" =>"https://".$server_name,
-					));
-				}
-				
-				registry(array_escape((array)$site_config["overwrite_config"]));
-				
-				break;
-			}
-		}
-	}
-	

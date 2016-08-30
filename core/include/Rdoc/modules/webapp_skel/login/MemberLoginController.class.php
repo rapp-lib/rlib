@@ -11,14 +11,14 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	 */
 	public function act_index () 
 	{
-		redirect("page:.login_form");
+		redirect("page:.login");
 	}
 
 	/**
 	 * @page
-	 * @title <?=$c["label"]?> ログインフォーム
+	 * @title <?=$c["label"]?> ログイン
 	 */
-	public function act_login_form () 
+	public function act_login () 
 	{
 		$this->context("c",1,true);
 		
@@ -27,40 +27,28 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 			$redirect_to =sanitize_decode($_REQUEST["redirect_to"]);
 			$this->c->session("redirect_to",$redirect_to);
 		}
-	}
 
-	/**
-	 * @page
-	 * @title <?=$c["label"]?> ログインチェック
-	 */
-	public function act_login_confirm () 
-	{
-		$this->context("c",1,true);
-		
-		$this->c->input($_REQUEST["c"]);
-		$this->c->errors(false,array());
-		
-		// ログイン処理
-		$this->c_<?=$c["account"]?>_auth->login(
-				$this->c->input("login_id"),
-				$this->c->input("login_pass"));
-		
-		// ログインエラー時の処理
-		if ( ! $this->c_<?=$c["account"]?>_auth->id()) {
+		// 入力値のチェック
+		if ($_REQUEST["_i"]=="c") {
+			$this->c->validate_input($_REQUEST,array());
+			$this->c_<?=$c["account"]?>_auth->login(
+					$this->c->input("login_id"),
+					$this->c->input("login_pass"));
 			
-			$errmsg =registry("Label.errmsg.user.<?=$c["account"]?>_login_failed");
-			$this->c->errors("login_id",$errmsg);
+			if ($this->c_<?=$c["account"]?>_auth->id()) {
+
+				// 転送先の指定があればそちらを優先
+				if ($this->c->session("redirect_to")) {
+					redirect($this->c->session("redirect_to"));
+				}
+				
+				redirect("page:index.index");
 			
-			redirect("page:.login_form");
+			} else {
+
+				$this->vars["login_error"] =true;
+			}
 		}
-		
-		// 転送先の指定があればそちらを優先
-		if ($this->c->session("redirect_to")) {
-		
-			redirect($this->c->session("redirect_to"));
-		}
-		
-		redirect("page:index.index");
 	}
 
 	/**

@@ -169,14 +169,23 @@ class DBI_Base {
 			return null;
 		}
 		
-		// 階層構造の変更（$a[Alias][Key] => $a[Alias.Key]）
 		$result_copy =array();
 		
+		// 階層構造の変更（ $a[Alias][Key] => $a[Key]）
+		
+		// [Deprecated] $a[Alias][Key] => $a[Alias.Key]
+		$deprecated_flg =registry("DBI.fetch_col_name_include_table");
+
 		foreach ((array)$result as $k1 => $v1) {
 			
 			foreach ((array)$v1 as $k2 => $v2) {
-			
-				$key =is_numeric($k1) ? $k2 : $k1.".".$k2;
+				
+				$key =$k2;
+
+				if ($deprecated_flg) {
+					$key =is_numeric($k1) ? $k2 : $k1.".".$k2;
+				}
+				
 				$result_copy[$key] =& $result[$k1][$k2];
 			}
 		}

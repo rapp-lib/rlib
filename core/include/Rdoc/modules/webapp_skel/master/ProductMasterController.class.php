@@ -23,7 +23,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	protected $list_setting =array(
 		"search" =>array(
 <? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
-			"Search.<?=$tc['short_name']?>" =>array(
+			"<?=$tc['short_name']?>" =>array(
 					"type" =>'eq',
 					"target" =>"<?=$tc['name']?>"),
 <? endforeach; ?>
@@ -50,14 +50,14 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 		"rows" =>array(
 			"<?=$t['pkey']?>" =>"#ID",
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
-			"<?=$tc['name']?>" =>"<?=$tc['label']?>",
+			"<?=$tc['short_name']?>" =>"<?=$tc['label']?>",
 <? endforeach; ?>
 		),
 		"filters" =>array(
 			array("filter" =>"sanitize"),
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
 <? if ($tc['list']): ?>
-			array("target" =>"<?=$tc['name']?>",
+			array("target" =>"<?=$tc['short_name']?>",
 					"filter" =>"list_select", 
 <? if ($tc['type'] == "checklist"): ?>
 					"delim" =>"/", 
@@ -65,7 +65,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 					"list" =>"<?=$tc['list']?>"),
 <? endif; /* $tc['list'] */ ?>
 <? if ($tc['type'] == "date"): ?>
-			array("target" =>"<?=$tc['name']?>",
+			array("target" =>"<?=$tc['short_name']?>",
 					"filter" =>"date"),
 <? endif; /* $tc['type'] == "date" */ ?>
 <? endforeach; ?>
@@ -97,7 +97,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	 */
 	public function act_view_list () 
 	{
-		$this->context("c",0);
+		$this->context("c",1);
 
 		if ($_REQUEST["_i"]=="c") {
 			$this->c->clear();
@@ -117,32 +117,28 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	public function act_entry_form () 
 	{
 		$this->context("c",1,true);
-		
-		// 完了後の再アクセス時にはデータ消去
-		if ($this->c->session("complete")) {
-			
-			$this->c->session(false, false);
+
+		// 入力値のチェック
+		if ($_REQUEST["_i"]=="c") {
+			$this->c->validate_input($_REQUEST,array(
+			));
+
+			if ($this->c->has_valid_input()) {
+				redirect("page:.entry_confirm");
+			}
 		}
 		
 		// id指定があれば既存のデータを読み込む
 		if ($_REQUEST["id"]) {
-			
-			// idの指定
 			$this->c->id($_REQUEST["id"]);
+			$t =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
 			
-			// 既存データの取得
-			$input =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
-			
-			// 既存データの取得ができない場合の処理
-			if ( ! $input) {
-				
+			if ( ! $t) {
 				$this->c->id(false);
-				
 				redirect("page:.view_list");
 			}
 			
-			// 既存の情報をフォームへ登録
-			$this->c->input($input);
+			$this->c->input($t);
 		}
 	}
 
@@ -153,27 +149,9 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	public function act_entry_confirm () 
 	{
 		$this->context("c",1,true);
-
-		// 入力情報の登録
-		$this->c->input($_REQUEST["c"]);
-		
-		// 入力チェック
-		$this->c->validate(array(
-		),array(
-		));
-		
-		// 入力情報のチェック確認フラグ
-		$this->c->session("checked",true);
-		
-		// 入力エラー時の処理
-		if ($this->c->errors()) {
-			
-			redirect("page:.entry_form");
-		}
-		
-		$this->vars["t"] =$this->c->input();
-		
+		$this->vars["t"] =$this->c->get_valid_input();
 <? if ($c["usage"] != "form"): ?>
+
 		redirect("page:.entry_exec");
 <? endif; ?>
 	}
@@ -185,36 +163,27 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	public function act_entry_exec () 
 	{
 		$this->context("c",1,true);
-		
-		// 入力情報の登録
-		if ( ! $this->c->errors()
-				&& $this->c->session("checked")
-				&& ! $this->c->session("complete")) {
-			
+		if ($this->c->has_valid_input()) {
 <? if ($t["virtual"]): ?>
 			// メールの送信
-			obj("BasicMailer")->send_mail(array(
-				"to" =>"test@example.com",
-				"from" =>"test@example.com",
-				"subject" =>"Test mail",
-				"message" =>"This is test.",
-				// "template_file" =>"/mail/<?=$c["name"]?>_mail.php",
-				// "template_options" =>array("c" =>$this->c->input()),
+			$this->send_mail(array(
+				"template" =>"sample",
+				"vars" =>array("t" =>$this->c->get_valid_input()),
 			));
 <? else: /* $t["virtual"] */ ?>
 			// データの記録
 			$fields =$this->c->get_fields(array(
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
-				"<?=$tc['name']?>",
+				"<?=$tc['short_name']?>",
 <? endforeach; ?>
 			));
 			<?=_model_instance($t,$c)?>->save($fields,$this->c->id());
 <? endif; /* $t["virtual"] */ ?>
 			
-			$this->c->session("complete",true);
+			$this->c->clear();
 		}
-		
 <? if ($c["usage"] != "form"): ?>
+
 		redirect("page:.view_list");
 <? endif; ?>
 	}
@@ -288,6 +257,17 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	public function act_entry_csv_form () 
 	{
 		$this->context("c",1,true);
+
+		// 入力値のチェック
+		if ($_REQUEST["_i"]=="c") {
+			$this->c->validate_input($_REQUEST,array(
+				"csv_file",
+			));
+
+			if ($this->c->has_valid_input()) {
+				redirect("page:.entry_confirm");
+			}
+		}
 	}
 
 	/**
@@ -297,15 +277,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	public function act_entry_csv_confirm () 
 	{
 		$this->context("c",1,true);
-		$this->c->input($_REQUEST["c"]);
-
-		$csv_filename =obj("UserFileManager")->get_uploaded_file(
-				$this->c->input("Import.csv_file"), "private");
-		
-		if ( ! $csv_filename) {
-
-			redirect("page:.entry_csv_form");
-		}
+		$this->vars["t"] =$this->c->get_valid_input();
 
 		redirect('page:.entry_csv_exec');
 	}
@@ -322,7 +294,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 		$this->context("c",1,true);
 		
 		$csv_filename =obj("UserFileManager")->get_uploaded_file(
-				$this->c->input("Import.csv_file"), "private");
+				$this->c->input("csv_file"), "private");
 		
 		// CSVファイルの読み込み準備
 		$csv =new CSVHandler($csv_filename,"r",$this->csv_setting);

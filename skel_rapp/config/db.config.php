@@ -18,6 +18,7 @@
 		),
 				
 		"DBI.statement.default_join_type" =>"LEFT",
+		"DBI.fetch_col_name_include_table" =>false,
 	));
 		
 		
