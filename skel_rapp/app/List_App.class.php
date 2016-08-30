@@ -1,6 +1,8 @@
 <?php
 
-//-------------------------------------
-// 
-class List_App extends List_Base {
+/**
+ * @list
+ */
+class List_App extends List_Base 
+{
 }

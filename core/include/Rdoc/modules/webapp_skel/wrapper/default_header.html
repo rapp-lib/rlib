@@ -30,32 +30,30 @@
 
 <header class="mmb">
 <div class="con">
-    <h1><a href="{{'/'|path_to_url}}" id="logo">&nbsp;</a></h1>
-    {{*
-    {{if $c_admin_auth->id()}}
-    <span>&nbsp;</span>
-    <div class="btn">
-        <div id="btn_logout">{{a _page="admin_login.logout"}}ログアウト{{/a}}</div>
-    </div>
-    {{/if}}
-    *}}
+	<h1><a href="{{'/'|path_to_url}}" id="logo">&nbsp;</a></h1>
+	{{*
+	{{if $c_admin_auth->id()}}
+	<span>&nbsp;</span>
+	<div class="btn">
+		<div id="btn_logout">{{a _page="admin_login.logout"}}ログアウト{{/a}}</div>
+	</div>
+	{{/if}}
+	*}}
 </div>
-</header><!--/.mmb">-->
+</header><!--/.mmb-->
 
 <div id="contents" class="clearfix">
 
 <div class="left">
 <nav>
-    <h2>Menu</h2>
-    <dl>
-    {{foreach from="Schema.controller"|registry key="controller_name" item="controller"}}
-    <dt class="toggle">{{a _page="`$controller_name`.index" class="button"}}{{$controller.label}}{{/a}}</dt>
-    <dd>
-    <ul>
-    <li {{*class="current"*}}>{{a _page="`$controller_name`.index"}}index{{/a}}</li>
-    </ul>
-    </dd>
-    {{/foreach}}
-    </dl>
+	<h2>Menu</h2>
+	<dl>
+    
+<? foreach ((array)$s["controller"] as $name => $c): ?>
+	<dt class="toggle"><a href='{{"<?=$name?>.index"|page_to_url}}' class="button"><?=$c["label"]?></a></dt>
+<? endforeach; ?>
+
+	<!--<dd><ul><li class="current"></li></ul></dd>-->
+	</dl>
 </nav>
-</div><!--/.left">-->
+</div><!--/.left-->

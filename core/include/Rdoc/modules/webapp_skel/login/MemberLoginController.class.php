@@ -11,14 +11,14 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	 */
 	public function act_index () 
 	{
-		redirect("page:.entry_form");
+		redirect("page:.login_form");
 	}
 
 	/**
 	 * @page
 	 * @title <?=$c["label"]?> ログインフォーム
 	 */
-	public function act_entry_form () 
+	public function act_login_form () 
 	{
 		$this->context("c",1,true);
 		
@@ -33,7 +33,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	 * @page
 	 * @title <?=$c["label"]?> ログインチェック
 	 */
-	public function act_entry_confirm () 
+	public function act_login_confirm () 
 	{
 		$this->context("c",1,true);
 		
@@ -51,7 +51,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 			$errmsg =registry("Label.errmsg.user.<?=$c["account"]?>_login_failed");
 			$this->c->errors("login_id",$errmsg);
 			
-			redirect("page:.entry_form");
+			redirect("page:.login_form");
 		}
 		
 		// 転送先の指定があればそちらを優先

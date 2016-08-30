@@ -19,10 +19,18 @@ class <?=str_camelize($c["account"])?>AuthContext extends Context_App
 				
 		if ($id) {
 			$this->id($id);
+			$this->refresh();
 			
 			// Session Fixation対策
 			session_regenerate_id(true);
 		}
+	}
+	
+	/**
+	 * ログイン状態の更新
+	 */
+	public function refresh () 
+	{
 	}
 	
 	/**

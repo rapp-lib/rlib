@@ -9,8 +9,8 @@
 			"<?=$c['name']?>.index" =>"/<?=$c['name']?>/index.html",
 <? elseif ($c["type"] == "login"): ?>
 			"<?=$c['name']?>.index" =>"/<?=$c['name']?>/index.html",
-			"<?=$c['name']?>.entry_form" =>"/<?=$c['name']?>/entry_form.html",
-			"<?=$c['name']?>.entry_confirm" =>"/<?=$c['name']?>/entry_confirm.html",
+			"<?=$c['name']?>.login_form" =>"/<?=$c['name']?>/login_form.html",
+			"<?=$c['name']?>.login_confirm" =>"/<?=$c['name']?>/login_confirm.html",
 			"<?=$c['name']?>.logout" =>"/<?=$c['name']?>/logout.html",
 <? elseif ($c["type"] == "master"): ?>
 			"<?=$c['name']?>.index" =>"/<?=$c['name']?>/index.html",
@@ -23,8 +23,7 @@
 			"<?=$c['name']?>.entry_exec" =>"/<?=$c['name']?>/entry_exec.html",
 <? endif; /* $c["usage"] != "view" */ ?>
 <? if($c["usage"] != "view" && $c["usage"] != "form"): ?>
-			"<?=$c['name']?>.delete_confirm" =>"/<?=$c['name']?>/delete_confirm.html",
-			"<?=$c['name']?>.delete_exec" =>"/<?=$c['name']?>/delete_exec.html",
+			"<?=$c['name']?>.delete" =>"/<?=$c['name']?>/delete.html",
 <? endif; /* $c["usage"] != "view" && $c["usage"] != "form" */ ?>
 <? if($c["usage"] != "form" && $c["use_csv"]): ?>
 			"<?=$c['name']?>.view_csv" =>"/<?=$c['name']?>/view_csv.html",

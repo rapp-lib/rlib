@@ -334,7 +334,7 @@ class Context_Base {
 	 */
 	public function merge_input ($params) 
 	{
-		$input =$this->input();
+		$input =(array)$this->input();
 		$input =array_merge($input,$params);
 		$this->filter_empty_value($input);
 		return $input;

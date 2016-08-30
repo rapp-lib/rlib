@@ -99,13 +99,13 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 	{
 		$this->context("c",0);
 
-		if (isset($_REQUEST["c"])) {
-			$this->c->input(false,false);
-			$this->c->input($_REQUEST["c"]);
+		if ($_REQUEST["_i"]=="c") {
+			$this->c->clear();
+			$this->c->input($_REQUEST);
         }
         
-		list($this->vars["ts"] ,$this->vars["p"]) =<?=_model_instance($t,$c)?> 
-				->get_by_search_form($this->list_setting, $this->c->input());
+		list($this->vars["ts"] ,$this->vars["p"]) =
+			<?=_model_instance($t,$c)?>->get_by_search_form($this->list_setting, $this->c->input());
 	}
 
 <? endif; /* $c["usage"] != "form" */ ?>
@@ -223,45 +223,24 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 <? if($c["usage"] == ""): /* ------------------- act_delete_* ------------------ */ ?>
 	/**
 	 * @page
-	 * @title <?=$c["label"]?> 削除確認
+	 * @title <?=$c["label"]?> 削除
 	 */
-	public function act_delete_confirm () 
+	public function act_delete () 
 	{
-		$this->context("c",1,true);
+		$this->context("c");
 		
 		// idの指定
 		$this->c->id($_REQUEST["id"]);
-			
+		
 		// 既存のデータを確認
-		$input =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
+		$t =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
 		
-		// 既存データの確認ができない場合の処理
-		if ( ! $input) {
-		
-			$this->c->id(false);
-				
+		if ( ! $t) {
 			redirect("page:.view_list");
 		}
 		
-		redirect("page:.delete_exec");
-	}
-
-	/**
-	 * @page
-	 * @title <?=$c["label"]?> 削除
-	 */
-	public function act_delete_exec () 
-	{
-		$this->context("c",1,true);
-		
-		if ($this->c->id()
-				&& ! $this->c->session("complete")) {
-				
-			// データの削除
-			<?=_model_instance($t,$c)?>->drop($this->c->id());
-			
-			$this->c->session("complete",true);
-		}
+		// データの削除
+		<?=_model_instance($t,$c)?>->drop($this->c->id());
 		
 		redirect("page:.view_list");
 	}
@@ -290,7 +269,6 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 		$csv =new CSVHandler($csv_filename,"w",$this->csv_setting);
 		
 		while (($t =$res->fetch()) !== null) {
-			
 			$csv->write_line($t);
 		}
 	    

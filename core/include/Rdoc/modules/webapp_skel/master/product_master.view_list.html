@@ -4,14 +4,14 @@
 
 <!-- search_module -->
 <h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 検索</span></h2>
-{{form _page="." method="GET"}}
-	<input name="c" value="" type="hidden"/>
+{{form action="."|page_to_url method="get" values=$c}}
+	<input name="_i" value="c" type="hidden"/>
 	<div class="ad_btn clearfix">
 		<table class="tbl_admin search">
 <? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
 			<tr>
 				<th><?=$tc['label']?></th>
-				<td>{{input name="c[Search.<?=$tc['short_name']?>]" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}</td>
+				<td>{{input name="<?=$tc['short_name']?>" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}</td>
 			</tr>
 <? endforeach; ?>
 		</table>
@@ -19,27 +19,10 @@
 	</div>
 {{/form}}
 
-
-{{*
-<!-- search_crit_module -->
-<div>
-	検索条件
-<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
-	{{if $c->input("Search.<?=$tc['short_name']?>")}}
-		| <?=$tc['label']?> : {{$c->input("Search.<?=$tc['short_name']?>")<?=$tc['modifier']?>}}
-	{{/if}}
-<? endforeach; ?>
-</div>
-<!-- /search_crit_module -->
-*}}
-
 {{*
 <!-- sort_module -->
 <div>
-	{{a _page="." _c=$c->merge_input(["sort"=>"<?=$t['pkey']?>@DESC"])}}登録順▼{{/a}}
-<? foreach ($this->filter_fields($t["fields"],"sort") as $tc): ?>
-	{{a _page="." _c=$c->merge_input(["sort"=>"<?=$tc['name']?>@DESC"])}}<?=$tc['label']?>順▼{{/a}}
-<? endforeach; ?>
+	<a href='{{"."|page_to_url|url:$c->merge_input(["_i"=>"c","sort"=>"<?=$t['pkey']?>@DESC"])}}'>登録順</a>
 </div>
 <!-- /sort_module -->
 *}}
@@ -49,13 +32,13 @@
 
 <div class="ad_btn clearfix">
 <? if ($c["usage"] != "view"): ?>
-	{{a _page=".entry_form" id="add"}}新規登録{{/a}}
+	<a href='{{".entry_form"|page_to_url}}' id="add">新規登録</a>
 <? endif; /* $c["usage"] != "view" */ ?>
 <? if ($c["usage"] != "form" && $c["use_csv"]): ?>
-	{{a _page=".view_csv" id="dl"}}CSV一括ダウンロード{{/a}}
+	<a href='{{".view_csv"|page_to_url}}' id="dl">CSV一括ダウンロード</a>
 <? endif; /* $c["usage"] != "form" && $c["use_csv"] */ ?>
 <? if ($c["usage"] != "view" && $c["use_csv"]): ?>
-	{{a _page=".entry_csv_form" id="dl"}}CSV一括インポート{{/a}}
+	<a href='{{".entry_csv_form"|page_to_url}}' id="dl">CSVインポート</a>
 <? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 </div>
 
@@ -75,10 +58,10 @@
 		</td>
 <? endforeach; ?>
 		<td>
-			{{* {{a _page=".view_detail" _id=$t.<?=$t['pkey']?> class="button"}}詳細{{/a}} *}}
+		
 <? if ($c["usage"] != "view"): ?>
-			{{a _page=".entry_form" _id=$t.<?=$t['pkey']?> class="button"}}編集{{/a}}
-			{{a _page=".delete_confirm" _id=$t.<?=$t['pkey']?> class="button bindConfirmDelete"}}削除{{/a}}
+			<a href='{{".entry_form"|page_to_url|url:["id"=>$t.<?=$t["pkey"]?>]}}' class="button">編集</a>
+			<a href='{{".delete"|page_to_url|url:["id"=>$t.<?=$t["pkey"]?>]}}' class="button bindConfirmDelete">削除</a>
 <? endif; /* $c["usage"] != "view" */ ?>
 		</td>
 	</tr>
@@ -89,17 +72,17 @@
 <p>全{{$p.total}}件中 {{$p.from}}件～{{$p.to}}件を表示</p>
 <ul class="clearfix">
 	{{if $p.prev !== null}}
-		<li class="prev">{{a _page="." _c=$c->merge_input("offset"=>$p.prev])}}前{{/a}}</li>
+		<li class="prev"><a href='{{"."|page_to_url|url:$c->merge_input(["_i"=>"c","offset"=>$p.prev])}}'>前</a></li>
 	{{/if}}
 	{{foreach $p.pages as $index => $page_offset}}
 		{{if $index==$p.current}} 
-			<li class="current">{{a _page="." _c=$c->merge_input("offset"=>$page_offset]) class="current"}}{{$index}}{{/a}}</li>
+			<li class="current"><a href='{{"."|page_to_url|url:$c->merge_input(["_i"=>"c","offset"=>$page_offset])}}' class="current">{{$index}}</a></li>
 		{{else}}
-			<li>{{a _page="." _c=$c->merge_input("offset"=>$page_offset])}}{{$index}}{{/a}}</li>
+			<li><a href='{{"."|page_to_url|url:$c->merge_input(["_i"=>"c","offset"=>$page_offset])}}'>{{$index}}</a></li>
 		{{/if}}
 	{{/foreach}}
 	{{if $p.next !== null}}
-		<li class="next">{{a _page="." _c=$c->merge_input("offset"=>$p.next])}}次{{/a}}</li>
+		<li class="next"><a href='{{"."|page_to_url|url:$c->merge_input(["_i"=>"c","offset"=>$p.next])}}'>次</a></li>
 	{{/if}}
 </ul>
 </div>

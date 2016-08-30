@@ -53,7 +53,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 						"wrapper/default_header.html");
 				$dest =registry("Path.webapp_dir")
 						."/html/element/".$c["wrapper"]."_header.html";
-				$this->arch_template($src,$dest,array("c" =>$c));
+				$this->arch_template($src,$dest,array("c" =>$c, "s" =>registry("Schema")));
 
 				// Footerコピー
 				$src =$this->find_skel($c["skel"],
@@ -129,7 +129,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 		if ($c["usage"] != "form") {
 		
 			$a_list[] =array("name"=>"view_list", "label"=>"一覧");
-			$a_list[] =array("name"=>"view_detail", "label"=>"詳細");
+			//$a_list[] =array("name"=>"view_detail", "label"=>"詳細");
 		}
 		
 		if ($c["usage"] != "view") {
@@ -150,7 +150,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 			$src =$this->find_skel($c["skel"],
 					"master/product_master.".$a["name"].".html");
 			$dest =registry("Path.webapp_dir")
-					."/html/".$c["name"]."/".$c["name"].".".$a["name"].".html";
+					."/html/".$c["name"]."/".$a["name"].".html";
 			$this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
 		}
 		
@@ -174,7 +174,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 			$src =$this->find_skel($c["skel"],
 					"login/member_login.".$a["name"].".html");
 			$dest =registry("Path.webapp_dir")
-					."/html/".$c["name"]."/".$c["name"].".".$a["name"].".html";
+					."/html/".$c["name"]."/".$a["name"].".html";
 			$this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
 		}
 		
