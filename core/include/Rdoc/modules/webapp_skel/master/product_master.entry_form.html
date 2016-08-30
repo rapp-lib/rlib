@@ -4,16 +4,22 @@
 	<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 登録編集</span></h2>
 
 	<!--error module -->
-	{{if $c->errors()}}
-		{{foreach $c->errors() as $error_message}}
-			<div class="errmsg">{{$error_message}}</div>
-		{{/foreach}}
+	{{if $c->get_errors()}}
+		<div class="errmsg">※入力エラーがあります</div>
+		<script>
+		$(function(){ 
+			showErrors({ 
+				errors: {{$c->get_errors()|json_encode}}, 
+				$form: $("form.form-c")
+			}) 
+		});
+		</script>
 	{{/if}}
 	<!--/error module -->
 
 	<h3>基本情報</h3>
 
-	{{form action="{{'.'|page_to_url}}" enctype="multipart/form-data" method="post" values=$c}}
+	{{form action="{{'.'|page_to_url}}" enctype="multipart/form-data" method="post" values=$c class="form-c"}}
 	<input type="hidden" name="_i" value="c"/>
 
 	<table class="tbl_admin detail">

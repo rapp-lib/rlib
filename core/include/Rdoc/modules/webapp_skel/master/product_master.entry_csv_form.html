@@ -1,10 +1,24 @@
 <?=$c["header"]?> 
 
 <div class="right">
-  <h2 class="admin_h2" id="user"><?=$c["label"]?><span> - CSVインポート</span></h2>
+	<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - CSVインポート</span></h2>
+
+	<!--error module -->
+	{{if $c->get_errors()}}
+		<div class="errmsg">※入力エラーがあります</div>
+		<script>
+		$(function(){ 
+			showErrors({ 
+				errors: {{$c->get_errors()|json_encode}}, 
+				$form: $("form.form-c")
+			}) 
+		});
+		</script>
+	{{/if}}
+	<!--/error module -->
 
 	<!-- entry_module -->
-	{{form action="{{'.'|page_to_url}}" enctype="multipart/form-data" method="post" values=$c}}
+	{{form action="{{'.'|page_to_url}}" enctype="multipart/form-data" method="post" values=$c class="form-c"}}
 	<input type="hidden" name="_i" value="c"/>
 	<table class="tbl_admin detail">
 		<tr>

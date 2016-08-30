@@ -178,6 +178,9 @@ mod:soeda 20151027 会員登録・編集デザイン調整
 .errmsg {
 	color: #ff4422;
 }
+.inputBlock.inputError {
+	background-color: #ffeeee;
+}
 .ad_btn .rBtn {
 	background: #c8b380 none repeat scroll 0 0;
 	border-radius: 20px;
