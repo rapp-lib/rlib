@@ -26,7 +26,7 @@ class Password extends BaseInput
 			$attrs["autocomplete"] ="off";
 		}
 		
-		$this->html =Html::tag("password",$attrs);
+		$this->html =Html::tag("input",$attrs);
 		$this->assign =array();
 	}
 }

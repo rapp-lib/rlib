@@ -11,13 +11,15 @@
 	}
 ?><!?php
 
-//-------------------------------------
-// Controller: <?=$c["label"]?> 
-class <?=str_camelize($c["name"])?>Controller extends Controller_App {
-
+/**
+ * @controller
+ */
+class <?=str_camelize($c["name"])?>Controller extends Controller_App 
+{
 <? if ($c["usage"] != "form"): /* ------------------- list_setting ------------------ */ ?>
-	//-------------------------------------
-	// 検索フォーム設定
+	/**
+	 * 検索フォーム設定
+	 */
 	protected $list_setting =array(
 		"search" =>array(
 <? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
@@ -39,8 +41,9 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	
 <? endif /* $c["usage"] != "form" */ ?>
 <? if($c["use_csv"]): /* ------------------- csv_setting ------------------ */ ?>
-	//-------------------------------------
-	// CSV設定
+	/**
+	 * CSV設定
+	 */
 	protected $csv_setting = array(
 		"file_charset" =>"SJIS-WIN",
 		"data_charset" =>"UTF-8",
@@ -74,10 +77,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	);
 	
 <? endif; /* $c["use_csv"] */ ?>
-	//-------------------------------------
-	// Action: トップ
-	public function act_index () {
-	
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> TOP
+	 */
+	public function act_index () 
+	{
 <? if ($c["usage"] == "form"): ?>
 		redirect("page:.entry_form");
 <? else: ?>
@@ -86,10 +91,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	}
 	
 <? if ($c["usage"] != "form"): /* ------------------- act_view_* ------------------ */ ?>
-	//-------------------------------------
-	// Action: 一覧
-	public function act_view_list () {
-		
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> 一覧表示
+	 */
+	public function act_view_list () 
+	{
 		$this->context("c",0);
 
 		if (isset($_REQUEST["c"])) {
@@ -97,37 +104,18 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 			$this->c->input($_REQUEST["c"]);
         }
         
-		list($this->vars["ts"] ,$this->vars["p"]) =model("Product") 
+		list($this->vars["ts"] ,$this->vars["p"]) =<?=_model_instance($t,$c)?> 
 				->get_by_search_form($this->list_setting, $this->c->input());
 	}
 
-	//-------------------------------------
-	// Action: 詳細表示
-	public function act_view_detail () {
-		
-		$this->context("c");
-		
-		// idの指定
-		$this->c->id($_REQUEST["id"]);
-		
-		// 登録データの取得
-		$this->vars["t"] =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
-		
-		// 既存データの取得ができない場合の処理
-		if ( ! $this->vars["t"]) {
-				
-			$this->c->id(false);
-		
-			redirect("page:.view_list");
-		}
-	}
-	
 <? endif; /* $c["usage"] != "form" */ ?>
 <? if ($c["usage"] != "view"): /* ------------------- act_entry_* ------------------ */ ?>
-	//-------------------------------------
-	// Action: フォーム 入力
-	public function act_entry_form () {
-		
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> 入力フォーム
+	 */
+	public function act_entry_form () 
+	{
 		$this->context("c",1,true);
 		
 		// 完了後の再アクセス時にはデータ消去
@@ -158,10 +146,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		}
 	}
 
-	//-------------------------------------
-	// Action: フォーム 確認
-	public function act_entry_confirm () {
-		
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> 確認
+	 */
+	public function act_entry_confirm () 
+	{
 		$this->context("c",1,true);
 
 		// 入力情報の登録
@@ -188,10 +178,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 <? endif; ?>
 	}
 
-	//-------------------------------------
-	// Action: フォーム 登録実行
-	public function act_entry_exec () {
-		
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> 完了
+	 */
+	public function act_entry_exec () 
+	{
 		$this->context("c",1,true);
 		
 		// 入力情報の登録
@@ -229,10 +221,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	
 <? endif; /* $c["usage"] != "view" */ ?>
 <? if($c["usage"] == ""): /* ------------------- act_delete_* ------------------ */ ?>
-	//-------------------------------------
-	// Action: 削除 確認
-	public function act_delete_confirm () {
-		
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> 削除確認
+	 */
+	public function act_delete_confirm () 
+	{
 		$this->context("c",1,true);
 		
 		// idの指定
@@ -252,10 +246,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		redirect("page:.delete_exec");
 	}
 
-	//-------------------------------------
-	// Action: 削除 実行
-	public function act_delete_exec () {
-		
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> 削除
+	 */
+	public function act_delete_exec () 
+	{
 		$this->context("c",1,true);
 		
 		if ($this->c->id()
@@ -272,10 +268,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 
 <? endif; /* $c["usage"] == "" */ ?>
 <? if($c["usage"] != "form" && $c["use_csv"]): /* ------------------- act_view_csv ------------------ */ ?>
-	//-------------------------------------
-	// Action: CSVダウンロード
-	public function act_view_csv () {
-		
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> CSVダウンロード
+	 */
+	public function act_view_csv () 
+	{
 		set_time_limit(0);
 		registry("Report.error_reporting",E_USER_ERROR|E_ERROR);
 	    
@@ -305,17 +303,21 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 	
 <? endif; /* $c["usage"] != "form" && $c["use_csv"] */ ?>
 <? if($c["usage"] != "view" && $c["use_csv"]): /* ------------------- act_csv_entry ------------------ */ ?>
-	//-------------------------------------
-	// Action: CSVアップロードフォーム
-	public function act_entry_csv_form () {
-		
+	/**
+	 * @page
+	 * @title CSVインポートフォーム
+	 */
+	public function act_entry_csv_form () 
+	{
 		$this->context("c",1,true);
 	}
 
-	//-------------------------------------
-	// Action: CSVアップロード確認
-	public function act_entry_csv_confirm () {
-		
+	/**
+	 * @page
+	 * @title CSVインポート確認
+	 */
+	public function act_entry_csv_confirm () 
+	{
 		$this->context("c",1,true);
 		$this->c->input($_REQUEST["c"]);
 
@@ -330,10 +332,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		redirect('page:.entry_csv_exec');
 	}
 
-	//-------------------------------------
-	// Action: CSV一括インポート実行
-	public function act_entry_csv_exec () {
-		
+	/**
+	 * @page
+	 * @title CSVインポート完了
+	 */
+	public function act_entry_csv_exec () 
+	{
 		set_time_limit(0);
 		registry("Report.error_reporting",E_USER_ERROR|E_ERROR);
 		

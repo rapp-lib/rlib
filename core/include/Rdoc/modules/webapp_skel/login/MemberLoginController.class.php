@@ -1,34 +1,40 @@
 <!?php
 
-//-------------------------------------
-// Controller: <?=$c["name"]?> 
-class <?=str_camelize($c["name"])?>Controller extends Controller_App {
-
-	//-------------------------------------
-	// Action: index
-	public function act_index () {
-		
+/**
+ * @controller
+ */
+class <?=str_camelize($c["name"])?>Controller extends Controller_App 
+{
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> TOP
+	 */
+	public function act_index () 
+	{
 		redirect("page:.entry_form");
 	}
 
-	//-------------------------------------
-	// Action: entry_form
-	public function act_entry_form () {
-		
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> ログインフォーム
+	 */
+	public function act_entry_form () 
+	{
 		$this->context("c",1,true);
 		
 		// 転送先指定の保存
 		if ($_REQUEST["redirect_to"]) {
-			
 			$redirect_to =sanitize_decode($_REQUEST["redirect_to"]);
 			$this->c->session("redirect_to",$redirect_to);
 		}
 	}
 
-	//-------------------------------------
-	// Action: entry_confirm
-	public function act_entry_confirm () {
-		
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> ログインチェック
+	 */
+	public function act_entry_confirm () 
+	{
 		$this->context("c",1,true);
 		
 		$this->c->input($_REQUEST["c"]);
@@ -57,10 +63,12 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App {
 		redirect("page:index.index");
 	}
 
-	//-------------------------------------
-	// Action: logout
-	public function act_logout () {
-		
+	/**
+	 * @page
+	 * @title <?=$c["label"]?> ログアウト
+	 */
+	public function act_logout () 
+	{
 		$this->context("c");
 		
 		// ログアウト処理
