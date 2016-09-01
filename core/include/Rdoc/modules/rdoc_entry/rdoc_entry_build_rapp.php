@@ -101,7 +101,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 		// configの構築
 		foreach (array(
 			"routing.config.php",
-			"label.config.php",
+			//"label.config.php",
 			"auth.config.php",
 			"install.sql",
 		) as $key) {

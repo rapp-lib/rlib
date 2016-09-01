@@ -265,7 +265,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 			));
 
 			if ($this->c->has_valid_input()) {
-				redirect("page:.entry_confirm");
+				redirect("page:.entry_csv_confirm");
 			}
 		}
 	}
@@ -315,7 +315,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 
 			// DBへの登録
 			$c_import =new Context_App;
-			$c_import->id("<?=$t['pkey']?>");
+			$c_import->id($t["<?=$t['pkey']?>"]);
 			$c_import->input($t);
 			
 			$keys =array_keys($this->csv_setting["rows"]);
