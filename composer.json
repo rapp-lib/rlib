@@ -1,11 +1,10 @@
 {
-    "name": "rlib/rlib",
+    "name": "fiarjp/rlib",
     "description": "Simple webapp library",
     "type": "library",
     "license": "MIT",
 	"require": {
-		"doctrine/orm": "*",
-		"smarty/smarty": "*",
+		"smarty/smarty": "v3.1.30",
         "pear-pear.php.net/PEAR": "*@stable"
 	},
 	"repositories": [
