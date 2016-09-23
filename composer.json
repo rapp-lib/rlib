@@ -4,8 +4,7 @@
     "type": "library",
     "license": "MIT",
 	"require": {
-		"smarty/smarty": "v3.1.30",
-        "pear-pear.php.net/PEAR": "*@stable"
+		"smarty/smarty": "v3.1.30"
 	},
 	"repositories": [
 		{"type": "pear", "url": "http://pear.php.net"},
