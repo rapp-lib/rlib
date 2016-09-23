@@ -147,7 +147,7 @@ class Model_Base {
 				
 					$query["order"][] =$value;
 				
-				} elseif (preg_match('!^([\w\d_]+)(@ASC|@DESC)?$!',$key,$match)) {
+				} else if (preg_match('!^([\w\d_]+(?:\.[\w\d_]+)?)(@ASC|@DESC)?$!',$key,$match)) {
 					
 					$query["order"][] =$match[1].($match[2]=="@DESC" ? " DESC" : " ASC");
 				

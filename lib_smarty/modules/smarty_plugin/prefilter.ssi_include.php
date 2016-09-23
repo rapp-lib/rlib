@@ -1,6 +1,6 @@
 <?php
 
-    function smarty_prefilter_ssi_include ($src, &$smarty){
+    function smarty_prefilter_ssi_include ($src, $smarty){
         
         // ssi virtual=ではなく、include file=として展開する
         $src =preg_replace_callback('!<\!--#include\s+virtual="([^"]+)"\s*-->!',function ($match) use ($smarty){

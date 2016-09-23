@@ -283,7 +283,7 @@ class SmartyExtended extends SmartyBC {
 		if ($repeat) {
 			
 			if ($type == "form") {
-				$this->current_form = & $params;
+				$this->current_form = $params;
 			}
 
 		// 終了タグ処理
