@@ -1,10 +1,13 @@
 <?php
 	
-	register_shutdown_webapp_function("dbi_rollback_all");
-	
 	//-------------------------------------
 	// DBIインスタンスのファクトリ
 	function dbi ($name=null) {
+		
+		if ( ! defined("DBI_LOADED")) {
+			register_shutdown_webapp_function("dbi_rollback_all");
+			define("DBI_LOADED",true);
+		}
 		
 		$instance =& ref_globals("loaded_dbi");
 	
@@ -20,7 +23,7 @@
 				
 				$class =$connect_info["class"]
 						? $connect_info["class"]
-						: "DBI_App";
+						: "DBI_Base";
 				$instance[$name] =new $class($name);
 				$instance[$name]->connect($connect_info);
 			

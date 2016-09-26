@@ -20,19 +20,17 @@
 			"core/webapp.php",
 			"core/date.php",
 			"core/string.php",
-			"core/cake.php",
 			"core/file.php",
 			"core/modules.php",
 			"core/report.php",
 			"core/vars.php",
 			"core/lib_db.php",
-			"core/lib_smarty.php",
-			"core/lib_context.php"
+			"core/lib_smarty.php"
 		]
 	},
 	"include-path":[
-		"core/include/",
-		"core/pear/",
+		"ext/include/",
+		"ext/pear/",
 		"lib_db/",
 		"lib_smarty/",
 		"lib_context/"

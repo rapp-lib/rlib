@@ -21,7 +21,12 @@ class DBI_Base {
 	// DB接続
 	public function connect ($connect_info) {
 		
-		$this->ds =cake_lib()->get_cake_datasource($this->name,$connect_info);
+		static $cake_loader;
+		if ( ! $cake_loader) {
+			$cake_loader = new Cake2Loader;
+		}
+		
+		$this->ds =$cake_loader->get_cake_datasource($this->name,$connect_info);
 	}
 	
 	//-------------------------------------
