@@ -104,6 +104,22 @@ class Transit
 					return $search->getQuery($input);
 				};
 			}
+
+		// その他のモジュールの読み込み
+		} else  {
+
+			$ns_map =array(
+				"csvfilter" => 'CSVHandler\\Filter\\',
+				"rdoc_entry" => 'Rapper\\RdocEntry\\',
+				"readme" => 'Rapper\\Readme\\',
+				//"webapp_skel" => 'Rapper\\WebappSkel\\',
+			);
+
+			$class ='R\\Plugin\\'.$ns_map[$type].String::camelize($name);
+			$method = array($class, $type."_".$name);
+			if ($class && class_exists($class) && is_callable($method)) {
+				return $method;
+			}
 		}
 	}
 
