@@ -1,7 +1,9 @@
 <?php
+namespace R\Lib\Enum;
 
-//-------------------------------------
-// 選択肢表現クラス
+/**
+ * 
+ */
 class List_Base {
 	
 	protected $name;

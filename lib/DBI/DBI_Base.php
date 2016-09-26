@@ -1,7 +1,9 @@
 <?php
+namespace R\Lib\DBI;
 
-//-------------------------------------
-// DBI実装
+/**
+ * 
+ */
 class DBI_Base {
 
 	protected $name ="";

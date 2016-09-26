@@ -10,33 +10,30 @@
 	"autoload": {
 		"psr-4": {
 			"R\\Lib\\": "lib/",
-			"R\\Plugin\\": "plugin/",
+			"R\\Plugin\\": "plugins/",
 			"R\\Util\\": "util/",
 
-			"R\\Lib\\Form\\Rule\\": "plugin/Rule/",
-			"R\\Lib\\Query\\Search\\": "plugin/Search/",
-			"R\\Lib\\Form\\Input\\": "plugin/Input/"
+			"R\\Lib\\Form\\Rule\\": "plugins/Form/Rule/",
+			"R\\Lib\\Form\\Input\\": "plugins/Smarty/InputType/",
+			"R\\Lib\\Query\\Search\\": "plugins/DBI/SearchType/"
 		},
 		"files": [
-			"function/array.php",
-			"function/html.php",
-			"function/path.php",
-			"function/webapp.php",
-			"function/date.php",
-			"function/string.php",
-			"function/file.php",
-			"function/modules.php",
-			"function/report.php",
-			"function/vars.php",
-			"function/lib_db.php",
-			"function/lib_smarty.php"
+			"functions/array.php",
+			"functions/html.php",
+			"functions/path.php",
+			"functions/webapp.php",
+			"functions/date.php",
+			"functions/string.php",
+			"functions/file.php",
+			"functions/modules.php",
+			"functions/report.php",
+			"functions/vars.php",
+			"functions/lib_db.php",
+			"functions/lib_smarty.php"
 		]
 	},
 	"include-path":[
 		"ext/include/",
-		"ext/pear/",
-		"lib_db/",
-		"lib_smarty/",
-		"lib_context/"
+		"ext/pear/"
 	]
 }

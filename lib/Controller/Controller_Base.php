@@ -1,4 +1,6 @@
 <?php
+namespace R\Lib\Controller;
+use R\Lib\Smarty\SmartyExtended;
 
 //-------------------------------------
 // 

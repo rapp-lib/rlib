@@ -1,7 +1,9 @@
 <?php
+namespace R\Lib\DBI;
 
-//-------------------------------------
-// 
+/**
+ * 
+ */
 class Model_Base {
 	
 	protected $accessor =null;

@@ -1,7 +1,9 @@
 <?php
+namespace R\Lib\Context;
 
-//-------------------------------------
-//
+/**
+ * 
+ */
 class Context_Base {
 
 	protected $id =null;

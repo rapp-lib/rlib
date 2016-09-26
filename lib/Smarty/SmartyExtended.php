@@ -1,9 +1,6 @@
 <?php
-	
-	if ( ! class_exists("Smarty")) {
-		require_once(RLIB_ROOT_DIR."/core/smarty3/Smarty.class.php");
-	}
-	
+namespace R\Lib\Smarty;
+
 //-------------------------------------
 // 
 class SmartyBC extends Smarty {} 
