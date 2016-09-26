@@ -61,6 +61,15 @@ class Transit
 				};
 			}
 
+			$input_func = "input_type_".$name;
+			$input_file = __DIR__."/../../plugins/Smarty/input_type/".$input_func.".php";
+
+			if (file_exists($input_file)) {
+
+				require_once($input_file);
+				return $input_func;
+			}
+
 		// search_type_*モジュールの読み込み
 		} else if ($type == "search_type") {
 

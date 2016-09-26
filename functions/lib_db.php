@@ -23,7 +23,7 @@
 				
 				$class =$connect_info["class"]
 						? $connect_info["class"]
-						: "DBI_Base";
+						: "R\\Lib\\DBI\\DBI_Base";
 				$instance[$name] =new $class($name);
 				$instance[$name]->connect($connect_info);
 			

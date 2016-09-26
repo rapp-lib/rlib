@@ -1,5 +1,7 @@
 <?php
 namespace R\Lib\DBI;
+use Cake2Loader;
+use Model;
 
 /**
  * 

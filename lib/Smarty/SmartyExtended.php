@@ -20,7 +20,7 @@ class SmartyExtended extends SmartyBC {
 		
 		$this->left_delimiter ='{{';
 		$this->right_delimiter ='}}';
-		$this->addPluginsDir("modules/smarty_plugin/");
+		$this->addPluginsDir(__DIR__."/../../plugins/Smarty/smarty_plugin/");
 		$this->setCacheDir($cache_dir);
 		$this->setCompileDir($cache_dir);
 		
