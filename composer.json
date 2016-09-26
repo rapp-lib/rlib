@@ -14,18 +14,18 @@
 			"R\\Util\\": "util/"
 		},
 		"files": [
-			"core/array.php",
-			"core/html.php",
-			"core/path.php",
-			"core/webapp.php",
-			"core/date.php",
-			"core/string.php",
-			"core/file.php",
-			"core/modules.php",
-			"core/report.php",
-			"core/vars.php",
-			"core/lib_db.php",
-			"core/lib_smarty.php"
+			"function/array.php",
+			"function/html.php",
+			"function/path.php",
+			"function/webapp.php",
+			"function/date.php",
+			"function/string.php",
+			"function/file.php",
+			"function/modules.php",
+			"function/report.php",
+			"function/vars.php",
+			"function/lib_db.php",
+			"function/lib_smarty.php"
 		]
 	},
 	"include-path":[
