@@ -9,7 +9,9 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"R\\Lib\\": "src/"
+			"R\\Lib\\": "lib/",
+			"R\\Plugin\\": "plugin/",
+			"R\\Util\\": "util/"
 		}
 	}
 }
