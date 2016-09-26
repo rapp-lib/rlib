@@ -1,5 +1,6 @@
 <?php
 namespace R\Lib\Smarty;
+use Smarty;
 
 //-------------------------------------
 // 

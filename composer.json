@@ -17,7 +17,8 @@
 
 			"R\\Lib\\Form\\Rule\\": "plugins/Form/Rule/",
 			"R\\Lib\\Form\\Input\\": "plugins/Smarty/InputType/",
-			"R\\Lib\\Query\\Search\\": "plugins/DBI/SearchType/"
+			"R\\Lib\\Query\\Search\\": "plugins/DBI/SearchType/",
+			"\\": "ext/include/"
 		},
 		"files": [
 			"functions/array.php",
