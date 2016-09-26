@@ -5,7 +5,9 @@
 	"license": "MIT",
 	"require": {
 		"smarty/smarty": "v3.*@stable",
-		"swiftmailer/swiftmailer": "v5.*@stable"
+		"swiftmailer/swiftmailer": "v5.*@stable",
+        "pear/http_request2": "2.2.1",
+        "pear/mail": "1.3.0"
 	},
 	"autoload": {
 		"psr-4": {
@@ -33,7 +35,6 @@
 		]
 	},
 	"include-path":[
-		"ext/include/",
-		"ext/pear/"
+		"ext/include/"
 	]
 }
