@@ -11,7 +11,11 @@
 		"psr-4": {
 			"R\\Lib\\": "lib/",
 			"R\\Plugin\\": "plugin/",
-			"R\\Util\\": "util/"
+			"R\\Util\\": "util/",
+
+			"R\\Lib\\Form\\Rule\\": "plugin/Rule/",
+			"R\\Lib\\Query\\Search\\": "plugin/Search/",
+			"R\\Lib\\Form\\Input\\": "plugin/Input/"
 		},
 		"files": [
 			"function/array.php",
