@@ -52,9 +52,9 @@ class Transit
 					
 					$input =new $input_class($value,$params);
 					
-					if ($assignVars =$input->getAssign()) {
+					if ($params["assign"]) {
 					
-						$smarty->assign($assignVars);
+						$smarty->assign($params["assign"], $input->getAssign());
 					}
 
 					return $input->getHtml();
