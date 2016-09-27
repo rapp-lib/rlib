@@ -49,7 +49,8 @@
 	$pdf->output();
 */
 
-	require_once(dirname(__FILE__).'/PDFHandler/mbfpdf.php');
+	// composerから読み込む
+	//require_once(dirname(__FILE__).'/PDFHandler/mbfpdf.php');
 	
 //-------------------------------------
 // PDFファイル生成機能
