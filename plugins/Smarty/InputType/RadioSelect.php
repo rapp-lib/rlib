@@ -5,6 +5,6 @@ use R\Lib\Form\Input\Select;
 /**
  * 
  */
-class Checklist extends Select
+class Radioselect extends Select
 {
 }
