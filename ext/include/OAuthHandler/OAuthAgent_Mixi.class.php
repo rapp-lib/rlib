@@ -49,7 +49,7 @@ class OAuthAgent_Mixi {
 					'code' =>$callback_code,
 				),
 			));
-			$result_json =json_to_array($response["body"]);
+			$result_json =json_decode($response["body"]);
 			report($result_json);
 			
 			$result["oauth_token"] =$result_json["access_token"];
@@ -60,7 +60,7 @@ class OAuthAgent_Mixi {
 			// UserIDの取得
 			$response =obj("HTTPRequestHandler")->request(
 					$this->graph_url.'?oauth_token='.$result["oauth_token"]);
-			$result_json =json_to_array($response["body"]);
+			$result_json =json_decode($response["body"]);
 			
 			$result["oauth_uid"] =$result_json["entry"]["id"];
 			$result["profile"] =$result_json["entry"];

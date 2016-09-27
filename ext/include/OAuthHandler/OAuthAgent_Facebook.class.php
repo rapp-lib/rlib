@@ -73,7 +73,7 @@ class OAuthAgent_Facebook {
 			),null,"&");
 			$request_handler =new HTTPRequestHandler;
 			$response =$request_handler->request($this->graph_url."?".$query);
-			$result_json =json_to_array($response["body"]);
+			$result_json =json_decode($response["body"]);
 			
 			$result["oauth_uid"] =$result_json["id"];
 			$result["profile"] =$result_json;

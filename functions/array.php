@@ -251,7 +251,7 @@
 
 	//-------------------------------------
 	// 配列をJSON文字列に変換する
-	function array_to_json ($entry) {
+	function array_to_json_DELETE ($entry) {
 		
 		// php5.2以降で使用できるようあればphp-jsonを使用（負荷:1）
 		if (function_exists("json_encode")) {
@@ -276,7 +276,7 @@
 	
 	//-------------------------------------
 	// json_encodeの代替実装
-	function json_encode_subst ($entry) {
+	function json_encode_subst_DELETE ($entry) {
 		
 		$json ="";
 		
@@ -302,7 +302,7 @@
 
 	//-------------------------------------
 	// JSON文字列を配列に変換する
-	function json_to_array ($json) {
+	function json_to_array_DELETE ($json) {
 		
 		// php5.2以降で使用できるようあればphp-jsonを使用
 		if (function_exists("json_decode")) {

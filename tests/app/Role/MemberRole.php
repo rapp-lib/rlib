@@ -1,5 +1,5 @@
 <?php
-namespace R\App\Auth;
+namespace R\App\Role;
 use R\Lib\Auth\Role;
 
 /**

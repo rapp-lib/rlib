@@ -157,7 +157,7 @@ class OAuthHandler {
 		
 		if ($response_format == "json") {
 		
-			$response_body =json_to_array($response_body);
+			$response_body =json_decode($response_body);
 		}
 		
 		return $response_body;
