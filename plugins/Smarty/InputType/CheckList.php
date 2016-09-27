@@ -1,6 +1,6 @@
 <?php
-namespace R\Lib\Plugin\Smarty\InputType;
-use R\Lib\Plugin\Smarty\InputType\Select;
+namespace R\Lib\Form\Input;
+use R\Lib\Form\Input\Select;
 
 /**
  * 
