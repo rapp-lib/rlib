@@ -1,7 +1,6 @@
 <?php
 
-	function smarty_modifier_hidetext ($text) {
-		
-		return preg_replace('!.!','*',$text);
-	}
-	
+    function smarty_modifier_hidetext ($text) {
+
+        return preg_replace('!.!','*',$text);
+    }

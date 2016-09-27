@@ -1,18 +1,18 @@
 
-	//-------------------------------------
-	// Action: CSVアップロード確認
-	public function act_entry_csv_confirm () {
-		
-		$this->context("c",1,true);
-		$this->c->input($_REQUEST["c"]);
+    //-------------------------------------
+    // Action: CSVアップロード確認
+    public function act_entry_csv_confirm () {
 
-		$csv_filename =obj("UserFileManager")->get_uploaded_file(
-				$this->c->input("Import.csv_file"), "private");
-		
-		if ( ! $csv_filename) {
+        $this->context("c",1,true);
+        $this->c->input($_REQUEST["c"]);
 
-			redirect("page:.entry_csv_form");
-		}
+        $csv_filename =obj("UserFileManager")->get_uploaded_file(
+                $this->c->input("Import.csv_file"), "private");
 
-		redirect('page:.entry_csv_exec');
-	}
+        if ( ! $csv_filename) {
+
+            redirect("page:.entry_csv_form");
+        }
+
+        redirect('page:.entry_csv_exec');
+    }

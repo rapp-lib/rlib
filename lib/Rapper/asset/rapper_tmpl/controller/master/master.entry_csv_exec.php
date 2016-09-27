@@ -1,46 +1,46 @@
 
 
-	//-------------------------------------
-	// Action: CSV一括インポート実行
-	public function act_entry_csv_exec () {
-		
-		set_time_limit(0);
-		registry("Report.error_reporting",E_USER_ERROR|E_ERROR);
-		
-		$this->context("c",1,true);
-		
-		$csv_filename =obj("UserFileManager")->get_uploaded_file(
-				$this->c->input("Import.csv_file"), "private");
-		
-		// CSVファイルの読み込み準備
-		$csv =new CSVHandler($csv_filename,"r",$this->csv_setting);
+    //-------------------------------------
+    // Action: CSV一括インポート実行
+    public function act_entry_csv_exec () {
 
-		dbi()->begin();
+        set_time_limit(0);
+        registry("Report.error_reporting",E_USER_ERROR|E_ERROR);
 
-		while (($t=$csv->read_line()) !== null) {
+        $this->context("c",1,true);
 
-			// CSVフォーマットエラー
-			if ($errors =$csv->get_errors()) {
-			
-				dbi()->rollback();
+        $csv_filename =obj("UserFileManager")->get_uploaded_file(
+                $this->c->input("Import.csv_file"), "private");
 
-				$this->c->errors("Import.csv_file",$errors);
+        // CSVファイルの読み込み準備
+        $csv =new CSVHandler($csv_filename,"r",$this->csv_setting);
 
-				redirect("page:.entry_csv_form");
-			}
+        dbi()->begin();
 
-			// DBへの登録
-			$c_import =new Context_App;
-			$c_import->id("<?=$t['pkey']?>");
-			$c_import->input($t);
-			
-			$keys =array_keys($this->csv_setting["rows"]);
-			$fields =$c_import->get_fields($keys);
-			
-			<?=$model_obj?>->save($fields,$c_import->id());
-		}
+        while (($t=$csv->read_line()) !== null) {
 
-		dbi()->commit();
+            // CSVフォーマットエラー
+            if ($errors =$csv->get_errors()) {
 
-		redirect("page:.view_list");
-	}
+                dbi()->rollback();
+
+                $this->c->errors("Import.csv_file",$errors);
+
+                redirect("page:.entry_csv_form");
+            }
+
+            // DBへの登録
+            $c_import =new Context_App;
+            $c_import->id("<?=$t['pkey']?>");
+            $c_import->input($t);
+
+            $keys =array_keys($this->csv_setting["rows"]);
+            $fields =$c_import->get_fields($keys);
+
+            <?=$model_obj?>->save($fields,$c_import->id());
+        }
+
+        dbi()->commit();
+
+        redirect("page:.view_list");
+    }

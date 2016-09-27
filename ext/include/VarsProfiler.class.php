@@ -5,140 +5,140 @@
  */
 class VarsProfiler {
 
-	/**
-	 * 値を解析する
-	 */
-	public static function profile ($value) {
+    /**
+     * 値を解析する
+     */
+    public static function profile ($value) {
 
-		$info =array();
+        $info =array();
 
-		if ($info =self::profile_function($value)) {
-		
-		} else if ($info =self::profile_class($value)) {
+        if ($info =self::profile_function($value)) {
 
-		} else if (is_array($value)) {
+        } else if ($info =self::profile_class($value)) {
 
-			$info["type"] ="array(".count($value).")";
-			$info["value"] =array();
-			
-			foreach ($value as $k => $v) {
+        } else if (is_array($value)) {
 
-				$info["value"][$k] =Report::profile($v);
-			}
+            $info["type"] ="array(".count($value).")";
+            $info["value"] =array();
 
-		} else if (is_bool($value)) {
+            foreach ($value as $k => $v) {
 
-			$info["type"] =$value ? "true" : "false";
+                $info["value"][$k] =Report::profile($v);
+            }
 
-		} else if (is_null($value)) {
+        } else if (is_bool($value)) {
 
-			$info["type"] ="null";
+            $info["type"] =$value ? "true" : "false";
 
-		} else if (is_string($value)) {
+        } else if (is_null($value)) {
 
-			$info["type"] ="string(".strlen($value).")";
-			$info["value"] ='"'.$value.'"';
+            $info["type"] ="null";
 
-		} else {
+        } else if (is_string($value)) {
 
-			$info["type"] =gettype($value);
-			$info["value"] =(string)$value;
-		}
+            $info["type"] ="string(".strlen($value).")";
+            $info["value"] ='"'.$value.'"';
 
-		return $info;
-	}
+        } else {
 
-	/**
-	 * 関数/メソッドの情報を解析する
-	 */
-	public static function profile_function ($func) {
+            $info["type"] =gettype($value);
+            $info["value"] =(string)$value;
+        }
 
-		$info =array();
-		$ref =null;
-		
-		if (is_string($func) || ! is_callable($func)) {
+        return $info;
+    }
 
-			return array();
-		}
+    /**
+     * 関数/メソッドの情報を解析する
+     */
+    public static function profile_function ($func) {
 
-		if (is_array($func) && method_exists($func[0], $func[1])) {
+        $info =array();
+        $ref =null;
 
-			$ref =new ReflectionMethod($func[0], $func[1]);
-			$class_name =$ref->getDeclaringClass()->getName();
+        if (is_string($func) || ! is_callable($func)) {
 
-		} else {
-			
-			$ref =new ReflectionFunction($func);
-		}
+            return array();
+        }
 
-		$info["name"] =$ref->getName();
-		$info["file"] =$ref->getFileName();
-		$info["line"] =$ref->getStartLine();
-		$info["ns"] =$ref->getNamespaceName();
-		$info["comment"] =$ref->getDocComment();
-		$info["file_short"] =self::to_short_filename($info["file"]);
-		
-		$info["params"] =array();
+        if (is_array($func) && method_exists($func[0], $func[1])) {
 
-		/*
-		foreach ($ref->getParameters() as $ref_param) {
+            $ref =new ReflectionMethod($func[0], $func[1]);
+            $class_name =$ref->getDeclaringClass()->getName();
 
-			$info["params"][] =array(
-				"type" =>$ref_param->getType()->__toString(),
-				"name" =>$ref_param->getName(),
-				"passed_by_reference" =>$ref_param->isPassedByReference(),
-				"default_value" =>$ref_param->getDefaultValue(),
-				"default_value_const" =>$ref_param->getDefaultValueConstantName(),
-			);
-		}
-		*/
-	
-		return $info;
-	}
+        } else {
 
-	/**
-	 * クラス/オブジェクトの情報を解析する
-	 */
-	public static function profile_class ($class) {
+            $ref =new ReflectionFunction($func);
+        }
 
-		$info =array();
-		$ref =null;
-		
-		if (is_object($class)) {
+        $info["name"] =$ref->getName();
+        $info["file"] =$ref->getFileName();
+        $info["line"] =$ref->getStartLine();
+        $info["ns"] =$ref->getNamespaceName();
+        $info["comment"] =$ref->getDocComment();
+        $info["file_short"] =self::to_short_filename($info["file"]);
 
-			$ref =new ReflectionObject($class);
-		
-		} else if (class_exists($class)) {
-			
-			$ref =new ReflectionClass($class);
-		
-		} else {
+        $info["params"] =array();
 
-			return array();
-		}
+        /*
+        foreach ($ref->getParameters() as $ref_param) {
 
-		$info["name"] =$ref->getName();
-		$info["file"] =$ref->getFileName();
-		$info["line"] =$ref->getStartLine();
-		$info["ns"] =$ref->getNamespaceName();
-		$info["comment"] =$ref->getDocComment();
-		$info["file_short"] =self::to_short_filename($info["file"]);
+            $info["params"][] =array(
+                "type" =>$ref_param->getType()->__toString(),
+                "name" =>$ref_param->getName(),
+                "passed_by_reference" =>$ref_param->isPassedByReference(),
+                "default_value" =>$ref_param->getDefaultValue(),
+                "default_value_const" =>$ref_param->getDefaultValueConstantName(),
+            );
+        }
+        */
 
-		$info["value"] =array();
-		
-		foreach ($value as $k => $v) {
+        return $info;
+    }
 
-			$info["value"][$k] =Report::profile($v);
-		}
+    /**
+     * クラス/オブジェクトの情報を解析する
+     */
+    public static function profile_class ($class) {
 
-		return $info;
-	}
+        $info =array();
+        $ref =null;
 
-	/**
-	 * ファイル名を省略名に変換する
-	 */
-	public static function to_short_filename ($file) {
+        if (is_object($class)) {
 
-		return basename($file);
-	}
+            $ref =new ReflectionObject($class);
+
+        } else if (class_exists($class)) {
+
+            $ref =new ReflectionClass($class);
+
+        } else {
+
+            return array();
+        }
+
+        $info["name"] =$ref->getName();
+        $info["file"] =$ref->getFileName();
+        $info["line"] =$ref->getStartLine();
+        $info["ns"] =$ref->getNamespaceName();
+        $info["comment"] =$ref->getDocComment();
+        $info["file_short"] =self::to_short_filename($info["file"]);
+
+        $info["value"] =array();
+
+        foreach ($value as $k => $v) {
+
+            $info["value"][$k] =Report::profile($v);
+        }
+
+        return $info;
+    }
+
+    /**
+     * ファイル名を省略名に変換する
+     */
+    public static function to_short_filename ($file) {
+
+        return basename($file);
+    }
 }

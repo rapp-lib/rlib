@@ -3,34 +3,34 @@
 namespace R\Lib\Form\Rule;
 
 /**
- * 
+ *
  */
 abstract class BaseRule {
 
-	protected $message ="入力が不正です";
-	protected $params =array();
+    protected $message ="入力が不正です";
+    protected $params =array();
 
-	/**
-	 * 
-	 */
-	public function __construct ($params)  {
+    /**
+     *
+     */
+    public function __construct ($params)  {
 
-		$this->params =$params;
-	}
+        $this->params =$params;
+    }
 
-	/**
-	 * 
-	 */
-	public function check ($value) {
+    /**
+     *
+     */
+    public function check ($value) {
 
-		return false;
-	}
-	
-	/**
-	 * 
-	 */
-	public function getMessage () {
+        return false;
+    }
 
-		return $this->message;
-	}
+    /**
+     *
+     */
+    public function getMessage () {
+
+        return $this->message;
+    }
 }

@@ -3,23 +3,23 @@
 namespace R\Lib\Query\Search;
 
 /**
- * 
+ *
  */
 abstract class BaseSearch {
 
-	protected $setting;
+    protected $setting;
 
-	/**
-	 * [__construct description]
-	 * @param [type] $setting [description]
-	 */
-	public function __construct ($setting) {
+    /**
+     * [__construct description]
+     * @param [type] $setting [description]
+     */
+    public function __construct ($setting) {
 
-		$this->setting =$setting;
-	}
+        $this->setting =$setting;
+    }
 
-	public function getQuery ($input) {
-		
-		return "1=0";
-	}
+    public function getQuery ($input) {
+
+        return "1=0";
+    }
 }

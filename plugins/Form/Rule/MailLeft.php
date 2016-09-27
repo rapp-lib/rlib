@@ -3,20 +3,20 @@
 namespace R\Lib\Form\Rule;
 
 /**
- * 
+ *
  */
 class MailLeft extends BaseRule {
 
-	/**
-	 * override
-	 */
-	protected $message ="正しいメールアドレスを入力してください";
+    /**
+     * override
+     */
+    protected $message ="正しいメールアドレスを入力してください";
 
-	/**
-	 * override
-	 */
-	public function check ($value) {
+    /**
+     * override
+     */
+    public function check ($value) {
 
-		return  (! strlen($value)) || preg_match('/^([a-z0-9_]|\-|\.|\+)+@(([a-z0-9_]|\-)+\.)+[a-z]{2,6}$/i', $value."@docomo.ne.jp");
-	}
+        return  (! strlen($value)) || preg_match('/^([a-z0-9_]|\-|\.|\+)+@(([a-z0-9_]|\-)+\.)+[a-z]{2,6}$/i', $value."@docomo.ne.jp");
+    }
 }

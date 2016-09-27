@@ -7,16 +7,16 @@ namespace R\Lib\Form\Rule;
  */
 class Error extends BaseRule {
 
-	/**
-	 * override
-	 */
-	protected $message ="入力が不正です";
+    /**
+     * override
+     */
+    protected $message ="入力が不正です";
 
-	/**
-	 * override
-	 */
-	public function check ($value) {
+    /**
+     * override
+     */
+    public function check ($value) {
 
-		return ! $this->params["option"];
-	}
+        return ! $this->params["option"];
+    }
 }

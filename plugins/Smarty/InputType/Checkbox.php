@@ -4,52 +4,52 @@ namespace R\Lib\Form\Input;
 use R\Lib\Core\Html;
 
 /**
- * 
+ *
  */
 class Checkbox extends BaseInput
 {
-	/**
-	 * @override
-	 */
-	public function __construct ($value, $attrs) 
-	{
-		
-		list($params,$attrs) =$this->filterAttrs($attrs,array(
-		));
+    /**
+     * @override
+     */
+    public function __construct ($value, $attrs)
+    {
 
-		if ((strlen($value) && $attrs["value"] == $value)
-				|| ( ! strlen($value) && $attrs["checked"])) {
-			
-			$attrs['checked'] ="checked";
+        list($params,$attrs) =$this->filterAttrs($attrs,array(
+        ));
 
-		} else {
+        if ((strlen($value) && $attrs["value"] == $value)
+                || ( ! strlen($value) && $attrs["checked"])) {
 
-			unset($attrs['checked']);
-		}
+            $attrs['checked'] ="checked";
 
-		$attr_html ="";
-		
-		foreach ($attrs as $k => $v) {
-			
-			$attr_html .=' '.$k.'="'.$v.'"';
-		}
-		
-		$html ='';
-		$html .=(
-			'<input'
-			.' type="hidden"'
-			.' name="'.$attrs["name"].'"'
-			.' value=""'
-			.' />'."\n"
-		);
-		$html .=(
-			'<input'
-			.' type="checkbox"'
-			.$attr_html
-			.' />'
-		);
+        } else {
 
-		$this->html =$html;
-		$this->assign =array();
-	}
+            unset($attrs['checked']);
+        }
+
+        $attr_html ="";
+
+        foreach ($attrs as $k => $v) {
+
+            $attr_html .=' '.$k.'="'.$v.'"';
+        }
+
+        $html ='';
+        $html .=(
+            '<input'
+            .' type="hidden"'
+            .' name="'.$attrs["name"].'"'
+            .' value=""'
+            .' />'."\n"
+        );
+        $html .=(
+            '<input'
+            .' type="checkbox"'
+            .$attr_html
+            .' />'
+        );
+
+        $this->html =$html;
+        $this->assign =array();
+    }
 }
