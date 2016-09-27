@@ -1,6 +1,0 @@
-/tmp/*
-/html/user_file/*
-/config/*.env-ident
-*_DELETE
-
-!empty
