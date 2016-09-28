@@ -412,7 +412,7 @@ class BasicMailer {
     // Dep: Pear/Mail/mime.php
     protected function check_options_to_send ($options=array()) {
 
-        require_once("Mail/mime.php");
+        //require_once("Mail/mime.php");
 
         mb_language("japanese");
         mb_internal_encoding("UTF-8");

@@ -1,11 +1,10 @@
 <?php
 namespace R\Lib\Smarty;
-use Smarty;
+use SmartyBC;
 use R\Util\Reflection;
 
 //-------------------------------------
 //
-class SmartyBC extends Smarty {}
 class SmartyExtended extends SmartyBC {
 
     public $_tpl_vars;
