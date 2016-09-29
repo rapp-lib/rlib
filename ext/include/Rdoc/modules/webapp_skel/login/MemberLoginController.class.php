@@ -1,13 +1,20 @@
-<!?php
+<?php print "<!?php";
+
+    $controller = $c["name"];
+    $controller_class = str_camelize($controller)."Controller";
+    $controller_label = $c["label"];
+
+    $role = $c["account"];
+?>
 
 /**
  * @controller
  */
-class <?=str_camelize($c["name"])?>Controller extends Controller_App
+class <?=$controller_class?> extends Controller_App
 {
     /**
      * @page
-     * @title <?=$c["label"]?> TOP
+     * @title <?=$controller_label?> TOP
      */
     public function act_index ()
     {
@@ -16,7 +23,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 
     /**
      * @page
-     * @title <?=$c["label"]?> ログイン
+     * @title <?=$controller_label?> ログイン
      */
     public function act_login ()
     {
@@ -31,11 +38,9 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
         // 入力値のチェック
         if ($_REQUEST["_i"]=="c") {
             $this->c->validate_input($_REQUEST,array());
-            $this->c_<?=$c["account"]?>_auth->login(
-                    $this->c->input("login_id"),
-                    $this->c->input("login_pass"));
+            $result = auth()->login("<?=$role?>", $this->c->input());
 
-            if ($this->c_<?=$c["account"]?>_auth->id()) {
+            if ($result) {
 
                 // 転送先の指定があればそちらを優先
                 if ($this->c->session("redirect_to")) {
@@ -60,7 +65,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
         $this->context("c");
 
         // ログアウト処理
-        $this->c_<?=$c["account"]?>_auth->logout();
+        auth()->logout("<?=$role?>");
 
         redirect("page:index.index");
     }
