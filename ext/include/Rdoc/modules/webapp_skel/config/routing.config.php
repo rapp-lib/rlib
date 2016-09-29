@@ -5,6 +5,7 @@
 <? foreach ($s["controller"] as $c): ?>
 
             // <?=$c['label']?>
+
 <? if ($c["type"] == "index"): ?>
             "<?=$c['name']?>.index" =>"/<?=$c['name']?>/index.html",
 <? elseif ($c["type"] == "login"): ?>

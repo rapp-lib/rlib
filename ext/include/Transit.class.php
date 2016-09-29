@@ -1,7 +1,5 @@
 <?php
 
-use R\Lib\Core\String;
-
 /**
  * NS対応版への移行機能
  */
@@ -24,7 +22,7 @@ class Transit
         // rule_*モジュールの読み込み
         if ($type == "rule") {
 
-            $rule_class ='R\\Lib\\Form\\Rule\\'.String::camelize($name);
+            $rule_class ='R\\Lib\\Form\\Rule\\'.str_camelize($name);
 
             if (class_exists($rule_class)) {
 
@@ -41,7 +39,7 @@ class Transit
         // input_type_*モジュールの読み込み
         } else if ($type == "input_type") {
 
-            $input_class ='R\\Lib\\Form\\Input\\'.String::camelize($name);
+            $input_class ='R\\Lib\\Form\\Input\\'.str_camelize($name);
 
             if (class_exists($input_class)) {
 
@@ -73,7 +71,7 @@ class Transit
         // search_type_*モジュールの読み込み
         } else if ($type == "search_type") {
 
-            $search_class ='R\\Lib\\Query\\Search\\'.String::camelize($name);
+            $search_class ='R\\Lib\\Query\\Search\\'.str_camelize($name);
 
             if (class_exists($search_class)) {
 
@@ -115,7 +113,7 @@ class Transit
                 //"webapp_skel" => 'Rapper\\WebappSkel\\',
             );
 
-            $class ='R\\Plugin\\'.$ns_map[$type].String::camelize($name);
+            $class ='R\\Plugin\\'.$ns_map[$type].str_camelize($name);
             $method = array($class, $type."_".$name);
             if ($class && class_exists($class) && is_callable($method)) {
                 return $method;

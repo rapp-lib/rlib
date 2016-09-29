@@ -88,7 +88,7 @@
         if ($smarty->current_form) {
             $values =$smarty->current_form["values"];
             // Contextが指定されている
-            if (is_a($values,"Context_Base")) {
+            if (is_object($values) && is_callable(array($values,"input"))) {
                 $values =$values->input();
             }
             $postset_value =ref_array($values,$name_ref);
