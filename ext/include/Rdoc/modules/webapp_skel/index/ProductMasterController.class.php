@@ -1,13 +1,8 @@
-<!?php
-
-/**
- * @controller
- */
-class <?=str_camelize($c["name"])?>Controller extends Controller_App
-{
+<?php require __DIR__."/../_include/controller.php"; ?>
+<?=$__controller_header?>
     /**
      * @page
-     * @title <?=$t["label"]?>
+     * @title <?=$controller_label?><?="\n"?>
      */
     public function act_index ()
     {

@@ -1,15 +1,5 @@
 <?php
 namespace R\Lib\Auth;
-/*
-    auth()->login("member",array(
-        "login_id"=>$login_id,
-        "login_pw"=>md5($login_pw))));
-    if (auth("member")->check()) {
-
-    } else {
-
-    }
-*/
 
 /**
  *
@@ -49,6 +39,9 @@ class AccountManager
      */
     public function getAuthAccount ()
     {
+        if ( ! $this->auth_role) {
+            return null;
+        }
         return $this->getLoginAccount($this->auth_role);
     }
 
@@ -87,8 +80,12 @@ class AccountManager
     /**
      * 認証を行う
      */
-    public function authenticate ($role, $required=true, $privs_required=array())
+    public function authenticate ($role, $required=true)
     {
+        if ( ! $role) {
+            return ! $required;
+        }
+
         // 既に認証済みであれば多重認証処理エラー
         // ※複数のRoleでアクセスを許可する場合は共用Roleを用意すること
         if ($this->auth_role) {
@@ -105,14 +102,8 @@ class AccountManager
         $account->onBeforeAuthenticate();
 
         // ログイン必須チェック
-        if ($required && ! $account->check()) {
+        if ($required && ! $account->check($required)) {
             $account->onLoginRequired();
-            return false;
-        }
-
-        // 権限必須チェック
-        if ($required && ! $account->hasPriv($privs_required)) {
-            $account->onPrivRequired();
             return false;
         }
 

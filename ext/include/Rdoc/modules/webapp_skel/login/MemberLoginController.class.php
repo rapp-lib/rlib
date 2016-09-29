@@ -1,17 +1,5 @@
-<?php print "<!?php";
-
-    $controller = $c["name"];
-    $controller_class = str_camelize($controller)."Controller";
-    $controller_label = $c["label"];
-
-    $role = $c["account"];
-?>
-
-/**
- * @controller
- */
-class <?=$controller_class?> extends Controller_App
-{
+<?php require __DIR__."/../_include/controller.php"; ?>
+<?=$__controller_header?>
     /**
      * @page
      * @title <?=$controller_label?> TOP
@@ -38,7 +26,7 @@ class <?=$controller_class?> extends Controller_App
         // 入力値のチェック
         if ($_REQUEST["_i"]=="c") {
             $this->c->validate_input($_REQUEST,array());
-            $result = auth()->login("<?=$role?>", $this->c->input());
+            $result = auth()->login("<?=$role_login?>", $this->c->input());
 
             if ($result) {
 
@@ -65,7 +53,7 @@ class <?=$controller_class?> extends Controller_App
         $this->context("c");
 
         // ログアウト処理
-        auth()->logout("<?=$role?>");
+        auth()->logout("<?=$role_login?>");
 
         redirect("page:index.index");
     }

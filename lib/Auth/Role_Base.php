@@ -69,11 +69,16 @@ abstract class Role_Base
     /**
      * 権限を持つかどうか確認
      */
-    public function hasPriv ($priv)
+    public function check ($priv)
     {
+        if ($priv === true) {
+            $priv = $this->attrs["role"];
+        }
+
         if ($this->attrs["role"] == $priv) {
             return true;
         }
+
         foreach ((array)$this->attrs["privs"] as $priv_check) {
             if ($priv_check == $priv) {
                 return true;
