@@ -71,6 +71,17 @@ abstract class Role_Base
      */
     public function check ($priv)
     {
+        // 複数指定の場合、全ての権限を持つか確認する
+        if (is_array($priv)) {
+            foreach ($priv as $v) {
+                if ( ! $this->check($v)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // trueの指定の場合Role名での確認と同義とする
         if ($priv === true) {
             $priv = $this->attrs["role"];
         }

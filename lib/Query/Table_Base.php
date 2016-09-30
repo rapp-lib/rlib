@@ -124,12 +124,21 @@ class Table_Base
      */
     public function chain_findMine ()
     {
-        $account = auth()->getLoginAccount();
+        $account = auth()->getAccessAccount();
+
         if ( ! $account) {
-            report_error("ログインしていません");
+            report_warning("認証されていません");
+            return $this->findNothing();
         }
-        $table_name = $account->getTableName();
+
         $id = $account->getId();
+
+        $table_name = $account->getAttr("table_name");
+
+        if ( ! $table_name) {
+            $table_name = str_camelize($account->getRole());
+        }
+
         $this->findByAssoc($table_name, $id);
     }
 
@@ -139,13 +148,30 @@ class Table_Base
     public function chain_findByAssoc ($assoc_table, $assoc_id)
     {
         $fkey_col_name = $this->findFkeyColName($assoc_table);
+
+        if ( ! $fkey_col_name) {
+            report_warning("外部キーが定義されていません",array(
+                "table_class" => get_class($this),
+                "assoc_table" => $assoc_table,
+            ));
+            return $this->findNothing();
+        }
+
         $this->findBy($fkey_col_name, $assoc_id);
     }
 
     /**
      * @chain
      */
-    public function chain_search ($list_setting, $input)
+    public function chain_findNothing ()
+    {
+        $this->query->where("0=1");
+    }
+
+    /**
+     * @chain
+     */
+    public function chain_findBySearchForm ($list_setting, $input)
     {
         $query_array = $this->getModel()->get_list_query($list_setting, $input);
         $this->query->merge($query_array);

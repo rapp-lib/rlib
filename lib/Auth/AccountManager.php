@@ -66,6 +66,7 @@ class AccountManager
 
             // セッションからの復帰
             $login_account_attr = (array)$this->login_account_attrs[$role];
+            $login_account_attr["role"] = $role;
             $this->login_accounts[$role]->reset($login_account_attr);
         }
 
