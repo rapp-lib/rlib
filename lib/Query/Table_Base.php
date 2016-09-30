@@ -233,6 +233,19 @@ class Table_Base
     }
 
     /**
+     * @hook buildQuery
+     * スキーマ定義にない値の設定を削除
+     */
+    protected function buildQuery_filterValues ()
+    {
+        foreach ($this->query["values"] as $k => $v) {
+            if ( ! $this->cols[$k] || ! $this->cols[$k]["type"]) {
+                $this->query->removeValues($k);
+            }
+        }
+    }
+
+    /**
      * Hydrate処理
      */
     public function resultRecord_hydrate ($record, $result)

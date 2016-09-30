@@ -616,9 +616,14 @@ class DBI_Base {
             list($query["table"],$query["alias"]) =$query["table"];
         }
 
+        if ($query["type"]=="insert") {
+            $query["type"] = "create";
+        }
+
         // valuesでの指定の展開
         if ($query["values"]) {
             $query["fields"] = $query["values"];
+            unset($query["values"]);
         }
 
         // fields, values
