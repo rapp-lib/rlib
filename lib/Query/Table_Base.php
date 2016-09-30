@@ -238,7 +238,7 @@ class Table_Base
      */
     protected function buildQuery_filterValues ()
     {
-        foreach ($this->query["values"] as $k => $v) {
+        foreach ((array)$this->query["values"] as $k => $v) {
             if ($this->cols[$k] && ! $this->cols[$k]["type"]) {
                 $this->query->removeValues($k);
             }
