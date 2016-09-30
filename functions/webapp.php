@@ -774,3 +774,11 @@
 
         return "pc";
     }
+
+    /**
+     * @facade R\Lib\AccountManager::load
+     */
+    function auth ($name=null)
+    {
+        return R\Lib\Auth\AccountManager::load($name);
+    }

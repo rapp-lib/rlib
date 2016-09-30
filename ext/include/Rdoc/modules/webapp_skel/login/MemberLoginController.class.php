@@ -1,13 +1,8 @@
-<!?php
-
-/**
- * @controller
- */
-class <?=str_camelize($c["name"])?>Controller extends Controller_App
-{
+<?php require __DIR__."/../_include/controller.php"; ?>
+<?=$__controller_header?>
     /**
      * @page
-     * @title <?=$c["label"]?> TOP
+     * @title <?=$controller_label?> TOP
      */
     public function act_index ()
     {
@@ -16,7 +11,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 
     /**
      * @page
-     * @title <?=$c["label"]?> ログイン
+     * @title <?=$controller_label?> ログイン
      */
     public function act_login ()
     {
@@ -31,11 +26,9 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
         // 入力値のチェック
         if ($_REQUEST["_i"]=="c") {
             $this->c->validate_input($_REQUEST,array());
-            $this->c_<?=$c["account"]?>_auth->login(
-                    $this->c->input("login_id"),
-                    $this->c->input("login_pass"));
+            $result = auth()->login("<?=$role_login?>", $this->c->input());
 
-            if ($this->c_<?=$c["account"]?>_auth->id()) {
+            if ($result) {
 
                 // 転送先の指定があればそちらを優先
                 if ($this->c->session("redirect_to")) {
@@ -60,7 +53,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
         $this->context("c");
 
         // ログアウト処理
-        $this->c_<?=$c["account"]?>_auth->logout();
+        auth()->logout("<?=$role_login?>");
 
         redirect("page:index.index");
     }

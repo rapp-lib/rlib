@@ -41,7 +41,7 @@ class Select extends BaseInput
         // HTML属性
         $attr_html ="";
         foreach ($attrs as $k => $v) {
-            $attr_html .=' '.$key.'="'.$value.'"';
+            $attr_html .=' '.$k.'="'.$v.'"';
         }
 
         // id属性の補完

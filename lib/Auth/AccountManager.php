@@ -1,15 +1,5 @@
 <?php
 namespace R\Lib\Auth;
-/*
-    auth()->login("member",array(
-        "login_id"=>$login_id,
-        "login_pw"=>md5($login_pw))));
-    if (auth("member")->check()) {
-
-    } else {
-
-    }
-*/
 
 /**
  *
@@ -28,7 +18,7 @@ class AccountManager
         $account_manager = & ref_globals("account_manager");
 
         if ( ! $account_manager) {
-            $account_manager = new R\Lib\AccountManager();
+            $account_manager = new self();
         }
 
         return $name===null
@@ -49,6 +39,9 @@ class AccountManager
      */
     public function getAuthAccount ()
     {
+        if ( ! $this->auth_role) {
+            return null;
+        }
         return $this->getLoginAccount($this->auth_role);
     }
 
@@ -60,14 +53,14 @@ class AccountManager
         if ( ! $this->login_accounts[$role]) {
             // インスタンスの作成
             $class = $this->getRoleClass($role);
-            $this->login_accounts[$role] = new $class;
+            $this->login_accounts[$role] = new $class($this);
 
             // セッションからの復帰
             $login_account_attr = (array)$this->login_account_attrs[$role];
-            $this->login_accounts[$role]->onReset($login_account_attr);
+            $this->login_accounts[$role]->reset($login_account_attr);
         }
 
-        return $this->login_account[$role];
+        return $this->login_accounts[$role];
     }
 
     /**
@@ -81,14 +74,18 @@ class AccountManager
             unset($this->login_account_attrs[$role]);
         }
 
-        $this->login_accounts[$role]->onReset($login_account_attr);
+        $this->getLoginAccount($role)->reset($login_account_attr);
     }
 
     /**
      * 認証を行う
      */
-    public function authenticate ($role, $required=true, $privs_required=array())
+    public function authenticate ($role, $required=true)
     {
+        if ( ! $role) {
+            return ! $required;
+        }
+
         // 既に認証済みであれば多重認証処理エラー
         // ※複数のRoleでアクセスを許可する場合は共用Roleを用意すること
         if ($this->auth_role) {
@@ -105,14 +102,8 @@ class AccountManager
         $account->onBeforeAuthenticate();
 
         // ログイン必須チェック
-        if ($required && ! $account->check()) {
+        if ($required && ! $account->check($required)) {
             $account->onLoginRequired();
-            return false;
-        }
-
-        // 権限必須チェック
-        if ($required && ! $account->hasPriv($privs_required)) {
-            $account->onPrivRequired();
             return false;
         }
 
@@ -125,15 +116,20 @@ class AccountManager
     public function login ($role, $params)
     {
         $this->resetLoginAccount($role);
-        $result = $this->getLoginAccount($role)->onLogin($params);
-        if ($result) {
-            $this->resetLoginAccount($role, array(
-                "role" => $role,
-                "id" => $result["id"],
-                "privs" => $result["privs"],
-                "attrs" => $result["attrs"],
-            ));
+        $result = $this->getLoginAccount($role)->loginTrial($params);
+
+        if ( ! $result) {
+            return false;
         }
+
+        $result["role"] = $role;
+        $result["id"] = (string)$result["id"];
+        $result["privs"] = (array)$result["privs"];
+        $this->resetLoginAccount($role, $result);
+
+        $this->getLoginAccount($role)->onLogin();
+
+        return true;
     }
 
     /**
@@ -150,8 +146,8 @@ class AccountManager
      */
     private function getRoleClass ($role)
     {
-        $ns = "R\\App\\Auth\\Role\\";
-        $role_class = str_camelize($role);
+        $ns = "R\\App\\Role\\";
+        $role_class = str_camelize($role)."Role";
 
         if (class_exists($role_class)) {
             return $role_class;

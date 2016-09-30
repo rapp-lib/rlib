@@ -1,21 +1,5 @@
-<?php
-    if ( ! function_exists("_model_instance")) {
-        function _model_instance($t,$c) {
-            $_ ='model("'.str_camelize($t["name"]).'"';
-            if ($c["accessor"]) {
-                $_ .=',"'.$c["accessor"].'"';
-            }
-            $_ .=')';
-            return $_;
-        }
-    }
-?><!?php
-
-/**
- * @controller
- */
-class <?=str_camelize($c["name"])?>Controller extends Controller_App
-{
+<?php require __DIR__."/../_include/controller.php"; ?>
+<?=$__controller_header?>
 <? if ($c["usage"] != "form"): /* ------------------- list_setting ------------------ */ ?>
     /**
      * 検索フォーム設定
@@ -105,7 +89,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
         }
 
         list($this->vars["ts"] ,$this->vars["p"]) =
-            <?=_model_instance($t,$c)?>->get_by_search_form($this->list_setting, $this->c->input());
+            <?=$__model_instance?>->get_by_search_form($this->list_setting, $this->c->input());
     }
 
 <? endif; /* $c["usage"] != "form" */ ?>
@@ -131,7 +115,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
         // id指定があれば既存のデータを読み込む
         if ($_REQUEST["id"]) {
             $this->c->id($_REQUEST["id"]);
-            $t =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
+            $t =<?=$__model_instance?>->get_by_id($this->c->id());
 
             if ( ! $t) {
                 $this->c->id(false);
@@ -177,7 +161,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
                 "<?=$tc['short_name']?>",
 <? endforeach; ?>
             ));
-            <?=_model_instance($t,$c)?>->save($fields,$this->c->id());
+            <?=$__model_instance?>->save($fields,$this->c->id());
 <? endif; /* $t["virtual"] */ ?>
 
             $this->c->clear();
@@ -202,14 +186,14 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
         $this->c->id($_REQUEST["id"]);
 
         // 既存のデータを確認
-        $t =<?=_model_instance($t,$c)?>->get_by_id($this->c->id());
+        $t =<?=$__model_instance?>->get_by_id($this->c->id());
 
         if ( ! $t) {
             redirect("page:.view_list");
         }
 
         // データの削除
-        <?=_model_instance($t,$c)?>->drop($this->c->id());
+        <?=$__model_instance?>->drop($this->c->id());
 
         redirect("page:.view_list");
     }
@@ -227,7 +211,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
 
         $this->context("c",1);
 
-        $res =<?=_model_instance($t,$c)?>
+        $res =<?=$__model_instance?>
                 ->get_by_search_form($this->list_setting,$this->c->input(),true);
 
         // CSVファイルの書き込み準備
@@ -321,7 +305,7 @@ class <?=str_camelize($c["name"])?>Controller extends Controller_App
             $keys =array_keys($this->csv_setting["rows"]);
             $fields =$c_import->get_fields($keys);
 
-            <?=_model_instance($t,$c)?>->save($fields,$c_import->id());
+            <?=$__model_instance?>->save($fields,$c_import->id());
         }
 
         dbi()->commit();

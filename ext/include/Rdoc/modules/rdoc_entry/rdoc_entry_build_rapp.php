@@ -102,7 +102,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         foreach (array(
             "routing.config.php",
             //"label.config.php",
-            "auth.config.php",
+            //"auth.config.php",
             "install.sql",
         ) as $key) {
 
@@ -186,10 +186,17 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
 
         // Contextの構築
+        //$src =$this->find_skel($c["skel"],
+        //        "login/MemberAuthContext.class.php");
+        //$dest =registry("Path.webapp_dir")
+        //        ."/app/context/".str_camelize($c["account"])."AuthContext.class.php";
+        //$this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
+
+        // Roleの構築
         $src =$this->find_skel($c["skel"],
-                "login/MemberAuthContext.class.php");
+                "login/MemberRole.php");
         $dest =registry("Path.webapp_dir")
-                ."/app/context/".str_camelize($c["account"])."AuthContext.class.php";
+                ."/app/Role/".str_camelize($c["account"])."Role.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
     }
 
