@@ -776,9 +776,17 @@
     }
 
     /**
-     * @facade R\Lib\AccountManager::load
+     * @facade R\Lib\Auth\AccountManager::load
      */
     function auth ($name=null)
     {
         return R\Lib\Auth\AccountManager::load($name);
+    }
+
+    /**
+     * @facade R\Lib\Query\TableFactory::factory
+     */
+    function table ($table_name, $config=array())
+    {
+        return R\Lib\Query\TableFactory::factory($table_name, $config);
     }

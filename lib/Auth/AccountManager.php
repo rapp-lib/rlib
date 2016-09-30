@@ -6,7 +6,8 @@ namespace R\Lib\Auth;
  */
 class AccountManager
 {
-    private $auth_role = null;
+    private $access_role = null;
+    private $login_role = null;
     private $login_accounts = array();
     private $login_account_attrs;
 
@@ -37,19 +38,27 @@ class AccountManager
     /**
      * 認証中のアカウントを取得する
      */
-    public function getAuthAccount ()
+    public function getAccessAccount ()
     {
-        if ( ! $this->auth_role) {
+        if ( ! $this->access_role) {
             return null;
         }
-        return $this->getLoginAccount($this->auth_role);
+        return $this->getLoginAccount($this->access_role);
     }
 
     /**
-     * ログインアカウントを取得する
+     * ログイン中のアカウントを取得する
      */
-    public function getLoginAccount ($role)
+    public function getLoginAccount ($role=null)
     {
+        if ( ! $role) {
+            $role = $this->login_role;
+        }
+
+        if ( ! $role) {
+            return null;
+        }
+
         if ( ! $this->login_accounts[$role]) {
             // インスタンスの作成
             $class = $this->getRoleClass($role);
@@ -88,15 +97,15 @@ class AccountManager
 
         // 既に認証済みであれば多重認証処理エラー
         // ※複数のRoleでアクセスを許可する場合は共用Roleを用意すること
-        if ($this->auth_role) {
+        if ($this->access_role) {
             report_error("多重認証エラー",array(
                 "role" => $role,
-                "auth_role" => $this->auth_role,
+                "access_role" => $this->access_role,
             ));
         }
-        $this->auth_role = $role;
+        $this->access_role = $role;
 
-        $account = $this->getLoginAccount($role);
+        $account = $this->getAccessAccount();
 
         // 認証前処理
         $account->onBeforeAuthenticate();
@@ -106,6 +115,8 @@ class AccountManager
             $account->onLoginRequired();
             return false;
         }
+
+        $account->login_role = $role;
 
         return true;
     }

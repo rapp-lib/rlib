@@ -607,6 +607,11 @@ class DBI_Base {
             list($query["table"],$query["alias"]) =$query["table"];
         }
 
+        // valuesでの指定の展開
+        if ($query["values"]) {
+            $query["fields"] = $query["values"];
+        }
+
         // fields, values
         $insert_fields =array();
         $insert_values =array();
@@ -670,6 +675,11 @@ class DBI_Base {
         // joins
         $query["joins"] =$this->st_joins($query["joins"]);
         $query["joins"] =implode(' ',(array)$query["joins"]);
+
+        // valuesでの指定の展開
+        if ($query["values"]) {
+            $query["fields"] = $query["values"];
+        }
 
         // fields
         $update_fields =array();

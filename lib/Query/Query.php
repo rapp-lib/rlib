@@ -1,208 +1,168 @@
 <?php
 namespace R\Lib\Query;
 
-    function table ($table_name, $access_as=null)
-    {
-        return $table = new TableChain(array(
-            "table_name" => $table_name,
-            "access_as" => $access_as));
-    }
-
-class TableChain
-{
-    public $table = null;
-    public $access_as = null;
-    public function __construct ($table_name, $access_as)
-    {
-        $class = "R\\App\\Table\\".str_camelize($table_name)."Table";
-        $this->table = new $class($this);
-        $this->access_as = $access_as;
-    }
-    public function __call ($method_name, $args=array())
-    {
-        $this->table->$method_name($args);
-        return $this;
-    }
-}
-
-class Table_Base
-{
-    protected $chain = null;
-    protected $query = null;
-    protected $table_name = null;
-    protected $id_col_name = "id";
-    protected $valid_flg_col_name = "valid_flg";
-    protected $del_flg_col_name = "del_flg";
-    protected $hook = array(
-        "before_build_statement" => array(
-            "where_clause" =>array(),
-            "read_statement" =>array(),
-            "write_statement" =>array(),
-        ),
-    );
-    protected $refs = array(
-        "member" => "id",
-        "staff" => "incharge_staff_id",
-        "Staff" => "incharge_staff_id",
-    );
-    protected $cols = array(
-        "imgs" => array(
-            "type"=>"assoc",
-            "table"=>"MemberImg",
-        ),
-        "categories" => array(
-            "type"=>"assoc",
-            "table"=>"MemberCategoryAssoc",
-            "reduce_by"=>"category_id",
-        ),
-        "detail" => array(
-            "type"=>"assoc",
-            "table"=>"MemberDetail",
-        ),
-    );
-    public function __construct ($chain)
-    {
-        $this->chain = $chain;
-    }
-    public function modifier_by ($method_name, $args)
-    {
-        if (preg_match('!(_[a-z]+)([A-Z][a-zA-Z0-9]*)!',$method_name,$match)) {
-            $modifier_name = $match[1];
-            $method_name = str_replace($modifier_name,"",$method_name);
-            $this->chain->$method_name($args);
-        }
-    }
-    public function modifier_for ($method_name, $args)
-    {
-    }
-    public function find_by ($value)
-    {
-        $this->query->where($this->id_col_name, $value);
-    }
-
-}
-class Table_App extends Table_Base
-{
-}
-
 class Query
 {
-    public $type = null;
     public $query = array();
+
+    /**
+     * @override
+     */
     public function __call ($method_name, $args=array())
     {
-        if (preg_match("!^([set|add])(.*?)$!",$method_name,$match)) {
+        if (preg_match("!^([get|set|add|remove])(.*?)$!",$method_name,$match)) {
             $op = $match[1];
             $key = str_underscore($match[2]);
 
-            if ($op=="set" && count($args)==0) {
-                unset($this->query[$key]);
-            } elseif ($op=="set" && count($args)==1) {
-                $this->query[$key] = $args[0];
-            } elseif ($op=="set" && count($args)==2) {
-                $this->query[$key][$args[0]] = $args[1];
+            // get*であればgetter
+            if ($op=="get") {
+                if (count($args)==0) {
+                    return $this->query_array[$key];
+                }
 
-            } elseif ($op=="add" && count($args)==1) {
-                $this->query[$key][] = $args[0];
+            // set*であればsetter
+            } elseif ($op=="set") {
+                if (count($args)==0) {
+                    unset($this->query_array[$key]);
+                } elseif (count($args)==1) {
+                    $this->query_array[$key] = $args[0];
+                } elseif (count($args)==2) {
+                    $this->query_array[$key][$args[0]] = $args[1];
+                }
 
-            } elseif ($op=="remove" && count($args)==0) {
-                unset($this->query[$key]);
-            } elseif ($op=="remove" && count($args)==1) {
-                unset($this->query[$key][$args[0]]);
+            // add*であれば配列として要素を追加
+            } elseif ($op=="add") {
+                if (count($args)==1) {
+                    $this->query_array[$key][] = $args[0];
+                }
+
+            // remove*であれば要素を削除
+            } elseif ($op=="remove") {
+                if (count($args)==0) {
+                    unset($this->query_array[$key]);
+                } elseif (count($args)==1) {
+                    unset($this->query_array[$key][$args[0]]);
+                }
             }
         }
     }
-    public function statement ($type)
-    {
-        $this->type = $type;
-    }
+
+    /**
+     * @setter
+     * tableを設定する
+     */
     public function table ($table, $alias=false)
     {
         if (is_array($table)) {
-            $this->query["table"] = $table;
+            $this->query_array["table"] = $table[0];
+            $this->query_array["alias"] = $table[1];
         } else if ($alias !== false) {
-            $this->query["table"] = array($table, $alias);
+            $this->query_array["table"] = $table;
+            $this->query_array["alias"] = $alias;
         } else {
-            $this->query["table"] = $table;
+            $this->query_array["table"] = $table;
         }
     }
+
+    /**
+     * @setter
+     * joinsを設定する
+     */
+    public function join ($join_query_array)
+    {
+        $this->query_array["joins"][] = $join_query_array;
+    }
+
+    /**
+     * @setter
+     * conditionsを設定する
+     */
     public function where ($k,$v=false)
     {
         if (is_array($k) || $v === false) {
-            $this->query["conditions"][] = $k;
+            $this->query_array["conditions"][] = $k;
         } else {
-            $this->query["conditions"][$k] = $v;
+            $this->query_array["conditions"][$k] = $v;
         }
     }
-}
 
-/*
-    $this->table("Member");
-        use R\Lib\Query\TableAccess;
-        return new TableAccess(array(
-            "model" => $model_name,
-            "access_as" => $this->auth());
+    /**
+     * @setter
+     * valuesを1項目設定する
+     */
+    public function value ($k, $v=false)
+    {
+        if ($v!==false) {
+            $this->query_array["values"][$k] = $v;
+        } else {
+            $this->query_array["values"][] = $k;
+        }
+    }
 
-    $t = table("Member")->byId($id)->selectOne();
-    $t = table("Member")->mine()->selectOne();
-    $t = table("Member")->owned("member",$member_id)->selectOne();
-    list($ts,$p) = table("Member")->search($this->list_setting, $input)->selectPagenated();
- */
-class MemberTable extends Table_App
-{
-    public function by_Id ($id)
+    /**
+     * @setter
+     * valuesを一括設定する
+     */
+    public function values ($values)
     {
-        $this->query->where(array("id"=>$id));
-    }
-    public function find_byFriendIds ($friend_ids)
-    {
-        $ids = table("Member")
-            ->where(array("friend_id"=>$friend_ids))
-            ->selectHash("id");
-        $this->query->where(array("id"=>$ids));
-    }
-    public function search ($list_setting, $input)
-    {
-        $query = $this->search_query($list_setting, $input);
-        $this->query->mergeQuery($query);
-    }
-    public function select ()
-    {
-        if ($this->auth()->hasPriv("staff")) {
-            $this->query->where(array("valid_flg"=>1));
+        foreach ((array)$values as $k => $v) {
+            $this->value($k, $v);
         }
-        if ($this->auth()->hasPriv("admin")) {
-            $this->query->where(array("valid_flg"=>1));
+    }
+
+    /**
+     * @setter
+     * fieldsを1項目設定する
+     */
+    public function field ($k)
+    {
+        if ($i = array_search($v, $this->query_array["fields"])) {
+            $this->query_array["fields"][$i] = $k;
+        } else {
+            $this->query_array["values"][] = $k;
         }
-        $this->query->where(array("del_flg"=>1));
-        $this->query->table($this->entity());
-        return $this->execSelect($this->query);
     }
-    public function select_fornotAdmin ()
+
+    /**
+     * @setter
+     * fieldsを一括設定する
+     */
+    public function fields ($fields)
     {
-        $this->query->removeWhere("valid_flg");
-        $this->query->where(array("del_flg"=>1));
-        $this->query->table($this->entity());
-        return $this->execSelect($this->query);
+        foreach ((array)$fields as $k) {
+            $this->field($k);
+        }
     }
-    public function select_fornotStaff ()
+
+    /**
+     * クエリ配列の取得
+     */
+    public function getQueryArray ()
     {
-        $this->query->where(array("staff_id"=>$this->auth()->id()));
-        $this->query->where(array("del_flg"=>1));
-        $this->query->table($this->entity());
-        return $this->execSelect($this->query);
+        return $this->query_array;
     }
-    public function update_forMember ()
+
+    /**
+     * クエリの統合（上書きを避けつつ右を優先）
+     */
+    public function merge ($query)
     {
-        $this->query->where(array("id"=>$this->auth()->id()));
-        $this->query->where(array("del_flg"=>1));
-        $this->query->table($this->entity());
-        return $this->execSelect($this->query);
-    }
-    public function update_forAdmin ()
-    {
-        $this->query->where(array("del_flg"=>1));
-        $this->query->table($this->entity());
-        return $this->execUpdate($this->query);
+        foreach ($query as $k => $v) {
+            // 配列ならば要素毎に追加
+            if (is_array($v)) {
+                foreach ($v as $v_k => $v_v) {
+                    // 数値添え字ならば最後に追加
+                    if (is_numeric($v_k)) {
+                        $this->query_array[$k][] =$v_v;
+                    // 連想配列ならば要素の上書き
+                    } else {
+                        $this->query_array[$k][$v_k] =$v_v;
+                    }
+                }
+            // スカラならば上書き
+            } else {
+                $this->query_array[$k] =$v;
+            }
+        }
     }
 }
