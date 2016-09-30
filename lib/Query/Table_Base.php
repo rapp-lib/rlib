@@ -71,6 +71,14 @@ class Table_Base
     }
 
     /**
+     * @override ArrayObject
+     */
+    public function offsetGet($index)
+    {
+        return parent::offsetGet($index);
+    }
+
+    /**
      * ID属性の指定されたカラム名の取得
      */
     protected function findIdColName ()
@@ -180,21 +188,31 @@ class Table_Base
     /**
      * Queryを完成させる
      */
-    protected function completeQuery ()
+    protected function buildQuery ($type=null)
     {
-        // 1回だけcompleteQuery_*の呼び出しを行う
+        if ($type) {
+            $this->query->setType($type);
+        }
+        if ( ! $type) {
+            report_error("組み立てるQueryの種類の指定がありません",array(
+                "query" => $this->query,
+                "table" => $this,
+            ));
+        }
+
+        // 1回だけbuildQuery_*の呼び出しを行う
         if ( ! $this->query_is_completed) {
-            $this->completeQuery_();
+            $this->buildQuery_();
             $this->query_is_completed = true;
         }
-        return $this->query->getQueryArray();
+        return $this->query;
     }
 
     /**
-     * @hook completeQuery
+     * @hook buildQuery
      * テーブル名を関連づける
      */
-    protected function completeQuery_attachTableName ()
+    protected function buildQuery_attachTableName ()
     {
         if ($this->table_def["name"]) {
             $this->query->table($this->table_def["name"]);
@@ -204,14 +222,67 @@ class Table_Base
     }
 
     /**
-     * @hook completeQuery
+     * @hook buildQuery
      * 削除フラグを関連づける
      */
-    protected function completeQuery_attachDelFlg ()
+    protected function buildQuery_attachDelFlg ()
     {
         if ($del_flg_col_name = $this->findColNameByAttr("del_flg")) {
             $this->query->where($del_flg_col_name, 0);
         }
+    }
+
+    /**
+     * Hydrate処理
+     */
+    public function resultRecord_hydrate ($record, $result)
+    {
+        // hydrate
+        foreach ((array)$result as $k1 => $v1) {
+            foreach ((array)$v1 as $k2 => $v2) {
+                $record[$k2] = $v2;
+            }
+        }
+    }
+
+    /**
+     * @hook result
+     * getDBIを呼び出す
+     */
+    public function result_getDBI ()
+    {
+        return $this->getDBI();
+    }
+
+    /**
+     * Queryの発行
+     */
+    public function execQuery ($type=false)
+    {
+        // Query組み立ての仕上げ処理
+        $this->buildQuery($type);
+
+        $type = $this->query->getType();
+
+        // SQL文の作成と発行
+        $query_array = (array)$this->query;
+        $st_method = "st_".$type;
+        $st =$this->getDBI()->$st_method($query_array);
+        $result =$this->getDBI()->exec($st,array(
+            "Type" =>$type,
+            "Query" =>$query_array,
+        ));
+
+        // Resultの組み立て
+        $this->result = new QueryResult($result, $this);
+
+        // Pager取得用にSQL再発行
+        if ($type=="select" && $this->query->getPager()) {
+            $pager = $this->getDBI()->select_pager($query_array);
+            $this->result->setPager($pager);
+        }
+
+        return $this->result;
     }
 
     /**
@@ -229,9 +300,10 @@ class Table_Base
     public function selectOne ($fields=array())
     {
         $this->query->fields($fields);
-        $this->query->setType("select");
-        $query_array = $this->completeQuery();
-        return $this->getModel()->select_one($query_array);
+
+        $this->execQuery("select");
+
+        return $this->result->fetch();
     }
 
     /**
@@ -243,6 +315,7 @@ class Table_Base
         if ($v!==false) {
             $this->query->field($v);
         }
+
         $ts = $this->select();
 
         $hash =array();
@@ -262,9 +335,10 @@ class Table_Base
     public function select ($fields=array())
     {
         $this->query->fields($fields);
-        $this->query->setType("select");
-        $query_array = $this->completeQuery();
-        return $this->getModel()->select($query_array);
+
+        $this->execQuery("select");
+
+        return $this->result->fetchAll();
     }
 
     /**
@@ -273,10 +347,13 @@ class Table_Base
     public function selectPagenate ($fields=array())
     {
         $this->query->fields($fields);
-        $this->query->setType("select");
-        $query_array = $this->completeQuery();
-        $ts = $this->getModel()->select($query_array);
-        $p = $this->getModel()->select_pager($query_array);
+
+        $this->query->setPager(true);
+
+        $this->execQuery("select");
+        $ts = $this->result->fetchAll();
+        $p = $this->result->getPager();
+
         return array($ts,$p);
     }
 
@@ -286,9 +363,8 @@ class Table_Base
     public function selectNoFetch ($fields=array())
     {
         $this->query->fields($fields);
-        $this->query->setType("select");
-        $query_array = $this->completeQuery();
-        return $this->getModel()->select_nofetch($query_array);
+
+        return $this->execQuery("select");
     }
 
     /**
@@ -309,9 +385,8 @@ class Table_Base
     public function insert ($values=array())
     {
         $this->query->values($values);
-        $this->query->setType("insert");
-        $query_array = $this->completeQuery();
-        return $this->getModel()->insert($query_array);
+
+        return $this->execQuery("insert");
     }
 
     /**
@@ -329,9 +404,8 @@ class Table_Base
     public function updateAll ($values=array())
     {
         $this->query->values($values);
-        $this->query->setType("update");
-        $query_array = $this->completeQuery();
-        return $this->getModel()->update($query_array,null);
+
+        return $this->execQuery("update");
     }
 
     /**
@@ -349,7 +423,7 @@ class Table_Base
     public function deleteAll ()
     {
         $this->query->setType("delete");
-        $query_array = $this->completeQuery();
+        $query_array = $this->buildQuery();
         return $this->getModel()->delete($query_array,null);
     }
 

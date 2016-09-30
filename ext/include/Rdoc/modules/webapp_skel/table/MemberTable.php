@@ -1,7 +1,7 @@
 <?php
     $table = $t["name"];
     $table_class = str_camelize($t["name"])."Table";
-    $cols = $t["fields"];
+    $cols = $t["cols"];
 
     if ($cols[$t['pkey']]) {
         $cols[$t['pkey']]["def"]["id"] = true;

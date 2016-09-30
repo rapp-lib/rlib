@@ -14,6 +14,15 @@ class DBI_Base {
     protected $transaction_stack =array();
     private $desc_cache =array();
 
+    protected $result_listener = null;
+
+    //-------------------------------------
+    // 結果収集オブジェクトの設定
+    public function set_result_listener ($result_listener) {
+
+        $this->result_listener =$result_listener;
+    }
+
     //-------------------------------------
     // 初期化
     public function __construct ($name) {
