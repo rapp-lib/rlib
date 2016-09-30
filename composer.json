@@ -16,10 +16,11 @@
             "R\\Plugin\\": "plugins/",
             "R\\Util\\": "util/",
 
+            "\\": "ext/include/",
+
             "R\\Lib\\Form\\Rule\\": "plugins/Form/Rule/",
             "R\\Lib\\Form\\Input\\": "plugins/Smarty/InputType/",
-            "R\\Lib\\Query\\Search\\": "plugins/DBI/SearchType/",
-            "\\": "ext/include/"
+            "R\\Lib\\Query\\Search\\": "plugins/DBI/SearchType/"
         },
         "files": [
             "functions/array.php",
@@ -37,6 +38,11 @@
         ]
     },
     "include-path":[
-        "ext/include/"
+        "ext/include/",
+
+        "../../pear/pear_exception",
+        "../../pear/net_url2",
+        "../../pear/http_request2",
+        "../../pear/mail"
     ]
 }
