@@ -282,26 +282,6 @@ class Arr {
     }
 
     /**
-     * [Deprecated] 配列をJSON文字列に変換する
-     * @param  [type] $entry [description]
-     * @return [type]        [description]
-     */
-    public static function array_to_json_DEPRECATED ($entry)
-    {
-        return json_encode($entry);
-    }
-
-    /**
-     * [Deprecated] JSON文字列を配列に変換する
-     * @param  [type] $json [description]
-     * @return [type]       [description]
-     */
-    public static function json_to_array_DEPRECATED ($json)
-    {
-        return json_decode($json,true);
-    }
-
-    /**
      * [Deprecated] 最初の要素を取得（Smarty Modifierに移行すべき）
      * @param  [type] $arr [description]
      * @return [type]      [description]

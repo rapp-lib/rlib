@@ -295,7 +295,7 @@ class Webapp {
         // json
         } else if (is_array($output) && $output["json"]) {
 
-            echo array_to_json((array)$output["json"]);
+            echo json_encode((array)$output["json"]);
 
         // file
         } else if (is_array($output) && $output["file"]) {
@@ -380,7 +380,7 @@ class Webapp {
             $res["buffer"] =& $clean_output_buffer;
         }
 
-        print array_to_json($res);
+        print json_encode($res);
     }
 
     /**

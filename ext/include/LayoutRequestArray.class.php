@@ -97,7 +97,7 @@ class LayoutRequestArray {
                 if ($request["response"] == "json") {
 
                     unset($result["file"]);
-                    clean_output_shutdown(array_to_json($result));
+                    clean_output_shutdown(json_encode($result));
                 }
 
                 if ($result["status"] == "success") {

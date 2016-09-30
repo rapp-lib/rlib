@@ -266,7 +266,7 @@ class Select extends BaseInput
             } else {
 
                 $parents =$list_options->parents($params["parents_params"]);
-                $pair =array_to_json($parents);
+                $pair =json_encode($parents);
 
                 if ($params["type"] == "radioselect" || $params["type"] == "checklist") {
 
