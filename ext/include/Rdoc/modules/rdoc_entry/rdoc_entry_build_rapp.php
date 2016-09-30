@@ -90,12 +90,21 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
             if ( ! $t["nomodel"]) {
 
                 // Modelの構築
+                /*
                 $src =$this->find_skel($t["skel"],
                         "model/ProductModel.class.php");
                 $dest =registry("Path.webapp_dir")
                         ."/app/model/".str_camelize($t["name"])."Model.class.php";
                 $this->arch_template($src,$dest,array("t" =>$t));
+                */
             }
+
+            // Tableの構築
+            $src =$this->find_skel($t["skel"],
+                    "table/MemberTable.php");
+            $dest =registry("Path.webapp_dir")
+                    ."/app/Table/".str_camelize($t["name"])."Table.php";
+            $this->arch_template($src,$dest,array("t" =>$t));
         }
 
         // configの構築

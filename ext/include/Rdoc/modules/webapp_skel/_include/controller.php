@@ -22,14 +22,16 @@ class <?=$controller_class?> extends Controller_App
      * 認証設定
      */
 <?php if ($role_required): ?>
-    protected $login_as = <?=$role_required?>;
-    protected $login_required = true;
+    protected $access_as = <?=$role_required?>;
+    protected $priv_required = true;
 <?php else: ?>
-    protected $login_as = null;
-    protected $login_required = false;
+    protected $access_as = null;
+    protected $priv_required = false;
 <?php endif; ?>
 
 <?php
     $__controller_header = ob_get_clean();
 
     $__model_instance = 'model("'.$table.'")';
+
+    $__table_instance = 'table("'.$table.'")';

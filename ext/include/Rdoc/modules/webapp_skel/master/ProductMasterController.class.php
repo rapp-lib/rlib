@@ -88,8 +88,9 @@
             $this->c->input($_REQUEST);
         }
 
-        list($this->vars["ts"] ,$this->vars["p"]) =
-            <?=$__model_instance?>->get_by_search_form($this->list_setting, $this->c->input());
+        list($this->vars["ts"] ,$this->vars["p"]) = <?=$__table_instance?>
+            ->findBySearchForm($this->list_setting, $this->c->input())
+            ->selectPagenate();
     }
 
 <? endif; /* $c["usage"] != "form" */ ?>
@@ -115,7 +116,7 @@
         // id指定があれば既存のデータを読み込む
         if ($_REQUEST["id"]) {
             $this->c->id($_REQUEST["id"]);
-            $t =<?=$__model_instance?>->get_by_id($this->c->id());
+            $t =<?=$__table_instance?>->selectById($this->c->id());
 
             if ( ! $t) {
                 $this->c->id(false);
@@ -161,7 +162,7 @@
                 "<?=$tc['short_name']?>",
 <? endforeach; ?>
             ));
-            <?=$__model_instance?>->save($fields,$this->c->id());
+            <?=$__table_instance?>->save($this->c->id(),$fields);
 <? endif; /* $t["virtual"] */ ?>
 
             $this->c->clear();
@@ -185,15 +186,8 @@
         // idの指定
         $this->c->id($_REQUEST["id"]);
 
-        // 既存のデータを確認
-        $t =<?=$__model_instance?>->get_by_id($this->c->id());
-
-        if ( ! $t) {
-            redirect("page:.view_list");
-        }
-
         // データの削除
-        <?=$__model_instance?>->drop($this->c->id());
+        <?=$__table_instance?>->deleteById($this->c->id());
 
         redirect("page:.view_list");
     }
@@ -211,8 +205,10 @@
 
         $this->context("c",1);
 
-        $res =<?=$__model_instance?>
-                ->get_by_search_form($this->list_setting,$this->c->input(),true);
+        $res =<?=$__table_instance?>
+                ->findBySearchForm($this->list_setting,$this->c->input())
+                ->removePagenation()
+                ->selectNoFetch();
 
         // CSVファイルの書き込み準備
         $csv_filename =registry("Path.tmp_dir")
@@ -305,7 +301,7 @@
             $keys =array_keys($this->csv_setting["rows"]);
             $fields =$c_import->get_fields($keys);
 
-            <?=$__model_instance?>->save($fields,$c_import->id());
+            <?=$__table_instance?>->save($c_import->id(),$fields);
         }
 
         dbi()->commit();

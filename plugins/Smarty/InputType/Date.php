@@ -51,7 +51,7 @@ class Date extends BaseInput
         $range =$params["range"]
                 ? $params["range"]
                 : "2007~+5";
-        list($y1,$y2) =input_type_date_parse_range($range);
+        list($y1,$y2) =$this->input_type_date_parse_range($range);
 
         // 入力されている年数を含むように範囲を調整
         if ($d && $d["y"]) {
