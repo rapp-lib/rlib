@@ -3,6 +3,7 @@ namespace R\Util;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\DriverManager;
+use R\Lib\Query\TableFactory;
 
 /**
  *
@@ -10,26 +11,9 @@ use Doctrine\DBAL\DriverManager;
 class Migration
 {
     /**
-     * ディレクトリ以下で定義されているテーブル一覧を取得
-     */
-    public static function searchTableInDir ($schema_paths)
-    {
-        $tables = array();
-        foreach ((array)$schema_paths as $schema_path) {
-            foreach (glob($schema_path."/*") as $f) {
-                if (preg_match('!^([0-9a-zA-Z_]+)(Table)\.php!',basename($f),$match)) {
-                    $table_name = $match[1];
-                    $tables[] = table($table_name);
-                }
-            }
-        }
-        return $tables;
-    }
-
-    /**
      * Migrate結果のSQLを取得
      */
-    public static function getMigrateSQL ($ds_name, $tables)
+    public static function getMigrateSQL ($ds_name)
     {
         // 接続情報の解決
         $db_config = registry("DB.source.".$ds_name);
@@ -46,10 +30,13 @@ class Migration
             }
         }
 
-        // Tableクラスファイルの読み込み
+        // Tableクラスの定義からTableSchemaの組み立て
         $schema = new Schema;
-        foreach ((array)$tables as $table) {
-            $table->getTableSchema($schema);
+
+        $tables = TableFactory::collectTables();
+        foreach ($tables as $table) {
+            $table_def = table($table)->getTableDef();
+            $table_schema = self::converTableDefToSchema($schema, $table_def);
         }
 
         // Schemaの比較
@@ -57,12 +44,48 @@ class Migration
         $scm = $db->getSchemaManager();
         $queries = $schema->getMigrateFromSql($scm->createSchema(), $db->getDatabasePlatform());
 
-        // 差分SQLの組み立て
-        $sql = "";
-        foreach ($queries as $q) {
-            $sql .=$q."\n";
+        return $queries;
+    }
+
+    /**
+     * DoctrineTableSchemaの取得
+     */
+    private function converTableDefToSchema ($schema, $table_def)
+    {
+        $table = $schema->createTable($table_def["table_name"]);
+        $id_col_names = array();
+
+        foreach ((array)$table_def["cols"] as $col_name => $col) {
+            $options = $col;
+
+            // カラムの型
+            $col_type = $options["type"];
+            unset($options["type"]);
+
+            // 型の指定のないカラムは定義されていないものと見なす
+            if ( ! $col_type) {
+                continue;
+            }
+
+            // idが指定されたカラムは主キー
+            if ($col["id"]) {
+                $id_col_names[] = $col_name;
+            }
+
+            // notnulが標準でtrueなので反転
+            $options["notnull"] = (bool)$options["notnull"];
+
+            $table->addColumn($col_name, $col["type"], $options);
         }
 
-        return $sql;
+        // 主キー
+        $table->setPrimaryKey($id_col_names);
+
+        // Indexの作成
+        foreach ((array)$table_def["indexes"] as $index) {
+            $table->addIndex((array)$index[0],$index[1],(array)$index[2],(array)$index[3]);
+        }
+
+        return $table;
     }
 }

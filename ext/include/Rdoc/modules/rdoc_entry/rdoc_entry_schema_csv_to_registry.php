@@ -18,22 +18,8 @@
 class Rdoc_Schema_WebappBuilderCreateSchema extends WebappBuilder {
 
     //-------------------------------------
-    // エントリポイント
-    public function create_schema () {
-
-        if ($this->src == "a5er") {
-
-            $this->create_schema_csv_from_a5er();
-
-        } else {
-
-            $this->create_schema_registry_from_csv();
-        }
-    }
-
-    //-------------------------------------
     // csvからschema.config.phpを生成する
-    protected function create_schema_registry_from_csv () {
+    public function create_schema () {
 
         report("HistoryKey: ".$this->history);
         $this->append_history("memo", date("Y/m/d H:i"), "create_schema_registry_from_csv");
@@ -48,188 +34,8 @@ class Rdoc_Schema_WebappBuilderCreateSchema extends WebappBuilder {
         }
 
         $data =$this->load_schema_csv($src_file);
+
         $this->deploy_src(registry("Path.webapp_dir")."/config/_schema.config.php", $data);
-    }
-
-    //-------------------------------------
-    // a5erからschema.config.csvを生成する
-    protected function create_schema_csv_from_a5er () {
-
-        report("HistoryKey: ".$this->history);
-        $this->append_history("memo", date("Y/m/d H:i"), "create_schema_csv_from_a5er");
-
-        $src_file =registry("Path.webapp_dir")."/config/schema.config.a5er";
-
-        if ( ! file_exists($src_file)) {
-
-            report_error("src_file is-not exists",array(
-                "src_file" =>$src_file,
-            ));
-        }
-
-        $data =$this->load_schema_a5er($src_file);
-        $this->deploy_src(registry("Path.webapp_dir")."/config/schema.config.csv", $data);
-    }
-
-    //-------------------------------------
-    // A5ER：A5ERファイルを読み込んで、SchemaCSVを生成する
-    protected function load_schema_a5er ($filename) {
-
-        $st_cat ='';
-        $st_table ="";
-        $s =array();
-
-        foreach (file($filename) as $line) {
-
-            $line =trim($line);
-
-            // 空行
-            if ( ! $line) {
-
-                continue;
-
-            // カテゴリ表示行（[Entity]等）
-            } elseif (preg_match('!^\[([^\]]+)\]$!',$line,$match)) {
-
-                $st_cat =$match[1];
-                continue;
-            }
-
-            list($line_name, $line_value) =explode('=',$line,2);
-            $line_values =$this->split_csv_line($line_value);
-
-            // [Entity]
-            if ($st_cat == "Entity") {
-
-                // テーブル物理名
-                if ($line_name == "PName") {
-
-                    $t =$line_value;
-                    $s["Schema.tables"][$t] =array();
-
-                // テーブル論理名
-                } elseif ($line_name == "LName") {
-
-                    $s["Schema.tables"][$t]["label"] =$line_value;
-
-                // フィールド
-                } elseif ($line_name == "Field") {
-
-                    list(
-                        $lname,
-                        $pname,
-                        $sql_type,
-                        $extra,
-                        $keytype,
-                        $_,
-                        $comment
-                    ) =$line_values;
-
-                    $s["Schema.cols"][$t][$pname]["label"] =$lname
-                        ? $lname
-                        : preg_replace('!\(.+$!','',$comment);
-
-                    list(
-                        $s["Schema.cols"][$t][$pname]["type"],
-                        $s["Schema.cols"][$t][$pname]["def.type"]
-                    ) =$this->convert_sql_type($sql_type);
-
-                    if (strlen($keytype) && $keytype=="0") {
-
-                        $s["Schema.tables"][$t]["pkey"] =$pname;
-                    }
-
-                // インデックス
-                } elseif ($line_name == "Index") {
-
-                    $s["Schema.tables.".$t]["def.indexes"]
-                            =preg_replace('!^=(0,)?!','',$line_value);
-                }
-            }
-        }
-
-        report("Schema A5ER loaded.",array("schema" =>$s));
-
-        // CSV生成
-        $csv =new CSVHandler($tempnam=tempnam("/tmp","php_tmpfile-"),"w");
-
-        // ラベル行
-        $csv->write_line(array(
-            '#tables','table','col','label','def','type','other',
-        ));
-
-        foreach ($s["Schema.tables"] as $table_name => $table) {
-
-            // テーブル開始行
-            $csv->write_line(array(
-                '',
-                $table_name,
-                '',
-                $table["label"],
-                '',
-                '',
-                ($table["pkey"] ? 'pkey='.$table["pkey"] : ''),
-            ));
-
-            foreach ($s["Schema.cols"][$table_name] as $col_name => $col) {
-
-                // カラム行
-                $csv->write_line(array(
-                    '',
-                    '',
-                    $col_name,
-                    $col["label"],
-                    $col["def.type"],
-                    $col["type"],
-                    '',
-                ));
-            }
-
-            $csv->write_line(array());
-        }
-
-        return file_get_contents($tempnam);
-    }
-
-    //-------------------------------------
-    // A5ER：SQL型名の置換
-    protected function convert_sql_type ($sql_type) {
-
-        $type ="text";
-        $def_type ="text";
-
-        if (preg_match('!^INT!',$sql_type)) {
-
-            $def_type ="integer";
-
-        } elseif (preg_match('!^VARCHAR!',$sql_type)) {
-
-            $def_type ="string";
-
-        } elseif (preg_match('!^DATE|DATETIME|TIMESTAMP!',$sql_type)) {
-
-            $type ="dateselect";
-            $def_type ="datetime";
-        }
-
-        return array($type, $def_type);
-    }
-
-    //-------------------------------------
-    // A5ER：各行の「=」以降のCSV形式部分の分解
-    protected function split_csv_line ($line, $e='"', $d=',') {
-
-        $csv_pattern ='/('.$e.'[^'.$e.']*(?:'.$e.$e.'[^'
-                .$e.']*)*'.$e.'|[^'.$d.']*)'.$d.'/';
-        preg_match_all($csv_pattern, trim($line), $matches);
-        $csv_data =(array)$matches[1];
-
-        foreach ($csv_data as $k => $v) {
-
-            $csv_data[$k] =preg_replace('!^'.$e.'(.*?)'.$e.'$!','$1',$v);
-        }
-
-        return $csv_data;
     }
 
     //-------------------------------------
@@ -333,36 +139,11 @@ class Rdoc_Schema_WebappBuilderCreateSchema extends WebappBuilder {
         $g->node("root",array("p",array(
             array("c","Schama created from csv-file."),
             array("v",array("c","registry",array(
-                array("a",$this->get_array_script_node($s)),
+                array("a",$g->make_array_node($s)),
             )))
         )));
 
         return $g->get_script();
-    }
-
-    //-------------------------------------
-    // 配列構造のScriptNodeを取得
-    protected function get_array_script_node ($arr) {
-
-        $n =array();
-
-        foreach ($arr as $k => $v) {
-
-            if (is_array($v)) {
-
-                $n[$k] =array("a",$this->get_array_script_node($v));
-
-            } elseif (is_numeric($v)) {
-
-                $n[$k] =array("d",(int)$v);
-
-            } else {
-
-                $n[$k] =array("s",(string)$v);
-            }
-        }
-
-        return $n;
     }
 
     //-------------------------------------
@@ -373,12 +154,33 @@ class Rdoc_Schema_WebappBuilderCreateSchema extends WebappBuilder {
 
             if (preg_match('!^(.+?)=(.+)$!',$sets,$match))  {
 
-                $ref[trim($match[1])] =trim($match[2]);
+                $ref[trim($match[1])] =$this->trim_value($match[2]);
 
             } elseif (strlen(trim($sets))) {
 
-                $ref =trim($sets);
+                $ref =$this->trim_value($sets);
             }
         }
+    }
+
+    //-------------------------------------
+    // 値の加工
+    protected function trim_value ($value) {
+
+        $value = trim($value);
+
+        if (preg_match('!^"(.*?)"$!',$value,$match)) {
+            $value = (string)$match[1];
+        } elseif (is_numeric($value)) {
+            $value = (int)$value;
+        } elseif ($value=="true") {
+            $value = true;
+        } elseif ($value=="false") {
+            $value = false;
+        } elseif ($value=="null") {
+            $value = null;
+        }
+
+        return $value;
     }
 }

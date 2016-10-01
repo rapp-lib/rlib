@@ -1,6 +1,8 @@
 <?php
 namespace R\Lib\Query;
 
+use R\Util\ClassCollector;
+
 /**
  * Tableインスタンス生成クラス
  */
@@ -12,8 +14,23 @@ class TableFactory
     public static function factory ($table_name, $config=array())
     {
         $class = "R\\App\\Table\\".str_camelize($table_name)."Table";
-        $config["table_name"] = $table_name;
         $table = new $class($config);
         return $table;
+    }
+
+    /**
+     * Tableクラスを全て取得
+     */
+    public static function collectTables ()
+    {
+        $tables = array();
+        $classes = ClassCollector::findClassInNamespace("R\\App\\Table\\");
+
+        foreach ($classes as $i => $class) {
+            if (preg_match('!^R\\\\App\\\\Table\\\\([a-zA-Z0-9]+)Table!',$class,$match)) {
+                $tables[] = $match[1];
+            }
+        }
+        return $tables;
     }
 }

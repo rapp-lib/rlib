@@ -18,6 +18,7 @@ class SchemaCsvParser {
         $csv =new CSVHandler($filename,"r",array(
             "file_charset" =>"SJIS-WIN",
             "data_charset" =>"UTF-8",
+            "ignore_empty_line" =>true,
         ));
 
         // コマンド行のデータ

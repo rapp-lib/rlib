@@ -42,11 +42,15 @@ namespace R\App\Table;
  */
 class <?=$table_class?> extends Table_App
 {
-    protected $cols = array(
+    protected static $cols = array(
 <?php foreach ((array)$cols as $col): ?>
 <?=$get_col_def($col)?>
 <?php endforeach; ?>
     );
-    protected $fkeys = array(
+    protected static $refs = array(
+    );
+    protected static $def = array(
+        "table_name" => "<?=$table?>",
+        "indexes" => array(),
     );
 }

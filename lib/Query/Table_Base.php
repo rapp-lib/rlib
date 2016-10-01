@@ -12,23 +12,35 @@ class Table_Base
 {
     protected $config;
     protected $query;
+    protected $result;
 
     protected $query_is_completed = false;
 
-    protected $result = null;
+    protected static $table_name = null;
+    protected static $ds_name = null;
 
-    protected $table_def = array();
-    protected $cols = array();
-    protected $refs = array();
+    protected static $def = array();
+    protected static $cols = array();
+    protected static $refs = array();
 
     /**
      * @override
      */
-    public function __construct ($config)
+    public function __construct ($config=array())
     {
         $this->config = $config;
         $this->query = new Query;
         $this->result = null;
+
+        if ( ! static::$table_name) {
+            if (preg_match('!([A-Z][a-zA-Z0-9]+)Table$!',get_class($this),$match)) {
+                static::$table_name = $match[1];
+            }
+        }
+
+        if ( ! static::$ds_name) {
+            static::$ds_name = "default";
+        }
     }
 
     /**
@@ -95,7 +107,7 @@ class Table_Base
      */
     protected function findColNameByAttr ($attr)
     {
-        foreach ($this->cols as $col_name => $col) {
+        foreach (static::$cols as $col_name => $col) {
             if ($col[$attr]) {
                 return $col_name;
             }
@@ -206,11 +218,7 @@ class Table_Base
      */
     protected function buildQuery_attachTableName ()
     {
-        if ($this->table_def["name"]) {
-            $this->query->table($this->table_def["name"]);
-        } else {
-            $this->query->table($this->config["table_name"]);
-        }
+        $this->query->table(static::$table_name);
     }
 
     /**
@@ -231,7 +239,7 @@ class Table_Base
     protected function buildQuery_filterValues ()
     {
         foreach ((array)$this->query["values"] as $k => $v) {
-            if ($this->cols[$k] && ! $this->cols[$k]["type"]) {
+            if (static::$cols[$k] && ! static::$cols[$k]["type"]) {
                 $this->query->removeValues($k);
             }
         }
@@ -433,51 +441,24 @@ class Table_Base
     }
 
     /**
-     * DoctrineTableSchemaの取得
+     * Table定義の取得
      */
-    public function getTableSchema ($schema)
+    public function getTableDef ()
     {
-        // テーブル定義名
-        $def_table_name = $this->def["table_name"];
-        if ( ! $def_table_name) {
-            $def_table_name = $this->config["table_name"];
+        $table_def = static::$def;
+        $table_def["cols"] = static::$cols;
+
+        // テーブル定義名の補完
+        if ( ! $table_def["table_name"]) {
+            $table_def["table_name"] = static::$table_name;
         }
 
-        $table = $schema->createTable($def_table_name);
-
-        foreach ((array)$this->cols as $col_name => $col) {
-            $options = $col;
-
-            // カラムの型
-            $col_type = $options["type"];
-            unset($options["type"]);
-
-            // 型の指定のないカラムは定義されていないものと見なす
-            if ( ! $col_type) {
-                continue;
-            }
-
-            // notnulが標準でtrueなので反転
-            $options["notnull"] = (bool)$options["notnull"];
-
-            // integerの主キーを自動的にautoincrementにする
-            if ($col_name == $id_col_name && $col_type == "integer") {
-                $options["autoincrement"] = true;
-            }
-
-            $table->addColumn($col_name, $col["type"], $options);
+        // DS名の補完
+        if ( ! $table_def["ds_name"]) {
+            $table_def["ds_name"] = static::$ds_name;
         }
 
-        // 主キー
-        $id_col_name = $this->findIdColName();
-        $table->setPrimaryKey(array($id_col_name));
-
-        // Indexの作成
-        foreach ((array)$this->def["indexes"] as $index) {
-            $table->addIndex((array)$index[0],$index[1],(array)$index[2],(array)$index[3]);
-        }
-
-        return $table;
+        return $table_def;
     }
 
     /**
