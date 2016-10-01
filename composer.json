@@ -6,7 +6,7 @@
     "require": {
         "smarty/smarty": "v3.*@stable",
         "swiftmailer/swiftmailer": "v5.*@stable",
-        "doctrine/dbal": "v2.3.*@stable",
+        "doctrine/orm": "v2.*@stable",
         "pear/http_request2": "v2.2.1",
         "pear/mail": "v1.3.0",
         "pear/mail_mime": "v1.10.0"
