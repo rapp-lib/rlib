@@ -71,14 +71,6 @@ class Table_Base
     }
 
     /**
-     * @override ArrayObject
-     */
-    public function offsetGet($index)
-    {
-        return parent::offsetGet($index);
-    }
-
-    /**
      * ID属性の指定されたカラム名の取得
      */
     protected function findIdColName ()
@@ -438,6 +430,54 @@ class Table_Base
         $this->query->setType("delete");
         $query_array = $this->buildQuery();
         return $this->getModel()->delete($query_array,null);
+    }
+
+    /**
+     * DoctrineTableSchemaの取得
+     */
+    public function getTableSchema ($schema)
+    {
+        // テーブル定義名
+        $def_table_name = $this->def["table_name"];
+        if ( ! $def_table_name) {
+            $def_table_name = $this->config["table_name"];
+        }
+
+        $table = $schema->createTable($def_table_name);
+
+        foreach ((array)$this->cols as $col_name => $col) {
+            $options = $col;
+
+            // カラムの型
+            $col_type = $options["type"];
+            unset($options["type"]);
+
+            // 型の指定のないカラムは定義されていないものと見なす
+            if ( ! $col_type) {
+                continue;
+            }
+
+            // notnulが標準でtrueなので反転
+            $options["notnull"] = (bool)$options["notnull"];
+
+            // integerの主キーを自動的にautoincrementにする
+            if ($col_name == $id_col_name && $col_type == "integer") {
+                $options["autoincrement"] = true;
+            }
+
+            $table->addColumn($col_name, $col["type"], $options);
+        }
+
+        // 主キー
+        $id_col_name = $this->findIdColName();
+        $table->setPrimaryKey(array($id_col_name));
+
+        // Indexの作成
+        foreach ((array)$this->def["indexes"] as $index) {
+            $table->addIndex((array)$index[0],$index[1],(array)$index[2],(array)$index[3]);
+        }
+
+        return $table;
     }
 
     /**
