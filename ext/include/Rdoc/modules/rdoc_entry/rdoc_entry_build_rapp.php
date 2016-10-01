@@ -328,10 +328,13 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 
                     $t["fields"][$tc["name"]] =$tc;
                 }
+
+                $t["cols_all"][$tc["name"]] =$tc;
             }
 
             $t["fields"] =(array)$t["fields"];
             $t["cols"] =(array)$t["cols"];
+            $t["cols_all"] =(array)$t["cols_all"];
 
             $this->tables[$t_name] =$t;
         }

@@ -6,9 +6,10 @@
     "require": {
         "smarty/smarty": "v3.*@stable",
         "swiftmailer/swiftmailer": "v5.*@stable",
-        "pear/http_request2": "2.2.1",
-        "pear/mail": "1.3.0",
-        "pear/mail_mime": "1.10.0"
+        "doctrine/dbal": "v2.3.*@stable",
+        "pear/http_request2": "v2.2.1",
+        "pear/mail": "v1.3.0",
+        "pear/mail_mime": "v1.10.0"
     },
     "autoload": {
         "psr-4": {
