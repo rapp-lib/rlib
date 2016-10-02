@@ -116,22 +116,9 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         }
 
         // configの構築
-        foreach (array(
-            "routing.config.php",
-            //"label.config.php",
-            //"auth.config.php",
-            "install.sql",
-        ) as $key) {
-
-            $src =$this->find_skel("",
-                    "config/".$key);
-            $dest =registry("Path.webapp_dir")
-                    ."/config/_".$key;
-            $this->arch_template($src,$dest,array(
-                    "s" =>registry("Schema"),
-                    "ts"=>$this->tables,
-                    "td"=>$this->tables_def));
-        }
+        $src =$this->find_skel("","config/routing.config.php".$key);
+        $dest =registry("Path.webapp_dir")."/config/routing.config.php";
+        $this->arch_template($src,$dest);
     }
 
     //-------------------------------------

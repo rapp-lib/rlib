@@ -798,3 +798,12 @@
     {
         return R\Lib\Builder\WebappBuilder::getSchema();
     }
+
+    /**
+     * is_arrayでArrayObjectも許容できるように拡張
+     */
+    function is_arraylike ( & $arr)
+    {
+        return is_array($arr) || $arr instanceof ArrayObject;
+    }
+

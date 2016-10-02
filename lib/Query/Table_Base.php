@@ -13,8 +13,7 @@ class Table_Base
     protected $config;
     protected $query;
     protected $result;
-
-    protected $query_is_completed = false;
+    protected $is_build_done = false;
 
     protected static $table_name = null;
     protected static $ds_name = null;
@@ -99,7 +98,7 @@ class Table_Base
      */
     protected function findFkeyColName ($table_name)
     {
-        return $this->fkeys[$table_name];
+        return static::$refs[$table_name];
     }
 
     /**
@@ -205,9 +204,9 @@ class Table_Base
         }
 
         // 1回だけbuildQuery_*の呼び出しを行う
-        if ( ! $this->query_is_completed) {
+        if ( ! $this->is_build_done) {
             $this->buildQuery_();
-            $this->query_is_completed = true;
+            $this->is_build_done = true;
         }
         return $this->query;
     }
@@ -435,9 +434,7 @@ class Table_Base
      */
     public function deleteAll ()
     {
-        $this->query->setType("delete");
-        $query_array = $this->buildQuery();
-        return $this->getModel()->delete($query_array,null);
+        return $this->execQuery("delete");
     }
 
     /**
