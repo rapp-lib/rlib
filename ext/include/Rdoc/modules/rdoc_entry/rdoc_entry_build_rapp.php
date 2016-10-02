@@ -34,13 +34,21 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 
         $wrapper_cache =array();
 
+        builder()->loadFromSchema((array)registry("Schema.controller"), $this->tables);
+
         // Controllerの構築
         foreach ((array)registry("Schema.controller") as $name => $c) {
 
             $c["name"] =$name;
 
             // 共通パーツの生成
-            $c["wrapper"] =$c["wrapper"] ? $c["wrapper"] : 'default';
+            if ( ! $c["wrapper"] && $c["accessor"]) {
+                $c["wrapper"] =$c["accessor"];
+            }
+            if ( ! $c["wrapper"]) {
+                $c["wrapper"] ='default';
+            }
+
             $c["header"] =$c["header"] ? $c["header"]
                     : '{{inc path="/element/'.$c["wrapper"].'_header.html"}}';
             $c["footer"] =$c["footer"] ? $c["footer"]
@@ -133,35 +141,8 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         // テーブル情報参照
         $t =$this->tables[$c["table"]];
 
-        $a_list =array();
-
-        if ($c["usage"] != "form") {
-
-            $a_list[] =array("name"=>"view_list", "label"=>"一覧");
-            //$a_list[] =array("name"=>"view_detail", "label"=>"詳細");
-        }
-
-        if ($c["usage"] != "view") {
-
-            $a_list[] =array("name"=>"entry_form", "label"=>"入力");
-            $a_list[] =array("name"=>"entry_confirm", "label"=>"入力確認");
-            $a_list[] =array("name"=>"entry_exec", "label"=>"入力完了");
-        }
-
-        if ($c["usage"] != "view" && $c["use_csv"]) {
-
-            $a_list[] =array("name"=>"entry_csv_form", "label"=>"CSV一括インポート");
-        }
-
-        // HTMLの構築
-        foreach ($a_list as $a) {
-
-            $src =$this->find_skel($c["skel"],
-                    "master/product_master.".$a["name"].".html");
-            $dest =registry("Path.webapp_dir")
-                    ."/html/".$c["name"]."/".$a["name"].".html";
-            $this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
-        }
+        $controller_name = $c["name"];
+        $controller = builder()->getController($controller_name);
 
         // Controllerの構築
         $src =$this->find_skel($c["skel"],
@@ -169,23 +150,31 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $dest =registry("Path.webapp_dir")
                 ."/app/controller/".str_camelize($c["name"])."Controller.class.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
+
+        // HTMLの構築
+        foreach ($controller->getAction() as $action) {
+            if ( ! $action->getAttr("has_html")) {
+                continue;
+            }
+            $a = $action->getAttr();
+
+            $src =$this->find_skel($c["skel"],
+                    "master/product_master.".$action->getName().".html");
+            $dest =registry("Path.webapp_dir")
+                    ."/html".$action->getPath();
+            $this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
+        }
     }
 
     //-------------------------------------
     //
     protected function build_controller_login ($c) {
 
-        // HTMLの構築
-        foreach (array(
-            array("name"=>"login", "label"=>"ログイン"),
-        ) as $a) {
+        // テーブル情報参照
+        $t =$this->tables[$c["table"]];
 
-            $src =$this->find_skel($c["skel"],
-                    "login/member_login.".$a["name"].".html");
-            $dest =registry("Path.webapp_dir")
-                    ."/html/".$c["name"]."/".$a["name"].".html";
-            $this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
-        }
+        $controller_name = $c["name"];
+        $controller = builder()->getController($controller_name);
 
         // Controllerの構築
         $src =$this->find_skel($c["skel"],
@@ -194,12 +183,19 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
                 ."/app/controller/".str_camelize($c["name"])."Controller.class.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
 
-        // Contextの構築
-        //$src =$this->find_skel($c["skel"],
-        //        "login/MemberAuthContext.class.php");
-        //$dest =registry("Path.webapp_dir")
-        //        ."/app/context/".str_camelize($c["account"])."AuthContext.class.php";
-        //$this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
+        // HTMLの構築
+        foreach ($controller->getAction() as $action) {
+            if ( ! $action->getAttr("has_html")) {
+                continue;
+            }
+            $a = $action->getAttr();
+
+            $src =$this->find_skel($c["skel"],
+                    "login/member_login.".$action->getName().".html");
+            $dest =registry("Path.webapp_dir")
+                    ."/html".$action->getPath();
+            $this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
+        }
 
         // Roleの構築
         $src =$this->find_skel($c["skel"],
@@ -213,17 +209,11 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
     //
     protected function build_controller_index ($c) {
 
-        // HTMLの構築
-        foreach (array(
-            array("name"=>"index", "label"=>""),
-        ) as $a) {
+        // テーブル情報参照
+        $t =$this->tables[$c["table"]];
 
-            $src =$this->find_skel($c["skel"],
-                    "index/product_master.".$a["name"].".html");
-            $dest =registry("Path.webapp_dir")
-                    ."/html/".$c["name"]."/".$a["name"].".html";
-            $this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
-        }
+        $controller_name = $c["name"];
+        $controller = builder()->getController($controller_name);
 
         // Controllerの構築
         $src =$this->find_skel($c["skel"],
@@ -231,6 +221,20 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $dest =registry("Path.webapp_dir")
                 ."/app/controller/".str_camelize($c["name"])."Controller.class.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
+
+        // HTMLの構築
+        foreach ($controller->getAction() as $action) {
+            if ( ! $action->getAttr("has_html")) {
+                continue;
+            }
+            $a = $action->getAttr();
+
+            $src =$this->find_skel($c["skel"],
+                    "index/product_master.".$action->getName().".html");
+            $dest =registry("Path.webapp_dir")
+                    ."/html".$action->getPath();
+            $this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
+        }
     }
 
     //-------------------------------------
@@ -240,7 +244,18 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         // テーブルごとに処理
         foreach ((array)registry("Schema.tables") as $t_name => $t) {
 
+            $cols = (array)registry("Schema.cols.".$t_name);
+
             $t["name"] =$t_name;
+
+            // pkeyをdef.idから補完
+            if ( ! $t["pkey"]) {
+                foreach ($cols as $tc_name => $tc) {
+                    if ($tc["def"]["id"]) {
+                        $t["pkey"] = $tc_name;
+                    }
+                }
+            }
 
             $syskeys =array("pkey","reg_date","del_flg","update_date");
 
@@ -254,7 +269,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
             }
 
             // カラムごとに処理
-            foreach ((array)registry("Schema.cols.".$t_name) as $tc_name => $tc) {
+            foreach ($cols as $tc_name => $tc) {
 
                 //$tc["name"] =$t_name.".".$tc_name;
                 $tc["name"] =$tc_name;
@@ -386,7 +401,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
     // fieldsを用途ごとにフィルタリングする
     // $type: search sort input save list detail csv
     public function filter_fields ($fields, $type) {
-
+        $fields = (array)$fields;
         foreach ($fields as $tc_name => $tc) {
 
             if ($type == "search"

@@ -790,3 +790,11 @@
     {
         return R\Lib\Query\TableFactory::factory($table_name, $config);
     }
+
+    /**
+     * @facade R\Lib\Builder\WebappBuilder::getSchema
+     */
+    function builder ()
+    {
+        return R\Lib\Builder\WebappBuilder::getSchema();
+    }
