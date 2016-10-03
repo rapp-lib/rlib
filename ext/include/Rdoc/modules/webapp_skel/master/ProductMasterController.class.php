@@ -88,7 +88,7 @@
             $this->c->input($_REQUEST);
         }
 
-        list($this->vars["ts"] ,$this->vars["p"]) = <?=$__table_instance?>
+        list($this->vars["ts"] ,$this->vars["p"]) = <?=$__table_instance?><?="\n"?>
             ->findBySearchForm($this->list_setting, $this->c->input())
             ->selectPagenate();
     }
@@ -205,16 +205,15 @@
 
         $this->context("c",1);
 
-        $res =<?=$__table_instance?>
-                ->findBySearchForm($this->list_setting,$this->c->input())
-                ->removePagenation()
-                ->selectNoFetch();
+        $res =<?=$__table_instance?><?="\n"?>
+            ->findBySearchForm($this->list_setting,$this->c->input())
+            ->removePagenation()
+            ->selectNoFetch();
 
         // CSVファイルの書き込み準備
         $csv_filename =registry("Path.tmp_dir")
-                ."/csv_output/<?=$t["name"]?>-"
-                .date("Ymd-His")."-"
-                .sprintf("%04d",rand(0,9999)).".csv";
+            ."/csv_output/<?=$t["name"]?>-".date("Ymd-His")."-"
+            .sprintf("%04d",rand(0,9999)).".csv";
         $csv =new CSVHandler($csv_filename,"w",$this->csv_setting);
 
         while (($t =$res->fetch()) !== null) {
@@ -268,28 +267,22 @@
      */
     public function act_entry_csv_exec ()
     {
-        set_time_limit(0);
-        registry("Report.error_reporting",E_USER_ERROR|E_ERROR);
-
         $this->context("c",1,true);
 
-        $csv_filename =obj("UserFileManager")->get_uploaded_file(
-                $this->c->input("csv_file"), "private");
+        $csv_filename =obj("UserFileManager")
+            ->get_uploaded_file($this->c->input("csv_file"), "private");
 
         // CSVファイルの読み込み準備
         $csv =new CSVHandler($csv_filename,"r",$this->csv_setting);
 
-        dbi()->begin();
+        <?=$__table_instance?>->transactionBegin();
 
         while (($t=$csv->read_line()) !== null) {
 
             // CSVフォーマットエラー
             if ($errors =$csv->get_errors()) {
-
-                dbi()->rollback();
-
+                <?=$__table_instance?>->transactionRollback();
                 $this->c->errors("Import.csv_file",$errors);
-
                 redirect("page:.entry_csv_form");
             }
 
@@ -297,14 +290,13 @@
             $c_import =new Context_App;
             $c_import->id($t["<?=$t['pkey']?>"]);
             $c_import->input($t);
-
             $keys =array_keys($this->csv_setting["rows"]);
             $fields =$c_import->get_fields($keys);
 
             <?=$__table_instance?>->save($c_import->id(),$fields);
         }
 
-        dbi()->commit();
+        <?=$__table_instance?>->transactionCommit();
 
         redirect("page:.view_list");
     }

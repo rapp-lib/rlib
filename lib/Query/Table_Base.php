@@ -438,6 +438,30 @@ class Table_Base
     }
 
     /**
+     * BEGIN文の発行
+     */
+    public function transactionBegin ()
+    {
+        return $this->getDBI()->begin();
+    }
+
+    /**
+     * COMMIT文の発行
+     */
+    public function transactionCommit ()
+    {
+        return $this->getDBI()->commit();
+    }
+
+    /**
+     * ROLLBACK文の発行
+     */
+    public function transactionRollback ()
+    {
+        return $this->getDBI()->rollback();
+    }
+
+    /**
      * Table定義の取得
      */
     public function getTableDef ()

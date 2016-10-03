@@ -66,25 +66,10 @@ class AccountManager
 
             // セッションからの復帰
             $login_account_attr = (array)$this->login_account_attrs[$role];
-            $login_account_attr["role"] = $role;
             $this->login_accounts[$role]->reset($login_account_attr);
         }
 
         return $this->login_accounts[$role];
-    }
-
-    /**
-     * ログインアカウントを更新する
-     */
-    private function resetLoginAccount ($role, $login_account_attr=null)
-    {
-        if ($login_account_attr) {
-            $this->login_account_attrs[$role] = $login_account_attr;
-        } else {
-            unset($this->login_account_attrs[$role]);
-        }
-
-        $this->getLoginAccount($role)->reset($login_account_attr);
     }
 
     /**
@@ -137,6 +122,8 @@ class AccountManager
         $result["role"] = $role;
         $result["id"] = (string)$result["id"];
         $result["privs"] = (array)$result["privs"];
+        // required=trueでの確認用にRole名の権限を付与
+        $result["privs"][] = $role;
         $this->resetLoginAccount($role, $result);
 
         $this->getLoginAccount($role)->onLogin();
@@ -151,6 +138,20 @@ class AccountManager
     {
         $this->resetLoginAccount($role);
         $this->getLoginAccount($role)->onLogout($params);
+    }
+
+    /**
+     * ログインアカウントを更新する
+     */
+    private function resetLoginAccount ($role, $login_account_attr=null)
+    {
+        if ($login_account_attr) {
+            $this->login_account_attrs[$role] = $login_account_attr;
+        } else {
+            unset($this->login_account_attrs[$role]);
+        }
+
+        $this->getLoginAccount($role)->reset($login_account_attr);
     }
 
     /**

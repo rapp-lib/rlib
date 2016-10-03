@@ -86,15 +86,13 @@ abstract class Role_Base
             $priv = $this->attrs["role"];
         }
 
-        if ($this->attrs["role"] == $priv) {
-            return true;
-        }
-
+        // 権限を持つか確認
         foreach ((array)$this->attrs["privs"] as $priv_check) {
             if ($priv_check == $priv) {
                 return true;
             }
         }
+
         return false;
     }
 
