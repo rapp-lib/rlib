@@ -15,8 +15,12 @@ class Migration
      */
     public static function getMigrateSQL ($ds_name)
     {
+        if ( ! $ds_name) {
+            $ds_name = "default";
+        }
+
         // 接続情報の解決
-        $db_config = registry("DB.source.".$ds_name);
+        $db_config = registry("DBAL.source.".$ds_name);
 
         // [Deprecate] Cake2向け接続情報の記述方法の変換
         if ( ! $db_config) {
@@ -30,12 +34,15 @@ class Migration
             }
         }
 
-        // Tableクラスの定義からTableSchemaの組み立て
         $schema = new Schema;
-
         $tables = TableFactory::collectTables();
         foreach ($tables as $table) {
             $table_def = table($table)->getTableDef();
+            // table_nameの指定がない、ds_nameが一致しないテーブルは対象外
+            if ( ! $table_def["table_name"] || $ds_name != $table_def["ds_name"]) {
+                continue;
+            }
+            // Tableクラスの定義からTableSchemaの組み立て
             $table_schema = self::converTableDefToSchema($schema, $table_def);
         }
 

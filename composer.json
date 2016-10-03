@@ -9,9 +9,9 @@
         "swiftmailer/swiftmailer": "v5.*@stable",
         "doctrine/dbal": "2.*@stable",
 
-        "pear/http_request2": "v2.2.1",
-        "pear/mail": "v1.3.0",
-        "pear/mail_mime": "v1.10.0"
+        "pear/http_request2": "v2.*@stable",
+        "pear/mail": "v1.*@stable",
+        "pear/mail_mime": "v1.*@stable"
     },
     "autoload": {
         "psr-4": {
@@ -19,25 +19,12 @@
             "R\\Plugin\\": "plugins/",
             "R\\Util\\": "util/",
 
-            "\\": "ext/include/",
-
             "R\\Lib\\Form\\Rule\\": "plugins/Form/Rule/",
             "R\\Lib\\Form\\Input\\": "plugins/Smarty/InputType/",
             "R\\Lib\\Query\\Search\\": "plugins/DBI/SearchType/"
         },
         "files": [
-            "functions/array.php",
-            "functions/html.php",
-            "functions/path.php",
-            "functions/webapp.php",
-            "functions/date.php",
-            "functions/string.php",
-            "functions/file.php",
-            "functions/modules.php",
-            "functions/report.php",
-            "functions/vars.php",
-            "functions/lib_db.php",
-            "functions/lib_smarty.php"
+            "functions/required.php"
         ]
     },
     "include-path":[

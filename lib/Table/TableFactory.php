@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Query;
+namespace R\Lib\Table;
 
 use R\Util\ClassCollector;
 

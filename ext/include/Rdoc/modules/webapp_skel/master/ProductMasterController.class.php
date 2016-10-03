@@ -88,9 +88,10 @@
             $this->c->input($_REQUEST);
         }
 
-        list($this->vars["ts"] ,$this->vars["p"]) = <?=$__table_instance?><?="\n"?>
+        $this->vars["ts"] = <?=$__table_instance?><?="\n"?>
             ->findBySearchForm($this->list_setting, $this->c->input())
-            ->selectPagenate();
+            ->select();
+        $this->vars["p"] = $this->vars["ts"]->getPager();
     }
 
 <? endif; /* $c["usage"] != "form" */ ?>
@@ -105,24 +106,21 @@
 
         // 入力値のチェック
         if ($_REQUEST["_i"]=="c") {
-            $this->c->validate_input($_REQUEST,array(
+            $t = <?=$__table_instance?>->createRecord($_REQUEST);
+            $this->c->validate_input($t,array(
             ));
-
             if ($this->c->has_valid_input()) {
                 redirect("page:.entry_confirm");
             }
         }
 
         // id指定があれば既存のデータを読み込む
-        if ($_REQUEST["id"]) {
-            $this->c->id($_REQUEST["id"]);
-            $t =<?=$__table_instance?>->selectById($this->c->id());
-
+        if ($id = $_REQUEST["id"]) {
+            $t =<?=$__table_instance?>->selectById($id);
             if ( ! $t) {
-                $this->c->id(false);
                 redirect("page:.view_list");
             }
-
+            $this->c->id($id);
             $this->c->input($t);
         }
     }
@@ -148,6 +146,7 @@
     public function act_entry_exec ()
     {
         $this->context("c",1,true);
+
         if ($this->c->has_valid_input()) {
 <? if ($t["virtual"]): ?>
             // メールの送信

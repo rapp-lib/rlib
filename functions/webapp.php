@@ -784,11 +784,11 @@
     }
 
     /**
-     * @facade R\Lib\Query\TableFactory::factory
+     * @facade R\Lib\Table\TableFactory::factory
      */
     function table ($table_name, $config=array())
     {
-        return R\Lib\Query\TableFactory::factory($table_name, $config);
+        return R\Lib\Table\TableFactory::factory($table_name, $config);
     }
 
     /**

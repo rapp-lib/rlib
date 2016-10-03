@@ -1,12 +1,10 @@
 <?php
-namespace R\Lib\Query;
+namespace R\Lib\Table;
 
 use ArrayObject;
 
 class Query extends ArrayObject
 {
-    public $query = array();
-
     /**
      * @override
      */

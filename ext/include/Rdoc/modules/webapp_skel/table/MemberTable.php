@@ -42,6 +42,14 @@ namespace R\App\Table;
  */
 class <?=$table_class?> extends Table_App
 {
+    /**
+     * テーブル定義
+     */
+<? if ( ! $t["virtual"]): ?>
+    protected static $table_name = "<?=$table?>";
+<? else: ?>
+    protected static $table_name = null;
+<? endif; ?>
     protected static $cols = array(
 <?php foreach ((array)$cols as $col): ?>
 <?=$get_col_def($col)?>
@@ -50,7 +58,7 @@ class <?=$table_class?> extends Table_App
     protected static $refs = array(
     );
     protected static $def = array(
-        "table_name" => "<?=$table?>",
         "indexes" => array(),
     );
+    protected static $ds_name = null;
 }

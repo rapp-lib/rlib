@@ -25,14 +25,14 @@ abstract class Role_Base
     abstract public function onLogout ();
 
     /**
-     * 認証確認前の処理
+     * アクセス時の処理
      */
-    abstract public function onBeforeAuthenticate ();
+    abstract public function onAccess ();
 
     /**
-     * 認証否認時の処理
+     * 認証要求時の処理
      */
-    abstract public function onLoginRequired ();
+    abstract public function onLoginRequired ($required);
 
     /**
      * @override
@@ -81,9 +81,9 @@ abstract class Role_Base
             return true;
         }
 
-        // trueの指定の場合Role名での確認と同義とする
+        // trueの指定の場合ログインしているかどうかのみ確認
         if ($priv === true) {
-            $priv = $this->attrs["role"];
+            return $this->attrs["login"];
         }
 
         // 権限を持つか確認

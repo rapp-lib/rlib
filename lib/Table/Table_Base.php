@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Query;
+namespace R\Lib\Table;
 
 use R\Util\Reflection;
 use R\Lib\DBI\Model_Base;
@@ -10,14 +10,43 @@ use R\Lib\DBI\DBI_Base;
  */
 class Table_Base
 {
-    protected $config;
+    /**
+     * Queryオブジェクト
+     */
     protected $query;
-    protected $result;
-    protected $is_build_done = false;
 
+    /**
+     * Resultオブジェクト
+     */
+    protected $result;
+
+    /**
+     * buildQueryの処理が完了しているかどうか
+     * 2回目の呼び出しで処理を呼ばないために使う
+     */
+    private $build_query_done = false;
+
+    /**
+     * buildQueryの処理メソッド一覧
+     * クラス定義から収集するので2回目以降変更がないので保持する
+     */
+    protected static $build_query_methods = null;
+
+    /**
+     * Query書き換え処理の呼び出し履歴
+     */
+    private $build_query_history = array();
+
+    /**
+     * DBIのSQL実行結果リソース
+     */
+    private $result_res = null;
+
+    /**
+     * テーブルの定義
+     */
     protected static $table_name = null;
     protected static $ds_name = null;
-
     protected static $def = array();
     protected static $cols = array();
     protected static $refs = array();
@@ -25,21 +54,10 @@ class Table_Base
     /**
      * @override
      */
-    public function __construct ($config=array())
+    public function __construct ()
     {
-        $this->config = $config;
         $this->query = new Query;
         $this->result = null;
-
-        if ( ! static::$table_name) {
-            if (preg_match('!([A-Z][a-zA-Z0-9]+)Table$!',get_class($this),$match)) {
-                static::$table_name = $match[1];
-            }
-        }
-
-        if ( ! static::$ds_name) {
-            static::$ds_name = "default";
-        }
     }
 
     /**
@@ -51,18 +69,8 @@ class Table_Base
         $chain_method_name = "chain_".$method_name;
         if (method_exists($this, $chain_method_name)) {
             $result = call_user_func_array(array($this,$chain_method_name), $args);
-
-            return isset($result) ? $result : $this;
-        }
-
-        // xxx_の形式であれば前方一致で全て呼び出す
-        if (preg_match('!_$!',$method_name,$match)) {
-            $method_names = Reflection::getMethodNames($this);
-            foreach ($method_names as $check_method_name) {
-                if (preg_match('!^'.$method_name.'.+!',$check_method_name)) {
-                    call_user_func_array(array($this,$check_method_name),$args);
-                }
-            }
+            // 履歴の登録
+            $this->build_query_history[] = $chain_method_name;
 
             return $this;
         }
@@ -70,6 +78,8 @@ class Table_Base
         // queryのメソッド呼び出し
         if (method_exists($this->query, $method_name)) {
             $result = call_user_func_array(array($this->query,$method_name), $args);
+            // 履歴の登録
+            $this->build_query_history[] = $method_name;
 
             return isset($result) ? $result : $this;
         }
@@ -79,6 +89,22 @@ class Table_Base
             "method_name" => $method_name,
             "chain_method_name" => $chain_method_name,
         ));
+    }
+
+    /**
+     * Recordオブジェクトを作成する
+     */
+    public function createRecord ($values=null)
+    {
+        $record = new Record($this);
+
+        if (isset($values)) {
+            foreach ($values as $k => $v) {
+                $record[$k] = $v;
+            }
+        }
+
+        return $record;
     }
 
     /**
@@ -173,6 +199,7 @@ class Table_Base
 
     /**
      * @chain
+     * 絞り込み結果を空にする
      */
     public function chain_findNothing ()
     {
@@ -181,43 +208,12 @@ class Table_Base
 
     /**
      * @chain
+     * 検索フォームによる絞り込み
      */
     public function chain_findBySearchForm ($list_setting, $input)
     {
         $query_array = $this->getModel()->get_list_query($list_setting, $input);
         $this->query->merge($query_array);
-    }
-
-    /**
-     * Queryを完成させる
-     */
-    protected function buildQuery ($type=null)
-    {
-        if ($type) {
-            $this->query->setType($type);
-        }
-        if ( ! $type) {
-            report_error("組み立てるQueryの種類の指定がありません",array(
-                "query" => $this->query,
-                "table" => $this,
-            ));
-        }
-
-        // 1回だけbuildQuery_*の呼び出しを行う
-        if ( ! $this->is_build_done) {
-            $this->buildQuery_();
-            $this->is_build_done = true;
-        }
-        return $this->query;
-    }
-
-    /**
-     * @hook buildQuery
-     * テーブル名を関連づける
-     */
-    protected function buildQuery_attachTableName ()
-    {
-        $this->query->table(static::$table_name);
     }
 
     /**
@@ -232,69 +228,71 @@ class Table_Base
     }
 
     /**
-     * @hook buildQuery
-     * スキーマ定義にない値の設定を削除
+     * @hook result
+     * 1結果レコードのFetch
      */
-    protected function buildQuery_filterValues ()
+    public function result_fetch ($result)
     {
-        foreach ((array)$this->query["values"] as $k => $v) {
-            if (static::$cols[$k] && ! static::$cols[$k]["type"]) {
-                $this->query->removeValues($k);
-            }
-        }
-    }
+        $ds = $this->getDBI()->get_datasource();
+        $ds->_result =$this->result_res;
 
-    /**
-     * Hydrate処理
-     */
-    public function resultRecord_hydrate ($record, $result)
-    {
-        // hydrate
-        foreach ((array)$result as $k1 => $v1) {
-            foreach ((array)$v1 as $k2 => $v2) {
-                $record[$k2] = $v2;
-            }
+        // 結果セットが無効であればnullを返す
+        if ( ! $ds->hasResult()) {
+            return null;
         }
+
+        $ds->resultSet($ds->_result);
+        $data =$ds->fetchResult();
+
+        // データがなければnullを返す
+        if ( ! $data) {
+            return null;
+        }
+
+        // 結果レコードの組み立て
+        $record = $this->createRecord();
+        $record->hydrate($data);
+
+        $result[] = $record;
+
+        return $record;
     }
 
     /**
      * @hook result
-     * getDBIを呼び出す
+     * 全結果レコードのFetch
      */
-    public function result_getDBI ()
+    public function result_fetchAll ($result)
     {
-        return $this->getDBI();
+        while ($result->fetch());
+        return $result;
     }
 
     /**
-     * Queryの発行
+     * @hook result
+     * Pagerの取得
      */
-    public function execQuery ($type=false)
+    public function result_getPager ($result)
     {
-        // Query組み立ての仕上げ処理
-        $this->buildQuery($type);
-
-        $type = $this->query->getType();
-
-        // SQL文の作成と発行
-        $query_array = (array)$this->query;
-        $st_method = "st_".$type;
-        $st =$this->getDBI()->$st_method($query_array);
-        $result =$this->getDBI()->exec($st,array(
-            "Type" =>$type,
-            "Query" =>$query_array,
-        ));
-
-        // Resultの組み立て
-        $this->result = new QueryResult($result, $this);
-
         // Pager取得用にSQL再発行
-        if ($type=="select" && $this->query->getPager()) {
-            $pager = $this->getDBI()->select_pager($query_array);
-            $this->result->setPager($pager);
-        }
+        $query_array = (array)$this->buildQuery("select");
+        $pager = $this->getDBI()->select_pager($query_array);
 
-        return $this->result;
+        return $pager;
+    }
+
+    /**
+     * @hook record
+     * Hydrate処理
+     */
+    public function record_hydrate ($record, $data)
+    {
+        // hydrate
+        foreach ((array)$data as $k1 => $v1) {
+            foreach ((array)$v1 as $k2 => $v2) {
+                $record[$k2] = $v2;
+            }
+        }
     }
 
     /**
@@ -344,28 +342,32 @@ class Table_Base
     /**
      * SELECT文の発行 全件取得
      */
-    public function select ($fields=array())
+    public function select ($fields=null)
     {
-        $this->query->fields($fields);
+        if (isset($fields)) {
+            $this->query->setFields($fields);
+        }
 
         $this->execQuery("select");
 
-        return $this->result->fetchAll();
+        $ts = $this->result->fetchAll();
+        return $ts;
     }
 
     /**
      * SELECT文の発行 Pagenate取得
      */
-    public function selectPagenate ($fields=array())
+    public function selectPagenate ($fields=null)
     {
-        $this->query->fields($fields);
+        if (isset($fields)) {
+            $this->query->setFields($fields);
+        }
 
-        $this->query->setPager(true);
-
+        $this->query->setPagenate(true);
         $this->execQuery("select");
+
         $ts = $this->result->fetchAll();
         $p = $this->result->getPager();
-
         return array($ts,$p);
     }
 
@@ -375,14 +377,13 @@ class Table_Base
     public function selectNoFetch ($fields=array())
     {
         $this->query->fields($fields);
-
         return $this->execQuery("select");
     }
 
     /**
      * idの指定の有無によりINSERT/UPDATE文の発行
      */
-    public function save ($id, $values=array())
+    public function save ($id, $values=null)
     {
         if (strlen($id)) {
             return $this->updateById($id, $values);
@@ -394,17 +395,18 @@ class Table_Base
     /**
      * INSERT文の発行
      */
-    public function insert ($values=array())
+    public function insert ($values=null)
     {
-        $this->query->values($values);
-
+        if (isset($values)) {
+            $this->query->setValues($values);
+        }
         return $this->execQuery("insert");
     }
 
     /**
      * idを指定してUPDATE文の発行
      */
-    public function updateById ($id, $values=array())
+    public function updateById ($id, $values=null)
     {
         $this->findById($id);
         return $this->updateAll($values);
@@ -413,10 +415,11 @@ class Table_Base
     /**
      * UPDATE文の発行
      */
-    public function updateAll ($values=array())
+    public function updateAll ($values=null)
     {
-        $this->query->values($values);
-
+        if (isset($values)) {
+            $this->query->setValues($values);
+        }
         return $this->execQuery("update");
     }
 
@@ -434,7 +437,8 @@ class Table_Base
      */
     public function deleteAll ()
     {
-        return $this->execQuery("delete");
+        $this->query->setDelete(true);
+        return $this->execQuery("update");
     }
 
     /**
@@ -462,23 +466,103 @@ class Table_Base
     }
 
     /**
+     * Queryの発行
+     */
+    private function execQuery ($type)
+    {
+        // Query組み立ての仕上げ処理
+        $this->buildQuery($type);
+
+        // UDPATEを物理削除に切り替え
+        if ($type=="update" && $this->query->getDelete()) {
+            $type = "delete";
+        }
+
+        // SQL文の作成と発行
+        $query_array = (array)$this->query;
+        $st_method = "st_".$type;
+        $st =$this->getDBI()->$st_method($query_array);
+        $this->result_res =$this->getDBI()->exec($st,array(
+            "Type" =>$type,
+            "Query" =>$query_array,
+            "History" =>(array)$this->build_query_history,
+        ));
+
+        // Resultの組み立て
+        $this->result = new Result($this);
+
+        return $this->result;
+    }
+
+    /**
+     * Queryを完成させる
+     */
+    private function buildQuery ($type)
+    {
+        // 組み立て済みであればQueryを返す
+        if ($this->build_query_done) {
+            return $this->query;
+        }
+
+        // テーブル名を関連づける
+        $this->query->setTable(static::$table_name);
+
+        // Query組み立て処理を呼び出す
+        $suffixes = array("");
+        // 認証時の処理呼び出し追加
+        if (auth()->checkAuthenticated()) {
+            $suffixes[] = "As".str_camelize(auth()->getAccount()->getRole());
+        }
+        foreach ($suffixes as $suffix) {
+            $this->callBuilQueryMethods($type.$suffix);
+            if ($type=="insert" || $type=="update") {
+                $this->callBuilQueryMethods("write".$suffix);
+            }
+            if ($type=="select" || $type=="update") {
+                $this->callBuilQueryMethods("read".$suffix);
+            }
+            $this->callBuilQueryMethods("any".$suffix);
+        }
+        $this->build_query_done = true;
+
+        return $this->query;
+    }
+
+    /**
+     * メソッド名を前方一致で全て呼び出す
+     */
+    private function callBuilQueryMethods ($group)
+    {
+        // 定義されているメソッド名を収集
+        if ( ! isset(static::$build_query_methods)) {
+            static::$build_query_methods = array();
+            foreach (get_class_methods($this) as $method_name) {
+                if (strpos($method_name, "buildQuery_")===0) {
+                    $parts = explode("_",$method_name);
+                    static::$build_query_methods[$parts[1]][] = $method_name;
+                }
+            }
+        }
+
+        foreach ((array)static::$build_query_methods[$group] as $method_name) {
+            $result = call_user_func_array(array($this,$method_name),array());
+            // 履歴への登録
+            if ($result!==false) {
+                $this->build_query_history[] = $method_name;
+            }
+        }
+
+    }
+
+    /**
      * Table定義の取得
      */
     public function getTableDef ()
     {
-        $table_def = static::$def;
-        $table_def["cols"] = static::$cols;
-
-        // テーブル定義名の補完
-        if ( ! $table_def["table_name"]) {
-            $table_def["table_name"] = static::$table_name;
-        }
-
-        // DS名の補完
-        if ( ! $table_def["ds_name"]) {
-            $table_def["ds_name"] = static::$ds_name;
-        }
-
+        $table_def = (array)static::$def;
+        $table_def["table_name"] = static::$table_name;
+        $table_def["ds_name"] = static::$ds_name;
+        $table_def["cols"] = (array)static::$cols;
         return $table_def;
     }
 
