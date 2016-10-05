@@ -22,7 +22,7 @@ class Table_Base extends Table_Core
      *      対象のIDに関係する関係先のレコードを全件削除
      *      登録対象のレコードを順次Insert
      */
-    public function assoc_afterFetchEnd_hasMany ($col_name)
+    public function assoc_fetch_hasMany ($col_name)
     {
         $assoc_table_name = static::$cols[$col_name]["table"];
         $assoc_fkey = static::$cols[$col_name]["fkey"];
@@ -31,6 +31,7 @@ class Table_Base extends Table_Core
                 "col_name" => $col_name,
                 "params" => static::$cols[$col_name],
                 "required" => array("table","fkey"),
+                "table" => $this,
             ));
         }
         // 主テーブルのIDを取得
@@ -55,6 +56,7 @@ class Table_Base extends Table_Core
                 "col_name" => $col_name,
                 "params" => static::$cols[$col_name],
                 "required" => array("table","fkey"),
+                "table" => $this,
             ));
         }
         // 書き込んだIDを確認
@@ -85,7 +87,7 @@ class Table_Base extends Table_Core
      *  読み込み時の動作:
      *  書き込み時の動作:
      */
-    public function assoc_afterFetchEnd_hasManyValues ($col_name)
+    public function assoc_fetchEnd_hasManyValues ($col_name)
     {
     }
 
@@ -172,6 +174,7 @@ class Table_Base extends Table_Core
         if ( ! $account->isLogin()) {
             report_warning("ログイン中ではありません",array(
                 "account" => $account,
+                "table" => $this,
             ));
             $this->query->where("0=1");
             return;
@@ -182,6 +185,7 @@ class Table_Base extends Table_Core
         if ( ! $owner_key_col_name) {
             report_error("ログイン中のアカウントに関係づけるキーが設定されていません",array(
                 "attr" => $owner_key_attr,
+                "table" => $this,
             ));
         }
         $this->query->where($owner_key_col_name, $account->getId());
@@ -197,7 +201,7 @@ class Table_Base extends Table_Core
         $login_pw_col_name = $this->getColNameByAttr("login_pw");
         if ( ! $login_id_col_name || ! $login_pw_col_name) {
             report_error("login_id,login_pwカラムがありません",array(
-                "class" => get_class($this),
+                "table" => $this,
             ));
         }
         $this->query->where($login_id_col_name, (string)$login_id);
@@ -232,30 +236,86 @@ class Table_Base extends Table_Core
         if ( ! is_callable($func)) {
             report_error("関数が呼び出せません",array(
                 "func" => $func,
+                "table" => $this,
             ));
         }
         call_user_func($func, $this->query);
     }
 
     /**
-     * @hook buildQuery
-     * 削除フラグを関連づける
+     * @hook on_fetch
+     * ハッシュされたパスワードを関連づける
      */
-    protected function buildQuery_read_attachDelFlg ()
+    protected function on_fetch_hashPw ()
     {
-        if ($del_flg_col_name = $this->getColNameByAttr("del_flg")) {
-            $this->query->where($del_flg_col_name, 0);
+        if ($col_name = $this->getColNameByAttr("hash_pw")) {
+            $this->query->where($col_name, 0);
         } else {
             return false;
         }
     }
-    protected function buildQuery_update_attachDelFlg ()
+
+    /**
+     * @hook on_read
+     * 削除フラグを関連づける
+     */
+    protected function on_read_attachDelFlg ()
     {
-        if ($del_flg_col_name = $this->getColNameByAttr("del_flg")) {
-            if ($this->query->getDelete()) {
-                $this->query->setDelete(false);
-                $this->query->setValue($del_flg_col_name, 1);
-            }
+        if ($col_name = $this->getColNameByAttr("del_flg")) {
+            $this->query->where($col_name, 0);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @hook on_update
+     * 削除フラグを関連づける
+     */
+    protected function on_update_attachDelFlg ()
+    {
+        if ($col_name = $this->getColNameByAttr("del_flg") && $this->query->getDelete()) {
+            $this->query->setDelete(false);
+            $this->query->setValue($col_name, 1);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @hook on_insert
+     * 削除日を関連づける
+     */
+    protected function on_update_attachDelDate ()
+    {
+        if ($col_name = $this->getColNameByAttr("del_date") && $this->query->getDelete()) {
+            $this->query->setValue($col_name, date("Y/m/d H:i:s"));
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @hook on_insert
+     * 登録日を関連づける
+     */
+    protected function on_insert_attachRegDate ()
+    {
+        if ($col_name = $this->getColNameByAttr("reg_date")) {
+            $this->query->setValue($col_name, date("Y/m/d H:i:s"));
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @hook on_write
+     * 更新日を関連づける
+     */
+    protected function on_write_attachUpdateDate ()
+    {
+        if ($col_name = $this->getColNameByAttr("update_date")) {
+            $this->query->setValue($col_name, date("Y/m/d H:i:s"));
         } else {
             return false;
         }
@@ -281,14 +341,14 @@ class Table_Core
      * テーブルの定義
      */
     protected static $table_name = null;
-    protected static $ds_name = null;
+    protected static $ds_name = "default";
     protected static $def = array();
     protected static $cols = array();
 
     /**
-     * テーブル別のbuildQueryメソッドの定義
+     * テーブル別のListenerメソッドの定義
      */
-    protected static $build_query_defined = array();
+    protected static $defined_listener_method = array();
 
     /**
      * Hook処理の呼び出し履歴
@@ -326,7 +386,8 @@ class Table_Core
     {
         // chain_メソッドの呼び出し
         $chain_method_name = "chain_".$method_name;
-        if ($this->callHookMethod($chain_method_name, $args)) {
+        if (method_exists($this, $chain_method_name)) {
+            call_user_func_array(array($this,$chain_method_name),$args);
             return $this;
         }
 
@@ -334,9 +395,9 @@ class Table_Core
         // 極力Tableクラス内にQuery操作用の抽象メソッドを定義するべき
 
         report_error("メソッドの定義がありません",array(
-            "class" => get_class($this),
             "method_name" => $method_name,
             "chain_method_name" => $chain_method_name,
+            "table" => $this,
         ));
     }
 
@@ -374,7 +435,7 @@ class Table_Core
         $id_col_name = $this->getColNameByAttr("id");
         if ( ! $id_col_name) {
             report_error("idカラムが定義されていません",array(
-                "table_class"=>get_class($this)
+                "table" => $this,
             ));
         }
         return $id_col_name;
@@ -391,67 +452,6 @@ class Table_Core
             }
         }
         return null;
-    }
-
-    /**
-     * @hook result
-     * 1結果レコードのFetch
-     */
-    public function result_fetch ($result)
-    {
-        // Fetch完了済みであれば処理しない
-        if ($this->fetch_done) {
-            return false;
-        }
-
-        $ds = $this->getDBI()->get_datasource();
-        // 実行結果が無効であれば処理しない
-        if ( ! $ds) {
-            return false;
-        }
-        // fetch実処理
-        $ds->resultSet($ds->_result = $this->result_res);
-        $data =$ds->fetchResult();
-
-        // 結果セットの残りがなければ完了済みとする
-        if ( ! $data) {
-            // assocの関連づけ処理（assoc_afterFetchEnd）を呼び出す
-            $this->assoc_afterFetchEnd();
-
-            $this->fetch_done = true;
-            return false;
-        }
-        // 結果レコードを組み立てて値をHydrateする
-        $record = $this->createRecord();
-        $record->hydrate($data);
-
-        // マッピング
-        $no_mapping = $this->query->getNoMapping();
-        if ( ! $no_mapping) {
-            // ID列を取得していればIDでマッピング
-            $id_col_name = $this->getIdColName();
-            if (isset($record[$id_col_name])) {
-                $result[$record[$id_col_name]] = $record;
-            // 指定が無ければ連番でマッピング
-            } else {
-                $result[] = $record;
-            }
-        }
-
-        // assocの関連づけ処理（assoc_afterFetchEach）を呼び出す
-        $this->assoc_afterFetchEach($record);
-
-        return $record;
-    }
-
-    /**
-     * @hook result
-     * 全結果レコードのFetch
-     */
-    public function result_fetchAll ($result)
-    {
-        while ($result->fetch() !== false);
-        return $result;
     }
 
     /**
@@ -527,7 +527,7 @@ class Table_Core
         }
         if ( ! $id) {
             report_error("IDが取得できません",array(
-                "class" => get_class($this),
+                "table" => $this,
             ));
         }
         return is_array($id) ? $id : array($id);
@@ -541,10 +541,71 @@ class Table_Core
     {
         $ids = $result->getLastSaveIds();
         if (count($ids)>1) {
-            report_error("IDが複数指定されています",array(
-                "class" => get_class($this),
+            report_error("条件にIDが複数指定されています",array(
+                "table" => $this,
             ));
         }
+    }
+
+    /**
+     * @hook result
+     * 1結果レコードのFetch
+     */
+    public function result_fetch ($result)
+    {
+        // Fetch完了済みであれば処理しない
+        if ($this->fetch_done) {
+            return false;
+        }
+
+        $ds = $this->getDBI()->get_datasource();
+        // 実行結果が無効であれば処理しない
+        if ( ! $ds) {
+            return false;
+        }
+        // fetch実処理
+        $ds->resultSet($ds->_result = $this->result_res);
+        $data =$ds->fetchResult();
+
+        // 結果セットの残りがなければ完了済みとする
+        if ( ! $data) {
+            // on_fetchEnd_*を呼び出す
+            $this->callListenerMethod("fetchEnd");
+
+            $this->fetch_done = true;
+            return false;
+        }
+        // 結果レコードを組み立てて値をHydrateする
+        $record = $this->createRecord();
+        $record->hydrate($data);
+
+        // マッピング
+        $no_mapping = $this->query->getNoMapping();
+        if ( ! $no_mapping) {
+            // ID列を取得していればIDでマッピング
+            $id_col_name = $this->getIdColName();
+            if (isset($record[$id_col_name])) {
+                $result[$record[$id_col_name]] = $record;
+            // 指定が無ければ連番でマッピング
+            } else {
+                $result[] = $record;
+            }
+        }
+
+        // on_fetch_*を呼び出す
+        $this->callListenerMethod("fetch",array($record));
+
+        return $record;
+    }
+
+    /**
+     * @hook result
+     * 全結果レコードのFetch
+     */
+    public function result_fetchAll ($result)
+    {
+        while ($result->fetch() !== false);
+        return $result;
     }
 
     /**
@@ -722,24 +783,20 @@ class Table_Core
         $type = $this->query->getType();
         if ( ! $type) {
             report_error("組み立てるQueryのtypeが指定されていません",array(
-                "class" => get_class($this),
-                "query" => $this->query,
+                "table" => $this,
             ));
         }
 
         // テーブル名を関連づける
+        if ( ! static::$table_name) {
+            report_error("Tableが物理定義されていません",array(
+                "table" => $this,
+            ));
+        }
         $this->query->setTable(static::$table_name);
 
         // Query組み立て処理を呼び出す
         $this->callBuildQueryMethds();
-
-        // assocの関連づけ処理（assoc_before*）を呼び出す
-        if ($type=="insert" || $type=="update") {
-            $this->assoc_beforeWrite();
-        }
-        if ($type=="select") {
-            $this->assoc_beforeSelect();
-        }
 
         // SQL組み立て用配列をDBIの仕様にあわせて加工
         $query = (array)$this->query;
@@ -790,16 +847,14 @@ class Table_Core
         $statement = $this->buildQuery($type);
         // SQLの実行
         $this->result_res =$this->getDBI()->exec($statement, array(
-            "Type" =>$type,
-            "Query" =>$this->query,
-            "History" =>(array)$this->hook_history,
+            "Table" =>$this,
         ));
         // Resultの組み立て
         $this->result = new Result($this);
 
-        // assocの関連づけ処理（assoc_afterWrite）を呼び出す
         if ($type=="insert" || $type=="update") {
-            $this->assoc_afterWrite();
+            // on_afterWrite_*を呼び出す
+            $this->callListenerMethod("afterWrite",array($record));
         }
 
         return $this->result;
@@ -808,7 +863,7 @@ class Table_Core
     /**
      * assoc処理 selectの発行前
      */
-    private function assoc_beforeSelect ()
+    private function on_select_assoc ()
     {
         foreach ((array)$this->query->getFields() as $i => $col_name) {
             if ( ! is_numeric($i)) {
@@ -819,39 +874,42 @@ class Table_Core
                 $this->query->removeField($col_name);
                 $this->query->addAssocField($col_name);
                 // assoc処理の呼び出し
-                $this->callHookMethod("assoc_beforeSelect_".$assoc, array($col_name));
+                $this->callHookMethod("assoc_select_".$assoc, array($col_name));
             }
         }
+        return false;
     }
 
     /**
      * assoc処理 各レコードfetch後
      */
-    private function assoc_afterFetchEach ($record)
+    private function on_fetch_assoc ($record)
     {
         foreach ((array)$this->query->getAssocFields() as $col_name) {
             $assoc = static::$cols[$col_name]["assoc"];
             // assoc処理の呼び出し
-            $this->callHookMethod("assoc_afterFetchEach_".$assoc, array($col_name, $record));
+            $this->callHookMethod("assoc_fetch_".$assoc, array($col_name, $record));
         }
+        return false;
     }
 
     /**
      * assoc処理 fetch完了後
      */
-    private function assoc_afterFetchEnd ()
+    private function on_fetchEnd_assoc ()
     {
         foreach ((array)$this->query->getAssocFields() as $col_name) {
             $assoc = static::$cols[$col_name]["assoc"];
             // assoc処理の呼び出し
-            $this->callHookMethod("assoc_afterFetchEnd_".$assoc, array($col_name));
+            $this->callHookMethod("assoc_fetchEnd_".$assoc, array($col_name));
         }
+        return false;
     }
 
     /**
      * assoc処理 insert/updateの発行前
      */
-    public function assoc_beforeWrite ()
+    private function on_write_assoc ()
     {
         foreach ((array)$this->query->getValues() as $col_name => $value) {
             if ($assoc = static::$cols[$col_name]["assoc"]) {
@@ -859,41 +917,30 @@ class Table_Core
                 $this->query->removeValue($col_name);
                 $this->query->setAssocValue($col_name,$value);
                 // assoc処理の呼び出し
-                $this->callHookMethod("assoc_beforeWrite_".$assoc, array($col_name,$value));
+                $this->callHookMethod("assoc_write_".$assoc, array($col_name,$value));
             }
         }
+        return false;
     }
 
     /**
      * assoc処理 insert/updateの発行後
      */
-    public function assoc_afterWrite ()
+    private function on_afterWrite_assoc ()
     {
         foreach ((array)$this->query->getAssocValues() as $col_name => $value) {
             $assoc = static::$cols[$col_name]["assoc"];
             // assoc処理の呼び出し
             $this->callHookMethod("assoc_afterWrite_".$assoc, array($col_name,$value));
         }
+        return false;
     }
 
     /**
-     * buildQuery_*_*メソッドを呼び出す
+     * Query組み立て処理を呼び出す
      */
     private function callBuildQueryMethds ()
     {
-        // 定義されているメソッド名を収集
-        $defined = & self::$build_query_defined[get_class($this)];
-        if ( ! isset($defined)) {
-            $defined = array();
-            foreach (get_class_methods($this) as $method_name) {
-                if (strpos($method_name,"buildQuery_")!==0) {
-                    continue;
-                }
-                $pattern = explode("_",$method_name,3);
-                $defined[$pattern[1]][] = $method_name;
-            }
-        }
-
         // 呼び出すHookを選択
         $hooks = array();
         $suffixes = array("");
@@ -916,12 +963,33 @@ class Table_Core
             // 全て
             $hooks[] ="any".$suffix;
         }
+        // 呼び出す
+        foreach ($hooks as $hook) {
+            $this->callListenerMethod($hook,array());
+        }
+    }
+
+    /**
+     * on_*_*メソッドを呼び出す
+     */
+    private function callListenerMethod ($hook, $args=array())
+    {
+        // 定義されているon_*_*メソッド名を収集
+        $defined = & self::$defined_listener_method[get_class($this)];
+        if ( ! isset($defined)) {
+            $defined = array();
+            foreach (get_class_methods($this) as $method_name) {
+                if (strpos($method_name,"on_")!==0) {
+                    continue;
+                }
+                $pattern = explode("_",$method_name,3);
+                $defined[$pattern[1]][] = $method_name;
+            }
+        }
 
         // Hookを呼び出す
-        foreach ($hooks as $hook) {
-            foreach ((array)$defined[$hook] as $method_name) {
-                $this->callHookMethod($method_name,array());
-            }
+        foreach ((array)$defined[$hook] as $method_name) {
+            $this->callHookMethod($method_name,$args);
         }
     }
 
@@ -939,6 +1007,19 @@ class Table_Core
             }
         }
         return false;
+    }
+
+    /**
+     * @deprecated
+     * @override
+     * reportの呼び出し時の処理
+     */
+    public function __report ()
+    {
+        return array(
+            "query" => $this->query,
+            "history" => (array)$this->hook_history,
+        );
     }
 
     /**
@@ -967,7 +1048,7 @@ class Table_Core
         }
 
         $instance = & ref_globals("loaded_dbi");
-        $name =$this->ds_name ? $this->ds_name : "default";
+        $name =static::$ds_name;
 
         if ( ! $instance[$name]) {
             $connect_info =registry("DBI.connection.".$name);

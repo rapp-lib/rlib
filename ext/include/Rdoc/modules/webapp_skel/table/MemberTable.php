@@ -55,10 +55,7 @@ class <?=$table_class?> extends Table_App
 <?=$get_col_def($col)?>
 <?php endforeach; ?>
     );
-    protected static $refs = array(
-    );
     protected static $def = array(
         "indexes" => array(),
     );
-    protected static $ds_name = null;
 }
