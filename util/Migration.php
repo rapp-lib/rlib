@@ -3,7 +3,7 @@ namespace R\Util;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\DriverManager;
-use R\Lib\Query\TableFactory;
+use R\Lib\Table\TableFactory;
 
 /**
  *
@@ -39,7 +39,8 @@ class Migration
         foreach ($tables as $table) {
             $table_def = table($table)->getTableDef();
             // table_nameの指定がない、ds_nameが一致しないテーブルは対象外
-            if ( ! $table_def["table_name"] || $ds_name != $table_def["ds_name"]) {
+            if ( ! $table_def["table_name"]
+                || ($table_def["ds_name"] && $ds_name != $table_def["ds_name"])) {
                 continue;
             }
             // Tableクラスの定義からTableSchemaの組み立て

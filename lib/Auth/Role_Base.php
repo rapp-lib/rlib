@@ -67,6 +67,14 @@ abstract class Role_Base
     }
 
     /**
+     * @getter
+     */
+    public function isLogin ()
+    {
+        return (bool)$this->attrs["login"];
+    }
+
+    /**
      * 権限を持つかどうか確認
      */
     public function check ($priv)

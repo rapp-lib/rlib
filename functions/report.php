@@ -232,7 +232,7 @@
                 $message .=decorate_value($errstr,true);
             }
 
-            if (is_array($params)) {
+            if ($params!==null) {
 
                 $message .=' :'.decorate_value($params,true);
             }

@@ -25,6 +25,7 @@ class Result extends ArrayObject
     {
         // Table::result_メソッドの呼び出し
         array_unshift($args,$this);
-        return call_user_func_array(array($this->table,"result_".$method_name), $args);
+        $result_method_name = "result_".$method_name;
+        return call_user_func_array(array($this->table,$result_method_name),$args);
     }
 }

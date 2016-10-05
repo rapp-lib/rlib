@@ -11,9 +11,14 @@ class TableFactory
     /**
      * Tableインスタンスを生成
      */
-    public static function factory ($table_name, $config=array())
+    public static function factory ($table_name)
     {
         $class = "R\\App\\Table\\".str_camelize($table_name)."Table";
+        if ( ! $table_name || ! class_exists($class)) {
+            report_error("テーブルの指定が不正です",array(
+                "table_name" => $table_name,
+            ));
+        }
         $table = new $class($config);
         return $table;
     }

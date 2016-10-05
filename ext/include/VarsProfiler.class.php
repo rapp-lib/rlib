@@ -61,8 +61,10 @@ class VarsProfiler {
             return array();
         }
 
-        if (is_array($func) && method_exists($func[0], $func[1])) {
-
+        if (is_array($func)) {
+            if ( ! method_exists($func[0], $func[1])) {
+                return array();
+            }
             $ref =new ReflectionMethod($func[0], $func[1]);
             $class_name =$ref->getDeclaringClass()->getName();
 

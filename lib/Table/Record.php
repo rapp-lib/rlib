@@ -13,12 +13,9 @@ class Record extends ArrayObject
     /**
      * @override
      */
-    public function __construct ($table, $data=null)
+    public function __construct ($table)
     {
         $this->table = $table;
-        if (isset($data)) {
-            $this->hydrate($data);
-        }
     }
 
     /**
@@ -28,6 +25,7 @@ class Record extends ArrayObject
     {
         // Table::record_メソッドの呼び出し
         array_unshift($args,$this);
-        return call_user_func_array(array($this->table,"record_".$method_name), $args);
+        $record_method_name = "record_".$method_name;
+        return call_user_func_array(array($this->table,$record_method_name),$args);
     }
 }

@@ -116,7 +116,11 @@ class DBI_Base {
 
         $start_time =microtime(true);
 
-        $result =$this->ds->execute($st);
+        try {
+            $result =$this->ds->execute($st);
+        } catch (\PDOException $e) {
+            $this->ds->error = implode(' ',$e->errorInfo);
+        }
 
         $elapsed =round((microtime(true) - $start_time)*1000,2)."ms";
 
@@ -135,7 +139,6 @@ class DBI_Base {
         report('Execute Statement',array_merge($report_context,array(
             "Statement" =>$st,
             "Elapsed" =>$elapsed,
-            "NumRows" =>"N:".count($result)."/A:".$this->ds->lastAffected(),
         )));
 
         if ($explain["warn"]) {
