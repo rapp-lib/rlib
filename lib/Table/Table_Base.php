@@ -246,10 +246,26 @@ class Table_Base extends Table_Core
      * @hook on_fetch
      * ハッシュされたパスワードを関連づける
      */
-    protected function on_fetch_hashPw ()
+    protected function on_fetch_hashPw ($record)
     {
         if ($col_name = $this->getColNameByAttr("hash_pw")) {
-            $this->query->where($col_name, 0);
+            $record[$col_name] = "";
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @hook on_fetch
+     * ハッシュされたパスワードを関連づける
+     */
+    protected function on_write_hashPw ()
+    {
+        if ($col_name = $this->getColNameByAttr("hash_pw")) {
+            $value = $this->query->getValue($col_name);
+            if (strlen($value)) {
+                $this->query->setValue($col_name, md5($value));
+            }
         } else {
             return false;
         }
