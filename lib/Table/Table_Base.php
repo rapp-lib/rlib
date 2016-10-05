@@ -1,7 +1,6 @@
 <?php
 namespace R\Lib\Table;
 
-use R\Util\Reflection;
 use R\Lib\DBI\Model_Base;
 use R\Lib\DBI\DBI_Base;
 
@@ -15,7 +14,7 @@ class Table_Base extends Table_Core
      * パラメータ例:
      *     "assoc"=>"hasMany",
      *     "table"=>"Product", // 必須 関係先テーブル名
-     *     "fkey"=>"owner_member_id", // 任意 関係先テーブル上のFK
+     *     "fkey"=>"owner_member_id", // 必須 関係先テーブル上のFK
      *  読み込み時の動作:
      *      Fetch完了後、結果全てのPKで関係先テーブルをSelectする
      *  書き込み時の動作:
@@ -78,17 +77,13 @@ class Table_Base extends Table_Core
     }
 
     /**
-     * @hook assoc hasMany
+     * @hook assoc hasManyValue
      * パラメータ例:
      *     "assoc"=>"hasMany",
      *     "table"=>"Product", // 必須 関係先テーブル名
-     *     "fkey"=>"owner_member_id", // 任意 関係先テーブル上のFK
+     *     "fkey"=>"owner_member_id", // 必須 関係先テーブル上のFK
      *  読み込み時の動作:
-     *      Fetch完了後、結果全てのPKで関係先テーブルをSelectする
      *  書き込み時の動作:
-     *      ※書き込んだIDがわかることが必須なので、IDを指定しないUpdateではエラー
-     *      対象のIDに関係する関係先のレコードを全件削除
-     *      登録対象のレコードを順次Insert
      */
     public function assoc_afterFetchEnd_hasManyValues ($col_name)
     {
@@ -96,6 +91,8 @@ class Table_Base extends Table_Core
 
     /**
      * @hook chain
+     * Select文のField部を指定する
+     * ※何も指定されていない場合は全て取得する
      */
     public function chain_with ($col_name, $col_name_sub=false)
     {
@@ -108,6 +105,7 @@ class Table_Base extends Table_Core
 
     /**
      * @hook chain
+     * JOIN句の設定
      */
     public function chain_join ($table, $alias=null, $on=array(), $type="LEFT")
     {
@@ -116,7 +114,7 @@ class Table_Base extends Table_Core
 
     /**
      * @hook chain
-     * GROUP BY句の設定
+     * GROUP_BY句の設定
      */
     public function chain_groupBy ($col_name)
     {
@@ -125,7 +123,7 @@ class Table_Base extends Table_Core
 
     /**
      * @hook chain
-     * ORDER BY句の設定
+     * ORDER_BY句の設定
      */
     public function chain_orderBy ($col_name, $asc=true)
     {
@@ -148,14 +146,16 @@ class Table_Base extends Table_Core
 
     /**
      * @hook chain
+     * IDを条件に指定する
      */
     public function chain_findById ($id)
     {
-        $this->findBy($this->getIdColName("id"), $id);
+        $this->query->where($this->getIdColName("id"), $id);
     }
 
     /**
      * @hook chain
+     * 絞り込み条件を指定する
      */
     public function chain_findBy ($col_name, $value=false)
     {
@@ -164,53 +164,44 @@ class Table_Base extends Table_Core
 
     /**
      * @hook chain
+     * ログイン中のアカウントを条件に指定する
      */
     public function chain_findMine ()
     {
         $account = auth()->getAccount();
         if ( ! $account->isLogin()) {
-            return $this->findNothing();
+            report_warning("ログイン中ではありません",array(
+                "account" => $account,
+            ));
+            $this->query->where("0=1");
+            return;
         }
-        // アカウントのテーブル名の解決
-        $table_name = $account->getAttr("table_name");
-        if ( ! $table_name) {
-            $table_name = str_camelize($account->getRole());
+        // 関係先を条件に指定
+        $owner_key_attr = $account->getRole()."_owner_key";
+        $owner_key_col_name = $this->getColNameByAttr($owner_key_attr);
+        if ( ! $owner_key_col_name) {
+            report_error("ログイン中のアカウントに関係づけるキーが設定されていません",array(
+                "attr" => $owner_key_attr,
+            ));
         }
-        // 関係先を条件に取得
-        $id = $account->getId();
-        $this->findByAssoc($table_name, $id);
+        $this->query->where($owner_key_col_name, $account->getId());
     }
 
     /**
      * @hook chain
+     * ログインID/PWを条件に指定する
      */
     public function chain_findByLoginIdPw ($login_id, $login_pw)
     {
         $login_id_col_name = $this->getColNameByAttr("login_id");
         $login_pw_col_name = $this->getColNameByAttr("login_pw");
         if ( ! $login_id_col_name || ! $login_pw_col_name) {
-            report_error("login_id,login_pwカラムがありません",array("class" => get_class($this)));
+            report_error("login_id,login_pwカラムがありません",array(
+                "class" => get_class($this),
+            ));
         }
         $this->query->where($login_id_col_name, (string)$login_id);
         $this->query->where($login_pw_col_name, md5($login_pw));
-    }
-
-    /**
-     * @hook chain
-     */
-    public function chain_findByAssoc ($assoc_table, $assoc_id)
-    {
-        $fkey_col_name = $this->getFkeyColName($assoc_table);
-
-        if ( ! $fkey_col_name) {
-            report_warning("外部キーが定義されていません",array(
-                "table_class" => get_class($this),
-                "assoc_table" => $assoc_table,
-            ));
-            return $this->findNothing();
-        }
-
-        $this->findBy($fkey_col_name, $assoc_id);
     }
 
     /**
@@ -233,6 +224,20 @@ class Table_Base extends Table_Core
     }
 
     /**
+     * @hook chain
+     * Queryを操作する関数を指定する
+     */
+    public function chain_query ($func)
+    {
+        if ( ! is_callable($func)) {
+            report_error("関数が呼び出せません",array(
+                "func" => $func,
+            ));
+        }
+        call_user_func($func, $this->query);
+    }
+
+    /**
      * @hook buildQuery
      * 削除フラグを関連づける
      */
@@ -240,6 +245,8 @@ class Table_Base extends Table_Core
     {
         if ($del_flg_col_name = $this->getColNameByAttr("del_flg")) {
             $this->query->where($del_flg_col_name, 0);
+        } else {
+            return false;
         }
     }
     protected function buildQuery_update_attachDelFlg ()
@@ -249,6 +256,8 @@ class Table_Base extends Table_Core
                 $this->query->setDelete(false);
                 $this->query->setValue($del_flg_col_name, 1);
             }
+        } else {
+            return false;
         }
     }
 }
@@ -277,10 +286,9 @@ class Table_Core
     protected static $cols = array();
 
     /**
-     * callHookMethodの対象メソッド一覧
-     * クラス定義から収集するので2回目以降変更がないため保持
+     * テーブル別のbuildQueryメソッドの定義
      */
-    protected static $hook_defined = null;
+    protected static $build_query_defined = array();
 
     /**
      * Hook処理の呼び出し履歴
@@ -291,11 +299,6 @@ class Table_Core
      * DBIのSQL実行結果リソース
      */
     private $result_res = null;
-
-    /**
-     * 定義から収集した外部キーのキャッシュ
-     */
-    protected static $fkey_defined = null;
 
     /**
      * buildQueryの結果作成されたSQL文
@@ -328,7 +331,7 @@ class Table_Core
         }
 
         // MEMO: Queryの操作はTableクラス外から行えない
-        // Tableクラス内にQuery操作用の抽象メソッドを定義する動機である
+        // 極力Tableクラス内にQuery操作用の抽象メソッドを定義するべき
 
         report_error("メソッドの定義がありません",array(
             "class" => get_class($this),
@@ -375,32 +378,6 @@ class Table_Core
             ));
         }
         return $id_col_name;
-    }
-
-    /**
-     * 外部キーとして利用するカラム名の取得
-     */
-    protected function getFkeyColName ($assoc_name)
-    {
-        // 定義から外部キーを収集
-        if ( ! isset(static::$fkey_defined)) {
-            static::$fkey_defined = array();
-            // 自分のテーブルでIDを参照できるようにする
-            static::$fkey_defined[self::$table_name] = $this->getIdColName();
-            // fkey_for属性から参照できるようにする
-            foreach (static::$cols as $col_name => $col) {
-                // 文字列
-                if (is_string($col["fkey_for"])) {
-                    static::$fkey_defined[$col["fkey_for"]] =$col_name;
-                // 配列で複数指定可能
-                } elseif (is_array($col["fkey_for"])) {
-                    foreach ($col["fkey_for"] as $fkey_for) {
-                        static::$fkey_defined[$fkey_for] =$col_name;
-                    }
-                }
-            }
-        }
-        return static::$fkey_defined[$assoc_name];
     }
 
     /**
@@ -753,26 +730,8 @@ class Table_Core
         // テーブル名を関連づける
         $this->query->setTable(static::$table_name);
 
-        // Query組み立て処理（buildQuery_*）を呼び出す
-        $suffixes = array("");
-        // 認証時の処理呼び出し追加
-        if (auth()->checkAuthenticated()) {
-            $suffixes[] = "As".str_camelize(auth()->getAccount()->getRole());
-        }
-        foreach ($suffixes as $suffix) {
-            // type別
-            $this->callHookMethod("buildQuery_".$type.$suffix."_*", array());
-            // valuesを持つQuery
-            if ($type=="insert" || $type=="update") {
-                $this->callHookMethod("buildQuery_write".$suffix."_*", array());
-            }
-            // whereを持つQuery
-            if ($type=="select" || $type=="update") {
-                $this->callHookMethod("buildQuery_read".$suffix."_*", array());
-            }
-            // 全て
-            $this->callHookMethod("buildQuery_any".$suffix."_*", array());
-        }
+        // Query組み立て処理を呼び出す
+        $this->callBuildQueryMethds();
 
         // assocの関連づけ処理（assoc_before*）を呼び出す
         if ($type=="insert" || $type=="update") {
@@ -918,62 +877,68 @@ class Table_Core
     }
 
     /**
+     * buildQuery_*_*メソッドを呼び出す
+     */
+    private function callBuildQueryMethds ()
+    {
+        // 定義されているメソッド名を収集
+        $defined = & self::$build_query_defined[get_class($this)];
+        if ( ! isset($defined)) {
+            $defined = array();
+            foreach (get_class_methods($this) as $method_name) {
+                if (strpos($method_name,"buildQuery_")!==0) {
+                    continue;
+                }
+                $pattern = explode("_",$method_name,3);
+                $defined[$pattern[1]][] = $method_name;
+            }
+        }
+
+        // 呼び出すHookを選択
+        $hooks = array();
+        $suffixes = array("");
+        if (auth()->checkAuthenticated()) {
+            // 認証時の処理呼び出し
+            $suffixes[] = "As".str_camelize(auth()->getAccount()->getRole());
+        }
+        $type = $this->query->getType();
+        foreach ($suffixes as $suffix) {
+            // type別
+            $hooks[] =$type.$suffix;
+            // valuesを持つQuery
+            if ($type=="insert" || $type=="update") {
+                $hooks[] ="write".$suffix;
+            }
+            // whereを持つQuery
+            if ($type=="select" || $type=="update") {
+                $hooks[] ="read".$suffix;
+            }
+            // 全て
+            $hooks[] ="any".$suffix;
+        }
+
+        // Hookを呼び出す
+        foreach ($hooks as $hook) {
+            foreach ((array)$defined[$hook] as $method_name) {
+                $this->callHookMethod($method_name,array());
+            }
+        }
+    }
+
+    /**
      * Hookメソッドを呼び出す
      */
     private function callHookMethod ($method_name, $args=array())
     {
-        // 定義されているメソッド名を収集
-        if ( ! isset(static::$hook_defined)) {
-            static::$hook_defined = array();
-            foreach (get_class_methods($this) as $hook_method_name) {
-                $pattern = explode("_",$hook_method_name);
-                if (count($pattern)>1) {
-                    // 分解して登録
-                    $ref = & static::$hook_defined;
-                    foreach ($pattern as $part) {
-                        if ( ! $part) {
-                            continue 2;
-                        }
-                        $ref = & $ref[$part];
-                    }
-                    $ref["_"] = $hook_method_name;
-                }
-            }
-        }
-
-        $matched = array();
-
-        // パターンにマッチするメソッドを探索する
-        if (preg_match('!_\*$!',$method_name)) {
-            $ref = & static::$hook_defined;
-            foreach (explode("_",$method_name) as $part) {
-                if (isset($ref[$part])) {
-                    $ref = & $ref[$part];
-                } elseif ($part == "*") {
-                    foreach ($ref as $v) {
-                        if (isset($v["_"])) {
-                            $matched[] = $v["_"];
-                        }
-                    }
-                    break;
-                } else {
-                    $matched = array();
-                    break;
-                }
-            }
-        } elseif (method_exists($this, $method_name)) {
-            $matched[] = $method_name;
-        }
-
-        // マッチしたメソッドを呼び出す
-        foreach ($matched as $hook_method_name) {
-            $result = call_user_func_array(array($this,$hook_method_name),$args);
-            // 履歴への登録
+        if (method_exists($this, $method_name)) {
+            $result = call_user_func_array(array($this,$method_name),$args);
             if ($result!==false) {
+                // 履歴への登録
                 $this->hook_history[] = $method_name;
+                return true;
             }
         }
-        return $matched;
+        return false;
     }
 
     /**
