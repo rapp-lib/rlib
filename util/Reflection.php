@@ -36,13 +36,40 @@ class Reflection
      * 定義箇所を取得
      */
     public static function getDefinedAt ($target) {
-        if ($ref = self::getRef($target)) {
-            return array(
-                "file" => $ref->getFileName(),
-                "line" => $ref->getStartLine(),
-            );
+        $ref = self::getRef($target);
+
+        if ( ! $ref) {
+            report_warning("Reflectionが取得できません",array("target"=>$target));
+            return array();
         }
 
-        return array();
+        return array(
+            "file" => $ref->getFileName(),
+            "line" => $ref->getStartLine(),
+        );
+    }
+
+    /**
+     * 定義されているメソッド一覧を取得
+     */
+    public static function getMethodNames ($class_name) {
+        if (is_object($class_name)) {
+            $class_name = get_class($class_name);
+        }
+
+        $ref = self::getRef($class_name);
+
+        if ( ! $ref) {
+            report_warning("Reflectionが取得できません",array("target"=>$target));
+            return array();
+        }
+
+        $method_names =array();
+
+        foreach ($ref->getMethods() as $ref_method) {
+            $method_names[] = $ref_method->getName();
+        }
+
+        return $method_names;
     }
 }

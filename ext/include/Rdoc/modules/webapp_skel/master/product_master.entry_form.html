@@ -1,17 +1,17 @@
-<?=$c["header"]?> 
+<?=$c["header"]?>
 
-<div class="right">	
+<div class="right">
 	<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 登録編集</span></h2>
 
 	<!--error module -->
 	{{if $c->get_errors()}}
 		<div class="errmsg">※入力エラーがあります</div>
 		<script>
-		$(function(){ 
-			showErrors({ 
-				errors: {{$c->get_errors()|json_encode}}, 
+		$(function(){
+			showErrors({
+				errors: {{$c->get_errors()|json_encode}},
 				$form: $("form.form-c")
-			}) 
+			})
 		});
 		</script>
 	{{/if}}
@@ -38,4 +38,4 @@
 
 </div><!--right-->
 
-<?=$c["footer"]?> 
+<?=$c["footer"]?>

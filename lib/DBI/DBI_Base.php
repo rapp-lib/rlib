@@ -14,6 +14,15 @@ class DBI_Base {
     protected $transaction_stack =array();
     private $desc_cache =array();
 
+    protected $result_listener = null;
+
+    //-------------------------------------
+    // 結果収集オブジェクトの設定
+    public function set_result_listener ($result_listener) {
+
+        $this->result_listener =$result_listener;
+    }
+
     //-------------------------------------
     // 初期化
     public function __construct ($name) {
@@ -107,7 +116,11 @@ class DBI_Base {
 
         $start_time =microtime(true);
 
-        $result =$this->ds->execute($st);
+        try {
+            $result =$this->ds->execute($st);
+        } catch (\PDOException $e) {
+            $this->ds->error = implode(' ',$e->errorInfo);
+        }
 
         $elapsed =round((microtime(true) - $start_time)*1000,2)."ms";
 
@@ -126,7 +139,6 @@ class DBI_Base {
         report('Execute Statement',array_merge($report_context,array(
             "Statement" =>$st,
             "Elapsed" =>$elapsed,
-            "NumRows" =>"N:".count($result)."/A:".$this->ds->lastAffected(),
         )));
 
         if ($explain["warn"]) {
@@ -607,6 +619,16 @@ class DBI_Base {
             list($query["table"],$query["alias"]) =$query["table"];
         }
 
+        if ($query["type"]=="insert") {
+            $query["type"] = "create";
+        }
+
+        // valuesでの指定の展開
+        if ($query["values"]) {
+            $query["fields"] = $query["values"];
+            unset($query["values"]);
+        }
+
         // fields, values
         $insert_fields =array();
         $insert_values =array();
@@ -670,6 +692,11 @@ class DBI_Base {
         // joins
         $query["joins"] =$this->st_joins($query["joins"]);
         $query["joins"] =implode(' ',(array)$query["joins"]);
+
+        // valuesでの指定の展開
+        if ($query["values"]) {
+            $query["fields"] = $query["values"];
+        }
 
         // fields
         $update_fields =array();

@@ -71,9 +71,10 @@
 
             $result .='function: '.$info["name"].'@'.$info["file_short"].'[L'.$info["line"].']'.$br_code;
 
-        } elseif (is_array($target_value)) {
+        } elseif (is_arraylike($target_value)) {
 
-            $result .='array('.count($target_value).'):'.$br_code;
+            $result .=is_object($target_value) ? get_class($target_value)." :array" : 'array';
+            $result .='('.count($target_value).'):'.$br_code;
 
             if (count($target_value)) {
 
@@ -231,7 +232,7 @@
                 $message .=decorate_value($errstr,true);
             }
 
-            if (is_array($params)) {
+            if ($params!==null) {
 
                 $message .=' :'.decorate_value($params,true);
             }

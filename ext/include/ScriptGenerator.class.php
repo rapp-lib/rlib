@@ -64,6 +64,8 @@ class ScriptGenerator {
             "a" =>"node_val_array",
             "s" =>"node_val_str",
             "d" =>"node_val_dec",
+            "b" =>"node_val_bool",
+            "n" =>"node_val_null",
         ),
     );
 
@@ -163,6 +165,14 @@ class ScriptGenerator {
             } elseif (is_numeric($v)) {
 
                 $n[$k] =array("d",(int)$v);
+
+            } elseif (is_bool($v)) {
+
+                $n[$k] =array("b",(bool)$v);
+
+            } elseif (is_null($v)) {
+
+                $n[$k] =array("n",null);
 
             } else {
 
@@ -368,6 +378,24 @@ class ScriptGenerator {
 
         $this->st[] =array(
             "code" =>(string)((int)$value),
+        );
+    }
+
+    //-------------------------------------
+    //
+    protected function node_val_bool ($value) {
+
+        $this->st[] =array(
+            "code" =>(string)($value ? "true" : "false"),
+        );
+    }
+
+    //-------------------------------------
+    //
+    protected function node_val_null ($value) {
+
+        $this->st[] =array(
+            "code" =>(string)("null"),
         );
     }
 

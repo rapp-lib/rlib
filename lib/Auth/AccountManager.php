@@ -6,9 +6,9 @@ namespace R\Lib\Auth;
  */
 class AccountManager
 {
-    private $auth_role = null;
-    private $login_accounts = array();
-    private $login_account_attrs;
+    private $access_role = null;
+    private $accounts = array();
+    private $account_attrs = array();
 
     /**
      * 指定したアカウント、またはAccountManagerインスタンスを返す
@@ -23,7 +23,7 @@ class AccountManager
 
         return $name===null
             ? $account_manager
-            : $account_manager->getLoginAccount($name);
+            : $account_manager->getAccount($name);
     }
 
     /**
@@ -31,50 +31,33 @@ class AccountManager
      */
     public function __construct ()
     {
-        $this->login_account_attrs = & ref_session("AccountManager_login_account_attrs");
+        $this->account_attrs = & ref_session("AccountManager_account_attrs");
     }
 
     /**
-     * 認証中のアカウントを取得する
+     * 指定したアカウントを取得する
      */
-    public function getAuthAccount ()
+    public function getAccount ($role=null)
     {
-        if ( ! $this->auth_role) {
-            return null;
+        // 指定が無ければ認証済みアカウントを取得
+        if ( ! $role) {
+            if ( ! $this->access_role) {
+                report_error("未認証エラー",array());
+            }
+            $role = $this->access_role;
         }
-        return $this->getLoginAccount($this->auth_role);
-    }
 
-    /**
-     * ログインアカウントを取得する
-     */
-    public function getLoginAccount ($role)
-    {
-        if ( ! $this->login_accounts[$role]) {
+        if ( ! $this->accounts[$role]) {
             // インスタンスの作成
             $class = $this->getRoleClass($role);
-            $this->login_accounts[$role] = new $class($this);
+            $this->accounts[$role] = new $class($this);
 
             // セッションからの復帰
-            $login_account_attr = (array)$this->login_account_attrs[$role];
-            $this->login_accounts[$role]->reset($login_account_attr);
+            $login_account_attr = (array)$this->account_attrs[$role];
+            $this->accounts[$role]->reset($login_account_attr);
         }
 
-        return $this->login_accounts[$role];
-    }
-
-    /**
-     * ログインアカウントを更新する
-     */
-    private function resetLoginAccount ($role, $login_account_attr=null)
-    {
-        if ($login_account_attr) {
-            $this->login_account_attrs[$role] = $login_account_attr;
-        } else {
-            unset($this->login_account_attrs[$role]);
-        }
-
-        $this->getLoginAccount($role)->reset($login_account_attr);
+        return $this->accounts[$role];
     }
 
     /**
@@ -83,27 +66,29 @@ class AccountManager
     public function authenticate ($role, $required=true)
     {
         if ( ! $role) {
-            return ! $required;
+            report_error("認証エラー",array(
+                "role" => $role,
+                "required" => $required,
+            ));
         }
 
         // 既に認証済みであれば多重認証処理エラー
-        // ※複数のRoleでアクセスを許可する場合は共用Roleを用意すること
-        if ($this->auth_role) {
+        // ※複数のRoleでアクセスする可能性がある場合は共用Roleを用意する
+        if ($this->access_role) {
             report_error("多重認証エラー",array(
                 "role" => $role,
-                "auth_role" => $this->auth_role,
+                "access_role" => $this->access_role,
             ));
         }
-        $this->auth_role = $role;
+        $this->access_role = $role;
 
-        $account = $this->getLoginAccount($role);
-
-        // 認証前処理
-        $account->onBeforeAuthenticate();
+        // 認証時の処理呼び出し
+        $this->getAccount()->onAccess();
 
         // ログイン必須チェック
-        if ($required && ! $account->check($required)) {
-            $account->onLoginRequired();
+        if ($required && ! $this->getAccount()->check($required)) {
+            // アクセス要求時の処理呼び出し
+            $this->getAccount()->onLoginRequired($required);
             return false;
         }
 
@@ -111,23 +96,36 @@ class AccountManager
     }
 
     /**
+     * 認証処理が完了しているかどうか
+     */
+    public function checkAuthenticated ()
+    {
+        return $this->access_role;
+    }
+
+    /**
      * ログイン処理を行う
      */
     public function login ($role, $params)
     {
+        // セッション情報を初期化
         $this->resetLoginAccount($role);
-        $result = $this->getLoginAccount($role)->loginTrial($params);
 
+        // ログイン試行処理の呼び出し
+        $result = $this->getAccount($role)->loginTrial($params);
         if ( ! $result) {
             return false;
         }
 
+        // ログインしたアカウントのセッション情報を更新
         $result["role"] = $role;
+        $result["login"] = true;
         $result["id"] = (string)$result["id"];
         $result["privs"] = (array)$result["privs"];
         $this->resetLoginAccount($role, $result);
 
-        $this->getLoginAccount($role)->onLogin();
+        // ログイン時の処理呼び出し
+        $this->getAccount($role)->onLogin();
 
         return true;
     }
@@ -137,8 +135,24 @@ class AccountManager
      */
     public function logout ($role)
     {
+        // セッション情報を初期化
         $this->resetLoginAccount($role);
-        $this->getLoginAccount($role)->onLogout($params);
+        // ログアウト時の処理呼び出し
+        $this->getAccount($role)->onLogout($params);
+    }
+
+    /**
+     * ログインセッション情報を更新する
+     */
+    private function resetLoginAccount ($role, $login_account_attr=null)
+    {
+        if ($login_account_attr) {
+            $this->account_attrs[$role] = $login_account_attr;
+        } else {
+            unset($this->account_attrs[$role]);
+        }
+
+        $this->getAccount($role)->reset($login_account_attr);
     }
 
     /**

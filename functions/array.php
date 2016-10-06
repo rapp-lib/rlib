@@ -1,15 +1,14 @@
 <?php
 
-
     //-------------------------------------
     //
     function array_extract ( & $arr) {
 
-        if (is_array($arr)) {
+        if (is_arraylike($arr)) {
 
             foreach ($arr as $k => $_v) {
 
-                if (is_array($arr[$k])) {
+                if (is_arraylike($arr[$k])) {
 
                     array_extract($arr[$k]);
                 }
@@ -35,7 +34,7 @@
             $root_k_copy =$root_k;
             $root_k_copy[] =$k;
 
-            if (is_array($node[$k])) {
+            if (is_arraylike($node[$k])) {
 
                 array_archive($root,$node[$k],$root_k_copy);
 
@@ -50,7 +49,7 @@
     //
     function & ref_array ( & $arrx, $path) {
 
-        if (is_array($path)) {
+        if (is_arraylike($path)) {
 
             foreach ($path as $k => $v) {
 
@@ -107,7 +106,7 @@
 
         foreach ($arr as $k => $v) {
 
-            if (is_array($v)) {
+            if (is_arraylike($v)) {
 
                 $v =array_escape($v);
             }
@@ -137,7 +136,7 @@
             return $arr;
 
         // 配列指定（name）
-        } elseif (is_array($name)) {
+        } elseif (is_arraylike($name)) {
 
             foreach ($name as $a_name => $a_value) {
 
@@ -220,9 +219,9 @@
             }
 
         // 配列指定（value）
-        } elseif (is_array($value)) {
+        } elseif (is_arraylike($value)) {
 
-            if ( ! is_array($ref)) {
+            if ( ! is_arraylike($ref)) {
 
                 $ref =array();
             }
@@ -253,7 +252,7 @@
     // 最初の要素を取得
     function array_first ($arr) {
 
-        if (is_array($arr) && $arr) {
+        if (is_arraylike($arr) && $arr) {
 
             $keys =array_keys($arr);
             return $arr[array_shift($keys)];
@@ -268,7 +267,7 @@
     // 最後の要素を取得
     function array_last ($arr) {
 
-        if (is_array($arr) && $arr) {
+        if (is_arraylike($arr) && $arr) {
 
             $keys =array_keys($arr);
             return $arr[array_pop($keys)];
@@ -284,7 +283,7 @@
     function to_array ($value) {
 
         // 配列はそのまま返す
-        if (is_array($value)) {
+        if (is_arraylike($value)) {
 
             return $value;
 

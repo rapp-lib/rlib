@@ -88,8 +88,10 @@
             $this->c->input($_REQUEST);
         }
 
-        list($this->vars["ts"] ,$this->vars["p"]) =
-            <?=$__model_instance?>->get_by_search_form($this->list_setting, $this->c->input());
+        $this->vars["ts"] = <?=$__table_instance?><?="\n"?>
+            ->findBySearchForm($this->list_setting, $this->c->input())
+            ->select();
+        $this->vars["p"] = $this->vars["ts"]->getPager();
     }
 
 <? endif; /* $c["usage"] != "form" */ ?>
@@ -104,24 +106,21 @@
 
         // 入力値のチェック
         if ($_REQUEST["_i"]=="c") {
-            $this->c->validate_input($_REQUEST,array(
+            $t = <?=$__table_instance?>->createRecord($_REQUEST);
+            $this->c->validate_input($t,array(
             ));
-
             if ($this->c->has_valid_input()) {
                 redirect("page:.entry_confirm");
             }
         }
 
         // id指定があれば既存のデータを読み込む
-        if ($_REQUEST["id"]) {
-            $this->c->id($_REQUEST["id"]);
-            $t =<?=$__model_instance?>->get_by_id($this->c->id());
-
+        if ($id = $_REQUEST["id"]) {
+            $t =<?=$__table_instance?>->selectById($id);
             if ( ! $t) {
-                $this->c->id(false);
                 redirect("page:.view_list");
             }
-
+            $this->c->id($id);
             $this->c->input($t);
         }
     }
@@ -147,6 +146,7 @@
     public function act_entry_exec ()
     {
         $this->context("c",1,true);
+
         if ($this->c->has_valid_input()) {
 <? if ($t["virtual"]): ?>
             // メールの送信
@@ -161,7 +161,7 @@
                 "<?=$tc['short_name']?>",
 <? endforeach; ?>
             ));
-            <?=$__model_instance?>->save($fields,$this->c->id());
+            <?=$__table_instance?>->save($this->c->id(),$fields);
 <? endif; /* $t["virtual"] */ ?>
 
             $this->c->clear();
@@ -185,15 +185,8 @@
         // idの指定
         $this->c->id($_REQUEST["id"]);
 
-        // 既存のデータを確認
-        $t =<?=$__model_instance?>->get_by_id($this->c->id());
-
-        if ( ! $t) {
-            redirect("page:.view_list");
-        }
-
         // データの削除
-        <?=$__model_instance?>->drop($this->c->id());
+        <?=$__table_instance?>->deleteById($this->c->id());
 
         redirect("page:.view_list");
     }
@@ -211,14 +204,15 @@
 
         $this->context("c",1);
 
-        $res =<?=$__model_instance?>
-                ->get_by_search_form($this->list_setting,$this->c->input(),true);
+        $res =<?=$__table_instance?><?="\n"?>
+            ->findBySearchForm($this->list_setting,$this->c->input())
+            ->removePagenation()
+            ->selectNoFetch();
 
         // CSVファイルの書き込み準備
         $csv_filename =registry("Path.tmp_dir")
-                ."/csv_output/<?=$t["name"]?>-"
-                .date("Ymd-His")."-"
-                .sprintf("%04d",rand(0,9999)).".csv";
+            ."/csv_output/<?=$t["name"]?>-".date("Ymd-His")."-"
+            .sprintf("%04d",rand(0,9999)).".csv";
         $csv =new CSVHandler($csv_filename,"w",$this->csv_setting);
 
         while (($t =$res->fetch()) !== null) {
@@ -272,28 +266,22 @@
      */
     public function act_entry_csv_exec ()
     {
-        set_time_limit(0);
-        registry("Report.error_reporting",E_USER_ERROR|E_ERROR);
-
         $this->context("c",1,true);
 
-        $csv_filename =obj("UserFileManager")->get_uploaded_file(
-                $this->c->input("csv_file"), "private");
+        $csv_filename =obj("UserFileManager")
+            ->get_uploaded_file($this->c->input("csv_file"), "private");
 
         // CSVファイルの読み込み準備
         $csv =new CSVHandler($csv_filename,"r",$this->csv_setting);
 
-        dbi()->begin();
+        <?=$__table_instance?>->transactionBegin();
 
         while (($t=$csv->read_line()) !== null) {
 
             // CSVフォーマットエラー
             if ($errors =$csv->get_errors()) {
-
-                dbi()->rollback();
-
+                <?=$__table_instance?>->transactionRollback();
                 $this->c->errors("Import.csv_file",$errors);
-
                 redirect("page:.entry_csv_form");
             }
 
@@ -301,14 +289,13 @@
             $c_import =new Context_App;
             $c_import->id($t["<?=$t['pkey']?>"]);
             $c_import->input($t);
-
             $keys =array_keys($this->csv_setting["rows"]);
             $fields =$c_import->get_fields($keys);
 
-            <?=$__model_instance?>->save($fields,$c_import->id());
+            <?=$__table_instance?>->save($c_import->id(),$fields);
         }
 
-        dbi()->commit();
+        <?=$__table_instance?>->transactionCommit();
 
         redirect("page:.view_list");
     }

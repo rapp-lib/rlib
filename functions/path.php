@@ -7,6 +7,7 @@
         static $cache;
 
         if ( ! $cache) {
+            $cache["page_to_path"] = array();
 
             foreach ((array)registry("Routing.page_to_path") as $k1 => $v1) {
 

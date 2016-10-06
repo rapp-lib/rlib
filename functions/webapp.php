@@ -776,9 +776,40 @@
     }
 
     /**
-     * @facade R\Lib\AccountManager::load
+     * @facade R\Lib\Auth\AccountManager::load
      */
     function auth ($name=null)
     {
         return R\Lib\Auth\AccountManager::load($name);
+    }
+
+    /**
+     * @facade R\Lib\Table\TableFactory::factory
+     */
+    function table ($table_name, $config=array())
+    {
+        return R\Lib\Table\TableFactory::factory($table_name, $config);
+    }
+
+    /**
+     * @facade R\Lib\Builder\WebappBuilder::getSchema
+     */
+    function builder ()
+    {
+        return R\Lib\Builder\WebappBuilder::getSchema();
+    }
+
+    /**
+     * is_arrayでArrayObjectも許容できるように拡張
+     */
+    function is_arraylike ( & $arr)
+    {
+        return is_array($arr) || $arr instanceof ArrayObject;
+    }
+
+    /**
+     * @facade R\Lib\Frontend\FrontendResourceManager::load
+     */
+    function frontend () {
+        return R\Lib\Frontend\FrontendResourceManager::load();
     }

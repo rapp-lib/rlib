@@ -25,14 +25,14 @@ abstract class Role_Base
     abstract public function onLogout ();
 
     /**
-     * 認証確認前の処理
+     * アクセス時の処理
      */
-    abstract public function onBeforeAuthenticate ();
+    abstract public function onAccess ();
 
     /**
-     * 認証否認時の処理
+     * 認証要求時の処理
      */
-    abstract public function onLoginRequired ();
+    abstract public function onLoginRequired ($required);
 
     /**
      * @override
@@ -67,23 +67,40 @@ abstract class Role_Base
     }
 
     /**
+     * @getter
+     */
+    public function isLogin ()
+    {
+        return (bool)$this->attrs["login"];
+    }
+
+    /**
      * 権限を持つかどうか確認
      */
     public function check ($priv)
     {
-        if ($priv === true) {
-            $priv = $this->attrs["role"];
-        }
-
-        if ($this->attrs["role"] == $priv) {
+        // 複数指定の場合、全ての権限を持つか確認する
+        if (is_array($priv)) {
+            foreach ($priv as $v) {
+                if ( ! $this->check($v)) {
+                    return false;
+                }
+            }
             return true;
         }
 
+        // trueの指定の場合ログインしているかどうかのみ確認
+        if ($priv === true) {
+            return $this->attrs["login"];
+        }
+
+        // 権限を持つか確認
         foreach ((array)$this->attrs["privs"] as $priv_check) {
             if ($priv_check == $priv) {
                 return true;
             }
         }
+
         return false;
     }
 

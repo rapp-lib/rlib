@@ -1,8 +1,9 @@
-<?php print "<!?php";
+<?php
     $controller = $c["name"];
     $role = $c["account"];
-?>
 
+     print "<!?php\n";
+?>
 namespace R\App\Role;
 
 /**
@@ -32,6 +33,16 @@ class <?=str_camelize($role)?>Role extends Role_App
     /**
      * @override
      */
+    public function onLoginRequired ($required)
+    {
+        redirect("page:<?=$controller?>.login",array(
+            "redirect_to" => $this->getAttr("login") ? "" : registry("Request.request_uri"),
+        ));
+    }
+
+    /**
+     * @override
+     */
     public function onLogin ()
     {
         // Session Fixation対策
@@ -43,24 +54,13 @@ class <?=str_camelize($role)?>Role extends Role_App
      */
     public function onLogout ()
     {
-        // ログアウト時にSession破棄
         session_destroy();
     }
 
     /**
      * @override
      */
-    public function onBeforeAuthenticate ()
+    public function onAccess ()
     {
-    }
-
-    /**
-     * @override
-     */
-    public function onLoginRequired ()
-    {
-        redirect("page:<?=$controller?>.login",array(
-            "redirect_to" => registry("Request.request_uri"),
-        ));
     }
 }
