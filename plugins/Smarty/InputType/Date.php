@@ -42,7 +42,7 @@ class Date extends BaseInput
         if ($value !== null) {
 
             $value =$this->input_type_date_parse_value($value);
-            $d =longdate($postset_value);
+            $d =longdate($value);
         }
 
         $d["y"] =$d["Y"];
