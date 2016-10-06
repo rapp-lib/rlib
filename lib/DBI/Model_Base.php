@@ -28,12 +28,6 @@ class Model_Base {
     // アクセス修飾のパラメータ取得
     protected function get_accessor_value ($name) {
 
-        if ($account = auth()->getAuthAccount()) {
-            return array(
-                "account" => $account->getRole(),
-                "id" => $account->getId());
-        }
-
         return self::$accessors[$this->accessor][$name];
     }
 
