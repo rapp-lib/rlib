@@ -807,3 +807,9 @@
         return is_array($arr) || $arr instanceof ArrayObject;
     }
 
+    /**
+     * @facade R\Lib\Frontend\FrontendResourceManager::load
+     */
+    function frontend () {
+        return R\Lib\Frontend\FrontendResourceManager::load();
+    }
