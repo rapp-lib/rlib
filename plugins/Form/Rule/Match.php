@@ -10,13 +10,13 @@ class Match extends BaseRule {
     /**
      * override
      */
-    protected $message ="一致しています";
+    protected $message ="一致していません";
 
     /**
      * override
      */
     public function check ($value) {
 
-        return  strcmp($value,$option) == 0;
+        return  strcmp($value,$this->params["option"]) == 0;
     }
 }

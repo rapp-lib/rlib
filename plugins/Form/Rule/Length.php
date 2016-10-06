@@ -21,6 +21,11 @@ class Length extends BaseRule {
         $length =mb_strlen($value,"UTF-8");
         $option =$this->params["option"];
 
+        if ( ! strlen($value)) {
+
+            return true;
+        }
+
         if ( ! $option) {
 
             return false;

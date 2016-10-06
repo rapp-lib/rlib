@@ -10,13 +10,13 @@ class Unmatch extends BaseRule {
     /**
      * override
      */
-    protected $message ="一致していません";
+    protected $message ="重複しています";
 
     /**
      * override
      */
     public function check ($value) {
 
-        return  strcmp($value,$this->params["option"]) == 0;
+        return  strcmp($value,$this->params["option"]) != 0;
     }
 }
