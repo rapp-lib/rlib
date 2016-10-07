@@ -800,16 +800,16 @@
     }
 
     /**
+     * @facade R\Lib\Frontend\FrontendResourceManager::getInstance
+     */
+    function frontend () {
+        return R\Lib\Frontend\FrontendResourceManager::getInstance();
+    }
+
+    /**
      * is_arrayでArrayObjectも許容できるように拡張
      */
     function is_arraylike ( & $arr)
     {
         return is_array($arr) || $arr instanceof ArrayObject;
-    }
-
-    /**
-     * @facade R\Lib\Frontend\FrontendResourceManager::load
-     */
-    function frontend () {
-        return R\Lib\Frontend\FrontendResourceManager::load();
     }
