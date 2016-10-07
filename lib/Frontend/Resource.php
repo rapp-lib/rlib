@@ -63,7 +63,7 @@ class Resource
         $html = "";
         // 依存先のモジュールを読み込んで必要に応じてHTMLを取得
         foreach ($this->dependencies as $module_name => $required_version) {
-            $html .= "\n".$this->resource_manager->load($module_name, $required_version)."\n";
+            $html .= $this->resource_manager->load($module_name, $required_version);
         }
         if ($this->module_name) {
             $html .= "\n"."<!-- ".$this->module_name." ".$this->version." -->";
@@ -98,13 +98,39 @@ class Resource
 
         // css_url
         } elseif ($this->data_type=="css_url") {
-            // linkタグの組み立て
-            $attrs = $this->attrs;
-            $attrs["href"] = $this->data;
-            $attrs["rel"] = "stylesheet";
-            $attrs["type"] = "text/css";
-            $html = tag('link',$attrs,"");
-
+            if ( ! $this->resource_manager->checkState("start_head","end_head") && ! $attr["async"]) {
+                // linkタグの組み立て
+                $attrs = $this->attrs;
+                $attrs["href"] = $this->data;
+                $attrs["rel"] = "stylesheet";
+                $attrs["type"] = "text/css";
+                $html = tag('link',$attrs,"");
+            } else {
+                // 属性の組み立て
+                $attrs = $this->attrs;
+                $attrs["href"] = $this->data;
+                $attrs["rel"] = "stylesheet";
+                $attrs["type"] = "text/css";
+                $code_lines = array();
+                // 非同期化
+                if ($attr["async"]) {
+                    $code_lines[] = 'window.onload=function(){';
+                }
+                // linkタグを動的に読み込むJSの組み立て
+                $code_lines[] = 'var css=document.createElement("link");';
+                foreach ($attrs as $k => $v) {
+                    $code_lines[] = 'css.setAttribute("'.$k.'","'.$v.'");';
+                }
+                $code_lines[] = 'document.getElementsByTagName("head")[0].appendChild(css);';
+                // 非同期化ブロックを閉じる
+                if ($attr["async"]) {
+                    $code_lines[] = '}';
+                }
+                // コードの改行
+                $code = "\n".implode("\n",$code_lines)."\n";
+                // scriptタグの組み立て
+                $html = tag('script',array(),$code);
+            }
         // css_code
         } elseif ($this->data_type=="css_code") {
             // コードの改行
@@ -114,6 +140,10 @@ class Resource
             $attrs = $this->attrs;
             $attrs["type"] = "text/css";
             $html = tag('style',$attrs,$code);
+
+        // none
+        } elseif ($this->data_type=="none") {
+            $html = "";
         }
         return $html;
     }
