@@ -40,9 +40,8 @@ class SmartyFunctionAsset
             if ( ! is_array($required)) {
                 $required = array($required);
             }
-            foreach ($required as $required_str) {
-                list($module_name, $version_required) = explode(":",$required_str);
-                asset()->required($module_name, $version_required, $buffer_name);
+            foreach ($required as $required_item) {
+                asset()->required($required_item, $buffer_name);
             }
         }
         // loaded指定
@@ -51,9 +50,8 @@ class SmartyFunctionAsset
             if ( ! is_array($loaded)) {
                 $loaded = array($loaded);
             }
-            foreach ($loaded as $loaded_str) {
-                list($module_name, $version) = explode(":",$loaded_str);
-                asset()->loaded($module_name, $version);
+            foreach ($loaded as $loaded_item) {
+                asset()->loaded($loaded_item);
             }
         }
         // flush指定
