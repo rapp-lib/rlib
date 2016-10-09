@@ -3,7 +3,7 @@ namespace R\Lib\Smarty;
 
 //-------------------------------------
 //
-class Controller_Base extends SmartyExtended {
+class SmartyController_Base extends SmartyExtended {
 
     protected $controller_name;
     protected $action_name;
