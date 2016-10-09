@@ -160,6 +160,24 @@ class FrontendAssetManager
     }
 
     /**
+     * 登録済みのModuleを読み込む
+     */
+    public function getRegisteredModule ($required_module_version)
+    {
+        list($module_name, $required_version) = $this->extractModuleVersion($required_module_version);
+        // 適合する最新版のモジュールを読み込む
+        if (is_array($this->modules[$module_name])) {
+            krsort($this->modules[$module_name]);
+            foreach ((array)$this->modules[$module_name] as $version => $resource) {
+                if ($this->checkVersion($version, $required_version)) {
+                    return $resource;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Moduleを読み込む
      */
     public function load ($required_module_version)
@@ -167,6 +185,7 @@ class FrontendAssetManager
         list($module_name, $required_version) = $this->extractModuleVersion($required_module_version);
         // モジュールが読み込み済みの場合
         if ($version = $this->loaded_modules[$module_name]) {
+            // 適合しないバージョンが読み込まれていればエラー
             if ( ! $this->checkVersion($version, $required_version)) {
                 report_error("読み込み済みモジュールが適合しません",array(
                     "module_name" => $module_name,
@@ -177,23 +196,19 @@ class FrontendAssetManager
             }
             return "";
         }
-        // 適合する最新版のモジュールを読み込む
-        if (is_array($this->modules[$module_name])) {
-            krsort($this->modules[$module_name]);
-            foreach ((array)$this->modules[$module_name] as $version => $resource) {
-                if ($this->checkVersion($version, $required_version)) {
-                    // ロード済みとして記録してHTMLを返す
-                    $this->loaded_modules[$module_name] = $version;
-                    return $resource->getHtmlWithDepenedencies();
-                }
-            }
+
+        $resource = $this->getRegisteredModule($required_module_version);
+        // 読み込めない場合はエラー
+        if ( ! $resource) {
+            report_error("依存モジュールが読み込めませんでした",array(
+                "module_name" => $module_name,
+                "required_version" => $required_version,
+                "modules" => $this->modules,
+            ));
         }
-        report($this->modules[$module_name]);
-        report_error("依存モジュールが読み込めませんでした",array(
-            "module_name" => $module_name,
-            "required_version" => $required_version,
-            "modules" => $this->modules,
-        ));
+        // ロード済みとして記録してHTMLを返す
+        $this->loaded_modules[$module_name] = $version;
+        return $resource->getHtmlWithDepenedencies();
     }
 
     /**

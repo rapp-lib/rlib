@@ -66,15 +66,17 @@
         ->required("rui.viframe");
 
     // rui.japcal
-    $asset->registerJsUrl("rui.japcal", $url.'/index.js')
+    $asset->registerJsUrl("rui.japcal", $url.'/rui.japcal/index.js')
         ->required("jquery");
 
     // rui.datefix
-    $asset->registerJsUrl("rui.datefix", $url.'/index.js')
+    $asset->registerJsUrl("rui.datefix", $url.'/rui.datefix/index.js')
+        ->required("rui.require")
         ->required("jquery");
 
     // rui.popup
-    $asset->registerJsUrl("rui.popup", $url.'/index.js')
+    $asset->registerJsUrl("rui.popup", $url.'/rui.popup/index.js')
+        ->required("rui.require")
         ->required("jquery");
 
     // rui.datepick

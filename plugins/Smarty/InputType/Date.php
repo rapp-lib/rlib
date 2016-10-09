@@ -21,6 +21,7 @@ class Date extends BaseInput
                 // 日付の表示： format="{%l}{%yp}{%mp}{%dp}{%datefix}{%datepick}"
                 // 時刻の表示： format="{%l}{%hp}{%ip}{%datefix}"
             "assign", // 部品をアサインするテンプレート変数名
+            "plugin", // 使用するプラグイン機能
         ));
 
         // HTML属性
@@ -161,30 +162,69 @@ class Date extends BaseInput
         $html["sf"] ='<input type="hidden"'
                 .' name="'.$params['name'].'[s]'.'"'.' value="0"/>';
 
-        // JS：日付の誤り訂正
-        $html["datefix"] ='<script>/*<!--*/ jQuery(function(){ '
-                .'rui.require("rui.datefix",function(){'
-                .'rui.Datefix.fix_dateselect("#'.$html["elm_id"].'"); });'
-                .'}); /*-->*/</script>';
+        // Frontendライブラリ導入以前との互換処理
+        if ( ! asset()->getRegisteredModule("rui.datefix")) {
 
-        // JS：日付の誤り訂正
-        $html["japcal"] ='<script>/*<!--*/ jQuery(function(){ '
-                //.'rui.require("rui.japcal",function(){'
-                .'rui.Japcal.year_input_exchange("#'.$html["elm_id"].'");'
-                //.'});'
-                .'}); /*-->*/</script>';
+            // JS：日付の誤り訂正
+            $html["datefix"] ='<script>/*<!--*/ jQuery(function(){ '
+                    .'rui.require("rui.datefix",function(){'
+                    .'rui.Datefix.fix_dateselect("#'.$html["elm_id"].'"); });'
+                    .'}); /*-->*/</script>';
 
-        // JS：日付選択カレンダーポップUI
-        $html["datepick"] .='<script>/*<!--*/ jQuery(function(){'
-                .'rui.require("jquery.datepick",function(){'
-                .'rui.Datepick.impl_dateselect('
-                .'"#'.$html["elm_id"].'",{yearRange:"'.$y1.':'.$y2.'"}); });'
-                .'}); /*-->*/</script>';
+            // JS：日付の誤り訂正
+            $html["japcal"] ='<script>/*<!--*/ jQuery(function(){ '
+                    //.'rui.require("rui.japcal",function(){'
+                    .'rui.Japcal.year_input_exchange("#'.$html["elm_id"].'");'
+                    //.'});'
+                    .'}); /*-->*/</script>';
 
-        $format =$params["format"]
-                ? $params["format"]
-                : '{%l}{%yp}{%mp}{%dp}{%datefix}';/*{%datepick}*/
-        $html["full"] =$html["head"].str_template_array($format,$html).$html["foot"];
+            // JS：日付選択カレンダーポップUI
+            $html["datepick"] .='<script>/*<!--*/ jQuery(function(){'
+                    .'rui.require("jquery.datepick",function(){'
+                    .'rui.Datepick.impl_dateselect('
+                    .'"#'.$html["elm_id"].'",{yearRange:"'.$y1.':'.$y2.'"}); });'
+                    .'}); /*-->*/</script>';
+
+            $format =$params["format"]
+                    ? $params["format"]
+                    : '{%l}{%yp}{%mp}{%dp}{%datefix}';/*{%datepick}*/
+            $html["full"] =$html["head"].str_template_array($format,$html).$html["foot"];
+
+        } else {
+
+            // 日付の誤り訂正プラグイン
+            if ( ! in_array("no-datefix",(array)$params["plugin"])) {
+                asset()->bufferJsCode(array(
+                    '$(function(){',
+                    '    rui.Datefix.fix_dateselect("#'.$html["elm_id"].'");',
+                    '});'
+                ))->required("rui.datefix");
+            }
+            // 日付選択カレンダーポップUIプラグイン
+            if (in_array("datepick",(array)$params["plugin"])) {
+                asset()->bufferJsCode(array(
+                    '$(function(){',
+                    '   rui.Datepick.impl_dateselect(',
+                    '       "#'.$html["elm_id"].'",',
+                    '       {yearRange:"'.$y1.':'.$y2.'"}',
+                    '   );',
+                    '});',
+                ))->required("rui.datepick");
+            }
+            // 和暦選択同期プラグイン
+            if (in_array("japcal",(array)$params["plugin"])) {
+                asset()->bufferJsCode(array(
+                    '$(function(){',
+                    '   rui.Japcal.year_input_exchange("#'.$html["elm_id"].'");',
+                    '});',
+                ))->required("rui.japcal");
+            }
+
+            $format =$params["format"]
+                    ? $params["format"]
+                    : '{%l}{%yp}{%mp}{%dp}';
+            $html["full"] =$html["head"].str_template_array($format,$html).$html["foot"];
+        }
 
         $this->html =$html["full"];
         $this->assign =$html;

@@ -280,9 +280,23 @@ class Select extends BaseInput
                 }
             }
 
-            $html["foot"] .='<script>/*<!--*/ rui.require("rui.syncselect",function(){ '
-                    .'rui.syncselect("'.$params['id'].'",'.'"'.$params['parent_id'].'",'
-                    .$pair.',"'.$params["type"].'"); }); /*-->*/</script>';
+            // Frontendライブラリ導入以前との互換処理
+            if ( ! asset()->getRegisteredModule("rui.datefix")) {
+                $html["foot"] .='<script>/*<!--*/ rui.require("rui.syncselect",function(){ '
+                        .'rui.syncselect("'.$params['id'].'",'.'"'.$params['parent_id'].'",'
+                        .$pair.',"'.$params["type"].'"); }); /*-->*/</script>';
+            } else {
+                // 親子Selectの連動JS処理
+                asset()->bufferJsCode(array(
+                    '$(function(){',
+                    '   rui.syncselect(',
+                    '       "'.$params['id'].'", "'.$params['parent_id'].'",',
+                    '       '.$pair.',"'.$params["type"].'"',
+                    '   );',
+                    '});',
+                ))->required("rui.syncselect");
+
+            }
         }
 
         $html["full"] =$html["head"].implode("",$html["options"]).$html["foot"];

@@ -215,7 +215,7 @@
             .sprintf("%04d",rand(0,9999)).".csv";
         $csv =new CSVHandler($csv_filename,"w",$this->csv_setting);
 
-        while (($t =$res->fetch()) !== null) {
+        while ($t =$res->fetch()) {
             $csv->write_line($t);
         }
 
