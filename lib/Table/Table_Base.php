@@ -229,17 +229,25 @@ class Table_Base extends Table_Core
 
     /**
      * @hook chain
+     * offset/limit指定を削除する
+     */
+    public function chain_removePagenation ()
+    {
+        $this->query->removeOffset();
+        $this->query->removeLimit();
+    }
+
+    /**
+     * @hook chain
      * Queryを操作する関数を指定する
      */
-    public function chain_query ($func)
+    public function chain_query ($query)
     {
-        if ( ! is_callable($func)) {
-            report_error("関数が呼び出せません",array(
-                "func" => $func,
-                "table" => $this,
-            ));
+        if (is_callable($func)) {
+            call_user_func($query, $this->query);
+        } elseif (is_arraylike($query)) {
+            $this->query->merge($query);
         }
-        call_user_func($func, $this->query);
     }
 
     /**
@@ -679,7 +687,7 @@ class Table_Core
     /**
      * SELECT文の発行 全件取得
      */
-    public function select ($fields=null)
+    public function select ($fields=array())
     {
         $this->query->addFields($fields);
         $this->execQuery("select");
@@ -692,7 +700,7 @@ class Table_Core
     public function selectNoFetch ($fields=array())
     {
         $this->query->addFields($fields);
-        $this->query->setNoFetch(true);
+        $this->query->setNoMapping(true);
         $this->execQuery("select");
         return $this->result;
     }
@@ -700,7 +708,7 @@ class Table_Core
     /**
      * idの指定の有無によりINSERT/UPDATE文の発行
      */
-    public function save ($values=array(), $id=null)
+    public function save ($id, $values=array())
     {
         $this->query->addValues($values);
         // ValuesでIDが指定されていれば削除してIDを条件に指定する

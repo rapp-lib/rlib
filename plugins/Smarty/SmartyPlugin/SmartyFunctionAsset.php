@@ -1,33 +1,40 @@
 <?php
-namespace R\Plugin\Smarty\SmartyFunction;
+namespace R\Plugin\Smarty\SmartyPlugin;
 
 /**
  *
  */
-class Frontend
+class SmartyFunctionAsset
 {
     /**
      * @overload
      *
-     * {{frontend required="jquery:2.*"}}
-     * {{frontend required="app-css" buffer="css"}}
-     * {{frontend loaded="jquery:2.*"}}
-     * {{frontend flush=true}}
+     * モジュールを指定してバッファに読み込む
+     * {{asset required="jquery:2.*"}}
+     * {{asset required="app.common-script" buffer="script"}}
+     * {{asset required="app.common-css" buffer="css"}}
+     *
+     * バッファの出力
+     * {{asset flush=["css","script"] state="head.end"}}
+     * {{asset flush="*" state="body.end"}}
+     *
+     * モジュールがHTML上で直接読み込まれたことを通知
+     * {{asset loaded="jquery:2.*"}}
      */
-    public static function smarty_function_frontend ($params, $smarty_template)
+    public static function smarty_function ($params, $smarty_template)
     {
         $html = "";
 
         // state指定
         if ($state = $params["state"]) {
-            frontend()->setState($state);
+            asset()->setState($state);
         }
         // required指定
         if ($required = $params["required"]) {
             // 登録先のBufferを指定
             $buffer_name = $params["buffer"];
             if ( ! $buffer_name) {
-                $buffer_name = "default";
+                $buffer_name ="html";
             }
             // 複数指定に対応
             if ( ! is_array($required)) {
@@ -35,7 +42,7 @@ class Frontend
             }
             foreach ($required as $required_str) {
                 list($module_name, $version_required) = explode(":",$required_str);
-                frontend()->required($module_name, $version_required, $buffer_name);
+                asset()->required($module_name, $version_required, $buffer_name);
             }
         }
         // loaded指定
@@ -46,7 +53,7 @@ class Frontend
             }
             foreach ($loaded as $loaded_str) {
                 list($module_name, $version) = explode(":",$loaded_str);
-                frontend()->loaded($module_name, $version);
+                asset()->loaded($module_name, $version);
             }
         }
         // flush指定
@@ -59,7 +66,7 @@ class Frontend
                 if ($buffer_name === true) {
                     $buffer_name = "default";
                 }
-                $html .= frontend()->flush($buffer_name);
+                $html .= asset()->flush($buffer_name);
             }
         }
 

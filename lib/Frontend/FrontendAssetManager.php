@@ -7,7 +7,7 @@ namespace R\Lib\Frontend;
 /**
  * フロントエンドリソース管理機能
  */
-class FrontendResourceManager
+class FrontendAssetManager
 {
     private static $instance = null;
 
@@ -16,22 +16,22 @@ class FrontendResourceManager
     private $assets_urls = array();
 
     private static $state_ids = array(
-        "before_html" => 0,
-        "start_head" => 1,
-        "end_head" => 2,
-        "start_body" => 3,
-        "end_body" => 4,
-        "after_html" => 5,
+        "html.before" => 0,
+        "head.start" => 1,
+        "head.end" => 2,
+        "body.start" => 3,
+        "body.end" => 4,
+        "html.end" => 5,
     );
     private $state = 0;
 
     /**
-     * FrontendResourceManagerのSingletonインスタンスを返す
+     * FrontendAssetManagerのSingletonインスタンスを返す
      */
     public static function getInstance ()
     {
         if ( ! self::$instance) {
-            self::$instance = new FrontendResourceManager();
+            self::$instance = new FrontendAssetManager();
         }
         return self::$instance;
     }
@@ -60,13 +60,13 @@ class FrontendResourceManager
                 "url_registered" => $this->assets_dirs[$dir],
             ));
         }
-        // アセットカタログを読み込む
-        $assets_catalog_php = $dir."/.assets.php";report($assets_catalog_php);
+        $this->assets_dirs[$dir] = $url;
+        // アセットカタログPHPを読み込む
+        $assets_catalog_php = $dir."/.assets.php";
         if (file_exists($assets_catalog_php)) {
-            $frontend = $this;
+            $asset = $this;
             include($assets_catalog_php);
         }
-        $this->assets_dirs[$dir] = $url;
     }
 
 // -- ステート管理
@@ -105,7 +105,7 @@ class FrontendResourceManager
     /**
      * Buffer済みのResourceを作成
      */
-    public function buffer ($data, $data_type, $buffer_name="default")
+    public function buffer ($data, $data_type, $buffer_name)
     {
         $resource = new Resource($this, $data, $data_type);
         $this->buffer[$buffer_name][] = $resource;
@@ -117,7 +117,7 @@ class FrontendResourceManager
      * 出力時に依存関係を解決を行う
      * headを指定するとCSSコード/URLのみを読み込む
      */
-    public function flush ($buffer_name="default")
+    public function flush ($buffer_name="*")
     {
         // 全Bufferを出力する指定
         if ($buffer_name=="*") {
@@ -141,8 +141,9 @@ class FrontendResourceManager
     /**
      * モジュールとして登録されたResourceを作成
      */
-    public function register ($module_name, $version, $data, $data_type)
+    public function register ($module_version, $data, $data_type)
     {
+        list($module_name, $version) = $this->extractModuleVersion($module_version);
         $resource = new Resource($this, $data, $data_type);
         $resource->setModuleName($module_name, $version);
         $this->modules[$module_name][$version] = $resource;
@@ -152,16 +153,18 @@ class FrontendResourceManager
     /**
      * Moduleを読み込み登録済みとして記録
      */
-    public function loaded ($module_name, $version)
+    public function loaded ($module_version)
     {
+        list($module_name, $version) = $this->extractModuleVersion($module_version);
         $this->loaded_modules[$module_name] = $version;
     }
 
     /**
      * Moduleを読み込む
      */
-    public function load ($module_name, $required_version)
+    public function load ($required_module_version)
     {
+        list($module_name, $required_version) = $this->extractModuleVersion($required_module_version);
         // モジュールが読み込み済みの場合
         if ($version = $this->loaded_modules[$module_name]) {
             if ( ! $this->checkVersion($version, $required_version)) {
@@ -172,7 +175,6 @@ class FrontendResourceManager
                     "loaded_modules" => $this->loaded_modules,
                 ));
             }
-
             return "";
         }
         // 適合する最新版のモジュールを読み込む
@@ -186,6 +188,7 @@ class FrontendResourceManager
                 }
             }
         }
+        report($this->modules[$module_name]);
         report_error("依存モジュールが読み込めませんでした",array(
             "module_name" => $module_name,
             "required_version" => $required_version,
@@ -194,11 +197,19 @@ class FrontendResourceManager
     }
 
     /**
+     * モジュールバージョン指定を分解する
+     */
+    private function extractModuleVersion ($module_version)
+    {
+        return explode(":",$module_version);
+    }
+
+    /**
      * 要求バージョン指定に適合するかチェック
      */
     private function checkVersion ($version, $required_version)
     {
-        if ( ! is_numeric($required_version) && ! $required_version) {
+        if ( ! is_numeric($required_version) && ! strlen($required_version)) {
             $required_version = "*";
         }
         // versionを1.2.3=>10203 のような数値に変換
@@ -227,7 +238,7 @@ class FrontendResourceManager
     /**
      * data_type="js_code"に固定してbufferを呼び出す
      */
-    public function bufferJsCode ($data, $buffer_name="default")
+    public function bufferJsCode ($data, $buffer_name="script")
     {
         return $this->buffer($data, "js_code", $buffer_name);
     }
@@ -235,7 +246,7 @@ class FrontendResourceManager
     /**
      * data_type="css_code"に固定してbufferを呼び出す
      */
-    public function bufferCssCode ($data, $buffer_name="default")
+    public function bufferCssCode ($data, $buffer_name="css")
     {
         return $this->buffer($data, "css_code", $buffer_name);
     }
@@ -243,25 +254,26 @@ class FrontendResourceManager
     /**
      * requiredするためのResourceをbufferに登録
      */
-    public function required ($module_name, $required_version="*", $buffer_name="default")
+    public function required ($module_version, $buffer_name="html")
     {
+        list($module_name, $version) = $this->extractModuleVersion($module_version);
         return $this->buffer($data, "none", $buffer_name)
-            ->required($module_name, $required_version);
+            ->required($module_name, $version);
     }
 
     /**
      * data_type="js_url"に固定してregisterを呼び出す
      */
-    public function registerJsUrl ($module_name, $version, $data)
+    public function registerJsUrl ($module_version, $data)
     {
-        return $this->register($module_name, $version, $data, "js_url");
+        return $this->register($module_version, $data, "js_url");
     }
 
     /**
      * data_type="css_url"に固定してregisterを呼び出す
      */
-    public function registerCssUrl ($module_name, $version, $data)
+    public function registerCssUrl ($module_version, $data)
     {
-        return $this->register($module_name, $version, $data, "css_url");
+        return $this->register($module_version, $data, "css_url");
     }
 }

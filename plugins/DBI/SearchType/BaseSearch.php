@@ -1,6 +1,5 @@
 <?php
-
-namespace R\Lib\Query\Search;
+namespace R\Plugin\DBI\SearchType;
 
 /**
  *

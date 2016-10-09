@@ -800,10 +800,10 @@
     }
 
     /**
-     * @facade R\Lib\Frontend\FrontendResourceManager::getInstance
+     * @facade R\Lib\Frontend\FrontendAssetManager::getInstance
      */
-    function frontend () {
-        return R\Lib\Frontend\FrontendResourceManager::getInstance();
+    function asset () {
+        return R\Lib\Frontend\FrontendAssetManager::getInstance();
     }
 
     /**

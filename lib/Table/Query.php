@@ -58,6 +58,7 @@ class Query extends ArrayObject
                     "class" => get_class($this),
                     "method_name" => $method_name,
                     "args_count" => count($args),
+                    "query" => $this,
                 ));
             }
 
@@ -65,33 +66,43 @@ class Query extends ArrayObject
             if (($op=="add" || $op=="set" || $op=="remove") && $key=="fields") {
                 $fields = array();
                 // 引数の指定はValues/Value/Key,Valueの3パターン
-                if ( ! $args[0]) {
-                    return;
-                } elseif (is_array($args[0])) {
+                if (is_array($args[0])) {
                     $fields = $args[0];
                 } elseif (count($args)==1) {
                     $fields = array($args[0]);
                 } elseif (count($args)==2) {
                     $fields = array($args[1] => $args[0]);
                 }
-                foreach ($fields as $key => $value) {
+                foreach ($fields as $k => $v) {
                     // 既存の値を削除
-                    if ( ! is_numeric($key)) {
-                        if (isset($this["fields"][$key])) {
-                            unset($this["fields"][$key]);
-                        }
-                    } elseif (($i = array_search($value,(array)$this["fields"]))!==false) {
-                        unset($this["fields"][$i]);
+                    if ( ! is_numeric($k)) {
+                        unset($this[$key][$k]);
+                    } elseif (($i = array_search($v,(array)$this[$key]))!==false) {
+                        unset($this[$key][$i]);
                     }
                     if ($op=="remove") {
                         continue;
                     }
                     // 指定された値を追加
-                    if ( ! is_numeric($key)) {
-                        $this["fields"][$key] = $value;
+                    if ( ! is_numeric($k)) {
+                        $this[$key][$k] = $v;
                     } else {
-                        $this["fields"][] = $value;
+                        $this[$key][] = $v;
                     }
+                }
+                return;
+
+            // valuesであれば、配列で複数指定可能にする
+            } elseif (($op=="add" || $op=="set") && $key=="values") {
+                $values = array();
+                // 引数の指定はValues/Value/Key,Valueの3パターン
+                if (is_array($args[0])) {
+                    $values = $args[0];
+                } elseif (count($args)==2) {
+                    $values = array($args[0] => $args[1]);
+                }
+                foreach ($values as $k => $v) {
+                    $this[$key][$k] = $v;
                 }
                 return;
 
@@ -99,14 +110,13 @@ class Query extends ArrayObject
             } elseif ($op=="get") {
                 if (count($args)==0) {
                     return $this[$key];
+                } elseif (count($args)==1) {
+                    return $this[$key][$args[0]];
                 }
 
             // set*であればsetter
             } elseif ($op=="set") {
-                if (count($args)==0) {
-                    unset($this[$key]);
-                    return;
-                } elseif (count($args)==1) {
+                if (count($args)==1) {
                     $this[$key] = $args[0];
                     return;
                 } elseif (count($args)==2) {
@@ -137,6 +147,7 @@ class Query extends ArrayObject
             "class" => get_class($this),
             "method_name" => $method_name,
             "args_count" => count($args),
+            "query" => $this,
         ));
     }
 

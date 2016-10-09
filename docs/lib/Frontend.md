@@ -4,33 +4,49 @@ R\Lib\Frontend
 CONCEPT
 --------
 
-- Jsのコードをバッファに書き込む:
+- ファイル読み込みをバッファに追加
+
 ```php
-    $js = 'alert($("#msg").text());';
-    frontend()->bufferScriptCode($js)
-        ->required("jquery","2.*");
-```
-    
-- モジュールとして外部のCDNを登録する
-```php
-    frontend()->registerScriptUrl("jquery", "2.2.4", '//code.jquery.com/jquery-2.2.4.min.js');
+    {{asset required="app.adm.common-js" buffer="script"}}
+    {{asset required="app.adm.base-css" buffer="css"}}
+
+    // HTML上にJSを記述してバッファに追加
+    {{code type="js" required=["jquery:>1.*","app.show-errors"]}}
+        $(function(){
+            showErrors({
+                errors: {{$c->get_errors()|json_encode}},
+                $form: $("form.form-c")
+            });
+        });
+    {{/code}}
 ```
 
-- モジュールとしてライブラリ内のURLを登録する
+- バッファの内容を出力（基本的にはHEAD閉部,BODY開閉で出力）
+
 ```php
-    frontend()->registerScriptUrl("mi", "1", frontend()->getAssetUrl("lib").'/js_rui/rui.mi/index.js')
-        ->required("rui","*");
-    frontend()->registerScriptUrl("mi", "2", frontend()->getAssetUrl("lib").'/js_rui/jquery.mi/index.js')
-        ->required("jquery","2.*");
+    {{asset flush=["css","script"] state="head.end"}}
+    {{asset flush="html" state="body.start"}}
+    {{asset flush="*" state="body.end"}}
 ```
 
-- 別途モジュールが読み込み済みであることを通知
-```php
-    print '<script src="//code.jquery.com/jquery-2.2.4.min.js"></script>';
-    frontend()->markLoaded("jquery","2.2.4");
-```
+- /html/assets/app/.assets.phpにアプリ内のモジュールの関係などを記述
 
-- バッファの中身を出力
 ```php
-    print frontend()->flush();
+    if ( ! $asset) { return; }
+
+    // adm - admテンプレート向けJS/CSS
+    $asset->registerJsUrl("app.adm.common-js", $url."/adm/js/common.js")
+        ->required("app.adm.base-css")
+        ->required("jquery");
+    $asset->registerCssUrl("app.adm.base-css", $url."/adm/css/base.css")
+        ->required("bs.font-awesome:4.*");
+
+    // show-errors - エラー表示
+    $asset->registerJsUrl("app.show-errors", $url."/show-errors/js/show-errors.js")
+        ->required("app.show-errors.css")
+        ->required("rui.show-errors");
+    $asset->registerCssUrl("app.show-errors.css", $url."/show-errors/css/show-errors.css");
+
+    // bs.font-awesome
+    $asset->registerCssUrl("bs.font-awesome:4.3.0", "//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css");
 ```

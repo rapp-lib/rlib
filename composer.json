@@ -6,7 +6,6 @@
     "require": {
         "smarty/smarty": "v3.*@stable",
 
-        "swiftmailer/swiftmailer": "v5.*@stable",
         "doctrine/dbal": "2.*@stable",
 
         "pear/http_request2": "v2.*@stable",
@@ -20,8 +19,7 @@
             "R\\Util\\": "util/",
 
             "R\\Lib\\Form\\Rule\\": "plugins/Form/Rule/",
-            "R\\Lib\\Form\\Input\\": "plugins/Smarty/InputType/",
-            "R\\Lib\\Query\\Search\\": "plugins/DBI/SearchType/"
+            "R\\Lib\\Form\\Input\\": "plugins/Smarty/InputType/"
         },
         "files": [
             "functions/required.php"
@@ -33,6 +31,7 @@
         "../../pear/pear_exception",
         "../../pear/net_url2",
         "../../pear/http_request2",
-        "../../pear/mail"
+        "../../pear/mail",
+        "../../pear/mail_mime"
     ]
 }

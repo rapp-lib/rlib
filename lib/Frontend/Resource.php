@@ -9,6 +9,14 @@ namespace R\Lib\Frontend;
  */
 class Resource
 {
+    private static $data_types =array(
+        "js_code" => array(),
+        "js_url" => array(),
+        "css_cpde" => array(),
+        "css_url" => array(),
+        "none" => array(),
+    );
+
     private $resource_manager;
     private $data;
     private $data_type;
@@ -24,6 +32,12 @@ class Resource
      */
     public function __construct ($resource_manager, $data, $data_type)
     {
+        if ( ! isset(self::$data_types[$data_type])) {
+            report_error("リソースタイプの指定が不正です",array(
+                "data_type" => $data_type,
+                "data" => $data,
+            ));
+        }
         $this->resource_manager = $resource_manager;
         $this->data = $data;
         $this->data_type = $data_type;
@@ -98,7 +112,7 @@ class Resource
 
         // css_url
         } elseif ($this->data_type=="css_url") {
-            if ( ! $this->resource_manager->checkState("start_head","end_head") && ! $attr["async"]) {
+            if ( ! $this->resource_manager->checkState("html.before","head.end") && ! $attr["async"]) {
                 // linkタグの組み立て
                 $attrs = $this->attrs;
                 $attrs["href"] = $this->data;

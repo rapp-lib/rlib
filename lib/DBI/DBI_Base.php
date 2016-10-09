@@ -136,7 +136,7 @@ class DBI_Base {
             }
         }
 
-        report('Execute Statement',array_merge($report_context,array(
+        report('SQL Exec',array_merge($report_context,array(
             "Statement" =>$st,
             "Elapsed" =>$elapsed,
         )));
@@ -154,7 +154,7 @@ class DBI_Base {
 
         if ($this->ds->error) {
 
-            report_warning('SQL Error',array(
+            report_error('SQL Error',array(
                 "Statement" =>$st,
                 "Error" =>$this->ds->error,
             ));

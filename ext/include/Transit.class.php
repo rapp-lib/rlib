@@ -71,7 +71,7 @@ class Transit
         // search_type_*モジュールの読み込み
         } else if ($type == "search_type") {
 
-            $search_class ='R\\Lib\\Query\\Search\\'.str_camelize($name);
+            $search_class ='R\\Plugin\\DBI\\SearchType\\'.str_camelize($name);
 
             if (class_exists($search_class)) {
 

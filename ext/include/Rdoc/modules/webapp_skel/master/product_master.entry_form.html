@@ -6,14 +6,14 @@
 	<!--error module -->
 	{{if $c->get_errors()}}
 		<div class="errmsg">※入力エラーがあります</div>
-		<script>
-		$(function(){
-			showErrors({
-				errors: {{$c->get_errors()|json_encode}},
-				$form: $("form.form-c")
-			})
-		});
-		</script>
+		{{code type="js" required=["jquery:*","app.show-errors"]}}
+			$(function(){
+				showErrors({
+					errors: {{$c->get_errors()|json_encode}},
+					$form: $("form.form-c")
+				});
+			});
+		{{/code}}
 	{{/if}}
 	<!--/error module -->
 

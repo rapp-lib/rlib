@@ -43,8 +43,8 @@ class SmartyExtended extends SmartyBC {
      */
     public function load_plugin ($name, $type, $template, &$callback, &$script, &$cacheable)
     {
-        $plugin_class = 'R\\Plugin\\Smarty\\Smarty'.str_camelize($type).'\\'.str_camelize($name);
-        $callback_func ="smarty_".$type."_".$name;
+        $plugin_class = 'R\\Plugin\\Smarty\\SmartyPlugin\\Smarty'.str_camelize($type).str_camelize($name);
+        $callback_func ="smarty_".$type;
 
         // [DEPRECATED] 関数による定義の探索
         $plugin_file = __DIR__."/../../plugins/Smarty/smarty_plugin/".$type.".".$name.".php";
@@ -57,12 +57,10 @@ class SmartyExtended extends SmartyBC {
         }
 
         // Pluginクラスの読み込み
-        $callback_method = array($plugin_class,$callback_func);
+        $callback_method = $plugin_class."::".$callback_func;
 
         if (class_exists($plugin_class)) {
             if (is_callable($callback_method)) {
-                //$defined_at = Reflection::getDefinedAt($callback_method);
-                //$script = $defined_at["file"];
                 $callback = $callback_method;
                 return true;
             }

@@ -1,60 +1,44 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="ja">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta http-equiv="Content-Language" content="ja">
+<meta charset="utf-8"/>
 
-<!-- seo-block -->
+<!-- page-id-block -->
 <title></title>
 <meta name="keywords" content=""/>
 <meta name="description" content=""/>
-<!-- /seo-block -->
-	
-<!-- base-style-block -->
-<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"/>
-<link rel="stylesheet" href="{{'/css/default-admin.css'|path_to_url}}" type="text/css"/>
-<!-- /base-style-block -->
+<!-- /page-id-block -->
 
-<!-- base-script-block -->
-<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
-<!-- /base-script-block -->
+{{asset required="app.adm.common-js" buffer="script"}}
+{{asset required="app.adm.base-css" buffer="css"}}
 
-<!-- system-script-block -->
-<script charset="UTF-8" src="{{'/js/rui/rui.js'|path_to_url}}"></script>
-<script> rui.init("{{'/js/rui'|path_to_url}}"); </script>
-<script charset="UTF-8" src="{{'/js/sys-app.js'|path_to_url}}"></script>
-<!-- /system-script-block -->
-	
+{{asset flush=["css","script"] state="head.end"}}
 </head>
 <body>
+{{asset flush="html" state="body.start"}}
 
 <header class="mmb">
-<div class="con">
-	<h1><a href="{{'/'|path_to_url}}" id="logo">&nbsp;</a></h1>
-	{{*
-	{{if $c_admin_auth->id()}}
-	<span>&nbsp;</span>
-	<div class="btn">
-		<div id="btn_logout">{{a _page="admin_login.logout"}}ログアウト{{/a}}</div>
+	<div class="con">
+		<h1><a href="{{'/'|path_to_url}}" id="logo">&nbsp;</a></h1>
+		<!--
+		<span>&nbsp;</span>
+		<div class="btn">
+			<div id="btn_logout"><a href="#">ログアウト</a></div>
+		</div>
+		-->
 	</div>
-	{{/if}}
-	*}}
-</div>
 </header><!--/.mmb-->
 
 <div id="contents" class="clearfix">
 
 <div class="left">
-<nav>
-	<h2>Menu</h2>
-	<dl>
-    
+	<nav>
+		<h2>Menu</h2>
+		<dl>
 <? foreach ((array)$s["controller"] as $name => $c): ?>
-	<dt class="toggle"><a href='{{"<?=$name?>.index"|page_to_url}}' class="button"><?=$c["label"]?></a></dt>
+			<dt class="toggle"><a href='{{"<?=$name?>.index"|page_to_url}}' class="button"><?=$c["label"]?></a></dt>
 <? endforeach; ?>
-
-	<!--<dd><ul><li class="current"></li></ul></dd>-->
-	</dl>
-</nav>
+			<!--<dd><ul><li class="current"></li></ul></dd>-->
+		</dl>
+	</nav>
 </div><!--/.left-->
