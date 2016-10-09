@@ -34,27 +34,33 @@ INDEX
         - TableElement
         - ColElement
 
-    - Smarty @deprecated
+    - Smarty
         - @TODO SmartyExtendedの機能を下層に送って最小化する
         - > Smartyテンプレートエンジンを利用するための機能
         - > MVCのView兼Controller機能の旧実装
         - SmartyExtended
-        - SmartyController_Base
-    - DBI @deprecated
-        - > DB接続とSQL発行の旧実装
-        - Model_Base
-        - DBI_Base
-    - Context @deprecated
+        - SmartyController_Base @deprecated
+    - Controller
+        - @TODO ControllerをSmartyと切り離す
+        - Controller_Base @future
+    - Form
+        - @MEMO Controllerの後に実装予定
+    - Context
         - > 認証/Session解決の旧実装
-        
-    - DBAL @future
+        - Context_Base @deprecated
+    - Enum
+        - @MEMO Formの後に実装予定
+        - List_Base @deprecated
+    - DBAL
         - > DBとの接続/SQL実発行
-    - Report @future
+        - @MEMO DBI実装で動作可能なので移行の優先度は低い
+        - Connection_Base @future
+    - DBI
+        - > DB接続とSQL発行の旧実装
+        - Model_Base @deprecated
+        - DBI_Base @deprecated
+    - Report
         - @TODO report(...)をreport()->error(...)に拡張する
-    - Controller @future
-        - @TODO ControllerをSmartyと切り離す
-    - Form @future
-        - @TODO ControllerをSmartyと切り離す
 
 - util
     - Migration @fixed 2.x 2016/10/01
