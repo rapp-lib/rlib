@@ -690,8 +690,7 @@ class Table_Core
     public function select ($fields=array())
     {
         $this->query->addFields($fields);
-        $this->execQuery("select");
-        return $this->result->fetchAll();
+        return $this->execQuery("select")->fetchAll();
     }
 
     /**
@@ -700,9 +699,8 @@ class Table_Core
     public function selectNoFetch ($fields=array())
     {
         $this->query->addFields($fields);
-        $this->query->setNoMapping(true);
-        $this->execQuery("select");
-        return $this->result;
+        $this->query->setNoMapping(true);report($this);
+        return $this->execQuery("select");
     }
 
     /**

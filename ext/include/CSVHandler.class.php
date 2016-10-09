@@ -285,7 +285,9 @@ class CSVHandler {
 
     //-------------------------------------
     // 行書き込み
-    public function write_line (array $csv_data, $options=array()) {
+    public function write_line ($csv_data, $options=array()) {
+
+        $csv_data = (array)$csv_data;
 
         if ($this->ignore_empty_line &&  ! strlen(implode("",$csv_data))) {
 
