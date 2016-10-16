@@ -10,7 +10,7 @@ class Cake2Loader {
     */
     public function __construct() {
 
-        require_once(dirname(__FILE__)."/../cake2/rlib_cake2.php");
+        require_once(dirname(__FILE__)."/cake2/rlib_cake2.php");
     }
 
     /**

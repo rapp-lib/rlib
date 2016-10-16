@@ -5,8 +5,8 @@
     "license": "MIT",
     "require": {
         "smarty/smarty": "v3.*@stable",
-
         "doctrine/dbal": "2.*@stable",
+        "ezyang/htmlpurifier": "4.*@stable",
 
         "pear/http_request2": "v2.*@stable",
         "pear/mail": "v1.*@stable",
@@ -15,9 +15,8 @@
     "autoload": {
         "psr-4": {
             "R\\Lib\\": "lib/",
-            "R\\Plugin\\": "plugins/",
-            "R\\Util\\": "util/",
 
+            "R\\Plugin\\": "plugins/",
             "R\\Lib\\Form\\Rule\\": "plugins/Form/Rule/",
             "R\\Lib\\Form\\Input\\": "plugins/Smarty/InputType/"
         },
@@ -26,7 +25,7 @@
         ]
     },
     "include-path":[
-        "ext/include/",
+        "include/",
 
         "../../pear/pear_exception",
         "../../pear/net_url2",

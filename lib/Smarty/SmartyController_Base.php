@@ -19,6 +19,7 @@ class SmartyController_Base extends SmartyExtended {
             $options=array()) {
 
         parent::__construct();
+        $this->register_modifier("date","longdate_format");
 
         $this->init($controller_name,$action_name,$options);
     }
@@ -33,7 +34,7 @@ class SmartyController_Base extends SmartyExtended {
         $this->controller_name =$controller_name;
         $this->action_name =$action_name;
 
-        $this->vars =& $this->_tpl_vars;
+        //$this->vars =& $this->_tpl_vars;
         $this->vars =array();
         $this->contexts =array();
 
@@ -57,9 +58,9 @@ class SmartyController_Base extends SmartyExtended {
     public function inherit_state ($sub_controller, $options) {
 
         // 親からVarsを追加指定
-        foreach ((array)$this->_tpl_vars as $k => $v) {
+        foreach ((array)$this->vars as $k => $v) {
 
-            $sub_controller->_tpl_vars[$k] =$v;
+            $sub_controller->vars[$k] =$v;
         }
     }
 
@@ -182,5 +183,307 @@ class SmartyController_Base extends SmartyExtended {
     //-------------------------------------
     //
     public function after_act () {
+    }
+
+// -- SmartyExtendedから移行した機能
+
+    public $_tpl_vars_DEPRECATED;
+
+    /**
+     * @deprecated
+     * @override
+     *
+     * $this->cの取得時に警告を表示しないために実装
+     */
+    public function __get ($name)
+    {
+        return $this->{$name};
+    }
+
+    /**
+     * @deprecated
+     * @override
+     *
+     * $this->cの設定時に警告を表示しないために実装
+     */
+    public function __set ($name, $value) {
+
+        $this->{$name} =$value;
+    }
+
+    //-------------------------------------
+    // widgetリソース解決
+    public function resolve_resource_widget_DEPRECATED ($resource_name, $load=false) {
+
+        if (preg_match('!^/!',$resource_name)) {
+
+            $path =$resource_name;
+            $page =path_to_page($path);
+
+        } else {
+
+            $page =$resource_name;
+            $path =page_to_path($path);
+        }
+
+        // テンプレートファイルの対応がない場合のエラー
+        if ( ! $page || ! $path) {
+
+            report_error("Smarty Template page is-not routed.",array(
+                "widget" =>$resource_name,
+            ));
+        }
+
+        // テンプレートファイル名の解決
+        $file =page_to_file($page);
+
+        // Widget名の解決
+        list($widget_name, $action_name) =explode('.',$page,2);
+        $widget_class_name =str_camelize($widget_name)."Widget";
+        $action_method_name ="act_".$action_name;
+
+        // テンプレートファイルが読み込めない場合のエラー
+        if ( ! is_file($file) || ! is_readable($file)) {
+
+            report_error('Smarty Template file is-not found.',array(
+                "widget" =>$resource_name,
+                "file" =>$file,
+            ));
+        }
+
+        // Widget起動エラー
+        if ( ! class_exists($widget_class_name)
+                || is_callable(array($widget_class,$action_method_name))) {
+
+            report_error("Widget startup failur.",array(
+                "widget" =>$resource_name,
+                "widget_class_name" =>$widget_class_name,
+                "action_method_name" =>$action_method_name,
+            ));
+        }
+
+        // Widget処理の起動
+        if ( ! $load) {
+
+            $widget_class =obj($widget_class_name);
+            $widget_class->init($widget_name,$action_name,$this);
+            $widget_class->before_act();
+            $widget_class->$action_method_name();
+            $widget_class->after_act();
+            $this->vars["widget"] =$widget_class->vars;
+        }
+
+        return $file;
+    }
+
+    //-------------------------------------
+    // pathリソース解決
+    public function resolve_resource_path_DEPRECATED ($resource_name, $load=false) {
+
+        $file =path_to_file($resource_name);
+
+        // テンプレートファイルが読み込めない場合のエラー
+        if ( ! is_file($file) || ! is_readable($file)) {
+
+            report_error('Smarty Template file is-not found.',array(
+                "path" =>$resource_name,
+                "file" =>$file,
+            ));
+        }
+
+        return $file;
+    }
+
+    //-------------------------------------
+    // moduleリソース解決
+    public function resolve_resource_module_DEPRECATED ($resource_name, $load=false) {
+
+        $file_find ="modules/html_element/".$resource_name;
+        $file =find_include_path($file_find);
+
+        // テンプレートファイルが読み込めない場合のエラー
+        if ( ! $file || ! is_file($file) || ! is_readable($file)) {
+
+            report_error('Smarty Template file is-not found.',array(
+                "module" =>$resource_name,
+                "file_find" =>$file_find,
+                "file" =>$file,
+            ));
+        }
+
+        return $file;
+    }
+
+    //-------------------------------------
+    // テンプレート文字列を直接fetch
+    public function fetch_src_DEPRECATED (
+            $tpl_source,
+            $tpl_vars=array(),
+            $security=false) {
+
+        return $this->fetch(
+                "eval:".$tpl_source,
+                null,
+                null,
+                null,
+                false,
+                true,
+                false,
+                $tpl_vars,
+                $security);
+    }
+
+    //-------------------------------------
+    // overwrite Smarty::_trigger_fatal_error
+    public function _trigger_fatal_error_DEPRECATED (
+            $error_msg,
+            $tpl_file = null,
+            $tpl_line = null,
+            $file = null,
+            $line = null,
+            $error_type = E_USER_WARNING) {
+
+        $errfile =$tpl_file!==null
+                ? $tpl_file
+                : $file;
+        $errline =$tpl_line!==null
+                ? $tpl_line
+                : $line;
+        $error_msg ='Smarty fatal error: '.$error_msg;
+
+        report_error('Smarty error: '.$error_msg,array(),array(
+                "errno" =>$error_type,
+                "errfile" =>$errfile,
+                "errline" =>$errline));
+    }
+
+    //-------------------------------------
+    // overwrite Smarty::trigger_error
+    public function trigger_error_DEPRECATED (
+            $error_msg,
+            $error_type = E_USER_WARNING) {
+
+        report_warning('Smarty error: '.$error_msg,array(),array(
+                "errno" =>$error_type));
+    }
+
+    //-------------------------------------
+    // overwrite Smarty::fetch
+    public function fetch (
+            $template = null,
+            $cache_id = null,
+            $compile_id = null,
+            $parent = null,
+            $display = false,
+            $merge_tpl_vars = true,
+            $no_output_filter = false,
+            $tpl_vars = array(),
+            $security = false) {
+
+        $parent =$parent ? $parent : $this->parent;
+
+        $resource =$this->createTemplate($template, $cache_id, $compile_id, $parent, false);
+
+        // 変数アサイン
+        array_extract($this->vars);
+        $resource->assign($this->vars);
+
+        // 追加の変数アサイン
+        array_extract($tpl_vars);
+        $resource->assign($tpl_vars);
+
+        $resource->assign(array(
+            "_REQUEST" =>$_REQUEST,
+            "_SERVER" =>$_SERVER,
+        ));
+
+        // テンプレート記述の制限設定
+        if ($security) {
+
+            $policy =is_string($security) || is_object($security)
+                    ? $security
+                    : null;
+
+            if (is_array($security)) {
+
+                $policy =new Smarty_Security($this);
+
+                foreach ($security as $k => $v) {
+
+                    $policy->$k =$v;
+                }
+            }
+
+            $resource->enableSecurity();
+        }
+
+        // SmartyがExceptionを補足するとReport出力を消してしまうことに対する対処
+        report_buffer_start();
+
+        $html_source =$resource->fetch(
+                $resource,
+                $cache_id,
+                $compile_id,
+                $parent,
+                $display,
+                $merge_tpl_vars,
+                $no_output_filter);
+
+        report_buffer_end();
+
+        unset($resource);
+
+        return $html_source;
+    }
+
+// -- 新Controllerに継承予定の機能
+
+    protected $request;
+    protected $response;
+    protected $forms;
+    protected static $form_defs = null;
+
+    public function initController ()
+    {
+        $this->request = request();
+        $this->response = & $this->vars; // response()
+        $this->forms = form()->repositry($this);
+    }
+    public static function getFormDef ($form_name=null)
+    {
+        if ( ! isset(static::$form_defs)) {
+            static::$form_defs = array();
+            // 対象Class内の"static $form_xxx"に該当する変数を収集する
+            $ref_class = new ReflectionClass(get_class($this));
+            foreach ($ref_class->getStaticProperties() as $ref_property) {
+                $var_name = $ref_property->getName();
+                $is_static = $ref_property->isStatic();
+                if ($is_static && $is_protected && preg_match('!^form_(.*)$!',$var_name,$match)) {
+                    $form_name = $match[1];
+                    $def = $ref_property->getValue();
+                    // form_nameの補完
+                    $def["form_name"] = $form_name;
+                    // form_full_nameの補完
+                    $dec_class = $ref_property->getDeclaringClass();
+                    if (preg_match('!([a-zA-Z0-9]+)Controller$!',$dec_class,$match)) {
+                        $dec_class = str_underscore($match[1]);
+                    }
+                    $def["form_full_name"] = $dec_class."::".$form_name;
+                    static::$form_defs[$form_name] = $def;
+                }
+            }
+        }
+        // 全件取得
+        if ( ! isset($form_name)) {
+            return static::$form_defs;
+        }
+        // form_nameを指定して取得
+        if (isset(self::$form_defs[$form_name])) {
+            return self::$form_defs[$form_name];
+        }
+        report_error("指定されたFormは定義されていません",array(
+            "class_name" => get_class($this),
+            "form_name" => $form_name,
+        ));
     }
 }

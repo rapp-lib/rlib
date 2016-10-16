@@ -19,7 +19,7 @@ class TableFactory
                 "table_name" => $table_name,
             ));
         }
-        $table = new $class($config);
+        $table = new $class;
         return $table;
     }
 

@@ -776,6 +776,30 @@
     }
 
     /**
+     * @facade R\Lib\Webapp\Request::getInstance
+     */
+    function request ()
+    {
+        return R\Lib\Webapp\Request::getInstance();
+    }
+
+    /**
+     * @facade R\Lib\Webapp\Session::getInstance
+     */
+    function session ()
+    {
+        return R\Lib\Webapp\Session::getInstance();
+    }
+
+    /**
+     * @facade R\Lib\Webapp\Response::getInstance
+     */
+    function response ()
+    {
+        return R\Lib\Webapp\Response::getInstance();
+    }
+
+    /**
      * @facade R\Lib\Auth\AccountManager::load
      */
     function auth ($name=null)
@@ -804,6 +828,30 @@
      */
     function asset () {
         return R\Lib\Frontend\FrontendAssetManager::getInstance();
+    }
+
+    /**
+     * @facade R\Lib\Form\FormFactory::getInstance
+     */
+    function form ()
+    {
+        return R\Lib\Form\FormFactory::getInstance();
+    }
+
+    /**
+     * @facade R\Lib\Core\UtilProxyManager::getProxy
+     */
+    function util ($class_name, $singleton=false)
+    {
+        return R\Lib\Core\UtilProxyManager::getProxy($class_name,$singleton);
+    }
+
+    /**
+     * @facade R\Lib\Core\ExtentionManager::getCallback
+     */
+    function extention ($extention_group=null, $extention_name=null)
+    {
+        return R\Lib\Core\ExtentionManager::getCallback($extention_group, $extention_name);
     }
 
     /**

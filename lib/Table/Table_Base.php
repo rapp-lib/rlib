@@ -426,15 +426,35 @@ class Table_Core
     }
 
     /**
+     * Tableオブジェクトを作成する
+     */
+    public function createTable ()
+    {
+        $class_name = get_class($this);
+        if ( ! preg_match('!([a-zA-Z0-9]+)Table$!',$class_name,$match)) {
+            report_error("Tableクラスの命名が不正です",array(
+                "class_name" => $class_name,
+            ));
+        }
+        return table($match[1]);
+    }
+
+    /**
      * Recordオブジェクトを作成する
      */
-    public function createRecord ($values=null)
+    public function createRecord ($values=null, $id=null)
     {
         $record = new Record($this);
+        // 値の設定
         if (isset($values)) {
             foreach ($values as $k => $v) {
                 $record[$k] = $v;
             }
+        }
+        // IDカラムの値の設定
+        if (isset($id)) {
+            $id_col_name = $this->getIdColName();
+            $record[$id_col_name] = $id;
         }
         return $record;
     }
@@ -651,6 +671,25 @@ class Table_Core
                 }
             }
         }
+    }
+
+    /**
+     * @hook record
+     * IDの設定によりInsert/Update処理
+     */
+    public function record_save ($record)
+    {
+        $id = null;
+        $values =(array)$record;
+        // IDが指定されていれば削除してIDを条件に指定する
+        $id_col_name = $this->getIdColName();
+        if (isset($values[$id_col_name])) {
+            $id = $values[$id_col_name];
+            unset($values[$id_col_name]);
+        }
+        $table = $this->createTable()->addValues($values);
+        // IDが指定されていればUpdate、指定が無ければInsert
+        return isset($id) ? $table->updateById($id) : $table->insert();
     }
 
     /**

@@ -15,7 +15,8 @@ INDEX
         - Record
         - Query
     - [Frontend](lib/Frontend.md)  @fixed 2.x 2016/10/10
-        - > frontend()経由で利用
+        - @TODO アップロード/user_file操作機能を集約
+        - > asset()経由で利用
         - > JS/CSSなどのフロントエンドリソース管理機能
         - FrontendAssetManager
         - Resource
@@ -35,7 +36,7 @@ INDEX
         - ColElement
 
     - Smarty
-        - @TODO SmartyExtendedの機能を下層に送って最小化する
+        - @TODO form/inputタグをFormライブラリに関連づける
         - > Smartyテンプレートエンジンを利用するための機能
         - > MVCのView兼Controller機能の旧実装
         - SmartyExtended
@@ -72,6 +73,12 @@ INDEX
     - Reflection
         - > Reflection機能
 
+- functions
+    - @TODO Laravel array_関数を参考に参照解決を整理
+    - @TODO 不必要な関数を削除、頻度の低いものからUtil以下に移行
+    - > 関数定義
+    - required.php
+    
 - assets
     - rui
         - > 共通JS/CSSアセット
