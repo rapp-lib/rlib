@@ -1,12 +1,10 @@
 <?php
-
-namespace R\Lib\Form\Input;
-use R\Lib\Core\Html;
+namespace R\Lib\Extention\InputType\Regacy;
 
 /**
  *
  */
-class Password extends BaseInput
+class Text extends BaseInput
 {
     /**
      * @override
@@ -21,12 +19,7 @@ class Password extends BaseInput
             $attrs["value"] =$value;
         }
 
-        if ($attrs["autocomplete"] != "on") {
-
-            $attrs["autocomplete"] ="off";
-        }
-
-        $this->html =Html::tag("input",$attrs);
+        $this->html =tag("input",$attrs);
         $this->assign =array();
     }
 }

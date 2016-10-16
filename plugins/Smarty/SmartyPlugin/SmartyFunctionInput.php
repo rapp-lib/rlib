@@ -103,12 +103,14 @@ class SmartyFunctionInput
             $postset_value =ref_array($values,$name_ref);
         }
 
-        // HTML上で指定したvalue属性
-        $preset_value =$params['value'];
-        unset($params['value']);
-
-        // 各typeの実装を呼び出す
-        $module =load_module("input_type",$type,true);
-        return $module($params,$preset_value,$postset_value,$smarty);
+        // InputTypeExtentionを呼び出す
+        $value = $postset_value;
+        list($html, $assign) = call_user_func_array(extention("InputType",$type),array($value,$params));
+        // assign変数名が指定されている場合はHTMLを返さずAssignする
+        if ($params["assign"]) {
+            $smarty->assign($params["assign"], $assign);
+        } else {
+            return $html;
+        }
     }
 }

@@ -1,12 +1,10 @@
 <?php
-
-namespace R\Lib\Form\Input;
-use R\Lib\Core\Html;
+namespace R\Lib\Extention\InputType\Regacy;
 
 /**
  *
  */
-class Hidden extends BaseInput
+class Reset extends BaseInput
 {
     /**
      * @override
@@ -16,12 +14,7 @@ class Hidden extends BaseInput
         list($params,$attrs) =$this->filterAttrs($attrs,array(
         ));
 
-        if (isset($value)) {
-
-            $attrs["value"] =$value;
-        }
-
-        $this->html =Html::tag("input",$attrs);
+        $this->html =tag("input",$attrs);
         $this->assign =array();
     }
 }

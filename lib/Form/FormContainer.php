@@ -196,10 +196,19 @@ class FormContainer extends ArrayObject
     {
         if ( ! $this->def["table"]) {
             report_error("Formにtableが関連づけられていません",array(
-                "form" => $this,
+                "form_def" => $this->def,
             ));
         }
         return table($this->def["table"]);
+    }
+
+    /**
+     * findBySearchForm
+     * ※関係するdef : table
+     */
+    public function findBySearchForm ()
+    {
+        return $this->getTable()->findBySearchForm($this->def["list_setting"], $this->getValues());
     }
 
     /**

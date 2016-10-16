@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Module\ExtentionLoader;
+namespace R\Lib\Extention\ExtentionLoader;
 
 class ValidationRuleLoader
 {

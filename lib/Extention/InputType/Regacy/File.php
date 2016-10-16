@@ -1,7 +1,5 @@
 <?php
-
-namespace R\Lib\Form\Input;
-use R\Lib\Core\Html;
+namespace R\Lib\Extention\InputType\Regacy;
 
 /*
     ■assign="file" の使用方法
@@ -94,7 +92,7 @@ class File extends BaseInput
         $attrs["name"] = $html["alias"];
         $attrs["type"] = "file";
         $attrs["onchange"] = $html["delete_js"];
-        $html["upload"] =Html::tag('input',$attrs);
+        $html["upload"] =tag('input',$attrs);
 
         // HTML一式
         $html["full"] =$html["head"]

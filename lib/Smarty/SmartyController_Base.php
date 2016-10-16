@@ -22,6 +22,7 @@ class SmartyController_Base extends SmartyExtended {
         $this->register_modifier("date","longdate_format");
 
         $this->init($controller_name,$action_name,$options);
+        $this->initController();
     }
 
     //-------------------------------------
@@ -441,45 +442,45 @@ class SmartyController_Base extends SmartyExtended {
     protected $request;
     protected $response;
     protected $forms;
-    protected static $form_defs = null;
+    protected static $defs = null;
 
     public function initController ()
     {
         $this->request = request();
-        $this->response = & $this->vars; // response()
-        $this->forms = form()->repositry($this);
+        $this->response = response();
+        $this->forms = form()->createRepositry($this);
     }
-    public static function getFormDef ($form_name=null)
+    public static function getFormDef ($class_name, $form_name=null)
     {
-        if ( ! isset(static::$form_defs)) {
-            static::$form_defs = array();
+        if ( ! isset(static::$defs)) {
+            static::$defs = array();
             // 対象Class内の"static $form_xxx"に該当する変数を収集する
-            $ref_class = new ReflectionClass(get_class($this));
-            foreach ($ref_class->getStaticProperties() as $ref_property) {
+            $ref_class = new \ReflectionClass($class_name);
+            foreach ($ref_class->getProperties() as $ref_property) {
                 $var_name = $ref_property->getName();
                 $is_static = $ref_property->isStatic();
-                if ($is_static && $is_protected && preg_match('!^form_(.*)$!',$var_name,$match)) {
-                    $form_name = $match[1];
-                    $def = $ref_property->getValue();
+                if ($is_static && preg_match('!^form_(.*)$!',$var_name,$match)) {
+                    $found_form_name = $match[1];
+                    $def = static::$$var_name;
                     // form_nameの補完
-                    $def["form_name"] = $form_name;
+                    $def["form_name"] = $found_form_name;
                     // form_full_nameの補完
-                    $dec_class = $ref_property->getDeclaringClass();
+                    $dec_class = $ref_property->getDeclaringClass()->getName();
                     if (preg_match('!([a-zA-Z0-9]+)Controller$!',$dec_class,$match)) {
                         $dec_class = str_underscore($match[1]);
                     }
-                    $def["form_full_name"] = $dec_class."::".$form_name;
-                    static::$form_defs[$form_name] = $def;
+                    $def["form_full_name"] = $dec_class.".".$found_form_name;
+                    static::$defs[$found_form_name] = $def;
                 }
             }
         }
         // 全件取得
         if ( ! isset($form_name)) {
-            return static::$form_defs;
+            return static::$defs;
         }
         // form_nameを指定して取得
-        if (isset(self::$form_defs[$form_name])) {
-            return self::$form_defs[$form_name];
+        if (isset(static::$defs[$form_name])) {
+            return static::$defs[$form_name];
         }
         report_error("指定されたFormは定義されていません",array(
             "class_name" => get_class($this),

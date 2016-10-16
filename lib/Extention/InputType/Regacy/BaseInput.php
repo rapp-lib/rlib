@@ -1,6 +1,5 @@
 <?php
-
-namespace R\Lib\Form\Input;
+namespace R\Lib\Extention\InputType\Regacy;
 
 /**
  *

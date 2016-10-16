@@ -1,6 +1,5 @@
 <?php
-namespace R\Lib\Form\Input;
-use R\Lib\Core\Html;
+namespace R\Lib\Extention\InputType\Regacy;
 
 /**
  *
@@ -23,7 +22,7 @@ class Radio extends BaseInput
             $attrs['checked'] ="checked";
         }
 
-        $this->html =Html::tag("input",$attrs);
+        $this->html =tag("input",$attrs);
         $this->assign =array();
     }
 }
