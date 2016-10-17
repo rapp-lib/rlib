@@ -3,7 +3,7 @@ namespace R\Lib\Smarty;
 
 //-------------------------------------
 //
-class SmartyController_Base extends SmartyExtended {
+class SmartyController_Base extends SmartyExtended implements \R\Lib\Form\FormRepositry {
 
     protected $controller_name;
     protected $action_name;
@@ -449,7 +449,14 @@ class SmartyController_Base extends SmartyExtended {
         $this->request = request();
         $this->response = response();
         $this->forms = form()->createRepositry($this);
+
+        $this->vars["request"] = $this->request;
+        $this->vars["response"] = $this->response;
+        $this->vars["forms"] = $this->forms;
     }
+    /**
+     * @implements R\Lib\Form\FormRepositry
+     */
     public static function getFormDef ($class_name, $form_name=null)
     {
         if ( ! isset(static::$defs)) {

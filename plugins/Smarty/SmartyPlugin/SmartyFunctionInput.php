@@ -11,6 +11,18 @@ class SmartyFunctionInput
      */
     public static function smarty_function ($params, $smarty_template)
     {
+        // FormContainerによる解決
+        $attrs = $params;
+        if ($form = $attrs["form"] ? $attrs["form"] : $smarty_template->getCurrentForm()) {
+            $html = $form->getInputFieldByNameAttr($attrs["name"])->getHtml($attrs);
+            if ($attrs["assign"]) {
+                $smarty->assign($params["assign"], $html);
+                return "";
+            } else {
+                return $html["formatted"];
+            }
+        }
+
         static $input_index_counter =array();
 
         $type =& $params["type"];
@@ -102,15 +114,15 @@ class SmartyFunctionInput
             }
             $postset_value =ref_array($values,$name_ref);
         }
+        $value = $postset_value;
 
         // InputTypeExtentionを呼び出す
-        $value = $postset_value;
-        list($html, $assign) = call_user_func_array(extention("InputType",$type),array($value,$params));
+        $html= call_user_func_array(extention("InputType",$type),array($value,$params));
         // assign変数名が指定されている場合はHTMLを返さずAssignする
         if ($params["assign"]) {
-            $smarty->assign($params["assign"], $assign);
+            $smarty->assign($params["assign"], $html);
         } else {
-            return $html;
+            return $html["formatted"];
         }
     }
 }

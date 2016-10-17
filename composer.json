@@ -17,8 +17,7 @@
             "R\\Lib\\": "lib/",
 
             "R\\Plugin\\": "plugins/",
-            "R\\Lib\\Form\\Rule\\": "plugins/Form/Rule/",
-            "R\\Lib\\Form\\Input\\": "plugins/Smarty/InputType/"
+            "R\\Lib\\Form\\Rule\\": "lib/Extention/ValidateRule/Regacy/"
         },
         "files": [
             "functions/required.php"

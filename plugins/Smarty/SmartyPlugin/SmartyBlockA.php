@@ -55,6 +55,7 @@ class SmartyBlockA
             unset($params["anchor"]);
             unset($params["method"]);
             unset($params["values"]);
+            unset($params["form"]);
 
             // URLの決定
 

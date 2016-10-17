@@ -1,5 +1,4 @@
 <?php
-
 namespace R\Lib\Form\Rule;
 
 /**

@@ -7,7 +7,7 @@ class Session extends ArrayObject
 {
     private $key;
 
-    public static function getInstance ($key)
+    public static function getInstance ($key=null)
     {
         // 配列指定であれば連結
         if (is_array($key)) {

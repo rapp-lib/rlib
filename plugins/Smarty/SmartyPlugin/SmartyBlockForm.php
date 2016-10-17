@@ -12,6 +12,23 @@ class SmartyBlockForm
      */
     public static function smarty_block ($params, $content, $smarty_template, $repeat)
     {
-        return SmartyBlockA::linkageBlock("form", $params, $content, $template, $repeat);
+        // 開タグ
+        if ($repeat) {
+            if ($form = $params["form"]) {
+                $smarty_template->setCurrentForm($form);
+            }
+        // 閉タグ
+        } else {
+            if ($form = $params["form"]) {
+                $smarty_template->removeCurrentForm();
+                // Received
+                $content = $form->getReceiveParamHidden().$content;
+            }
+
+            // formタグを返す
+            unset($params["form"]);
+            $params["href"] =url($params["href"]);
+            return tag("form",$params,$content);
+        }
     }
 }

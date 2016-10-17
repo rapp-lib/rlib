@@ -11,6 +11,12 @@ use SmartyBC;
 class SmartyExtended extends SmartyBC
 {
     /**
+     * Form領域の状態スタック
+     */
+    protected $form_stack_top = null;
+    protected $form_stack = array();
+
+    /**
      * @override
      */
     public function __construct ()
@@ -65,5 +71,28 @@ class SmartyExtended extends SmartyBC
         }
 
         return false;
+    }
+
+    /**
+     * 現在のForm領域を取得
+     */
+    public function getCurrentForm ()
+    {
+        return $this->form_stack_top;
+    }
+    /**
+     * Form領域を設定する
+     */
+    public function setCurrentForm ($form)
+    {
+        $this->form_stack[] = $this->form_stack_top;
+        $this->form_stack_top = $form;
+    }
+    /**
+     * Form領域を解除する
+     */
+    public function removeCurrentForm ()
+    {
+        $this->form_stack_top = array_pop($this->form_stack);
     }
 }

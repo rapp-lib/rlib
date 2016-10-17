@@ -687,9 +687,9 @@ class Table_Core
             $id = $values[$id_col_name];
             unset($values[$id_col_name]);
         }
-        $table = $this->createTable()->addValues($values);
+        $table = $this->createTable();
         // IDが指定されていればUpdate、指定が無ければInsert
-        return isset($id) ? $table->updateById($id) : $table->insert();
+        return isset($id) ? $table->updateById($id,$values) : $table->insert($values);
     }
 
     /**
