@@ -151,3 +151,22 @@
         }
         unset($ref[$key_last]);
     }
+
+    /**
+     * 再帰的に空白要素を削除する
+     */
+    function array_clean ( & $ref)
+    {
+        foreach ($ref as $k => & $v) {
+            if (is_array($v)) {
+                array_clean($v);
+            }
+            if (is_array($v) && count($v)===0) {
+                unset($ref[$k]);
+            } elseif (is_string($v) && strlen($v)===0) {
+                unset($ref[$k]);
+            } elseif ( ! isset($v)) {
+                unset($ref[$k]);
+            }
+        }
+    }

@@ -120,7 +120,7 @@ class Table_Base extends Table_Core
      */
     public function chain_groupBy ($col_name)
     {
-        $this->query->addGroupBy($col_name);
+        $this->query->addGroup($col_name);
     }
 
     /**
@@ -129,7 +129,7 @@ class Table_Base extends Table_Core
      */
     public function chain_orderBy ($col_name, $asc=true)
     {
-        $this->query->addOrderBy($col_name.($asc ? " ASC" : " DESC"));
+        $this->query->addOrder($col_name.($asc ? " ASC" : " DESC"));
     }
 
     /**
@@ -238,22 +238,10 @@ class Table_Base extends Table_Core
         $values = $form->getValues();
         foreach ((array)$field_defs as $field_name => $field_def) {
             if (isset($field_def["search"])) {
+                $value = $values[$field_name];
                 // search_colの補完
                 if ( ! isset($field_def["target_col"])) {
                     $field_def["target_col"] = $field_name;
-                }
-                $value = $values[$field_name];
-                // 配列での入力であれば空の要素を削除
-                if (is_array($value)) {
-                    foreach ($value as $k => $v) {
-                        if (strlen($v)===0) {
-                            unset($value[$k]);
-                        }
-                    }
-                }
-                // 入力がない状態をnullとして正規化
-                if ((is_array($value) && count($value===0)) || strlen($value)===0) {
-                    $value = null;
                 }
                 // search_typeXxx($form, $field_def, $value)メソッドを呼び出す
                 $search_method_name = "search_type".str_camelize($field_def["search"]);
@@ -460,6 +448,7 @@ class Table_Base extends Table_Core
             $value = 1;
         }
         $this->query->setOffset(($value-1)*$volume);
+        $this->query->setLimit($volume);
     }
 }
 

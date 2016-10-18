@@ -212,9 +212,11 @@ class FormContainer extends ArrayObject
 
     /**
      * InputValuesからドメイン変換して値を設定
+     * formタグの仕様により混入する非正規な空データを削除
      */
     public function setInputValues ($input_values)
     {
+        array_clean($input_values);
         $this->setValues($input_values);
     }
 
@@ -269,7 +271,7 @@ class FormContainer extends ArrayObject
 
     /**
      * 検索条件を指定したTableを取得
-     * ※関係するdef : search_table
+     * ※関係するdef : search_table, fields.search
      */
     public function search ()
     {
@@ -279,6 +281,39 @@ class FormContainer extends ArrayObject
             ));
         }
         return table($this->def["search_table"])->findBySearchFields($this, $this->def["fields"]);
+    }
+
+    /**
+     * 検索ページのURLを取得する
+     * ※関係するdef : search_page, fields.search
+     */
+    public function getSearchPageUrl ($add_params)
+    {
+        if ( ! isset($this->def["search_page"])) {
+            report_error("検索ページのURLを取得するにはsearch_pageの指定が必須です",array(
+                "form_def" => $this->def,
+            ));
+        }
+        $params = array("_f"=>$this->getFormName());
+        $values = $this->getValues();
+        foreach ($this->def["fields"] as $field_name => $field_def) {
+            if (isset($field_def["search"])) {
+                $value = $values[$field_name];
+                if (isset($add_params[$field_name])) {
+                    $value = $add_params[$field_name];
+                }
+                // 1ページ目はページ番号の指定は不要
+                if ($field_def["search"]=="page" && $value==1) {
+                    continue;
+                // デフォルト設定通りであれば不要
+                } elseif (isset($field_def["default"]) && $field_def["default"]==$value) {
+                    continue;
+                } elseif ($value) {
+                    $params[$field_name] = $value;
+                }
+            }
+        }
+        return url(page_to_url($this->def["search_page"]), $params);
     }
 
     /**
