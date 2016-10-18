@@ -14,8 +14,8 @@ class Query extends ArrayObject
         "joins" => array(),
         // SELECT構文の各SQL句
         "fields" => array(),
-        "group_by" => array(),
-        "order_by" => array(),
+        "group" => array(),
+        "order" => array(),
         "offset" => array(),
         "limit" => array(),
         // WHERE句

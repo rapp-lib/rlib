@@ -61,6 +61,14 @@ class Resource
     }
 
     /**
+     * @setter
+     */
+    public function getVersion ()
+    {
+        return $this->version;
+    }
+
+    /**
      * 依存モジュールを登録する
      */
     public function required ($module_name, $required_version="*")

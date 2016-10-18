@@ -4,21 +4,31 @@ namespace R\Lib\Core;
 use Iterator;
 use Serializable;
 use ArrayAccess;
+use Countable;
 
 /**
  * プロパティに配列の値を持つArrayObject
+ * ※arrayにはキャストできないので注意
  */
-class ArrayObject implements ArrayAccess, Iterator, Serializable
+class ArrayObject implements ArrayAccess, Iterator, Serializable, Countable
 {
     protected $array_payload = array();
     protected $array_payload_pos = 0;
+
+    /**
+     * 配列そのものを返す
+     */
+    public function getArrayCopy ()
+    {
+        return $this->array_payload;
+    }
 
 // -- ArrayAccess
 
     /**
      * @override ArrayAccess
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet ($offset, $value)
     {
         if (is_null($offset)) {
             $this->array_payload[] = $value;
@@ -29,23 +39,23 @@ class ArrayObject implements ArrayAccess, Iterator, Serializable
     /**
      * @override ArrayAccess
      */
-    public function offsetExists($offset)
+    public function offsetExists ($offset)
     {
         return isset($this->array_payload[$offset]);
     }
     /**
      * @override ArrayAccess
      */
-    public function offsetUnset($offset)
+    public function offsetUnset ($offset)
     {
         unset($this->array_payload[$offset]);
     }
     /**
      * @override ArrayAccess
      */
-    public function offsetGet($offset)
+    public function & offsetGet ($offset)
     {
-        return isset($this->array_payload[$offset]) ? $this->array_payload[$offset] : null;
+        return $this->array_payload[$offset];
     }
 
 // -- Iterator
@@ -108,5 +118,15 @@ class ArrayObject implements ArrayAccess, Iterator, Serializable
     {
         $data = unserialize($data_str);
         $this->array_payload = $data["array_payload"];
+    }
+
+// -- Countable
+
+    /**
+     * @override Countable
+     */
+    public function count ()
+    {
+        return count($this->array_payload);
     }
 }

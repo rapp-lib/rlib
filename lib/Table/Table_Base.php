@@ -218,13 +218,54 @@ class Table_Base extends Table_Core
     }
 
     /**
+     * @deprecated
      * @hook chain
-     * 検索フォームによる絞り込み
+     * 旧仕様のlist_settingによる絞り込み
      */
     public function chain_findBySearchForm ($list_setting, $input)
     {
         $query_array = $this->getModel()->get_list_query($list_setting, $input);
         $this->query->merge($query_array);
+    }
+
+    /**
+     * @hook chain
+     * 検索フォームによる絞り込み
+     * search_typeXxx($form, $field_def, $value)メソッドを呼び出す
+     */
+    public function chain_findBySearchFields ($form, $field_defs)
+    {
+        $values = $form->getValues();
+        foreach ((array)$field_defs as $field_name => $field_def) {
+            if (isset($field_def["search"])) {
+                // search_colの補完
+                if ( ! isset($field_def["target_col"])) {
+                    $field_def["target_col"] = $field_name;
+                }
+                $value = $values[$field_name];
+                // 配列での入力であれば空の要素を削除
+                if (is_array($value)) {
+                    foreach ($value as $k => $v) {
+                        if (strlen($v)===0) {
+                            unset($value[$k]);
+                        }
+                    }
+                }
+                // 入力がない状態をnullとして正規化
+                if ((is_array($value) && count($value===0)) || strlen($value)===0) {
+                    $value = null;
+                }
+                // search_typeXxx($form, $field_def, $value)メソッドを呼び出す
+                $search_method_name = "search_type".str_camelize($field_def["search"]);
+                if ( ! method_exists($this, $search_method_name)) {
+                    report_error("検索メソッドが定義されていません",array(
+                        "search_method_name" => $search_method_name,
+                        "table" => $this,
+                    ));
+                }
+                call_user_func(array($this,$search_method_name), $form, $field_def, $value);
+            }
+        }
     }
 
     /**
@@ -343,6 +384,82 @@ class Table_Base extends Table_Core
         } else {
             return false;
         }
+    }
+
+    /**
+     * @hook search where
+     * 一致、比較（）、IN（値を配列指定）
+     */
+    public function search_typeWhere ($form, $field_def, $value)
+    {
+        if ( ! isset($field_def["target_col"])) {
+            report_error("search=whereではtarget_colの指定は必須です",array(
+                "field_def" => $field_def,
+            ));
+        }
+        if (isset($value)) {
+            $this->query->where($field_def["target_col"], $value);
+        }
+    }
+
+    /**
+     * @hook search word
+     */
+    public function search_typeWord ($form, $field_def, $value)
+    {
+        if (isset($value)) {
+            // スペースで分割して複数キーワード指定
+            $conditions = array();
+            foreach (preg_split('![\s　]+!u',$value) as $keyword) {
+                if ($keyword) {
+                    $keyword = str_replace('%','\\%',$keyword);
+                    $conditions[] =array($field_def["target_col"]." LIKE " =>"%".$keyword."%");
+                }
+            }
+            if (count($conditions)==1) {
+                $this->query->where($conditions[0]);
+            } elseif (count($conditions)>1) {
+                $this->query->where($conditions);
+            }
+        }
+    }
+
+    /**
+     * @hook search sort
+     */
+    public function search_typeSort ($form, $field_def, $value)
+    {
+        if ( ! isset($value) && isset($field_def["default"])) {
+            $value = $field_def["default"];
+        }
+        if (preg_match('!^(\w+(?:\.\w+)?)(?:@(ASC|DESC))?!',$value,$match)) {
+            $col_name = $match[1];
+            $col_name .= $match[2]=="DESC" ? " DESC" : "";
+            $this->query->addOrder($col_name);
+        }
+    }
+
+    /**
+     * @hook search page
+     */
+    public function search_typePage ($form, $field_def, $value)
+    {
+        // 1ページの表示件数
+        $volume = $field_def["volume"];
+        if ( ! $volume) {
+            // 指定済みのlimitにより補完
+            if ($limit = $this->query->getLimit()) {
+                $volume = $limit;
+            // 指定が無ければ20件とみなす
+            } else {
+                $volume = 20;
+            }
+        }
+        // 1ページ目
+        if ( ! $value) {
+            $value = 1;
+        }
+        $this->query->setOffset(($value-1)*$volume);
     }
 }
 
@@ -504,9 +621,17 @@ class Table_Core
      */
     public function result_getPager ($result)
     {
-        // Pager取得用にSQL再発行
-        $query_array = (array)$this->buildQuery("select");
-        return $this->getDBI()->select_pager($query_array);
+        // limit指定のないSQLに対するPagerは発行不能
+        if ( ! $this->query["limit"]) {
+            return null;
+        }
+        if ( ! isset($this->pager)) {
+            // Pager取得用にSQL再発行
+            $query_array = (array)$this->query;
+            $count = $this->getDBI()->select_count($query_array);
+            $this->pager = new Pager($result, $count, $this->query["offset"], $this->query["limit"]);
+        }
+        return $this->pager;
     }
 
     /**
@@ -679,17 +804,14 @@ class Table_Core
      */
     public function record_save ($record)
     {
-        $id = null;
         $values =(array)$record;
         // IDが指定されていれば削除してIDを条件に指定する
         $id_col_name = $this->getIdColName();
-        if (isset($values[$id_col_name])) {
-            $id = $values[$id_col_name];
-            unset($values[$id_col_name]);
-        }
+        $id = $values[$id_col_name];
+        unset($values[$id_col_name]);
         $table = $this->createTable();
         // IDが指定されていればUpdate、指定が無ければInsert
-        return isset($id) ? $table->updateById($id,$values) : $table->insert($values);
+        return $id ? $table->updateById($id,$values) : $table->insert($values);
     }
 
     /**
@@ -751,9 +873,9 @@ class Table_Core
         // ValuesでIDが指定されていれば削除してIDを条件に指定する
         $id_col_name = $this->getIdColName();
         if ( ! $id && $id_value = $this->query->getValue($id_col_name)) {
-            $this->query->removeValue($id_col_name);
             $id = $id_value;
         }
+        $this->query->removeValue($id_col_name);
         // IDが指定されていればUpdate、指定が無ければInsert
         return $id ? $this->updateById($id) : $this->insert();
     }

@@ -418,6 +418,11 @@ class SmartyController_Base extends SmartyExtended implements \R\Lib\Form\FormRe
             $resource->enableSecurity();
         }
 
+        // -- Assign
+        $resource->assign((array)$this->response);
+        $resource->assign("request", $this->request);
+        $resource->assign("forms", $this->forms);
+
         // SmartyがExceptionを補足するとReport出力を消してしまうことに対する対処
         report_buffer_start();
 
@@ -447,12 +452,8 @@ class SmartyController_Base extends SmartyExtended implements \R\Lib\Form\FormRe
     public function initController ()
     {
         $this->request = request();
-        $this->response = response();
-        $this->forms = form()->createRepositry($this);
-
-        $this->vars["request"] = $this->request;
-        $this->vars["response"] = $this->response;
-        $this->vars["forms"] = $this->forms;
+        $this->response = $this->request->response();
+        $this->forms = form()->addRepositry($this);
     }
     /**
      * @implements R\Lib\Form\FormRepositry
@@ -476,7 +477,7 @@ class SmartyController_Base extends SmartyExtended implements \R\Lib\Form\FormRe
                     if (preg_match('!([a-zA-Z0-9]+)Controller$!',$dec_class,$match)) {
                         $dec_class = str_underscore($match[1]);
                     }
-                    $def["form_full_name"] = $dec_class.".".$found_form_name;
+                    $def["tmp_storage_name"] = $dec_class.".".$found_form_name;
                     static::$defs[$found_form_name] = $def;
                 }
             }

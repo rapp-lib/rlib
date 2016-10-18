@@ -1,5 +1,7 @@
 <?php
 
+    require_once __DIR__."/functions.php";
+
     require_once __DIR__."/array.php";
     require_once __DIR__."/html.php";
     require_once __DIR__."/path.php";

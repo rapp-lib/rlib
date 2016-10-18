@@ -144,6 +144,9 @@ class FrontendAssetManager
     public function register ($module_version, $data, $data_type)
     {
         list($module_name, $version) = $this->extractModuleVersion($module_version);
+        if ( ! $version) {
+            $version = "0";
+        }
         $resource = new Resource($this, $data, $data_type);
         $resource->setModuleName($module_name, $version);
         $this->modules[$module_name][$version] = $resource;
@@ -184,12 +187,13 @@ class FrontendAssetManager
     {
         list($module_name, $required_version) = $this->extractModuleVersion($required_module_version);
         // モジュールが読み込み済みの場合
-        if ($version = $this->loaded_modules[$module_name]) {
+        $loaded_version = $this->loaded_modules[$module_name];
+        if (isset($loaded_version)) {
             // 適合しないバージョンが読み込まれていればエラー
-            if ( ! $this->checkVersion($version, $required_version)) {
+            if ( ! $this->checkVersion($loaded_version, $required_version)) {
                 report_error("読み込み済みモジュールが適合しません",array(
                     "module_name" => $module_name,
-                    "loaded_version" => $version,
+                    "loaded_version" => $loaded_version,
                     "required_version" => $required_version,
                     "loaded_modules" => $this->loaded_modules,
                 ));
@@ -207,7 +211,7 @@ class FrontendAssetManager
             ));
         }
         // ロード済みとして記録してHTMLを返す
-        $this->loaded_modules[$module_name] = $version;
+        $this->loaded_modules[$module_name] = $resource->getVersion();
         return $resource->getHtmlWithDepenedencies();
     }
 

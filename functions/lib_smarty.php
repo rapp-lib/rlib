@@ -35,6 +35,8 @@
 
         $controller_obj =new $controller_class_name($controller_name,$action_name,$options);
 
+        registry("Response.controller_obj", $controller_obj);
+
         $controller_obj->before_act();
 
         if (is_callable(array($controller_obj,$action_method_name))) {

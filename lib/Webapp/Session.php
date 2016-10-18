@@ -1,39 +1,26 @@
 <?php
 namespace R\Lib\Webapp;
 
-use R\Lib\Core\ArrayObject;
+use R\Lib\Core\ArrayAccessObject;
 
-class Session extends ArrayObject
+/**
+ * $_SESSIONへのアクセス
+ */
+class Session extends ArrayAccessObject
 {
-    private $key;
-
+    /**
+     * $_SESSIONのルートを起点にSessionインスタンスを作成する
+     */
     public static function getInstance ($key=null)
     {
-        // 配列指定であれば連結
-        if (is_array($key)) {
-            $key = implode(".",$keys);
-        }
-        $key_parts = explode(".",$key);
-        // 指定した階層で$_SESSION内から参照を取得する
-        $ref = & $_SESSION;
-        foreach ($key_parts as $key_part) {
-            if ( ! is_array($ref)) {
-                $ref = array();
-            }
-            $ref = & $ref[$key_part];
-        }
-        $instance = new Session($ref, $key);
+        return new Session($key);
     }
-    public function __construct (& $ref, $key)
+
+    /**
+     *
+     */
+    public function __construct ($key)
     {
-        $this->key = $key;
-        $this->array_payload = & $ref;
-    }
-    public function session ($key)
-    {
-        if (is_array($key)) {
-            $key = implode(".",$keys);
-        }
-        return session($this->key.".".$key);
+        parent::__construct($_SESSION, $key);
     }
 }

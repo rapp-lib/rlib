@@ -1,7 +1,7 @@
 <?php
 namespace R\Lib\Webapp;
 
-use R\Lib\Core\ArrayObject;
+use ArrayObject;
 
 class Response extends ArrayObject
 {
@@ -10,11 +10,14 @@ class Response extends ArrayObject
     public static function getInstance ()
     {
         if ( ! isset($instance)) {
-            $instance = new self;
+            $instance = new Response;
         }
         return $instance;
     }
 
+    /**
+     *
+     */
     public function __construct ()
     {
     }

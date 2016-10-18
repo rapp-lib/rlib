@@ -6,10 +6,13 @@ ruiShowErrors =function (o)
     var $form =o.$form;
 
     for (i in errors) {
-        var $input =$form.find('[name="'+errors[i].name+'"]');
+        var $input =$form.find('[name="'+errors[i].name_attr+'"]');
         var $fieldBlock =$input.parents(".inputBlock").eq(0);
         var msg = "※"+errors[i].message;
-
+        // 対応するInputがなければエラー
+        if ($input.length==0) {
+            console.error("Input-field not found. : "+errors[i].name_attr);
+        }
         // 既存メッセージがあれば重複させない
         var msg_exists = false;
         $fieldBlock.find(".errmsg").each(function(){

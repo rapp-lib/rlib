@@ -28,23 +28,54 @@ class FormContainer extends ArrayObject
     private $errors = null;
 
     /**
+     * 一時保存領域
+     */
+    private $tmp_storage = null;
+
+    /**
      * @override
      */
     public function __construct ($def=array())
     {
         $this->def = self::completeDef($def);
-        // auto_restoreの指定があれば読み込み時に自動的に値を復元する
+        // auto_restoreの指定があれば読み込み時に自動的に一時保存領域から値を復元する
         if ($this->def["auto_restore"]) {
             $this->restore();
         }
+    }
 
+// -- 必須構成情報の取得
+
+    /**
+     * @getter $def["form_name"]
+     */
+    public function getFormName ()
+    {
+        if ( ! isset($this->def["form_name"])) {
+            report_error("Formの構成にform_nameがありません",array(
+                "def" => $this->def,
+            ));
+        }
+        return $this->def["form_name"];
+    }
+
+    /**
+     * @getter $def["tmp_storage_name"]
+     */
+    public function getTmpStorageName ()
+    {
+        if ( ! isset($this->def["tmp_storage_name"])) {
+            report_warning("Formの構成にtmp_storage_nameがありません",array(
+                "def" => $this->def,
+            ));
+        }
+        return $this->def["tmp_storage_name"];
     }
 
 // -- Valuesの直接操作
 
     /**
-     * @setter $this
-     * 配列による値の設定
+     * 値を配列で直接設定
      */
     public function setValues ($values)
     {
@@ -53,7 +84,7 @@ class FormContainer extends ArrayObject
     }
 
     /**
-     * @getter $this
+     * 値を配列として返す
      */
     public function getValues ()
     {
@@ -71,7 +102,8 @@ class FormContainer extends ArrayObject
 // -- 初期化関連処理
 
     /**
-     * 値と値に関係する状態のリセット
+     * 値の設定状態の消去
+     * 一時保存領域が有効である場合、あわせて消去する
      */
     public function clear ()
     {
@@ -79,6 +111,10 @@ class FormContainer extends ArrayObject
         $this->is_valid = null;
         $this->errors = null;
         $this->array_payload = array();
+        // 一時保存領域が有効である場合、消去する
+        if (isset($this->tmp_storage)) {
+            $this->getTmpStorage()->delete();
+        }
     }
 
     /**
@@ -105,8 +141,8 @@ class FormContainer extends ArrayObject
      */
     public function save ()
     {
-        $session = session(array(__CLASS__, "saved", $this->def["form_full_name"]));
-        $session["values"] = $this->getValues();
+        $values = $this->getValues();
+        $this->getTmpStorage()->set("values", $values);
     }
 
     /**
@@ -114,8 +150,21 @@ class FormContainer extends ArrayObject
      */
     public function restore ()
     {
-        $session = session(array(__CLASS__, "saved", $this->def["form_full_name"]));
-        $this->setValues($session["values"]);
+        $values = $this->getTmpStorage()->get("values");
+        $this->setValues($values);
+    }
+
+    /**
+     * 保存領域の確保
+     */
+    private function getTmpStorage ()
+    {
+        if ( ! isset($this->tmp_storage)) {
+            $this->tmp_storage = request()->session(__CLASS__)
+                ->getSubDomain("tmp_storage")
+                ->getSubDomain($this->getTmpStorageName());
+        }
+        return $this->tmp_storage;
     }
 
 // -- Request関連処理
@@ -129,7 +178,7 @@ class FormContainer extends ArrayObject
         if ( ! isset($this->received)) {
             $request = request();
             $form_param_name = "_f";
-            $form_name = $this->def["form_name"];
+            $form_name = $this->getFormName();
             // form_param_nameに自分のform_nameが設定されていれば受け取り状態
             if ($form_name && $request[$form_param_name]==$form_name) {
                 foreach ($request as $k => $v) {
@@ -153,7 +202,7 @@ class FormContainer extends ArrayObject
     public function getReceiveParamHidden ()
     {
         $form_param_name = "_f";
-        $form_name = $this->def["form_name"];
+        $form_name = $this->getFormName();
         return tag("input",array(
             "type" => "hidden",
             "name" => $form_param_name,
@@ -181,7 +230,7 @@ class FormContainer extends ArrayObject
         if ( ! isset($this->is_valid)) {
             $validator = new Validator($this->def["rules"], $this);
             $this->errors = $validator->getErrors();
-            $this->is_valid = count($this->errors) ? true : false;
+            $this->is_valid = count($this->errors) ? false : true;
         }
         return $this->is_valid;
     }
@@ -219,36 +268,37 @@ class FormContainer extends ArrayObject
     }
 
     /**
-     * findBySearchForm
-     * ※関係するdef : table
+     * 検索条件を指定したTableを取得
+     * ※関係するdef : search_table
+     */
+    public function search ()
+    {
+        if ( ! $this->def["search_table"]) {
+            report_error("Formにsearch_tableが関連づけられていません",array(
+                "form_def" => $this->def,
+            ));
+        }
+        return table($this->def["search_table"])->findBySearchFields($this, $this->def["fields"]);
+    }
+
+    /**
+     * @deprecated
+     * 旧仕様のlist_settingでfindBySearchFormを呼び出す
+     * ※関係するdef : search_table
      */
     public function findBySearchForm ()
     {
-        return $this->getTable()->findBySearchForm($this->def["list_setting"], $this->getValues());
+        return table($this->def["search_table"])->findBySearchForm($this->def["list_setting"], $this->getValues());
     }
 
     /**
      * Formの値をもとに、関連づけられたTableのRecordインスタンスを作成
-     * ※関係するdef : table,fields.*.col
      */
     public function getRecord ()
     {
-        $record_values = array();
-        foreach ($this as $k => $v) {
-            // Fieldsに含まれない値は削除
-            if ( ! isset($this->def["fields"][$k])) {
-                continue;
-            }
-            $field_def = $this->def["fields"][$k];
-            // colがfalseのFieldは削除
-            if ($field_def["col"]===false) {
-                continue;
-            }
-            // colが指定されている場合は優先
-            $col_name = isset($field_def["col"]) ? $field_def["col"] : $k;
-            $record_values[$col_name] = $v;
-        }
-        return $this->getTable()->createRecord($record_values);
+        $record = $this->getTable()->createRecord();
+        $this->converRecord($record, false);
+        return $record;
     }
 
     /**
@@ -257,18 +307,89 @@ class FormContainer extends ArrayObject
      */
     public function setRecord ($record)
     {
-        // fieldsに指定された値のみを対象とする
+        $this->converRecord($record, true);
+    }
+
+    /**
+     * Recordとフォームの値の相互変換
+     * @param bool $is_record_to_values ? Recordから値を取り込む : Recordに値を登録する
+     */
+    private function converRecord ($record, $is_record_to_values)
+    {
         foreach ($this->def["fields"] as $field_name => $field_def) {
-            // colがfalseのFieldは無視
+            // colがfalseであれば削除
             if ($field_def["col"]===false) {
                 continue;
             }
-            // colが指定されている場合は優先
-            $col_name = isset($field_def["col"]) ? $field_def["col"] : $field_name;
-            if (isset($record[$col_name])) {
-                $this[$field_name] = $record[$col_name];
+            // 下層の値は親で処理するのでスキップ
+            if ($field_def["level"]==2 || $field_def["level"]==3) {
+                continue;
+            }
+            $col_name = $field_def["col"];
+            $table_name = $field_def["table"];
+            //TODO: テーブル定義の確認
+            // $col_def = table()->getDef($table_name,$col_name);
+            // fields型の場合下層の要素を処理
+            if ($field_def["type"]=="fields") {
+                // 要素別の処理
+                foreach ((array)$field_def["child_field_names"] as $child_field_name) {
+                    $child_field_def = $this->def["fields"][$child_field_name];
+                    // colがfalseであれば削除
+                    if ($child_field_def["col"]===false) {
+                        continue;
+                    }
+                    $item_name = $field_def["item_name"];
+                    $child_col_name = $child_field_def["col"];
+                    $child_table_name = $child_field_def["table"];
+                    //TODO: テーブル定義の確認
+                    // 値を登録
+                    if ($is_record_to_values) {
+                        $this[$field_name][$item_name] = $record[$col_name][$child_col_name];
+                    } else {
+                        $record[$col_name][$child_col_name] = $this[$field_name][$item_name];
+                    }
+                }
+            // fieldset型の場合2階層下の要素を処理
+            } elseif ($field_def["type"]=="fieldset") {
+                // fieldsetの添え字を取得
+                if ($is_record_to_values) {
+                    $fieldset_indexes = array_keys((array)$record[$col_name]);
+                } else {
+                    $fieldset_indexes = array_keys((array)$this[$field_name]);
+                }
+                foreach ($fieldset_indexes as $fieldset_index) {
+                    // 要素別の処理
+                    foreach ((array)$field_def["child_field_names"] as $child_field_name) {
+                        $child_field_def = $this->def["fields"][$child_field_name];
+                        // colがfalseであれば削除
+                        if ($child_field_def["col"]===false) {
+                            continue;
+                        }
+                        $item_name = $field_def["item_name"];
+                        $child_col_name = $child_field_def["col"];
+                        $child_table_name = $child_field_def["table"];
+                        //TODO: テーブル定義の確認
+                        // 値を登録
+                        if ($is_record_to_values) {
+                            $this[$field_name][$fieldset_index][$item_name]
+                                = $record[$col_name][$fieldset_index][$child_col_name];
+                        } else {
+                            $record[$col_name][$fieldset_index][$child_col_name]
+                                = $this[$field_name][$fieldset_index][$item_name];
+                        }
+                    }
+                }
+            // 下層を処理しない型の処理
+            } else {
+                // 値を登録
+                if ($is_record_to_values) {
+                    $this[$field_name] = $record[$col_name];
+                } else {
+                    $record[$col_name] = $this[$field_name];
+                }
             }
         }
+        return $record;
     }
 
 // -- InputField関連
@@ -356,15 +477,16 @@ class FormContainer extends ArrayObject
             } elseif (count($field_name_parts)==2) {
                 $field_def["level"] = 2;
                 $field_col_name = $field_name_parts[1];
+                $field_def["item_name"] = $field_col_name;
                 $field_def["parent_field_name"] = $field_name_parts[0];
             // 対象が2次配列
             } elseif (count($field_name_parts)==3) {
                 $field_def["level"] = 3;
                 $field_col_name = $field_name_parts[2];
+                $field_def["item_name"] = $field_col_name;
                 $field_def["parent_field_name"] = $field_name_parts[0];
             }
             // Level2,3のFieldであれば親Fieldの定義を取得/補完
-            $parent_field_def = null;
             if ($field_def["parent_field_name"]) {
                 $parent_field_def = & $def["fields"][$field_def["parent_field_name"]];
                 // 親Fieldの補完
@@ -380,17 +502,16 @@ class FormContainer extends ArrayObject
                 // 親Fieldのchild_field_namesを補完
                 $parent_field_def["child_field_names"][] = $field_name;
             }
-            // tableの補完
-            if ( ! $field_def["table"]) {
-                if ($parent_field_def && $parent_field_def["table"]) {
-                    $field_def["table"] = $parent_field_def["table"];
-                } else {
+            // tableに関連付いている場合のtable/colの補完
+            if (isset($def["table"])) {
+                // tableの補完
+                if ( ! isset($field_def["table"])) {
                     $field_def["table"] = $def["table"];
                 }
-            }
-            // colの補完
-            if ( ! $field_def["col"]) {
-                $field_def["col"] = $field_col_name;
+                // colの補完
+                if ( ! isset($field_def["col"])) {
+                    $field_def["col"] = $field_col_name;
+                }
             }
             $field_def["field_name"] = $field_name;
         }
@@ -414,5 +535,21 @@ class FormContainer extends ArrayObject
         }
         // 補完済みのdefを返す
         return $def;
+    }
+
+// -- magic
+
+    /**
+     * @deprecated
+     * @override
+     * reportの呼び出し時の処理
+     */
+    public function __report ()
+    {
+        return array(
+            "form_name" => $this->def["form_name"],
+            "tmp_storage_name" => $this->def["tmp_storage_name"],
+            "values" => $this->array_payload,
+        );
     }
 }
