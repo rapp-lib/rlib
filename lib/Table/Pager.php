@@ -9,13 +9,18 @@ class Pager
     public function __construct ($result, $count, $offset, $limit)
     {
         $this->result = $result;
+        // 明らかに無効なoffsetであれば補正
+        if ($offset < 0 || $offset > $count) {
+            $offset = 0;
+            $count = 0;
+        }
         $this->values = array(
             "count" => $count,
             "offset" => $offset,
             "offset_end" => $offset+$volume>$count ? $count-$offset : $offset+$volume,
             "volume" => $limit,
             "current_page" => floor($offset/$limit)+1,
-            "page_num" => floor($count/$limit)+1,
+            "page_num" => ceil($count/$limit),
         );
         // 現在のページにより前後のページを指定
         // -- - [1]23456789 > >>
@@ -29,13 +34,6 @@ class Pager
             $this->values["last_page"] = $this->values["page_num"];
             $this->values["next_page"] = $this->values["current_page"] + 1;
         }
-    }
-    /**
-     * 値の設定
-     */
-    public function set ($name, $value)
-    {
-        $this->values[$name] = $value;
     }
     /**
      * 値の取得

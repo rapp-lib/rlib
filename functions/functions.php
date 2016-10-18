@@ -80,6 +80,21 @@
      */
     function array_set ( & $ref, $key, $value=null)
     {
+        $key_parts = explode(".",$key);
+        foreach ($key_parts as $key_part) {
+            if ( ! is_array($ref)) {
+                $ref = array();
+            }
+            $ref = & $ref[$key_part];
+        }
+        $ref = $value;
+    }
+
+    /**
+     * ドット記法で配列の値を再帰的に追加する
+     */
+    function array_add ( & $ref, $key, $value=null)
+    {
         // keyを配列で指定した場合
         if (is_array($key)) {
             foreach ($key as $k => $v) {
