@@ -4,7 +4,7 @@ namespace R\Util;
 /**
  * 探索可能なClassを収集する
  */
-class ClassCollector
+class ClassFinder
 {
     private static $composer_loader = null;
 

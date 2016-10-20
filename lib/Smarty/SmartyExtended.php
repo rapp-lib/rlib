@@ -50,26 +50,11 @@ class SmartyExtended extends SmartyBC
      */
     public function pluginHandler ($name, $type, $template, &$callback, &$script, &$cacheable)
     {
-        // @deprecated 関数による定義の探索
-        $plugin_file = __DIR__."/../../plugins/Smarty/smarty_plugin/".$type.".".$name.".php";
-        $callback_func ="smarty_".$type."_".$name;
-        if (file_exists($plugin_file)) {
-            require_once($plugin_file);
-            $script = $plugin_file;
-            $callback = $callback_func;
+        $result = extention("SmartyPlugin",$type.".".$name);
+        if (is_callable($result)) {
+            $callback = $result;
             return true;
         }
-
-        // Pluginクラスの読み込み
-        $plugin_class = 'R\\Plugin\\Smarty\\SmartyPlugin\\Smarty'.str_camelize($type).str_camelize($name);
-        $callback_method = $plugin_class."::smarty_".$type;
-        if (class_exists($plugin_class)) {
-            if (is_callable($callback_method)) {;
-                $callback = $callback_method;
-                return true;
-            }
-        }
-
         return false;
     }
 

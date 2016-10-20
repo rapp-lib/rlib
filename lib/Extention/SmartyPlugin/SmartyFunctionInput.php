@@ -1,5 +1,5 @@
 <?php
-namespace R\Plugin\Smarty\SmartyPlugin;
+namespace R\Lib\Extention\SmartyPlugin;
 
 /**
  * {{input ...}}
@@ -11,16 +11,17 @@ class SmartyFunctionInput
      */
     public static function smarty_function ($params, $smarty_template)
     {
-        // FormContainerによる解決
+        // FormContainerによるタグ生成
         $attrs = $params;
         if ($form = $attrs["form"] ? $attrs["form"] : $smarty_template->getCurrentForm()) {
-            $html = $form->getInputFieldByNameAttr($attrs["name"])->getHtml($attrs);
+            unset($attrs["form"]);
+            $input_field = $form->createInputField($attrs);
+            // assignが指定されている場合、分解したHTMLを変数としてアサイン
             if ($attrs["assign"]) {
-                $smarty->assign($params["assign"], $html);
-                return "";
-            } else {
-                return $html["formatted"];
+                $smarty->assign($params["assign"], $input_field->getHtmlParts());
+                return;
             }
+            return $input_field->getHtml();
         }
 
         static $input_index_counter =array();

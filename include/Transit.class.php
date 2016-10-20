@@ -35,7 +35,7 @@ class Transit
                         : $rule->getMessage();
                 };
             }
-
+/*
         // input_type_*モジュールの読み込み
         } else if ($type == "input_type") {
 
@@ -67,11 +67,11 @@ class Transit
                 require_once($input_file);
                 return $input_func;
             }
-
+*/
         // search_type_*モジュールの読み込み
         } else if ($type == "search_type") {
 
-            $search_class ='R\\Plugin\\DBI\\SearchType\\'.str_camelize($name);
+            $search_class ='R\\LibExtention\\SearchType\\Regacy\\'.str_camelize($name);
 
             if (class_exists($search_class)) {
 
@@ -102,14 +102,14 @@ class Transit
                     return $search->getQuery($input);
                 };
             }
-
+/*
         // その他のモジュールの読み込み
         } else  {
 
             $ns_map =array(
-                "csvfilter" => 'CSVHandler\\Filter\\',
+                //"csvfilter" => 'CSVHandler\\Filter\\',
                 "rdoc_entry" => 'Rapper\\RdocEntry\\',
-                "readme" => 'Rapper\\Readme\\',
+                //"readme" => 'Rapper\\Readme\\',
                 //"webapp_skel" => 'Rapper\\WebappSkel\\',
             );
 
@@ -118,6 +118,7 @@ class Transit
             if ($class && class_exists($class) && is_callable($method)) {
                 return $method;
             }
+*/
         }
     }
 

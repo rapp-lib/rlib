@@ -1,18 +1,31 @@
 <?php
 namespace R\Lib\Table;
 
-use R\Util\ClassCollector;
-
 /**
  * Tableインスタンス生成クラス
  */
 class TableFactory
 {
+    private static $instance = null;
+
+    /**
+     * getDefのために使うTableインスタンス
+     */
+    private $tables = array();
+
     /**
      * Tableインスタンスを生成
      */
-    public static function factory ($table_name)
+    public static function getInstance ($table_name=null)
     {
+        // TableFactoryインスタンスを取得
+        if ( ! isset($table_name)) {
+            if ( ! isset($instance)) {
+                $instance = new TableFactory;
+            }
+            return $instance;
+        }
+        // tableインスタンスの生成
         $class = "R\\App\\Table\\".str_camelize($table_name)."Table";
         if ( ! $table_name || ! class_exists($class)) {
             report_error("テーブルの指定が不正です",array(
@@ -22,20 +35,18 @@ class TableFactory
         $table = new $class;
         return $table;
     }
-
     /**
-     * Tableクラスを全て取得
+     * Tableの構成を取得
      */
-    public static function collectTables ()
+    public function getDef ($table_name, $col_name=null)
     {
-        $tables = array();
-        $classes = ClassCollector::findClassInNamespace("R\\App\\Table\\");
-
-        foreach ($classes as $i => $class) {
-            if (preg_match('!^R\\\\App\\\\Table\\\\([a-zA-Z0-9]+)Table!',$class,$match)) {
-                $tables[] = $match[1];
-            }
+        if ( ! isset($this->table[$table_name])) {
+            $this->table[$table_name] = table($table_name);
         }
-        return $tables;
+        if (isset($col_name)) {
+            return $this->table[$table_name]->getColDef($col_name);
+        } else {
+            return $this->table[$table_name]->getDef();
+        }
     }
 }

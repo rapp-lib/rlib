@@ -1,5 +1,5 @@
 <?php
-namespace R\Plugin\DBI\SearchType;
+namespace R\LibExtention\SearchType\Regacy;
 
 /**
  *

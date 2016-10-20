@@ -380,13 +380,22 @@ class Table_Base extends Table_Core
      */
     public function search_typeWhere ($form, $field_def, $value)
     {
-        if ( ! isset($field_def["target_col"])) {
-            report_error("search=whereではtarget_colの指定は必須です",array(
-                "field_def" => $field_def,
-            ));
-        }
         if (isset($value)) {
-            $this->query->where($field_def["target_col"], $value);
+            // 対象カラムは複数指定に対応
+            $target_cols = $field_def["target_col"];
+            if ( ! is_array($target_cols)) {
+                $target_cols = array($target_cols);
+            }
+            $conditions_or = array();
+            foreach ($target_cols as $i => $target_col) {
+                $conditions_or[$i] = array($target_col => $value);
+            }
+            if (count($conditions_or)==1) {
+                $this->query->where(array_pop($conditions_or));
+            // 複数のカラムが有効であればはORで接続
+            } elseif (count($conditions_or)>1) {
+                $this->query->where(array("OR"=>$conditions_or));
+            }
         }
     }
 
@@ -396,18 +405,26 @@ class Table_Base extends Table_Core
     public function search_typeWord ($form, $field_def, $value)
     {
         if (isset($value)) {
+            // 対象カラムは複数指定に対応
+            $target_cols = $field_def["target_col"];
+            if ( ! is_array($target_cols)) {
+                $target_cols = array($target_cols);
+            }
             // スペースで分割して複数キーワード指定
-            $conditions = array();
-            foreach (preg_split('![\s　]+!u',$value) as $keyword) {
-                if ($keyword) {
-                    $keyword = str_replace('%','\\%',$keyword);
-                    $conditions[] =array($field_def["target_col"]." LIKE " =>"%".$keyword."%");
+            $conditions_or = array();
+            foreach ($target_cols as $i => $target_col) {
+                foreach (preg_split('![\s　]+!u',$value) as $keyword) {
+                    if (strlen(trim($keyword))) {
+                        $keyword = str_replace('%','\\%',trim($keyword));
+                        $conditions_or[$i][] = array($target_col." LIKE" =>"%".$keyword."%");
+                    }
                 }
             }
-            if (count($conditions)==1) {
-                $this->query->where($conditions[0]);
-            } elseif (count($conditions)>1) {
-                $this->query->where($conditions);
+            if (count($conditions_or)==1) {
+                $this->query->where(array_pop($conditions_or));
+            // 複数のカラムが有効であればはORで接続
+            } elseif (count($conditions_or)>1) {
+                $this->query->where(array("OR"=>$conditions_or));
             }
         }
     }
@@ -568,13 +585,21 @@ class Table_Core
     /**
      * Table定義の取得
      */
-    public function getTableDef ()
+    public function getDef ()
     {
         $table_def = (array)static::$def;
         $table_def["table_name"] = static::$table_name;
         $table_def["ds_name"] = static::$ds_name;
         $table_def["cols"] = (array)static::$cols;
         return $table_def;
+    }
+
+    /**
+     * Col定義の取得
+     */
+    public function getColDef ($col_name)
+    {
+        return static::$cols[$col_name];
     }
 
     /**

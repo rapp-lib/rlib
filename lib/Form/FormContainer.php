@@ -167,7 +167,7 @@ class FormContainer extends ArrayObject
         return $this->tmp_storage;
     }
 
-// -- Request関連処理
+// -- Request/HTML関連処理
 
     /**
      * Requestを確認して値の受け取り状態を確認する
@@ -197,20 +197,6 @@ class FormContainer extends ArrayObject
     }
 
     /**
-     * receiveで受付確認ができるHiddenタグ
-     */
-    public function getReceiveParamHidden ()
-    {
-        $form_param_name = "_f";
-        $form_name = $this->getFormName();
-        return tag("input",array(
-            "type" => "hidden",
-            "name" => $form_param_name,
-            "value" => $form_name,
-        ));
-    }
-
-    /**
      * InputValuesからドメイン変換して値を設定
      * formタグの仕様により混入する非正規な空データを削除
      */
@@ -218,6 +204,55 @@ class FormContainer extends ArrayObject
     {
         array_clean($input_values);
         $this->setValues($input_values);
+    }
+
+    /**
+     * Formタグを作成
+     */
+    public function getFormHtml ($attrs, $content)
+    {
+        // receiveで受付確認ができるHiddenタグを追加
+        $content .= tag("input",array(
+            "type" => "hidden",
+            "name" => "_f",
+            "value" => $this->getFormName(),
+        ));
+        if ( ! isset($attrs["action"])) {
+            $attrs["action"] = page_to_url($this->def["form_page"]);
+        }
+        $attrs["action"] =url($params["action"]);
+        return tag("form",$attrs,$content);
+    }
+
+    /**
+     * InputFieldを作成
+     */
+    public function createInputField ($attrs)
+    {
+        $field_value = null;
+        $name_attr = $attrs["name"];
+        $field_name = str_replace(array("[","]"),array(".",""),$name_attr);
+        $field_name_parts = explode('.',$field_name);
+        // 対象が配列ではない
+        if (count($field_name_parts)==1) {
+            $field_value = $this->array_payload[$field_name_parts[0]];
+        // 対象が1次配列
+        } elseif (count($field_name_parts)==2) {
+            $field_value = $this->array_payload[$field_name_parts[0]][$field_name_parts[1]];
+        // 対象が2次配列
+        } elseif (count($field_name_parts)==3) {
+            $field_value = $this->array_payload[$field_name_parts[0]][$field_name_parts[1]][$field_name_parts[2]];
+            $field_name = $field_name_parts[0].".*.".$field_name_parts[2];
+        }
+        if ( ! isset($this->def["fields"][$field_name])) {
+            report_error("指定されたFieldが定義されていません",array(
+                "name_attr" => $name_attr,
+                "field_name" => $field_name,
+                "def" => $this->def,
+            ));
+        }
+        // InputFieldを生成する
+        return new InputField($this, $this->def["fields"][$field_name], $field_value, $attrs);
     }
 
 // -- Validate/ValidValues関連
@@ -425,64 +460,6 @@ class FormContainer extends ArrayObject
             }
         }
         return $record;
-    }
-
-// -- InputField関連
-
-    /**
-     * InputFieldを取得
-     */
-    public function getInputField ($field_name)
-    {
-        if ( ! isset($this->def["fields"][$field_name])) {
-            report_error("指定されたFieldが定義されていません",array(
-                "field_name" => $field_name,
-                "def" => $this->def,
-            ));
-        }
-        // InputFieldを生成する
-        if ( ! $this->input_fields[$field_name]) {
-            $this->input_fields[$field_name] = new InputField($this, $this->def["fields"][$field_name]);
-        }
-        return $this->input_fields[$field_name];
-    }
-
-    /**
-     * HTML上のName属性からInputFieldを取得
-     */
-    public function getInputFieldByNameAttr ($name_attr)
-    {
-        $field_name = str_replace(array("[","]"),array(".",""),$name_attr);
-        $field_name_parts = explode('.',$field_name);
-        // 対象が配列ではない
-        if (count($field_name_parts)==1) {
-        // 対象が1次配列
-        } elseif (count($field_name_parts)==2) {
-        // 対象が2次配列
-        } elseif (count($field_name_parts)==3) {
-            $field_name = $field_name_parts[0].".*.".$field_name_parts[2];
-        }
-        return $this->getInputField($field_name);
-    }
-
-    /**
-     * HTML上のName属性から値を取得
-     */
-    public function getValueByNameAttr ($name_attr)
-    {
-        $field_name = str_replace(array("[","]"),array(".",""),$name_attr);
-        $field_name_parts = explode('.',$field_name);
-        // 対象が配列ではない
-        if (count($field_name_parts)==1) {
-            return $this->array_payload[$field_name_parts[0]];
-        // 対象が1次配列
-        } elseif (count($field_parts)==2) {
-            return $this->array_payload[$field_name_parts[0]][$field_name_parts[1]];
-        // 対象が2次配列
-        } elseif (count($field_name_parts)==3) {
-            return $this->array_payload[$field_name_parts[0]][$field_name_parts[1]][$field_name_parts[2]];
-        }
-        return null;
     }
 
     /**

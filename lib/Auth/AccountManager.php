@@ -13,7 +13,7 @@ class AccountManager
     /**
      * 指定したアカウント、またはAccountManagerインスタンスを返す
      */
-    public static function load ($name=null)
+    public static function getInstance ($name=null)
     {
         $account_manager = & ref_globals("account_manager");
 

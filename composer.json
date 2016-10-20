@@ -16,7 +16,6 @@
         "psr-4": {
             "R\\Lib\\": "lib/",
 
-            "R\\Plugin\\": "plugins/",
             "R\\Lib\\Form\\Rule\\": "lib/Extention/ValidateRule/Regacy/"
         },
         "files": [

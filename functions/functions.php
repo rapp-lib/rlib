@@ -11,19 +11,19 @@
     }
 
     /**
-     * @facade R\Lib\Auth\AccountManager::load
+     * @facade R\Lib\Auth\AccountManager::getInstance
      */
     function auth ($name=null)
     {
-        return R\Lib\Auth\AccountManager::load($name);
+        return R\Lib\Auth\AccountManager::getInstance($name);
     }
 
     /**
-     * @facade R\Lib\Table\TableFactory::factory
+     * @facade R\Lib\Table\TableFactory::getInstance
      */
-    function table ($table_name, $config=array())
+    function table ($table_name=null)
     {
-        return R\Lib\Table\TableFactory::factory($table_name, $config);
+        return R\Lib\Table\TableFactory::getInstance($table_name);
     }
 
     /**
@@ -58,11 +58,11 @@
     }
 
     /**
-     * @facade R\Lib\Core\ExtentionManager::getCallback
+     * @facade R\Lib\Core\ExtentionManager::getExtention
      */
     function extention ($extention_group=null, $extention_name=null)
     {
-        return R\Lib\Core\ExtentionManager::getCallback($extention_group, $extention_name);
+        return R\Lib\Core\ExtentionManager::getExtention($extention_group, $extention_name);
     }
 
 // -- 配列操作

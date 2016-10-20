@@ -1,5 +1,5 @@
 <?php
-namespace R\Plugin\Smarty\SmartyPlugin;
+namespace R\Lib\Extention\SmartyPlugin;
 
 /**
  *

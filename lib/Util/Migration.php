@@ -1,9 +1,8 @@
 <?php
-namespace R\Util;
+namespace R\Lib\Util;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\DriverManager;
-use R\Lib\Table\TableFactory;
 
 /**
  *
@@ -18,10 +17,7 @@ class Migration
         if ( ! $ds_name) {
             $ds_name = "default";
         }
-
-        // 接続情報の解決
-        $db_config = registry("DBAL.source.".$ds_name);
-
+        $db_config = null;
         // [Deprecate] Cake2向け接続情報の記述方法の変換
         if ( ! $db_config) {
             $db_config = registry("DBI.connection.".$ds_name);
@@ -34,10 +30,10 @@ class Migration
             }
         }
 
+        $tables = self::collectTables();
         $schema = new Schema;
-        $tables = TableFactory::collectTables();
         foreach ($tables as $table) {
-            $table_def = table($table)->getTableDef();
+            $table_def = table()->getDef($table);
             // table_nameの指定がない、ds_nameが一致しないテーブルは対象外
             if ( ! $table_def["table_name"]
                 || ($table_def["ds_name"] && $ds_name != $table_def["ds_name"])) {
@@ -95,5 +91,21 @@ class Migration
         }
 
         return $table;
+    }
+
+    /**
+     * Tableクラスを全て取得
+     */
+    private static function collectTables ()
+    {
+        $tables = array();
+        $classes = util("ClassFinder")->findClassInNamespace("R\\App\\Table\\");
+
+        foreach ($classes as $i => $class) {
+            if (preg_match('!^R\\\\App\\\\Table\\\\([a-zA-Z0-9]+)Table!',$class,$match)) {
+                $tables[] = $match[1];
+            }
+        }
+        return $tables;
     }
 }

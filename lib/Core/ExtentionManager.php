@@ -4,28 +4,27 @@ namespace R\Lib\Core;
 class ExtentionManager
 {
     /**
-     * ExtentionCallbackを取得する
+     * Extentionを取得する
      */
-    public static function getCallback ($group, $name)
+    public static function getExtention ($group, $name)
     {
         $callback = null;
-        // R\Lib\Extention\[Group]Loader::getCallback()があれば呼び出す
         $class_name = "R\\Lib\\Extention\\".str_camelize($group)."Loader";
+        // R\Lib\Extention\[Group]Loader::getCallback()があればcallbackを取得する
         if (class_exists($class_name) && method_exists($class_name, "getCallback")) {
-            $callback = call_user_func(array($class_name,"getCallback"),$name);
-            if ($callback) {
+            if ($callback = call_user_func(array($class_name,"getCallback"),$name)) {
                 return $callback;
             }
-        }
-        $base_class_name = str_camelize($group)."\\".str_camelize($name).str_camelize($group);
-        // R\Lib\Extention\[Group]\[Name][Group]を探索
-        if (class_exists($class_name = "R\\Lib\\Extention\\".$base_class_name)
-            && method_exists($class_name, "callback")) {
-            return array($class_name, "callback");
-        // R\App\Extention\[Group]\[Name][Group]を探索
-        } elseif (class_exists($class_name = "R\\Extention\\".$base_class_name)
-            && method_exists($class_name, "callback")) {
-            return array($class_name, "callback");
+            $base_class_name = str_camelize($group)."\\".str_camelize($name).str_camelize($group);
+            // R\Lib\Extention\[Group]\[Name][Group]を探索
+            if (class_exists($class_name = "R\\Lib\\Extention\\".$base_class_name)
+                && method_exists($class_name, "callback")) {
+                return array($class_name, "callback");
+            // R\App\Extention\[Group]\[Name][Group]を探索
+            } elseif (class_exists($class_name = "R\\App\\Extention\\".$base_class_name)
+                && method_exists($class_name, "callback")) {
+                return array($class_name, "callback");
+            }
         }
         report_error("Extentionが読み込めません",array(
             "group" => $group,

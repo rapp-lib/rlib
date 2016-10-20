@@ -1,5 +1,5 @@
 <?php
-namespace R\Util;
+namespace R\Lib\Util;
 use ReflectionMethod;
 use ReflectionFunction;;
 use ReflectionObject;
