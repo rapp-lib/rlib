@@ -17,7 +17,7 @@ class SmartyBlockCode
      *     body { background-color: red; }
      * {{/code}}
      */
-    public static function smarty_block ($params, $content, $smarty_template, $repeat)
+    public static function callback ($params, $content, $smarty_template, $repeat)
     {
         $html = "";
         // 開始タグの場合処理を行わない

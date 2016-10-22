@@ -10,11 +10,11 @@ class SmartyBlockForm
     /**
      * @overload
      */
-    public static function smarty_block ($attrs, $content, $smarty_template, $repeat)
+    public static function callback ($attrs, $content, $smarty_template, $repeat)
     {
         // @depreaced form未対応のフォームの作成
         if ( ! $attrs["form"]) {
-            SmartyBlockA::linkageBlock($attrs, $content, $smarty_template, $repeat);
+            return SmartyBlockA::linkageBlock("form", $attrs, $content, $template, $repeat);
         }
 
         $form = $attrs["form"];

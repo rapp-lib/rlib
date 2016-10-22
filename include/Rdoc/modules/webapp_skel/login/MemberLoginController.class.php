@@ -1,46 +1,43 @@
 <?php require __DIR__."/../_include/controller.php"; ?>
 <?=$__controller_header?>
+
+    /**
+     * ログインフォーム
+     */
+    protected static $form_login = array(
+        "form_page" => ".index",
+        "fields" => array(
+            "login_id",
+            "login_pass",
+            "redirect",
+        ),
+        "rules" => array(
+        ),
+    );
+
     /**
      * @page
-     * @title <?=$controller_label?> TOP
+     * @title <?=$controller_label?>
      */
     public function act_index ()
     {
-        redirect("page:.login");
-    }
-
-    /**
-     * @page
-     * @title <?=$controller_label?> ログイン
-     */
-    public function act_login ()
-    {
-        $this->context("c",1,true);
-
-        // 転送先指定の保存
-        if ($_REQUEST["redirect_to"]) {
-            $redirect_to =sanitize_decode($_REQUEST["redirect_to"]);
-            $this->c->session("redirect_to",$redirect_to);
-        }
-
-        // 入力値のチェック
-        if ($_REQUEST["_i"]=="c") {
-            $this->c->validate_input($_REQUEST,array());
-            $result = auth()->login("<?=$role_login?>", $this->c->input());
-
-            if ($result) {
-
-                // 転送先の指定があればそちらを優先
-                if ($this->c->session("redirect_to")) {
-                    redirect($this->c->session("redirect_to"));
+        if ($this->forms["login"]->receive()) {
+            if ($this->forms["login"]->isValid()) {
+                // ログイン処理
+                if (auth()->login("admin", $this->forms["login"])) {
+                    // ログイン成功時の転送処理
+                    if ($redirect = $this->forms["login"]["redirect"]) {
+                        redirect($redirect);
+                    } else {
+                        redirect("/");
+                    }
+                } else {
+                    $this->vars["login_error"] = true;
                 }
-
-                redirect("page:index.index");
-
-            } else {
-
-                $this->vars["login_error"] =true;
             }
+        // 転送先の設定
+        } elseif ($redirect = $this->request["redirect"]) {
+            $this->forms["login"]["redirect"] = sanitize_decode($redirect);
         }
     }
 
@@ -50,11 +47,9 @@
      */
     public function act_logout ()
     {
-        $this->context("c");
-
         // ログアウト処理
-        auth()->logout("<?=$role_login?>");
-
-        redirect("page:index.index");
+        auth()->logout("admin");
+        // ログアウト後の転送処理
+        redirect("/");
     }
 }

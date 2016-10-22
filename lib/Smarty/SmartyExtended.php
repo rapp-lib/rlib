@@ -50,9 +50,9 @@ class SmartyExtended extends SmartyBC
      */
     public function pluginHandler ($name, $type, $template, &$callback, &$script, &$cacheable)
     {
-        $result = extention("SmartyPlugin",$type.".".$name);
-        if (is_callable($result)) {
-            $callback = $result;
+        $extention = extention("SmartyPlugin", $type.".".$name);
+        if (is_callable($extention)) {
+            $callback = $extention;
             return true;
         }
         return false;

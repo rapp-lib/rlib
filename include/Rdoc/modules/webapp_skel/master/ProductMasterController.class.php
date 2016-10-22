@@ -1,30 +1,58 @@
 <?php require __DIR__."/../_include/controller.php"; ?>
 <?=$__controller_header?>
-<? if ($c["usage"] != "form"): /* ------------------- list_setting ------------------ */ ?>
+<? if ($c["usage"] != "form"): ?>
     /**
-     * 検索フォーム設定
+     * 検索フォーム
      */
-    protected $list_setting =array(
-        "search" =>array(
-<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
-            "<?=$tc['short_name']?>" =>array(
-                    "type" =>'eq',
-                    "target" =>"<?=$tc['name']?>"),
-<? endforeach; ?>
-        ),
-        "sort" =>array(
-            "sort_param_name" =>"sort",
-            "default" =>"<?=$t['pkey']?>@ASC",
-        ),
-        "paging" =>array(
-            "offset_param_name" =>"offset",
-            "limit" =>20,
-            "slider" =>10,
+    protected static $form_search = array(
+        "search_page" => ".view_list",
+        "search_table" => "Product",
+        "fields" => array(
+            "freeword" => array("search"=>"word", "target_col"=>array(<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>"<?=$tc['short_name']?>",<? endforeach; ?>)),
+            "p" => array("search"=>"page", "volume"=>20),
+            "order" => array("search"=>"sort", "default"=>"<?=$t['pkey']?>@ASC"),
         ),
     );
 
 <? endif /* $c["usage"] != "form" */ ?>
+<? if ($c["usage"] != "view"): ?>
+
+    /**
+     * 入力フォーム
+     */
+    protected static $form_entry = array(
+        "auto_restore" => true,
+        "form_page" => ".entry_form",
+<? if ($t["virtual"]): ?>
+        "table" => "<?=$t["name"]?>",
+<? endif; /* $t["virtual"]*/ ?>
+        "fields" => array(
+            "<?=$t['pkey']?>",
+<? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
+            "<?=$tc['short_name']?>",
+<? endforeach; ?>
+        ),
+        "rules" => array(
+        ),
+    );
+<? endif /* $c["usage"] != "view" */ ?>
+<? if($c["usage"] != "view" && $c["use_csv"]): ?>
+
+    /**
+     * CSVアップロードフォーム
+     */
+    protected static $form_entry_csv = array(
+        "auto_restore" => true,
+        "fields" => array(
+            "csv_file",
+        ),
+        "rules" => array(
+            "csv_file",
+        ),
+    );
+<? endif /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 <? if($c["use_csv"]): /* ------------------- csv_setting ------------------ */ ?>
+
     /**
      * CSV設定
      */
@@ -81,17 +109,12 @@
      */
     public function act_view_list ()
     {
-        $this->context("c",1);
-
-        if ($_REQUEST["_i"]=="c") {
-            $this->c->clear();
-            $this->c->input($_REQUEST);
+        if ($this->forms["search"]->receive()) {
+            $this->forms["search"]->save();
+        } elseif ($this->request["back"]) {
+            $this->forms["search"]->restore();
         }
-
-        $this->vars["ts"] = <?=$__table_instance?><?="\n"?>
-            ->findBySearchForm($this->list_setting, $this->c->input())
-            ->select();
-        $this->vars["p"] = $this->vars["ts"]->getPager();
+        $this->vars["ts"] = $this->forms["search"]->search()->select();
     }
 
 <? endif; /* $c["usage"] != "form" */ ?>
@@ -102,26 +125,15 @@
      */
     public function act_entry_form ()
     {
-        $this->context("c",1,true);
-
-        // 入力値のチェック
-        if ($_REQUEST["_i"]=="c") {
-            $t = <?=$__table_instance?>->createRecord($_REQUEST);
-            $this->c->validate_input($t,array(
-            ));
-            if ($this->c->has_valid_input()) {
+        if ($this->forms["entry"]->receive()) {
+            if ($this->forms["entry"]->isValid()) {
+                $this->forms["entry"]->save();
                 redirect("page:.entry_confirm");
             }
-        }
-
-        // id指定があれば既存のデータを読み込む
-        if ($id = $_REQUEST["id"]) {
-            $t =<?=$__table_instance?>->selectById($id);
-            if ( ! $t) {
-                redirect("page:.view_list");
-            }
-            $this->c->id($id);
-            $this->c->input($t);
+        } elseif ($id = $this->request["id"]) {
+            $this->forms["entry"]->init($id);
+        } elseif ( ! $this->request["back"]) {
+            $this->forms["entry"]->clear();
         }
     }
 
@@ -131,10 +143,7 @@
      */
     public function act_entry_confirm ()
     {
-        $this->context("c",1,true);
-        $this->vars["t"] =$this->c->get_valid_input();
 <? if ($c["usage"] != "form"): ?>
-
         redirect("page:.entry_exec");
 <? endif; ?>
     }
@@ -145,30 +154,23 @@
      */
     public function act_entry_exec ()
     {
-        $this->context("c",1,true);
-
-        if ($this->c->has_valid_input()) {
+        if ( ! $this->forms["entry"]->isEmpty()) {
+            if ( ! $this->forms["entry"]->isValid()) {
+                redirect("page:.entry_form", array("back"=>"1"));
+            }
 <? if ($t["virtual"]): ?>
             // メールの送信
             $this->send_mail(array(
-                "template" =>"sample",
-                "vars" =>array("t" =>$this->c->get_valid_input()),
+                "template" => "<?=$c["name"]?>",
+                "vars" => $this->forms["entry"],
             ));
 <? else: /* $t["virtual"] */ ?>
-            // データの記録
-            $fields =$this->c->get_fields(array(
-<? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
-                "<?=$tc['short_name']?>",
-<? endforeach; ?>
-            ));
-            <?=$__table_instance?>->save($this->c->id(),$fields);
+            $this->forms["entry"]->getRecord()->save();
 <? endif; /* $t["virtual"] */ ?>
-
-            $this->c->clear();
+            $this->forms["entry"]->clear();
         }
 <? if ($c["usage"] != "form"): ?>
-
-        redirect("page:.view_list");
+        redirect("page:.view_list", array("back"=>"1"));
 <? endif; ?>
     }
 
@@ -180,15 +182,10 @@
      */
     public function act_delete ()
     {
-        $this->context("c");
-
-        // idの指定
-        $this->c->id($_REQUEST["id"]);
-
-        // データの削除
-        <?=$__table_instance?>->deleteById($this->c->id());
-
-        redirect("page:.view_list");
+        if ($id = $this->request["id"]) {
+            table("Product")->deleteById($id);
+        }
+        redirect("page:.view_list", array("back"=>"1"));
     }
 
 <? endif; /* $c["usage"] == "" */ ?>
@@ -199,26 +196,22 @@
      */
     public function act_view_csv ()
     {
-        set_time_limit(0);
+        set_time_limit(120);
         registry("Report.error_reporting",E_USER_ERROR|E_ERROR);
-
-        $this->context("c",1);
-
-        $res =<?=$__table_instance?><?="\n"?>
-            ->findBySearchForm($this->list_setting,$this->c->input())
+        // 検索結果の取得
+        $this->forms["search"]->restore();
+        $res =$this->forms["search"]
+            ->search()
             ->removePagenation()
             ->selectNoFetch();
-
-        // CSVファイルの書き込み準備
+        // CSVファイルの書き込み
         $csv_filename =registry("Path.tmp_dir")
             ."/csv_output/<?=$t["name"]?>-".date("Ymd-His")."-"
             .sprintf("%04d",rand(0,9999)).".csv";
         $csv =new CSVHandler($csv_filename,"w",$this->csv_setting);
-
-        while ($t =$res->fetch()) {
+        while ($t = $res->fetch()) {
             $csv->write_line($t);
         }
-
         // データ出力
         clean_output_shutdown(array(
             "download" =>basename($csv_filename),
@@ -234,17 +227,13 @@
      */
     public function act_entry_csv_form ()
     {
-        $this->context("c",1,true);
-
-        // 入力値のチェック
-        if ($_REQUEST["_i"]=="c") {
-            $this->c->validate_input($_REQUEST,array(
-                "csv_file",
-            ));
-
-            if ($this->c->has_valid_input()) {
+        if ($this->forms["entry_csv"]->receive()) {
+            if ($this->forms["entry_csv"]->isValid()) {
+                $this->forms["entry_csv"]->save();
                 redirect("page:.entry_csv_confirm");
             }
+        } elseif ( ! $this->request["back"]) {
+            $this->forms["entry"]->clear();
         }
     }
 
@@ -254,9 +243,6 @@
      */
     public function act_entry_csv_confirm ()
     {
-        $this->context("c",1,true);
-        $this->vars["t"] =$this->c->get_valid_input();
-
         redirect('page:.entry_csv_exec');
     }
 
@@ -266,38 +252,23 @@
      */
     public function act_entry_csv_exec ()
     {
-        $this->context("c",1,true);
-
-        $csv_filename =obj("UserFileManager")
-            ->get_uploaded_file($this->c->input("csv_file"), "private");
-
-        // CSVファイルの読み込み準備
-        $csv =new CSVHandler($csv_filename,"r",$this->csv_setting);
-
-        <?=$__table_instance?>->transactionBegin();
-
-        while (($t=$csv->read_line()) !== null) {
-
-            // CSVフォーマットエラー
-            if ($errors =$csv->get_errors()) {
-                <?=$__table_instance?>->transactionRollback();
-                $this->c->errors("Import.csv_file",$errors);
-                redirect("page:.entry_csv_form");
+        if ( ! $this->forms["entry_csv"]->isEmpty()) {
+            if ( ! $this->forms["entry_csv"]->isValid()) {
+                redirect("page:.entry_csv_form", array("back"=>"1"));
             }
-
-            // DBへの登録
-            $c_import =new Context_App;
-            $c_import->id($t["<?=$t['pkey']?>"]);
-            $c_import->input($t);
-            $keys =array_keys($this->csv_setting["rows"]);
-            $fields =$c_import->get_fields($keys);
-
-            <?=$__table_instance?>->save($c_import->id(),$fields);
+            // CSVファイルを開く
+            $csv_filename =obj("UserFileManager")
+                ->get_uploaded_file($this->forms["entry_csv"]["csv_file"], "private");
+            $csv =new CSVHandler($csv_filename,"r",$this->csv_setting);
+            // DBへの登録処理
+            <?=$__table_instance?>->transactionBegin();
+            while ($t=$csv->read_line()) {
+                <?=$__table_instance?>->save($t);
+            }
+            <?=$__table_instance?>->transactionCommit();
+            $this->forms["entry"]->clear();
         }
-
-        <?=$__table_instance?>->transactionCommit();
-
-        redirect("page:.view_list");
+        redirect("page:.view_list", array("back"=>"1"));
     }
 <? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 }

@@ -36,6 +36,7 @@ class InputField
      */
     public function getHtmlParts ()
     {
-        return call_user_func_array(extention("InputType", $attrs["type"]),array($this->field_value,$this->attrs));
+        $extention = extention("InputType", $this->attrs["type"]);
+        return call_user_func_array($extention,array($this->field_value,$this->attrs));
     }
 }

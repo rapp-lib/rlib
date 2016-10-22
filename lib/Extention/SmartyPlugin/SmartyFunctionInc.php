@@ -10,7 +10,7 @@ class SmartyFunctionInc
      * {{inc path="/element/head.html"}}のサポート
      * @overload
      */
-    public static function smarty_function ($params, $smarty_template)
+    public static function callback ($params, $smarty_template)
     {
         $vars =(array)$params["vars"];
         $request_path =$params["path"];

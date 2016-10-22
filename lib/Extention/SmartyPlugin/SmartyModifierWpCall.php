@@ -1,9 +1,15 @@
 <?php
+namespace R\Lib\Extention\SmartyPlugin;
 
+/**
+ *
+ */
+class SmartyModifierWpCall
+{
     /**
-     * [smarty_modifier_wp_call description]
+     * @overload
      */
-    function smarty_modifier_wp_call ()
+    function callback ()
     {
         WordpressAdapter::wp_load();
         $args =func_get_args();
@@ -11,3 +17,4 @@
         $result =call_user_func_array($func, $args);
         return $result;
     }
+}

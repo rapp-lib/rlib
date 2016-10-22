@@ -1,7 +1,16 @@
 <?php
+namespace R\Lib\Extention\SmartyPlugin;
 
-    function smarty_modifier_select () {
-
+/**
+ *
+ */
+class SmartyModifierSelect
+{
+    /**
+     * @overload
+     */
+    function callback ()
+    {
         $args =func_get_args();
         $key =array_shift($args);
         $list_name =array_shift($args);
@@ -35,3 +44,4 @@
             return $list_options->select($key,$params);
         }
     }
+}

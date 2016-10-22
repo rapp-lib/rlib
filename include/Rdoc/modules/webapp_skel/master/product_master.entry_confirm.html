@@ -1,24 +1,24 @@
-<?=$c["header"]?>  
+<?=$c["header"]?>
 
 <div class="right">
-	<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 登録・編集</span></h2>
-	
-<!-- show_module -->
-	<h3>基本情報</h3>
-	<table class="tbl_admin detail">
+
+<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 確認</span></h2>
+
+<table class="tbl_admin detail">
 <? foreach ($this->filter_fields($t["fields"],"input") as $tc): ?>
-		<tr>
-			<th><?=$tc['label']?></th>
-			<td>{{$t.<?=$tc['short_name']?><?=$tc['modifier']?>}}</td>
-		</tr>
+	<tr>
+		<th><?=$tc['label']?></th>
+		<td>{{$forms.entry.<?=$tc['short_name']?><?=$tc['modifier']?>}}</td>
+	</tr>
 <? endforeach; ?>
-	</table>
-	<div class="ad_btn">
-		<a href='{{".entry_exec"|page_to_url}}' class="sBtn">登録</a>
-		<a href='{{".entry_form"|page_to_url}}' class="rBtn">戻る</a>
-	</div>
+</table>
+
+<div class="ad_btn">
+	<a href='{{".entry_form"|page_to_url|url:["back"=>1]}}' class="rBtn">戻る</a>
+	<a href='{{".entry_exec"|page_to_url}}' class="sBtn">登録</a>
+</div>
 <!-- /show_module -->
 
 </div><!--right-->
 
-<?=$c["footer"]?> 
+<?=$c["footer"]?>

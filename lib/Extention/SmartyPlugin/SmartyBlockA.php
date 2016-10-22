@@ -12,7 +12,7 @@ class SmartyBlockA
     /**
      * @overload
      */
-    public static function smarty_block ($params, $content, $smarty_template, $repeat)
+    public static function callback ($params, $content, $smarty_template, $repeat)
     {
         return SmartyBlockA::linkageBlock("a", $params, $content, $template, $repeat);
     }

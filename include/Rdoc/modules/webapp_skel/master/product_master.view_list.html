@@ -1,49 +1,34 @@
-<?=$c["header"]?> 
+<?=$c["header"]?>
 
 <div class="right">
 
-<!-- search_module -->
-<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 検索</span></h2>
-{{form action="."|page_to_url method="get" values=$c}}
-	<input name="_i" value="c" type="hidden"/>
+<h2 class="admin_h2" id="user"><?=$c["label"]?><span></span></h2>
+
+{{form action="."|page_to_url form=$forms.search}}
 	<div class="ad_btn clearfix">
 		<table class="tbl_admin search">
-<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>
-			<tr>
-				<th><?=$tc['label']?></th>
-				<td>{{input name="<?=$tc['short_name']?>" type="<?=$tc['type']?>"<?=$tc['input_option']?><?=$tc['search_input_option']?>}}</td>
-			</tr>
-<? endforeach; ?>
+            <tr>
+                <th>ID</th>
+                <td>{{input name="id" type="text" size="40" class="input-text"}}</td>
+            </tr>
 		</table>
-		<a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" id="search"><i class="fa fa-search"></i>検索</a>
+		<a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" class="search"><i class="fa fa-search"></i>検索</a>
 	</div>
 {{/form}}
 
-{{*
-<!-- sort_module -->
-<div>
-	<a href='{{"."|page_to_url|url:$c->merge_input(["_i"=>"c","sort"=>"<?=$t['pkey']?>@DESC"])}}'>登録順</a>
-</div>
-<!-- /sort_module -->
-*}}
-
-<!-- list_module -->
-<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 一覧</span></h2>
-
 <div class="ad_btn clearfix">
 <? if ($c["usage"] != "view"): ?>
-	<a href='{{".entry_form"|page_to_url}}' id="add">新規登録</a>
+    <a href='{{".entry_form"|page_to_url}}' class="create">新規登録</a>
 <? endif; /* $c["usage"] != "view" */ ?>
 <? if ($c["usage"] != "form" && $c["use_csv"]): ?>
-	<a href='{{".view_csv"|page_to_url}}' id="dl">CSV一括ダウンロード</a>
+    <a href='{{".view_csv"|page_to_url}}' class="export">CSV一括ダウンロード</a>
 <? endif; /* $c["usage"] != "form" && $c["use_csv"] */ ?>
 <? if ($c["usage"] != "view" && $c["use_csv"]): ?>
-	<a href='{{".entry_csv_form"|page_to_url}}' id="dl">CSVインポート</a>
+    <a href='{{".entry_csv_form"|page_to_url}}' class="import">CSVインポート</a>
 <? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 </div>
 
 <table class="tbl_admin list">
-	
 	<tr>
 <? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
 		<th><?=$tc['label']?></th>
@@ -58,34 +43,36 @@
 		</td>
 <? endforeach; ?>
 		<td>
-		
 <? if ($c["usage"] != "view"): ?>
-			<a href='{{".entry_form"|page_to_url|url:["id"=>$t.<?=$t["pkey"]?>]}}' class="button">編集</a>
-			<a href='{{".delete"|page_to_url|url:["id"=>$t.<?=$t["pkey"]?>]}}' class="button bindConfirmDelete">削除</a>
+            <a href='{{".entry_form"|page_to_url|url:["id"=>$t.id]}}' class="edit">編集</a>
+            <a href='{{".delete"|page_to_url|url:["id"=>$t.id]}}' class="delete" onclick="return confirm('削除します');">削除</a>
 <? endif; /* $c["usage"] != "view" */ ?>
 		</td>
 	</tr>
 	{{/foreach}}
 </table>
 
-<div class="pager">
-<p>全{{$p.total}}件中 {{$p.from}}件～{{$p.to}}件を表示</p>
-<ul class="clearfix">
-	{{if $p.prev !== null}}
-		<li class="prev"><a href='{{"."|page_to_url|url:$c->merge_input(["_i"=>"c","offset"=>$p.prev])}}'>前</a></li>
-	{{/if}}
-	{{foreach $p.pages as $index => $page_offset}}
-		{{if $index==$p.current}} 
-			<li class="current"><a href='{{"."|page_to_url|url:$c->merge_input(["_i"=>"c","offset"=>$page_offset])}}' class="current">{{$index}}</a></li>
-		{{else}}
-			<li><a href='{{"."|page_to_url|url:$c->merge_input(["_i"=>"c","offset"=>$page_offset])}}'>{{$index}}</a></li>
-		{{/if}}
-	{{/foreach}}
-	{{if $p.next !== null}}
-		<li class="next"><a href='{{"."|page_to_url|url:$c->merge_input(["_i"=>"c","offset"=>$p.next])}}'>次</a></li>
-	{{/if}}
-</ul>
-</div>
+{{if $p = $ts->getPager()}}
+    <div class="pager">
+    <p>全{{$p->get("count")}}件中 {{$p->get("current_volume")}}件を表示</p>
+    <ul class="clearfix">
+    {{if $p->getPage('prev')}}
+        <li class="prev"><a href="{{$forms.search->getSearchPageUrl(['p'=>$p->getPage('prev')])}}">&lt;</a></li>
+    {{/if}}
+    {{foreach $p->getPages(5) as $page}}
+        {{if $page == "last"}}<li>...</li>{{/if}}
+        {{if $page == $p->getPage("current")}}<li class="current">{{else}}<li>{{/if}}
+        <a href="{{$forms.search->getSearchPageUrl(['p'=>$p->getPage($page)])}}">{{$p->getPage($page)}}</a>
+        </li>
+        {{if $page == "first"}}<li>...</li>{{/if}}
+    {{/foreach}}
+    {{if $p->getPage("next")}}
+        <li class="next"><a href="{{$forms.search->getSearchPageUrl(['p'=>$p->getPage('next')])}}">&gt;</a></li>
+    {{/if}}
+    </ul>
+    </div>
+{{/if}}
+
 </div><!--right-->
 
-<?=$c["footer"]?> 
+<?=$c["footer"]?>

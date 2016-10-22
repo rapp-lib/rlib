@@ -17,9 +17,10 @@ class Pager
         $this->values = array(
             "count" => $count,
             "offset" => $offset,
-            "offset_end" => $offset+$volume>$count ? $count-$offset : $offset+$volume,
+            "offset_end" => $offset+$limit>$count ? $count-$offset : $offset+$limit,
             "volume" => $limit,
             "current_page" => floor($offset/$limit)+1,
+            "current_volume" => $count-$offset>$limit ? $limit : $count-$offset,
             "page_num" => ceil($count/$limit),
         );
         // 現在のページにより前後のページを指定
@@ -58,29 +59,30 @@ class Pager
     /**
      * 件数を指定してページ一覧を取得
      */
-    public function getPages ($window=null)
+    public function getPages ($window)
     {
         $pages = array();
         // windowにより表示ページ数を指定
         // << < ...45[6]78. > >> window=5
         // << < ....5678[9] - -- window=5
-        if (isset($window)) {
-            $current = $this->values["current_page"];
-            $pages[] = $current;
-            for ($i=1; $i<$window; $i++) {
-                $page = $current-$i;
-                if (count($pages)<$window && $page > 0 && $page <= $this->values["page_num"]) {
-                    $pages[] = $page;
-                }
-                $page = $current+$i;
-                if (count($pages)<$window && $page > 0 && $page <= $this->values["page_num"]) {
-                    $pages[] = $page;
-                }
+        $current = $this->values["current_page"];
+        $pages[] = $current;
+        for ($i=1; $i<$window; $i++) {
+            $page = $current-$i;
+            if (count($pages)<$window && $page > 0 && $page <= $this->values["page_num"]) {
+                $pages[] = $page;
             }
-            sort($pages);
-        // windowの指定が無ければ全ページ表示
-        } else {
-            $pages = range(1,$this->values["page_num"]);
+            $page = $current+$i;
+            if (count($pages)<$window && $page > 0 && $page <= $this->values["page_num"]) {
+                $pages[] = $page;
+            }
+        }
+        sort($pages);
+        if ($this->values["first_page"] && $pages[0] != $this->values["first_page"]) {
+            array_unshift($pages, "first");
+        }
+        if ($this->values["last_page"] && $pages[count($pages)-1] != $this->values["last_page"]) {
+            array_push($pages, "last");
         }
         return $pages;
     }

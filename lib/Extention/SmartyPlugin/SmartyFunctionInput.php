@@ -9,7 +9,7 @@ class SmartyFunctionInput
     /**
      * @overload
      */
-    public static function smarty_function ($params, $smarty_template)
+    public static function callback ($params, $smarty_template)
     {
         // FormContainerによるタグ生成
         $attrs = $params;

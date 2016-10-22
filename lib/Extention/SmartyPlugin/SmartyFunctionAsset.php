@@ -21,7 +21,7 @@ class SmartyFunctionAsset
      * モジュールがHTML上で直接読み込まれたことを通知
      * {{asset loaded="jquery:2.*"}}
      */
-    public static function smarty_function ($params, $smarty_template)
+    public static function callback ($params, $smarty_template)
     {
         $html = "";
 

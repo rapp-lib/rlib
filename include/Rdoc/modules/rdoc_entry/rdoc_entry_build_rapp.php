@@ -50,9 +50,9 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
             }
 
             $c["header"] =$c["header"] ? $c["header"]
-                    : '{{inc path="/element/'.$c["wrapper"].'_header.html"}}';
+                    : '{{inc path="/include/'.$c["wrapper"].'_header.html"}}';
             $c["footer"] =$c["footer"] ? $c["footer"]
-                    : '{{inc path="/element/'.$c["wrapper"].'_footer.html"}}';
+                    : '{{inc path="/include/'.$c["wrapper"].'_footer.html"}}';
 
             if ( ! $wrapper_cache[$c["wrapper"]]) {
 
@@ -60,14 +60,14 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
                 $src =$this->find_skel($c["skel"],
                         "wrapper/default_header.html");
                 $dest =registry("Path.webapp_dir")
-                        ."/html/element/".$c["wrapper"]."_header.html";
+                        ."/html/include/".$c["wrapper"]."_header.html";
                 $this->arch_template($src,$dest,array("c" =>$c, "s" =>registry("Schema")));
 
                 // Footerコピー
                 $src =$this->find_skel($c["skel"],
                         "wrapper/default_footer.html");
                 $dest =registry("Path.webapp_dir")
-                        ."/html/element/".$c["wrapper"]."_footer.html";
+                        ."/html/include/".$c["wrapper"]."_footer.html";
                 $this->arch_template($src,$dest,array("c" =>$c));
 
                 $wrapper_cache[$c["wrapper"]] =true;
@@ -392,9 +392,8 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         foreach ($fields as $tc_name => $tc) {
 
             if ($type == "search"
-                    && ($tc["type"] == "textarea"
-                    || $tc["type"] == "file"
-                    || $tc["type"] == "password")) {
+                    && ($tc["type"] != "textarea"
+                    && $tc["type"] != "text")) {
 
                 unset($fields[$tc_name]);
             }

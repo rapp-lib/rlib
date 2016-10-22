@@ -10,7 +10,7 @@
 
     $table = $t["name"];
 
-    $__controller_header = "";
+    $__table_instance = 'table("'.$table.'")';
     ob_start();
 
 ?><?="<!?php\n\n"?>
@@ -22,12 +22,8 @@ class <?=$controller_class?> extends Controller_App
     /**
      * 認証設定
      */
-    protected $access_as = "<?=$role_accessor?>";
-    protected $priv_required = <?=$role_required ? "true" : "false"?>;
+    protected static $access_as = "<?=$role_accessor?>";
+    protected static $priv_required = <?=$role_required ? "true" : "false"?>;
 
 <?php
     $__controller_header = ob_get_clean();
-
-    $__model_instance = 'model("'.$table.'")';
-
-    $__table_instance = 'table("'.$table.'")';

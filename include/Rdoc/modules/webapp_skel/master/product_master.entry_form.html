@@ -1,40 +1,36 @@
 <?=$c["header"]?>
 
 <div class="right">
-	<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 登録編集</span></h2>
 
-	<!--error module -->
-	{{if $c->get_errors()}}
-		<div class="errmsg">※入力エラーがあります</div>
-		{{code type="js" required=["jquery:*","app.show-errors"]}}
-			$(function(){
-				showErrors({
-					errors: {{$c->get_errors()|json_encode}},
-					$form: $("form.form-c")
-				});
+<h2 class="admin_h2" id="user"><?=$c["label"]?><span> - 入力</span></h2>
+
+{{if $forms.entry->getErrors()}}
+	<div class="errmsg">※入力エラーがあります</div>
+	{{code type="js" required=["jquery:*","app.show-errors"]}}
+		$(function(){
+			showErrors({
+				errors: {{$forms.entry->getErrors()|json_encode}},
+				$form: $("form.form-entry")
 			});
-		{{/code}}
-	{{/if}}
-	<!--/error module -->
+		});
+	{{/code}}
+{{/if}}
 
-	<h3>基本情報</h3>
-
-	{{form action="{{'.'|page_to_url}}" enctype="multipart/form-data" method="post" values=$c class="form-c"}}
-	<input type="hidden" name="_i" value="c"/>
-
-	<table class="tbl_admin detail">
+{{form action="{{'.'|page_to_url}}" enctype="multipart/form-data" method="post" form=$forms.entry class="form-entry"}}
+{{input name="id" type="hidden"}}
+<table class="tbl_admin detail">
 <? foreach ($this->filter_fields($t["fields"],"input") as $tc): ?>
-		<tr>
-			<th><?=$tc['label']?></th>
-			<td class="inputBlock">{{input name="<?=$tc['short_name']?>" type="<?=$tc['type']?>"<?=$tc['input_option']?>}}</td>
-		</tr>
+	<tr>
+		<th><?=$tc['label']?></th>
+		<td class="inputBlock">{{input name="<?=$tc['short_name']?>" type="<?=$tc['type']?>"<?=$tc['input_option']?>}}</td>
+	</tr>
 <? endforeach; ?>
-	</table>
-	<div class="ad_btn">
-		<input type="submit" value="確認" class="sBtn"/>
-		<a href='{{".index"|page_to_url}}' class="button rBtn">戻る</a>
-	</div>
-	{{/form}}
+</table>
+<div class="ad_btn">
+	<a href='{{".view_list"|page_to_url|url:["back"=>1]}}' class="rBtn">戻る</a>
+    <a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" class="sBtn">確認</a>
+</div>
+{{/form}}
 
 </div><!--right-->
 

@@ -3,6 +3,14 @@
 // -- 各クラスのインスタンス取得
 
     /**
+     * @facade R\Lib\Core\Application::getInstance
+     */
+    function app ()
+    {
+        return R\Lib\Core\Application::getInstance();
+    }
+
+    /**
      * @facade R\Lib\Webapp\Request::getInstance
      */
     function request ()
@@ -27,11 +35,19 @@
     }
 
     /**
-     * @facade R\Lib\Builder\WebappBuilder::getSchema
+     * @facade R\Lib\Route\RouteManager::getInstance
      */
-    function builder ()
+    function route ()
     {
-        return R\Lib\Builder\WebappBuilder::getSchema();
+        return R\Lib\Route\RouteManager::getInstance();
+    }
+
+    /**
+     * @facade R\Lib\Form\FormFactory::getInstance
+     */
+    function form ()
+    {
+        return R\Lib\Form\FormFactory::getInstance();
     }
 
     /**
@@ -42,11 +58,19 @@
     }
 
     /**
-     * @facade R\Lib\Form\FormFactory::getInstance
+     * @facade R\Lib\FileStorage\FileStorageManager::getInstance
      */
-    function form ()
+    function file_storage ()
     {
-        return R\Lib\Form\FormFactory::getInstance();
+        return R\Lib\FileStorage\FileStorageManager::getInstance();
+    }
+
+    /**
+     * @facade R\Lib\Builder\WebappBuilder::getSchema
+     */
+    function builder ()
+    {
+        return R\Lib\Builder\WebappBuilder::getSchema();
     }
 
     /**
@@ -172,6 +196,9 @@
      */
     function array_clean ( & $ref)
     {
+        if ( ! is_arraylike($ref)) {
+            return $ref;
+        }
         foreach ($ref as $k => & $v) {
             if (is_array($v)) {
                 array_clean($v);

@@ -1,7 +1,16 @@
 <?php
+namespace R\Lib\Extention\SmartyPlugin;
 
-    function smarty_modifier_selectflg () {
-
+/**
+ *
+ */
+class SmartyModifierSelectflg
+{
+    /**
+     * @overload
+     */
+    function callback ()
+    {
         $args =func_get_args();
         $value =array_shift($args);
         $list_name =array_shift($args);
@@ -28,3 +37,4 @@
             }
         }
     }
+}

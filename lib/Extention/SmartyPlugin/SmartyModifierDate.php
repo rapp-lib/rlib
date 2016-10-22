@@ -1,7 +1,16 @@
 <?php
+namespace R\Lib\Extention\SmartyPlugin;
 
-    function smarty_modifier_date ($string ,$format="Y/m/d" ) {
-
+/**
+ *
+ */
+class SmartyModifierDate
+{
+    /**
+     * @overload
+     */
+    function callback ($string ,$format="Y/m/d" )
+    {
         // 無効な日付であれば値を返さない
         if ( ! $string) {
 
@@ -10,3 +19,4 @@
 
         return longdate_format($string,$format);
     }
+}
