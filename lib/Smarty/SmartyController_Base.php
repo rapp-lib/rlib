@@ -71,7 +71,7 @@ class SmartyController_Base extends SmartyExtended implements \R\Lib\Form\FormRe
 
         return array(
             "vars" =>$this->vars,
-            "contexts" =>$this->contexts,
+            "forms" =>$this->forms,
         );
     }
 

@@ -17,9 +17,18 @@
 
     /**
      * @page
-     * @title <?=$controller_label?>
+     * @title <?=$controller_label?> TOP
      */
     public function act_index ()
+    {
+        redirect("page:.login");
+    }
+
+    /**
+     * @page
+     * @title <?=$controller_label?> ログインフォーム
+     */
+    public function act_login ()
     {
         if ($this->forms["login"]->receive()) {
             if ($this->forms["login"]->isValid()) {

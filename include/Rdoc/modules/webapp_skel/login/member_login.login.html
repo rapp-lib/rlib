@@ -1,22 +1,17 @@
-<?=$c["header"]?> 
-
-<!-- Viframeでは読み込まないページとしてマーク -->
-<a class="vifPreventLoad"></a>
+<?=$c["header"]?>
 
 <div id="main">
-
-<!--ログイン-->
 
 <h2 class="h2_login"><?=$c["label"]?></h2>
 <p>IDとパスワードを入力し、 ログインしてください。</p>
 
 {{if $login_error}}
-<p style="color:#ff0000;">※IDまたはパスワードに誤りがあります。</p>
+    <div class="errmsg">※IDまたはパスワードに誤りがあります。</div>
 {{/if}}
 
 <!-- entry_module -->
-{{form action="."|page_to_url method="post" values=$c}}
-    <input type="hidden" name="_i" value="c"/>
+{{form action="."|page_to_url method="post" form=$forms.login}}
+    {{input type="hidden" name="redirect"}}
     <div class="login">
         <dl>
             <dt>ID</dt>
@@ -33,4 +28,4 @@
 
 </div><!--main-->
 
-<?=$c["footer"]?> 
+<?=$c["footer"]?>

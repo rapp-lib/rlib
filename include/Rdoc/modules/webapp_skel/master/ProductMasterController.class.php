@@ -6,7 +6,9 @@
      */
     protected static $form_search = array(
         "search_page" => ".view_list",
-        "search_table" => "Product",
+<? if ( ! $t["virtual"]): ?>
+        "search_table" => "<?=$t["name"]?>",
+<? endif; /* $t["virtual"]*/ ?>
         "fields" => array(
             "freeword" => array("search"=>"word", "target_col"=>array(<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>"<?=$tc['short_name']?>",<? endforeach; ?>)),
             "p" => array("search"=>"page", "volume"=>20),
@@ -23,7 +25,7 @@
     protected static $form_entry = array(
         "auto_restore" => true,
         "form_page" => ".entry_form",
-<? if ($t["virtual"]): ?>
+<? if ( ! $t["virtual"]): ?>
         "table" => "<?=$t["name"]?>",
 <? endif; /* $t["virtual"]*/ ?>
         "fields" => array(
@@ -266,7 +268,7 @@
                 <?=$__table_instance?>->save($t);
             }
             <?=$__table_instance?>->transactionCommit();
-            $this->forms["entry"]->clear();
+            $this->forms["entry_csv"]->clear();
         }
         redirect("page:.view_list", array("back"=>"1"));
     }
