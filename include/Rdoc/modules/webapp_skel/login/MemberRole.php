@@ -36,7 +36,7 @@ class <?=str_camelize($role)?>Role extends Role_App
     public function onLoginRequired ($required)
     {
         redirect("page:<?=$controller?>.login",array(
-            "redirect_to" => $this->getAttr("login") ? "" : registry("Request.request_uri"),
+            "redirect" => $this->getAttr("login") ? "" : registry("Request.request_uri"),
         ));
     }
 
