@@ -363,6 +363,8 @@ class Table_Core
         return $id ? $table->updateById($id,$values) : $table->insert($values);
     }
 
+// -- SELECT文の発行
+
     /**
      * idを指定してSELECT文の発行 1件取得
      */
@@ -412,6 +414,8 @@ class Table_Core
         $this->query->setNoMapping(true);report($this);
         return $this->execQuery("select");
     }
+
+// -- INSERT/UPDATE/DELETE文の発行
 
     /**
      * idの指定の有無によりINSERT/UPDATE文の発行
@@ -483,6 +487,8 @@ class Table_Core
         return $this->getDBI()->begin();
     }
 
+// -- TRANSACTION文発行
+
     /**
      * COMMIT文の発行
      */
@@ -498,6 +504,8 @@ class Table_Core
     {
         return $this->getDBI()->rollback();
     }
+
+// -- SQL組み立て/発行実処理
 
     /**
      * Queryを完成させる
@@ -529,7 +537,7 @@ class Table_Core
         $this->query->setTable(static::$table_name);
 
         // Query組み立て処理を呼び出す
-        $this->callBuildQueryMethds();
+        $this->callBuildQueryMethods();
 
         // SQL組み立て用配列をDBIの仕様にあわせて加工
         $query = (array)$this->query;
@@ -567,112 +575,9 @@ class Table_Core
     }
 
     /**
-     * Queryの発行
+     * buildQuery上で必要になるon_*_*処理をまとめて呼び出す
      */
-    public function execQuery ($type=null)
-    {
-        // 実行済みであれば結果を返す
-        if ($this->result) {
-            return $this->result;
-        }
-
-        // Query組み立ての仕上げ処理
-        $statement = $this->buildQuery($type);
-        // SQLの実行
-        $this->result_res =$this->getDBI()->exec($statement, array(
-            "Table" =>$this,
-        ));
-        // Resultの組み立て
-        $this->result = new Result($this);
-
-        if ($type=="insert" || $type=="update") {
-            // on_afterWrite_*を呼び出す
-            $this->callListenerMethod("afterWrite",array($record));
-        }
-
-        return $this->result;
-    }
-
-    /**
-     * assoc処理 selectの発行前
-     */
-    private function on_select_assoc ()
-    {
-        foreach ((array)$this->query->getFields() as $i => $col_name) {
-            if ( ! is_numeric($i)) {
-                $col_name = $i;
-            }
-            if ($assoc = static::$cols[$col_name]["assoc"]) {
-                // fields→assoc_fieldsに項目を移動
-                $this->query->removeField($col_name);
-                $this->query->addAssocField($col_name);
-                // assoc処理の呼び出し
-                $this->callHookMethod("assoc_select_".$assoc, array($col_name));
-            }
-        }
-        return false;
-    }
-
-    /**
-     * assoc処理 各レコードfetch後
-     */
-    private function on_fetch_assoc ($record)
-    {
-        foreach ((array)$this->query->getAssocFields() as $col_name) {
-            $assoc = static::$cols[$col_name]["assoc"];
-            // assoc処理の呼び出し
-            $this->callHookMethod("assoc_fetch_".$assoc, array($col_name, $record));
-        }
-        return false;
-    }
-
-    /**
-     * assoc処理 fetch完了後
-     */
-    private function on_fetchEnd_assoc ()
-    {
-        foreach ((array)$this->query->getAssocFields() as $col_name) {
-            $assoc = static::$cols[$col_name]["assoc"];
-            // assoc処理の呼び出し
-            $this->callHookMethod("assoc_fetchEnd_".$assoc, array($col_name));
-        }
-        return false;
-    }
-
-    /**
-     * assoc処理 insert/updateの発行前
-     */
-    private function on_write_assoc ()
-    {
-        foreach ((array)$this->query->getValues() as $col_name => $value) {
-            if ($assoc = static::$cols[$col_name]["assoc"]) {
-                // values→assoc_valuesに項目を移動
-                $this->query->removeValue($col_name);
-                $this->query->setAssocValue($col_name,$value);
-                // assoc処理の呼び出し
-                $this->callHookMethod("assoc_write_".$assoc, array($col_name,$value));
-            }
-        }
-        return false;
-    }
-
-    /**
-     * assoc処理 insert/updateの発行後
-     */
-    private function on_afterWrite_assoc ()
-    {
-        foreach ((array)$this->query->getAssocValues() as $col_name => $value) {
-            $assoc = static::$cols[$col_name]["assoc"];
-            // assoc処理の呼び出し
-            $this->callHookMethod("assoc_afterWrite_".$assoc, array($col_name,$value));
-        }
-        return false;
-    }
-
-    /**
-     * Query組み立て処理を呼び出す
-     */
-    private function callBuildQueryMethds ()
+    private function callBuildQueryMethods ()
     {
         // 呼び出すHookを選択
         $hooks = array();
@@ -703,7 +608,36 @@ class Table_Core
     }
 
     /**
-     * on_*_*メソッドを呼び出す
+     * Queryの発行
+     */
+    public function execQuery ($type=null)
+    {
+        // 実行済みであれば結果を返す
+        if ($this->result) {
+            return $this->result;
+        }
+
+        // Query組み立ての仕上げ処理
+        $statement = $this->buildQuery($type);
+        // SQLの実行
+        $this->result_res =$this->getDBI()->exec($statement, array(
+            "Table" =>$this,
+        ));
+        // Resultの組み立て
+        $this->result = new Result($this);
+
+        if ($type=="insert" || $type=="update") {
+            // on_afterWrite_*を呼び出す
+            $this->callListenerMethod("afterWrite",array($record));
+        }
+
+        return $this->result;
+    }
+
+// -- hookメソッド呼び出し関連処理
+
+    /**
+     * on hookメソッドを呼び出す
      */
     private function callListenerMethod ($hook, $args=array())
     {
@@ -727,7 +661,7 @@ class Table_Core
     }
 
     /**
-     * Hookメソッドを呼び出す
+     * hookメソッドを呼び出す
      */
     private function callHookMethod ($method_name, $args=array())
     {
@@ -739,8 +673,11 @@ class Table_Core
                 return true;
             }
         }
+        //TODO: extentionの探索
         return false;
     }
+
+// -- その他のprivateメソッド
 
     /**
      * @deprecated

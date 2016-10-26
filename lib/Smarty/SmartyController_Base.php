@@ -19,7 +19,6 @@ class SmartyController_Base extends SmartyExtended implements \R\Lib\Form\FormRe
             $options=array()) {
 
         parent::__construct();
-        $this->register_modifier("date","longdate_format");
 
         $this->init($controller_name,$action_name,$options);
         $this->initController();

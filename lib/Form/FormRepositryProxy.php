@@ -1,7 +1,7 @@
 <?php
 namespace R\Lib\Form;
 
-use R\Lib\Core\ArrayObject;
+use ArrayObject;
 
 class FormRepositryProxy extends ArrayObject
 {
@@ -19,9 +19,10 @@ class FormRepositryProxy extends ArrayObject
     /**
      * @override ArrayAccess
      */
-    public function offsetGet($offset)
+    public function offsetGet ($offset)
     {
-        return $this->getForm($offset);
+        $this->initOffset($offset);
+        return parent::offsetGet($offset);
     }
     /**
      * @override Iterator
@@ -30,22 +31,22 @@ class FormRepositryProxy extends ArrayObject
     {
         // 定義されている全てのform_nameを取得
         $class_name = $this->repositry_class_name;
-        $form_defs = $class_name::getFormDef($class_name);
-        // Iteratorの
-        $this->array_payload_keys = array_keys($form_defs);
-        $this->array_payload_pos = 0;
+        foreach ($class_name::getFormDef($class_name) as $form_name => $form_def) {
+            $this->initOffset($form_name);
+        }
+        // 本来のrewindを呼び出す
+        parent::rewind();
     }
     /**
-     * 指定されたform_nameのFormを作成/取得する
+     * 指定されたform_nameのFormを作成する
      */
-    private function getForm ($form_name)
+    private function initOffset ($form_name)
     {
-        if ( ! isset($this->array_payload[$form_name])) {
+        if ( ! $this->offsetExists($form_name)) {
             $class_name = $this->repositry_class_name;
             $form_def = $class_name::getFormDef($class_name,$form_name);
             $form = $this->factory->create($form_def);
-            $this->array_payload[$form_name] = $form;
+            $this->offsetSet($form_name, $form);
         }
-        return $this->array_payload[$form_name];
     }
 }

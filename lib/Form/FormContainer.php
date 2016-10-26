@@ -1,7 +1,7 @@
 <?php
 namespace R\Lib\Form;
 
-use R\Lib\Core\ArrayObject;
+use ArrayObject;
 
 class FormContainer extends ArrayObject
 {
@@ -79,8 +79,10 @@ class FormContainer extends ArrayObject
      */
     public function setValues ($values)
     {
-        $this->clear();
-        $this->array_payload = (array)$values;
+        $this->clearValues();
+        foreach ((array)$values as $k=>$v) {
+            $this[$k] = $v;
+        }
     }
 
     /**
@@ -88,7 +90,20 @@ class FormContainer extends ArrayObject
      */
     public function getValues ()
     {
-        return $this->array_payload;
+        return $this->getArrayCopy();
+    }
+
+    /**
+     * 値の設定状態の消去
+     */
+    public function clearValues ()
+    {
+        $this->received = null;
+        $this->is_valid = null;
+        $this->errors = null;
+        foreach ($this as $k=>$v) {
+            unset($this[$k]);
+        }
     }
 
     /**
@@ -96,7 +111,7 @@ class FormContainer extends ArrayObject
      */
     public function isEmpty ()
     {
-        return count($this->array_payload)==0;
+        return count($this)==0;
     }
 
 // -- 初期化関連処理
@@ -107,10 +122,7 @@ class FormContainer extends ArrayObject
      */
     public function clear ()
     {
-        $this->received = null;
-        $this->is_valid = null;
-        $this->errors = null;
-        $this->array_payload = array();
+        $this->clearValues();
         // 一時保存領域が有効である場合、消去する
         if (isset($this->tmp_storage)) {
             $this->getTmpStorage()->delete();
@@ -161,8 +173,8 @@ class FormContainer extends ArrayObject
     {
         if ( ! isset($this->tmp_storage)) {
             $this->tmp_storage = request()->session(__CLASS__)
-                ->getSubDomain("tmp_storage")
-                ->getSubDomain($this->getTmpStorageName());
+                ->session("tmp_storage")
+                ->session($this->getTmpStorageName());
         }
         return $this->tmp_storage;
     }
@@ -179,8 +191,11 @@ class FormContainer extends ArrayObject
             $request = request();
             $form_param_name = "_f";
             $form_name = $this->getFormName();
+            // csrf_checkの指定があればCSRF対策キーを確認する
+            if ($this->def["csrf_check"] && $request["_csrf_credential"]!=md5(session_id())) {
+                $this->received = false;
             // form_param_nameに自分のform_nameが設定されていれば受け取り状態
-            if ($form_name && $request[$form_param_name]==$form_name) {
+            } elseif ($form_name && $request[$form_param_name]==$form_name) {
                 foreach ($request as $k => $v) {
                     if ($k==$form_param_name) {
                         continue;
@@ -197,17 +212,38 @@ class FormContainer extends ArrayObject
     }
 
     /**
-     * InputValuesからドメイン変換して値を設定
-     * formタグの仕様により混入する非正規な空データを削除
+     * InputValuesから変換処理を行って値を設定
+     * 値が空の要素は削除して、field.input_convertの変換処理を逐次適用する
      */
     public function setInputValues ($input_values)
     {
+        // formタグの仕様により混入する非正規な空データを削除
         array_clean($input_values);
+        // 入力値の変換処理
+        foreach ($this->def["fields"] as $field_name => $field_def) {
+            // 変換処理がなければスキップ
+            if ( ! $field_def["input_convert"]) {
+                continue;
+            }
+            // 変換処理の逐次適用
+            self::applyFieldFilter($input_values, $field_name, function($value, $parts) use ($field_name, $field_def) {
+                // 変換処理の複数指定に対応
+                $input_converts = $field_def["input_convert"];
+                $input_converts = is_array($input_converts) ? $input_converts : array($input_converts);
+                foreach ($input_converts as $input_convert) {
+                    $value = call_user_func(extention("InputConvert",$input_convert), $value, $parts, $field_def);
+                }
+                return $value;
+            });
+        }
+        // 処理済みの値を設定
         $this->setValues($input_values);
     }
 
     /**
      * Formタグを作成
+     *      def.form_pageでactionのURLを補完
+     *      def.csrf_checkの指定があればCSRF対策キーを埋め込む
      */
     public function getFormHtml ($attrs, $content)
     {
@@ -217,6 +253,15 @@ class FormContainer extends ArrayObject
             "name" => "_f",
             "value" => $this->getFormName(),
         ));
+        // csrf_checkの指定があればCSRF対策キーを埋め込む
+        if ($this->def["csrf_check"]) {
+            $content .= tag("input",array(
+                "type" => "hidden",
+                "name" => "_csrf_credential",
+                "value" => md5(session_id()),
+            ));
+        }
+        // form_pageでactionのURLを補完
         if ( ! isset($attrs["action"])) {
             $attrs["action"] = page_to_url($this->def["form_page"]);
         }
@@ -225,23 +270,25 @@ class FormContainer extends ArrayObject
     }
 
     /**
-     * InputFieldを作成
+     * InputFieldを取得
      */
-    public function createInputField ($attrs)
+    public function getInputField ($name_attr, $attrs=array())
     {
+        $attrs["name"] = $name_attr;
+
         $field_value = null;
         $name_attr = $attrs["name"];
         $field_name = str_replace(array("[","]"),array(".",""),$name_attr);
         $field_name_parts = explode('.',$field_name);
         // 対象が配列ではない
         if (count($field_name_parts)==1) {
-            $field_value = $this->array_payload[$field_name_parts[0]];
+            $field_value = $this[$field_name_parts[0]];
         // 対象が1次配列
         } elseif (count($field_name_parts)==2) {
-            $field_value = $this->array_payload[$field_name_parts[0]][$field_name_parts[1]];
+            $field_value = $this[$field_name_parts[0]][$field_name_parts[1]];
         // 対象が2次配列
         } elseif (count($field_name_parts)==3) {
-            $field_value = $this->array_payload[$field_name_parts[0]][$field_name_parts[1]][$field_name_parts[2]];
+            $field_value = $this[$field_name_parts[0]][$field_name_parts[1]][$field_name_parts[2]];
             $field_name = $field_name_parts[0].".*.".$field_name_parts[2];
         }
         if ( ! isset($this->def["fields"][$field_name])) {
@@ -463,6 +510,39 @@ class FormContainer extends ArrayObject
     }
 
     /**
+     * field_nameに対応する値の書き換え関数を対象の配列内で逐次適用する
+     * @param $function function ($field_value, $field_name_parts) => $field_value
+     */
+    private static function applyFieldFilter ( & $values, $field_name, $function) {
+        $parts = explode('.',$field_name);
+        // 対象が配列ではない
+        if (count($parts)==1) {
+            if ( ! isset($values[$parts[0]])) {
+                return;
+            }
+            $values[$parts[0]] = call_user_func($function, $values[$parts[0]], $parts);
+        // 対象が1次配列
+        } elseif (count($parts)==2) {
+            if ( ! isset($values[$parts[0]][$parts[1]])) {
+                return;
+            }
+            $values[$parts[0]][$parts[1]] = call_user_func($function, $values[$parts[0]][$parts[1]], $parts);
+        // 対象が2次配列
+        } elseif (count($parts)==3) {
+            if (count($values[$parts[0]])==0) {
+                return;
+            }
+            foreach ($values[$parts[0]] as $fieldset_index => $fieldset) {
+                $parts[1] = $fieldset_index;
+                if ( ! isset($values[$parts[0]][$parts[1]][$parts[2]])) {
+                    continue;
+                }
+                $values[$parts[0]][$parts[1]][$parts[2]] = call_user_func($function, $values[$parts[0]][$parts[1]][$parts[2]], $parts);
+            }
+        }
+    }
+
+    /**
      * 構成を補完
      */
     private static function completeDef ($def)
@@ -561,7 +641,7 @@ class FormContainer extends ArrayObject
         return array(
             "form_name" => $this->def["form_name"],
             "tmp_storage_name" => $this->def["tmp_storage_name"],
-            "values" => $this->array_payload,
+            "values" => $this->getValues(),
         );
     }
 }

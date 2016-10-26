@@ -7,7 +7,7 @@ namespace R\Lib\Table;
 class Table_Base extends Table_Core
 {
 
-// -- assoc
+// -- 基本的なassoc hookの定義
 
     /**
      * @hook assoc hasMany
@@ -91,7 +91,7 @@ class Table_Base extends Table_Core
     {
     }
 
-// -- chain
+// -- 基本的ななchain hookの定義
 
     /**
      * @hook chain
@@ -281,7 +281,7 @@ class Table_Base extends Table_Core
         }
     }
 
-// -- on
+// -- on_*_*処理の定義
 
     /**
      * @hook on_fetch
@@ -378,7 +378,85 @@ class Table_Base extends Table_Core
         }
     }
 
-// -- search
+// -- assoc hookを呼び出すためのon hookの定義
+
+    /**
+     * assoc処理 selectの発行前
+     */
+    private function on_select_assoc ()
+    {
+        foreach ((array)$this->query->getFields() as $i => $col_name) {
+            if ( ! is_numeric($i)) {
+                $col_name = $i;
+            }
+            if ($assoc = static::$cols[$col_name]["assoc"]) {
+                // fields→assoc_fieldsに項目を移動
+                $this->query->removeField($col_name);
+                $this->query->addAssocField($col_name);
+                // assoc処理の呼び出し
+                $this->callHookMethod("assoc_select_".$assoc, array($col_name));
+            }
+        }
+        return false;
+    }
+
+    /**
+     * assoc処理 各レコードfetch後
+     */
+    private function on_fetch_assoc ($record)
+    {
+        foreach ((array)$this->query->getAssocFields() as $col_name) {
+            $assoc = static::$cols[$col_name]["assoc"];
+            // assoc処理の呼び出し
+            $this->callHookMethod("assoc_fetch_".$assoc, array($col_name, $record));
+        }
+        return false;
+    }
+
+    /**
+     * assoc処理 fetch完了後
+     */
+    private function on_fetchEnd_assoc ()
+    {
+        foreach ((array)$this->query->getAssocFields() as $col_name) {
+            $assoc = static::$cols[$col_name]["assoc"];
+            // assoc処理の呼び出し
+            $this->callHookMethod("assoc_fetchEnd_".$assoc, array($col_name));
+        }
+        return false;
+    }
+
+    /**
+     * assoc処理 insert/updateの発行前
+     */
+    private function on_write_assoc ()
+    {
+        foreach ((array)$this->query->getValues() as $col_name => $value) {
+            if ($assoc = static::$cols[$col_name]["assoc"]) {
+                // values→assoc_valuesに項目を移動
+                $this->query->removeValue($col_name);
+                $this->query->setAssocValue($col_name,$value);
+                // assoc処理の呼び出し
+                $this->callHookMethod("assoc_write_".$assoc, array($col_name,$value));
+            }
+        }
+        return false;
+    }
+
+    /**
+     * assoc処理 insert/updateの発行後
+     */
+    private function on_afterWrite_assoc ()
+    {
+        foreach ((array)$this->query->getAssocValues() as $col_name => $value) {
+            $assoc = static::$cols[$col_name]["assoc"];
+            // assoc処理の呼び出し
+            $this->callHookMethod("assoc_afterWrite_".$assoc, array($col_name,$value));
+        }
+        return false;
+    }
+
+// -- 基本的なsearch hookの定義
 
     /**
      * @hook search where

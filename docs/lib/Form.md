@@ -41,10 +41,19 @@ Request受付機能
         このフォームが値を受け取った場合、trueを返す
     setInputValues($input_values)
         フォームから送信された$_REQUESTの値を登録する
-        FORMタグの仕様により混入する空文字列や空の配列は消去して登録される
+        値が空の要素は削除して、def.input_convertの変換処理を逐次適応する
     構成
         form_page
             任意指定、formタグのactionのデフォルトに使用される
+        csrf_check
+            任意指定、trueを指定するとformタグでCSRF対策のキーを渡して、receivedで突き合わせを行う
+        field.input_convert
+            任意指定、対応するInputConvertの変換処理を入力値に適用する
+    拡張
+        変換処理を拡張する
+            R\Extention\InputConvert\XxxInputConvert::callback($value,field_name_parts,$field_def) => $value を定義する
+        R\Lib\Extention\InputConvertLoader上で定義されている標準の変換処理
+            file_upload, storage 指定されたFileStorageに$_FILESの内容を保存する
 
 入力チェック機能
 -------------------------------------

@@ -6,6 +6,7 @@ use ArrayObject;
 class Request extends ArrayObject
 {
     private static $instance = null;
+    private $sessions = array();
 
     public static function getInstance ()
     {
@@ -38,6 +39,6 @@ class Request extends ArrayObject
      */
     public function session ($key)
     {
-        return new Session($key);
+        return Session::getInstance($key);
     }
 }
