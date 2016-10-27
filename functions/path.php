@@ -95,6 +95,25 @@
             }
         }
 
+        // IndexControllerの探索
+        if ( ! $page) {
+            $match_page = null;
+            $match_path_length = 0;
+            foreach ($path_to_page as $to_path => $to_page) {
+                if (preg_match('!^(.+?)\*!',$to_path,$match)) {
+                    if (strpos($path, $match_path=$match[1])===0) {
+                        if (strlen($match_path) > $match_path_length) {
+                            $match_path_length = strlen($match_path);
+                            $match_page = $to_page;
+                        }
+                    }
+                }
+            }
+            if ($match_page) {
+                $page = $match_page;
+            }
+        }
+
         return $extract_url_params
                 ? array($page,$path,$params)
                 : $page;

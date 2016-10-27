@@ -6,6 +6,9 @@ namespace R\Lib\Builder\Element;
  */
 class RoleElement extends Element_Base
 {
+    /**
+     * @override
+     */
     protected function init ()
     {
     }
@@ -22,7 +25,7 @@ class RoleElement extends Element_Base
     public function getIndexController ()
     {
         foreach ($this->getAccessibleControllers() as $controller) {
-            if ($controller->getAttr("type") == "index" && $controller->getAttr("priv_required")) {
+            if ($controller->getAttr("type") == "index") {
                 return $controller;
             }
         }

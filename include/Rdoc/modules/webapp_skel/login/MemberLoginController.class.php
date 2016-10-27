@@ -33,12 +33,12 @@
         if ($this->forms["login"]->receive()) {
             if ($this->forms["login"]->isValid()) {
                 // ログイン処理
-                if (auth()->login("admin", $this->forms["login"])) {
+                if (auth()->login("<?=$c["access_as"]?>", $this->forms["login"])) {
                     // ログイン成功時の転送処理
                     if ($redirect = $this->forms["login"]["redirect"]) {
                         redirect($redirect);
                     } else {
-                        <?php/*$controller->getRole()->getIndexController()->getName()*/?>redirect("/");
+                        redirect("page:<?=builder()->getSchema()->getController($c["name"])->getRole()->getIndexController()->getName()?>.index");
                     }
                 } else {
                     $this->vars["login_error"] = true;

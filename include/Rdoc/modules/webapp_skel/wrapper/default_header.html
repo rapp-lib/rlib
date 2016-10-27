@@ -32,10 +32,17 @@
 	<nav>
 		<h2>Menu</h2>
 		<dl>
-<? foreach ($role->getAccessibleControllers() as $controller): ?>
+<?php foreach ($role->getAccessibleControllers() as $controller): ?>
 			<dt class="toggle"><a href='{{"<?=$controller->getName()?>.index"|page_to_url}}' class="button"><?=$controller->getAttr("label")?></a></dt>
-<? endforeach; ?>
+<?php endforeach; ?>
 			<!--<dd><ul><li class="current"></li></ul></dd>-->
+		</dl>
+		<dl>
+<?php foreach ($role->getSchema()->getRole() as $role_others): ?>
+<?php if ($role_others->getName() != $role->getName()): ?>
+			<dt class="toggle"><a href='{{"<?=$role_others->getIndexController()->getName()?>.index"|page_to_url}}' class="button"><?=$role_others->getIndexController()->getAttr("label")?></a></dt>
+<?php endif; ?>
+<?php endforeach; ?>
 		</dl>
 	</nav>
 </div><!--/.left-->

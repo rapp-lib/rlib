@@ -14,6 +14,7 @@ class ControllerElement extends Element_Base
 
         if ($this->getAttr("type") == "index") {
             $list["index"] =array("label"=>"INDEX", "has_html"=>true);
+            $list["static"] =array("label"=>"STATIC", "has_html"=>false, "static"=>true);
         }
         if ($this->getAttr("type") == "login") {
             $list["index"] =array("label"=>"TOP", "has_html"=>false);
