@@ -15,32 +15,57 @@ final class StoredFile
         $this->storage = $this->storage_manager->getStorage($code);
         $this->code = $code;
     }
+    public function isValid ()
+    {
+        return isset($this->storage);
+    }
     public function getCode ()
     {
+        if ( ! $this->isValid()) {
+            return null;
+        }
         return $this->code;
     }
     public function getFile ()
     {
-        return $this->storage->getFile($code);
+        if ( ! $this->isValid()) {
+            return null;
+        }
+        return $this->storage->getFile($this->code);
     }
-    public function getUrl ()
+    public function download ()
     {
-        return $this->storage->getUrl($code);
+        if ( ! $this->isValid()) {
+            return null;
+        }
+        return $this->storage->download($this->code);
     }
     public function getMeta ()
     {
-        return $this->storage->getMeta($code);
+        if ( ! $this->isValid()) {
+            return null;
+        }
+        return $this->storage->getMeta($this->code);
     }
     public function remove ()
     {
-        return $this->storage->remove($code);
+        if ( ! $this->isValid()) {
+            return null;
+        }
+        return $this->storage->remove($this->code);
     }
     public function updateMeta ($meta)
     {
-        return $this->storage->updateMeta($code, $meta);
+        if ( ! $this->isValid()) {
+            return null;
+        }
+        return $this->storage->updateMeta($this->code, $meta);
     }
     public function isAccessible ($use_case=null)
     {
-        return $this->storage->isAccessible($code, $use_case);
+        if ( ! $this->isValid()) {
+            return null;
+        }
+        return $this->storage->isAccessible($this->code, $use_case);
     }
 }

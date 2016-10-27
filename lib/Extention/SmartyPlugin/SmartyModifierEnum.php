@@ -9,8 +9,8 @@ class SmartyModifierEnum
     /**
      * @overload
      */
-    function callback ($key ,$enum_name, $group=null) {
-        $enum = enum($enum_name, $group);
+    function callback ($key ,$enum_set_name, $parent_key=null) {
+        $enum = enum($enum_set_name, $parent_key);
         return $enum[$key];
     }
 }

@@ -31,6 +31,13 @@
         // listの指定
         $list_options =get_list($filter["list"]);
         $list_params =(array)$filter["list_params"];
+        if ($filter["enum"]) {
+            $enum = enum($filter["enum"],$list_params[0]);
+            if ($mode == "r") {
+                $enum->initValues();
+                $enum_reverse = array_reverse($enum);
+            }
+        }
 
         // target_parentの指定
         if ($target_parent =$filter["target_parent"]) {
@@ -49,7 +56,11 @@
 
                 foreach ($value_exploded as $k=>$v) {
 
-                    if ($v =$list_options->select_reverse($v, $list_params)) {
+                    if ($enum && $enum_reverse[$v]) {
+
+                        $value_unserialized[$k] =$enum_reverse[$v];
+
+                    } elseif ($v =$list_options->select_reverse($v, $list_params)) {
 
                         $value[$k] =$v;
 
@@ -70,7 +81,11 @@
 
                 foreach ($value as $k=>$v) {
 
-                    if ($v =$list_options->select($v, $list_params)) {
+                    if ($enum && $enum[$v]) {
+
+                        $value_unserialized[$k] =$enum[$v];
+
+                    } elseif ($list_options && $v =$list_options->select($v, $list_params)) {
 
                         $value_unserialized[$k] =$v;
 
@@ -89,12 +104,26 @@
             // CSV読み込み時
             if ($mode == "r") {
 
-                $value =$list_options->select_reverse($value, $list_params);
+                if ($enum) {
+
+                    $value =$enum_reverse[$value];
+
+                } elseif ($list_options) {
+
+                    $value =$select_reverse->select($value, $list_params);
+                }
 
             // CSV書き込み時
             } elseif ($mode == "w") {
 
-                $value =$list_options->select($value, $list_params);
+                if ($enum) {
+
+                    $value =$enum[$value];
+
+                } elseif ($list_options) {
+
+                    $value =$list_options->select($value, $list_params);
+                }
             }
 
             if ($value===null) {

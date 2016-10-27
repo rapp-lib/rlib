@@ -17,7 +17,6 @@ final class FileStorageManager
         }
         return self::$instance;
     }
-
     /**
      * コードからStorageインスタンスを取得する
      */
@@ -33,20 +32,30 @@ final class FileStorageManager
         }
         return null;
     }
-
     /**
      * StoredFileの作成
      */
-    public function create ($storage_name, $file=null, $meta=array())
+    public function create ($storage_name, $src_file=null, $meta=array())
     {
-        if ( ! isset($src_file)) {
-            $src_file = date("Ymd-His")."-".rand(1000,9999);
+        $storage = $this->getStorage($storage_name.":");
+        if ( ! $storage) {
+            report_warning("Storageが取得できませんでした",array(
+                "storage_name" => $storage_name,
+            ));
+            return null;
         }
-        $storage = self::getStorage($storage_name.":");
-        $code = $storage->create($file, $meta);
+        $code = $storage->create($src_file, $meta);
+        // ファイルの作成が失敗した場合は中断
+        if ( ! isset($code)) {
+            report_warning("ファイルが作成できませんでした",array(
+                "storage_name" => $storage_name,
+                "src_file" => $src_file,
+                "meta" => $meta
+            ));
+            return null;
+        }
         return new StoredFile($this, $code);
     }
-
     /**
      * StoredFileの取得
      */

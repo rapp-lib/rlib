@@ -18,7 +18,6 @@
 
 <? endif /* $c["usage"] != "form" */ ?>
 <? if ($c["usage"] != "view"): ?>
-
     /**
      * 入力フォーム
      */
@@ -31,15 +30,15 @@
         "fields" => array(
             "<?=$t['pkey']?>",
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
-            "<?=$tc['short_name']?>",
+            "<?=$tc['short_name']?>"<?=$tc['field_def']?>,
 <? endforeach; ?>
         ),
         "rules" => array(
         ),
     );
+
 <? endif /* $c["usage"] != "view" */ ?>
 <? if($c["usage"] != "view" && $c["use_csv"]): ?>
-
     /**
      * CSVアップロードフォーム
      */
@@ -52,9 +51,9 @@
             "csv_file",
         ),
     );
+
 <? endif /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 <? if($c["use_csv"]): /* ------------------- csv_setting ------------------ */ ?>
-
     /**
      * CSV設定
      */
@@ -70,14 +69,14 @@
         "filters" =>array(
             array("filter" =>"sanitize"),
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
-<? if ($tc['list']): ?>
+<? if ($tc['enum']): ?>
             array("target" =>"<?=$tc['short_name']?>",
                     "filter" =>"list_select",
 <? if ($tc['type'] == "checklist"): ?>
                     "delim" =>"/",
 <? endif; /* $tc['type'] == "checklist" */ ?>
-                    "list" =>"<?=$tc['list']?>"),
-<? endif; /* $tc['list'] */ ?>
+                    "enum" =>"<?=$tc['enum']?>"),
+<? endif; /* $tc['enum'] */ ?>
 <? if ($tc['type'] == "date"): ?>
             array("target" =>"<?=$tc['short_name']?>",
                     "filter" =>"date"),

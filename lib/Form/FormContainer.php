@@ -192,12 +192,12 @@ class FormContainer extends ArrayObject
             $form_param_name = "_f";
             $form_name = $this->getFormName();
             // csrf_checkの指定があればCSRF対策キーを確認する
-            if ($this->def["csrf_check"] && $request["_csrf_credential"]!=md5(session_id())) {
+            if ($this->def["csrf_check"] && $request["_csrf_token"]!=md5(session_id())) {
                 $this->received = false;
             // form_param_nameに自分のform_nameが設定されていれば受け取り状態
             } elseif ($form_name && $request[$form_param_name]==$form_name) {
                 foreach ($request as $k => $v) {
-                    if ($k==$form_param_name) {
+                    if ($k==$form_param_name || $k=="_csrf_token") {
                         continue;
                     }
                     $values[$k] = $v;
@@ -217,8 +217,6 @@ class FormContainer extends ArrayObject
      */
     public function setInputValues ($input_values)
     {
-        // formタグの仕様により混入する非正規な空データを削除
-        array_clean($input_values);
         // 入力値の変換処理
         foreach ($this->def["fields"] as $field_name => $field_def) {
             // 変換処理がなければスキップ
@@ -236,6 +234,8 @@ class FormContainer extends ArrayObject
                 return $value;
             });
         }
+        // formタグの仕様により混入する非正規な空データを削除
+        array_clean($input_values);
         // 処理済みの値を設定
         $this->setValues($input_values);
     }
@@ -257,7 +257,7 @@ class FormContainer extends ArrayObject
         if ($this->def["csrf_check"]) {
             $content .= tag("input",array(
                 "type" => "hidden",
-                "name" => "_csrf_credential",
+                "name" => "_csrf_token",
                 "value" => md5(session_id()),
             ));
         }

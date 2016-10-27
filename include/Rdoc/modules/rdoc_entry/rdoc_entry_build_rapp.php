@@ -81,7 +81,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         }
 
         foreach ((array)$this->tables as $t_name => $t) {
-
+/*
             foreach ((array)$t["fields"] as $tc_name => $tc) {
 
                 if ($tc["list"]) {
@@ -94,7 +94,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
                     $this->arch_template($src,$dest,array("t" =>$t, "tc" =>$tc));
                 }
             }
-
+*/
             if ( ! $t["nomodel"]) {
 
                 // Modelの構築
@@ -113,6 +113,25 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
             $dest =registry("Path.webapp_dir")
                     ."/app/Table/".str_camelize($t["name"])."Table.php";
             $this->arch_template($src,$dest,array("t" =>$t));
+        }
+
+        // Enumの収集
+        $enums = array();
+        foreach ((array)$this->tables as $t_name => $t) {
+            foreach ((array)$t["fields"] as $tc_name => $tc) {
+                if ($tc["enum"] && preg_match('!^([^\.]+)\.([^\.]+)$!',$tc["enum"],$match)) {
+                    $enums[$match[1]][] = $match[2];
+                }
+            }
+        }
+        // Enumの構築
+        foreach ($enums as $enum_name => $set_names) {
+            $enum = array("enum_name"=>$enum_name, "set_names"=>$set_names);
+            $src =$this->find_skel($t["skel"],
+                    "table/MemberEnum.php");
+            $dest =registry("Path.webapp_dir")
+                    ."/app/Enum/".str_camelize($enum_name)."Enum.php";report($dest);
+            $this->arch_template($src,$dest,array("enum" =>$enum));
         }
 
         // configの構築
@@ -265,56 +284,56 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
                 // データ表現別のオプション付加
                 if ($tc['type'] == "date") {
 
-                    $tc['modifier'] ='|date:"Y/m/d"';
-                    $tc['input_option'] =' range="2010~+5" format="{%l}{%yp}{%mp}{%dp}{%datefix}"';
+                    //$tc['modifier'] ='|date:"Y/m/d"';
+                    //$tc['input_option'] =' range="2010~+5" format="{%l}{%yp}{%mp}{%dp}{%datefix}"';
                 }
 
                 if ($tc['type'] == "textarea") {
 
                     $tc['modifier'] ='|nl2br';
-                    $tc['input_option'] =' cols="40" rows="5"';
+                    //$tc['input_option'] =' cols="40" rows="5"';
                 }
 
                 if ($tc['type'] == "text") {
 
-                    $tc['input_option'] =' size="40"';
+                    //$tc['input_option'] =' size="40"';
                 }
 
                 if ($tc['type'] == "password") {
 
                     $tc['modifier'] ='|hidetext';
-                    $tc['input_option'] =' size="40"';
+                    //$tc['input_option'] =' size="40"';
                 }
 
                 if ($tc['type'] == "file") {
 
-                    $group =$tc['group']
-                            ? $tc['group']
-                            : "public";
-
+                    $group =$tc['group'] ? $tc['group'] : "public";
                     $tc['modifier'] ='|userfile:"'.$group.'"';
                     $tc['input_option'] =' group="'.$group.'"';
+
+                    // FileStorage対応
+                    $storage = $tc['storage'] ? $tc['storage'] : "tmp";
+                    $tc['field_def'] =' => array("input_convert"=>"file_upload", "storage"=>"'.$storage.'")';
                 }
 
-                if ($tc['type'] == "checkbox") {
-
-                    $tc['modifier'] ='|selectflg';
-                    $tc['input_option'] =' value="1"';
+                // Enum対応
+                if ($tc['type'] == "select" || $tc['type'] == "radioselect" || $tc['type'] == "checklist") {
+                    $tc['enum'] = $tc['enum'] ? $tc['enum'] : $t_name.".".$tc_name;
                 }
 
                 if ($tc['type'] == "select" || $tc['type'] == "radioselect") {
 
-                    $tc['modifier'] ='|select:"'.$tc['list'].'"';
-                    $tc['input_option'] =' options="'.$tc['list'].'"';
+                    $tc['modifier'] ='|enum:"'.$tc['enum'].'"';
+                    $tc['input_option'] =' enum="'.$tc['enum'].'"';
                 }
 
                 if ($tc['type'] == "checklist") {
 
-                    $tc['modifier'] ='|select:"'.$tc['list'].'"|@tostring:" "';
-                    $tc['input_option'] =' options="'.$tc['list'].'"';
+                    $tc['modifier'] ='|enum:"'.$tc['enum'].'"|@tostring:" "';
+                    $tc['input_option'] =' enum="'.$tc['enum'].'"';
                 }
 
-                $tc['input_option'] .=' class="input-'.$tc['type'].'"';
+                //$tc['input_option'] .=' class="input-'.$tc['type'].'"';
 
                 // DB上のカラムに対応するcolsに登録
                 if ($tc['def']['type'] != "" && $tc['def']['type'] != "virtual") {

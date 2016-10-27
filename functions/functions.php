@@ -51,6 +51,14 @@
     }
 
     /**
+     * @facade R\Lib\Enum\EnumFactory::getInstance
+     */
+    function enum ($enum_set_name=null, $group=null)
+    {
+        return R\Lib\Enum\EnumFactory::getInstance($enum_set_name, $group);
+    }
+
+    /**
      * @facade R\Lib\Frontend\FrontendAssetManager::getInstance
      */
     function asset () {

@@ -14,14 +14,20 @@ class UtilProxyManager
      */
     public static function getProxy ($class_name, $singleton=false) {
         // Classの探索
-        if (class_exists($class_name)) {
-        } elseif (class_exists($found_class_name = "R\\Lib\\Util\\".$class_name)) {
-            $class_name = $found_class_name;
-        } elseif (class_exists($found_class_name = "R\\App\\Util\\".$class_name)) {
-            $class_name = $found_class_name;
+        if (class_exists($found_class_name_app = "R\\App\\Util\\".$class_name)) {
+            $class_name = $found_class_name_app;
+        } elseif (class_exists($found_class_name_lib = "R\\Lib\\Util\\".$class_name)) {
+            $class_name = $found_class_name_lib;
+        } elseif (class_exists($found_class_name_core = "R\\Lib\\Core\\Util\\".$class_name)) {
+            $class_name = $found_class_name_core;
         } else {
             report_error("クラスが定義されていません",array(
                 "class_name" => $class_name,
+                "find_class_name" => array(
+                    $found_class_name_app,
+                    $found_class_name_lib,
+                    $found_class_name_core,
+                ),
             ));
         }
         // Staticメソッドの呼び出し
@@ -46,7 +52,6 @@ class UtilProxyManager
 class MethodCallProxy
 {
     private $class;
-
     /**
      * @override
      */
@@ -54,12 +59,18 @@ class MethodCallProxy
     {
         $this->class = $class;
     }
-
     /**
      * @override
      */
     public function __call ($method_name, $args)
     {
-        return call_user_func_array(array($this->class_name,$method_name), $args);
+        if ( ! is_callable(array($this->class,$method_name))) {
+            report_error("メソッドが呼び出せません",array(
+                "is_static" => is_string($this->class),
+                "class" => $this->class,
+                "method_name" => $method_name,
+            ));
+        }
+        return call_user_func_array(array($this->class,$method_name), $args);
     }
 }

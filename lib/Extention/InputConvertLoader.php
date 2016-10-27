@@ -16,7 +16,7 @@ class InputConvertLoader
      * ファイルアップロード
      * field.storageに指定されたFileStorageにファイルを保存する
      */
-    public static function callbackFileUpload ($value, $field_name_parts, $field_def)
+    public static function callbackFileUpload ($value, $parts, $field_def)
     {
         $file = null;
         // 対象が配列ではない
@@ -41,9 +41,44 @@ class InputConvertLoader
                 }
             }
         }
-        // ファイルがアップロードされていなければ変換しない
+        // ファイルがアップロードされていなければ書き換えない
         if ( ! isset($file)) {
             return $value;
         }
+        // アップロードエラーの場合は書き換えない
+        if ($file["error"] != UPLOAD_ERR_OK || ! is_uploaded_file($file["tmp_name"])) {
+            report_warning("ファイルのアップロードに失敗しました",array(
+                "field_name" => implode(".",$parts),
+                "storage" => $field_def["storage"],
+                "file" => $file,
+                "file_error" => $file["error"] != UPLOAD_ERR_OK,
+                "is_invalid_file" => ! is_uploaded_file($file["tmp_name"]),
+            ));
+            return $value;
+        }
+        // アップロード処理
+        $meta = array(
+            "original_filename" => basename($file["name"]),
+            "type" => $file["type"],
+        );
+        $stored_file = file_storage()->create($field_def["storage"], $file["tmp_name"], $meta);
+        if ( ! isset($stored_file)) {
+            report_warning("アップロードファイルのStoredFile作成に失敗しました",array(
+                "field_name" => implode(".",$parts),
+                "storage" => $field_def["storage"],
+                "file" => $file["tmp_name"],
+                "meta" => $meta,
+            ));
+            return $value;
+        }
+        $code = $stored_file->getCode();
+        // アップロードの正常終了
+        report("ファイルが正常にアップロードできました",array(
+            "field_name" => implode(".",$parts),
+            "storage" => $field_def["storage"],
+            "file" => $file,
+            "code" => $code,
+        ));
+        return $code;
     }
 }

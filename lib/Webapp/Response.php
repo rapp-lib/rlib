@@ -9,10 +9,10 @@ class Response extends ArrayObject
 
     public static function getInstance ()
     {
-        if ( ! isset($instance)) {
-            $instance = new Response;
+        if ( ! isset(self::$instance)) {
+            self::$instance = new Response;
         }
-        return $instance;
+        return self::$instance;
     }
 
     /**

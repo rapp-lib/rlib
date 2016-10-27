@@ -192,6 +192,14 @@
     // 出力と同時に終了
     function clean_output_shutdown ($output) {
 
+        // 出力処理を中断
+        if ($_REQUEST["_no_output"]) {
+            report("出力処理を中断しました",array(
+                "output" => $output,
+            ));
+            shutdown_webapp("clean_output");
+        }
+
         // download
         if (is_array($output) && $output["download"]) {
 
@@ -265,6 +273,11 @@
         } else if (is_array($output) && $output["file"]) {
 
             readfile($output["file"]);
+
+        // StoredFile
+        } else if (is_a($output,"R\\Lib\\FileStorage\\StoredFile")) {
+
+            $output->download();
         }
 
         // 以降の出力をバッファに転送
