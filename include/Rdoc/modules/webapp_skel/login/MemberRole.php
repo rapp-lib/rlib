@@ -1,33 +1,23 @@
-<?php
-    $controller = $c["name"];
-    $role = $c["account"];
-
-     print "<!?php\n";
-?>
+<#?php
 namespace R\App\Role;
 
 /**
- *
+ * @role
  */
-class <?=str_camelize($role)?>Role extends Role_App
+class <?=$role->getClassName()?> extends Role_App
 {
     /**
      * @override
      */
     public function loginTrial ($params)
     {
-        $t = array();
-
+        $result = false;
         if ($params["login_id"]) {
-            $t = $params["login_id"]=="test" && $params["login_pass"]=="cftyuhbvg"
-                ? array("id"=>1, "privs"=>array()) : array();
+            if ($params["login_id"]=="test" && $params["login_pass"]=="cftyuhbvg") {
+                $result = array("id"=>1, "privs"=>array());
+            }
         }
-
-        if ( ! $t) {
-            return false;
-        }
-
-        return $t;
+        return $result;
     }
 
     /**
@@ -35,7 +25,7 @@ class <?=str_camelize($role)?>Role extends Role_App
      */
     public function onLoginRequired ($required)
     {
-        redirect("page:<?=$controller?>.login",array(
+        redirect("page:<?=$role->getLoginController()->getName()?>.login",array(
             "redirect" => $this->getAttr("login") ? "" : registry("Request.request_uri"),
         ));
     }
@@ -45,7 +35,6 @@ class <?=str_camelize($role)?>Role extends Role_App
      */
     public function onLogin ()
     {
-        // Session Fixation対策
         session_regenerate_id(true);
     }
 

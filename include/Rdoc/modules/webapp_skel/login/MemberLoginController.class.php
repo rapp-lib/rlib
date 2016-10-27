@@ -38,7 +38,7 @@
                     if ($redirect = $this->forms["login"]["redirect"]) {
                         redirect($redirect);
                     } else {
-                        redirect("/");
+                        <?php/*$controller->getRole()->getIndexController()->getName()*/?>redirect("/");
                     }
                 } else {
                     $this->vars["login_error"] = true;
@@ -59,6 +59,6 @@
         // ログアウト処理
         auth()->logout("admin");
         // ログアウト後の転送処理
-        redirect("/");
+        redirect("page:.login");
     }
 }

@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Builder {
+namespace R\Lib\Builder;
 
 use R\Lib\Builder\Element\SchemaElement;
 
@@ -8,229 +8,133 @@ use R\Lib\Builder\Element\SchemaElement;
  */
 class WebappBuilder
 {
-    static $schema = null;
+    private static $instance = null;
 
-    public static function getSchema ()
+    private $config = array();
+
+    public static function getInstance ()
     {
-        if (static::$schema) {
-            return static::$schema;
+        if ( ! static::$instance) {
+            static::$instance = new WebappBuilder();
         }
-        return static::$schema = new SchemaElement;
+        return static::$instance;
     }
-}
-
-}
-namespace R\Lib\Builder\Element {
-
-/**
- *
- */
-abstract class Element_Base
-{
-    protected $name;
-    protected $attrs;
-    protected $parent;
-
-    abstract protected function init ();
-
-    public function __construct ($name="", $attrs=array(), $parent=null)
+    /**
+     * SchemaRegistryからSchemaElementを構築する
+     */
+    public function initSchemaFromRegistry ()
     {
-        $this->name = $name;
-        $this->attrs = $attrs;
-        $this->parent = $parent;
-
-        $this->init();
+        $this->schema = new SchemaElement();
+        $controllers = (array)registry("Schema.controller");
+        $tables = (array)registry("Schema.tables");
+        $this->schema->loadFromSchema($controllers, $tables);
     }
-
-    public function getName ()
+    /**
+     * 全ファイルを展開する
+     */
+    public function deployAll ()
     {
-        return $this->name;
-    }
-
-    public function getAttr ($key=null)
-    {
-        if ( ! $key) {
-            return $this->attrs;
+        // Roleに関わるファイルの展開
+        foreach (builder()->getSchema()->getRole() as $role) {
+            // ヘッダーHTMLファイルの展開
+            $source = builder()->fetch("wrapper/default_header.html",array("role"=>$role));
+            builder()->deploy("/html/include/".$role->getName()."_header.html", $source);
+            // フッターHTMLファイルの展開
+            $source = builder()->fetch("wrapper/default_footer.html",array("role"=>$role));
+            builder()->deploy("/html/include/".$role->getName()."_footer.html", $source);
+            // Roleクラスの展開
+            $source = builder()->fetch("login/MemberRole.php",array("role"=>$role));
+            builder()->deploy("/app/Role/".$role->getClassName().".php", $source);
         }
-        return $this->attrs[$key];
-    }
-
-    public function getParent ()
-    {
-        return $this->parent;
-    }
-
-    public function getRoot ()
-    {
-        if ( ! $this->parent) {
-            return $this;
-        } else {
-            return $this->getParent()->getRoot();
+        // Tableに関わるファイルの展開
+        foreach (builder()->getSchema()->getTable() as $table) {
+            // Tableクラスの展開
+            $source = builder()->fetch("table/MemberTable.php",array("table"=>$table));
+            builder()->deploy("/app/Table/".$table->getClassName().".php", $source);
         }
-    }
-}
-
-/**
- *
- */
-class SchemaElement extends Element_Base
-{
-    protected $schema = null;
-    protected $controllers = array();
-
-    protected function init ()
-    {
-    }
-
-    public function loadFromSchema ($controllers, $tables)
-    {
-        // Controller登録
-        foreach ($controllers as $controller_name => $controller_attrs) {
-            $this->controllers[$controller_name] = new ControllerElement(
-                $controller_name, $controller_attrs, $this);
+        // Enumに関わるファイルの展開
+        foreach (builder()->getSchema()->getEnum() as $enum) {
+            // Enumクラスの展開
+            $source = builder()->fetch("table/MemberEnum.php",array("enum"=>$enum));
+            builder()->deploy("/app/Enum/".$enum->getClassName().".php", $source);
         }
-
-        // Table登録
-        foreach ($tables as $table_name => $table_attrs) {
-            $this->tables[$table_name] = new TableElement(
-                $table_name, $table_attrs, $this);
+        // routing.config.phpの構築
+        $source = builder()->fetch("config/routing.config.php",array("schema"=>builder()->getSchema()));
+        builder()->deploy("/config/routing.config.php", $source);
+    }
+    /**
+     * @getter
+     */
+    public function getSchema ()
+    {
+        return $this->schema;
+    }
+    /**
+     * @setter
+     */
+    public function setConfig ($config)
+    {
+        foreach ($config as $key => $value) {
+            $this->config[$key] = $value;
         }
     }
-
-    public function getController ($controller_name=null)
+    /**
+     * @getter
+     */
+    public function getConfig ($key)
     {
-        if ( ! $controller_name) {
-            return $this->controllers;
+        if ($key == "template_dir") {
+            return __DIR__."/../../include/Rdoc/modules/webapp_skel";
+        } elseif ($key == "current_dir") {
+            return registry("Path.webapp_dir");
+        } elseif ($key == "deploy_dir") {
+            return registry("Path.webapp_dir");
+        } elseif ($key == "schema_csv_file") {
+            return registry("Path.webapp_dir")."/config/schema.config.csv";
+        } elseif ($key == "dryrun") {
+            return false;
+        } elseif ($key == "show_source") {
+            return true;
         }
-        return $this->controllers[$controller_name];
+        if ( ! isset($this->config[$key])) {
+            report_error("設定がありません",array(
+                "key" => $key,
+                "config" => $this->config,
+            ));
+        }
+        return $this->config[$key];
     }
-}
-
-/**
- *
- */
-class ControllerElement extends Element_Base
-{
-    protected $actions = array();
-
-    protected function init ()
+    /**
+     * テンプレートファイルの読み込み
+     */
+    public function fetch ($template_name, $vars=array())
     {
-        $list =array();
-
-        if ($this->getAttr("type") == "index") {
-            $list["index"] =array("label"=>"INDEX", "has_html"=>true);
-        }
-        if ($this->getAttr("type") == "login") {
-            $list["index"] =array("label"=>"TOP", "has_html"=>false);
-            $list["login"] =array("label"=>"ログイン", "has_html"=>true);
-            $list["logout"] =array("label"=>"ログアウト", "has_html"=>false);
-        }
-        if ($this->getAttr("type") == "master") {
-            $list["index"] =array("label"=>"TOP", "has_html"=>false);
-            if ($this->getAttr("usage") != "form") {
-                $list["view_list"] =array("label"=>"一覧", "has_html"=>true);
-            }
-            if ($this->getAttr("usage") != "view") {
-                $list["entry_form"] =array("label"=>"入力", "has_html"=>true);
-                $list["entry_confirm"] =array("label"=>"入力確認", "has_html"=>true);
-                $list["entry_exec"] =array("label"=>"入力完了", "has_html"=>true);
-            }
-            if ($this->getAttr("usage") != "form" && $this->getAttr("usage") != "view") {
-                $list["delete"] =array("label"=>"削除", "has_html"=>false);
-            }
-            if ($this->getAttr("usage") != "form" && $this->getAttr("use_csv")) {
-                $list["view_csv"] =array("label"=>"CSVエクスポート", "has_html"=>false);
-            }
-            if ($this->getAttr("usage") != "view" && $this->getAttr("use_csv")) {
-                $list["entry_csv_form"] =array("label"=>"CSVインポート", "has_html"=>true);
-                $list["entry_csv_confirm"] =array("label"=>"CSVインポート 確認", "has_html"=>false);
-                $list["entry_csv_exec"] =array("label"=>"CSVインポート 完了", "has_html"=>false);
-            }
-        }
-
-        foreach ($list as $action_name => $action_attrs) {
-            $this->actions[$action_name] = new ActionElement(
-                $action_name, $action_attrs, $this);
-        }
+        $template_file = $this->getConfig("template_dir")."/".$template_name;
+        extract($vars,EXTR_REFS);
+        ob_start();
+        include($template_file);
+        $source = ob_get_clean();
+        $source = str_replace(array('<!?','<#?'),'<?',$source);
+        return $source;
     }
-
-    public function getAction ($action_name=null)
+    /**
+     * ファイルの展開
+     */
+    public function deploy ($deploy_name, $source)
     {
-        if ( ! $action_name) {
-            return $this->actions;
+        $current_file = $this->getConfig("current_dir")."/".$deploy_name;
+        $deploy_file = $this->getConfig("deploy_dir")."/".$deploy_name;
+        $status = "new";
+        if (file_exists($current_file)) {
+            $current_source = file_get_contents($current_file);
+            $status = crc32($current_source)==crc32($source) ? "nochange" : "overwrite";
         }
-        return $this->actions[$action_name];
-    }
-}
-
-/**
- *
- */
-class ActionElement extends Element_Base
-{
-    protected function init ()
-    {
-    }
-
-    public function getPath ()
-    {
-        $controller_name = $this->getParent()->getName();
-        $action_name = $this->getName();
-
-        $path = "/".str_replace('_','/',$controller_name);
-
-        // act_index単一であれば階層を上げる
-        if (count($this->getParent()->getAction())==1 && $action_name=="index") {
-            $path .= ".html";
-        } else {
-            $path .= "/".$action_name.".html";
+        if ( ! $this->getConfig("dryrun")) {
+            util("File")->write($deploy_file, $source);
         }
-
-        return $path;
-    }
-
-    public function getPage ()
-    {
-        $controller_name = $this->getParent()->getName();
-        $action_name = $this->getName();
-        return $controller_name.".".$action_name;
-    }
-}
-
-/**
- *
- */
-class TableElement extends Element_Base
-{
-    protected $cols = array();
-
-    protected function init ()
-    {
-        $list = $this->attrs["cols"];
-        foreach ($list as $col_name => $col_attrs) {
-            $this->cols[$col_name] = new ColElement(
-                $col_name, $col_attrs, $this);
+        report("ファイルの展開 ".$status." ".$deploy_name);
+        if ($status != "nochange" && $this->getConfig("show_source")) {
+            print '<pre>'.htmlspecialchars($source)."</pre>";
         }
     }
-
-    public function getCol ($col_name=null)
-    {
-        if ( ! $col_name) {
-            return $this->cols;
-        }
-        return $this->actions[$col_name];
-    }
-}
-
-/**
- *
- */
-class ColElement extends Element_Base
-{
-    protected function init ()
-    {
-    }
-}
-
-
 }

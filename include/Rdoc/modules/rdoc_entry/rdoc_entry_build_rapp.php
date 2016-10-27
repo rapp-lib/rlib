@@ -30,17 +30,32 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
                 date("Y/m/d H:i"),
                 $_SERVER["REQUEST_URI"]."?".$_SERVER["QUERY_STRING"]);
 
+        // Registry_Schema_Tableの補完
         $this->fetch_table_schema();
+        registry("Schema.tables",false);
+        registry("Schema.tables",$this->tables);
+        // Registry_Schema_Controllerの補完
+        foreach ((array)registry("Schema.controller") as $name => $c) {
+            $c["name"] =$name;
+            $c["access_as"] = $c["access_as"] ? $c["access_as"] : $c["accessor"];
+            $c["priv_required"] = $c["priv_required"] ? $c["priv_required"] : ($c["auth"] ? "true" : "false");
+            $c["header"] ='{{inc path="/include/'.$c["access_as"].'_header.html"}}';
+            $c["footer"] ='{{inc path="/include/'.$c["access_as"].'_footer.html"}}';
+            registry("Schema.controller.".$name,$c);
+        }
 
+        builder()->initSchemaFromRegistry();
+        builder()->deployAll();
+/*
         $wrapper_cache =array();
-
-        builder()->loadFromSchema((array)registry("Schema.controller"), $this->tables);
-
+*/
         // Controllerの構築
         foreach ((array)registry("Schema.controller") as $name => $c) {
 
+/*
             $c["name"] =$name;
-
+            $c["header"] ='{{inc path="/include/'.$c["access_as"].'_header.html"}}';
+            $c["footer"] ='{{inc path="/include/'.$c["access_as"].'_footer.html"}}';
             // 共通パーツの生成
             if ( ! $c["wrapper"] && $c["accessor"]) {
                 $c["wrapper"] =$c["accessor"];
@@ -72,7 +87,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 
                 $wrapper_cache[$c["wrapper"]] =true;
             }
-
+*/
             $method_name ="build_controller_".$c["type"];
 
             registry("Schema.controller.".$name,$c);
@@ -98,23 +113,24 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
             if ( ! $t["nomodel"]) {
 
                 // Modelの構築
-                /*
+/*
                 $src =$this->find_skel($t["skel"],
                         "model/ProductModel.class.php");
                 $dest =registry("Path.webapp_dir")
                         ."/app/model/".str_camelize($t["name"])."Model.class.php";
                 $this->arch_template($src,$dest,array("t" =>$t));
-                */
+*/
             }
-
+/*
             // Tableの構築
             $src =$this->find_skel($t["skel"],
                     "table/MemberTable.php");
             $dest =registry("Path.webapp_dir")
                     ."/app/Table/".str_camelize($t["name"])."Table.php";
             $this->arch_template($src,$dest,array("t" =>$t));
+*/
         }
-
+/*
         // Enumの収集
         $enums = array();
         foreach ((array)$this->tables as $t_name => $t) {
@@ -133,11 +149,13 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
                     ."/app/Enum/".str_camelize($enum_name)."Enum.php";report($dest);
             $this->arch_template($src,$dest,array("enum" =>$enum));
         }
-
+*/
+/*
         // configの構築
         $src =$this->find_skel("","config/routing.config.php".$key);
         $dest =registry("Path.webapp_dir")."/config/routing.config.php";
         $this->arch_template($src,$dest);
+*/
     }
 
     //-------------------------------------
@@ -148,7 +166,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $t =$this->tables[$c["table"]];
 
         $controller_name = $c["name"];
-        $controller = builder()->getController($controller_name);
+        $controller = builder()->getSchema()->getController($controller_name);
 
         // Controllerの構築
         $src =$this->find_skel($c["skel"],
@@ -180,7 +198,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $t =$this->tables[$c["table"]];
 
         $controller_name = $c["name"];
-        $controller = builder()->getController($controller_name);
+        $controller = builder()->getSchema()->getController($controller_name);
 
         // Controllerの構築
         $src =$this->find_skel($c["skel"],
@@ -202,13 +220,14 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
                     ."/html".$action->getPath();
             $this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
         }
-
+/*
         // Roleの構築
         $src =$this->find_skel($c["skel"],
                 "login/MemberRole.php");
         $dest =registry("Path.webapp_dir")
                 ."/app/Role/".str_camelize($c["account"])."Role.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
+*/
     }
 
     //-------------------------------------
@@ -219,7 +238,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $t =$this->tables[$c["table"]];
 
         $controller_name = $c["name"];
-        $controller = builder()->getController($controller_name);
+        $controller = builder()->getSchema()->getController($controller_name);
 
         // Controllerの構築
         $src =$this->find_skel($c["skel"],

@@ -12,16 +12,6 @@
     // 指定のlistでselect/select_reverseする
     function csvfilter_list_select ($value, $mode, $line, $filter, $csv) {
 
-        // オプションチェック
-        if ( ! $filter["target"] || ! $filter["list"]) {
-
-            report_error('csvfilter:list_select target,listの指定は必須です',array(
-                "filter" =>$filter,
-            ));
-
-            return $value;
-        }
-
         // 空白要素の無視
         if ( ! $value || ($value && is_string($value) && ! strlen($value))) {
 

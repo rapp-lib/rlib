@@ -74,11 +74,11 @@
     }
 
     /**
-     * @facade R\Lib\Builder\WebappBuilder::getSchema
+     * @facade R\Lib\Builder\WebappBuilder::getInstance
      */
     function builder ()
     {
-        return R\Lib\Builder\WebappBuilder::getSchema();
+        return R\Lib\Builder\WebappBuilder::getInstance();
     }
 
     /**

@@ -42,7 +42,7 @@ class InputField
     {
         $values = is_array($this->field_value) ? $this->field_value : array($this->field_value);
         $options = array();
-        if ($enum_name = $this->attrs["enum"]) {report( enum($enum_name));
+        if ($enum_name = $this->attrs["enum"]) {
             if ($enum = enum($enum_name)) {
                 foreach ($enum as $k=>$v) {
                     $selected = in_array($k,$values);

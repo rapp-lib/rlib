@@ -1,14 +1,12 @@
-<?php
-    $enum_class = str_camelize($enum["enum_name"])."Enum";
-?><?="<!?php\n"?>
+<#?php
 namespace R\App\Enum;
 
 /**
  * @enum
  */
-class <?=$enum_class?> extends Enum_App
+class <?=$enum->getClassName()?> extends Enum_App
 {
-<?php foreach ($enum["set_names"] as $set_name): ?>
+<?php foreach ($enum->getSetNames() as $set_name): ?>
     /**
      * @enumset <?=$set_name?><?="\n"?>
      */

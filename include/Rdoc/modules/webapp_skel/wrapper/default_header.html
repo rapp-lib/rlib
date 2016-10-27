@@ -32,8 +32,8 @@
 	<nav>
 		<h2>Menu</h2>
 		<dl>
-<? foreach ((array)$s["controller"] as $name => $c): ?>
-			<dt class="toggle"><a href='{{"<?=$name?>.index"|page_to_url}}' class="button"><?=$c["label"]?></a></dt>
+<? foreach ($role->getAccessibleControllers() as $controller): ?>
+			<dt class="toggle"><a href='{{"<?=$controller->getName()?>.index"|page_to_url}}' class="button"><?=$controller->getAttr("label")?></a></dt>
 <? endforeach; ?>
 			<!--<dd><ul><li class="current"></li></ul></dd>-->
 		</dl>
