@@ -244,15 +244,15 @@
         }
 
         // ここまでの出力をバッファに転送
-        $clean_output_buffer =& ref_globals("clean_output_buffer");
+        // $clean_output_buffer =& ref_globals("clean_output_buffer");
 
-        while (ob_get_level()) {
+        // while (ob_get_level()) {
 
-            $clean_output_buffer .=ob_get_clean();
-        }
+        //     $clean_output_buffer .=ob_get_clean();
+        // }
 
         // 出力部分をバッファ経由で出力
-        ob_start();
+        // ob_start();
 
         // output
         if (is_string($output)) {
@@ -281,9 +281,11 @@
         }
 
         // 以降の出力をバッファに転送
-        ob_start("send_to_clean_output_buffer");
+        // ob_start("send_to_clean_output_buffer");
 
-        shutdown_webapp("clean_output");
+        // shutdown_webapp("clean_output");
+
+        exit;
     }
 
     //-------------------------------------

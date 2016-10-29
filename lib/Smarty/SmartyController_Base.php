@@ -1,9 +1,11 @@
 <?php
 namespace R\Lib\Smarty;
 
+use R\Lib\Form\FormRepositry;
+
 //-------------------------------------
 //
-class SmartyController_Base extends SmartyExtended implements \R\Lib\Form\FormRepositry {
+class SmartyController_Base extends SmartyExtended implements FormRepositry {
 
     protected $controller_name;
     protected $action_name;
@@ -453,6 +455,8 @@ class SmartyController_Base extends SmartyExtended implements \R\Lib\Form\FormRe
         $this->request = request();
         $this->response = $this->request->response();
         $this->forms = form()->addRepositry($this);
+
+        $this->vars = $this->response;
     }
     /**
      * @implements R\Lib\Form\FormRepositry
