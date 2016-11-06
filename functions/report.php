@@ -338,19 +338,24 @@
             // 直接出力
             } else {
 
-                print $html;
+                //print $html;
+                response()->writeReportBuffer($html);
             }
         }
 
         // エラー時の処理停止
         if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
-
-            throw new ReportError(array(
-                "errstr" =>$errstr,
+            response()->error($errstr,array(
                 "options" =>$options,
                 "params" =>$params,
                 "backtraces" =>$backtraces,
             ));
+            // throw new ReportError(array(
+            //     "errstr" =>$errstr,
+            //     "options" =>$options,
+            //     "params" =>$params,
+            //     "backtraces" =>$backtraces,
+            // ));
         }
     }
 

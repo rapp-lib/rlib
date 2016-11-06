@@ -39,6 +39,16 @@ class FrontendAssetManager
 // -- アセット管理
 
     /**
+     * アセットカタログPHPのRouteによりアセットDIR/URLを登録する
+     */
+    public function registerAssetsRoute ($route)
+    {
+        $assets_file = $route->getFile();
+        $assets_url = $route->getUrl();
+        $this->registerAssetsDirUrl(dirname($assets_file), dirname($assets_url));
+    }
+
+    /**
      * アセットDIR/URLを登録する
      * アセットDIR以下の.assets.phpからモジュールカタログを読み込む
      */

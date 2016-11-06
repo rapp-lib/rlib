@@ -11,11 +11,27 @@
     }
 
     /**
+     * @facade registry
+     */
+    function config ($key)
+    {
+        return registry($key);
+    }
+
+    /**
      * @facade R\Lib\Webapp\Request::getInstance
      */
     function request ()
     {
         return R\Lib\Webapp\Request::getInstance();
+    }
+
+    /**
+     * @facade R\Lib\Webapp\Response::getInstance
+     */
+    function response ()
+    {
+        return R\Lib\Webapp\Response::getInstance();
     }
 
     /**
@@ -37,9 +53,17 @@
     /**
      * @facade R\Lib\Route\RouteManager::getInstance
      */
-    function route ()
+    function route ($route_name=null)
     {
-        return R\Lib\Route\RouteManager::getInstance();
+        return R\Lib\Route\RouteManager::getInstance($route_name);
+    }
+
+    /**
+     * @facade R\Lib\Route\RouteManager->getWebroot
+     */
+    function webroot ($webroot_name=null)
+    {
+        return route()->getWebroot($webroot_name);
     }
 
     /**

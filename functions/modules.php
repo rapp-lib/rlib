@@ -222,6 +222,8 @@
 
         static $cache =array();
 
+        //if ( ! class_exists($class_name)) { load_class($class_name); }
+
         if ( ! isset($cache[$class_name])) {
 
             $cache[$class_name] =new $class_name;

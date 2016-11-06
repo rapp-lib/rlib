@@ -9,23 +9,19 @@ class AccountManager
     private $access_role = null;
     private $accounts = array();
     private $account_attrs = array();
-
     /**
      * 指定したアカウント、またはAccountManagerインスタンスを返す
      */
     public static function getInstance ($name=null)
     {
         $account_manager = & ref_globals("account_manager");
-
         if ( ! $account_manager) {
             $account_manager = new self();
         }
-
-        return $name===null
-            ? $account_manager
-            : $account_manager->getAccount($name);
+        return isset($name)
+            ? $account_manager->getAccount($name)
+            : $account_manager;
     }
-
     /**
      * @overload
      */
@@ -33,7 +29,6 @@ class AccountManager
     {
         $this->account_attrs = & ref_session("AccountManager_account_attrs");
     }
-
     /**
      * 指定したアカウントを取得する
      */
@@ -49,7 +44,7 @@ class AccountManager
 
         if ( ! $this->accounts[$role]) {
             // インスタンスの作成
-            $class = $this->getRoleClass($role);
+            $class = "R\\App\\Role\\".str_camelize($role)."Role";
             $this->accounts[$role] = new $class($this);
 
             // セッションからの復帰
@@ -59,7 +54,6 @@ class AccountManager
 
         return $this->accounts[$role];
     }
-
     /**
      * 認証を行う
      */
@@ -71,7 +65,6 @@ class AccountManager
                 "required" => $required,
             ));
         }
-
         // 既に認証済みであれば多重認証処理エラー
         // ※複数のRoleでアクセスする可能性がある場合は共用Roleを用意する
         if ($this->access_role) {
@@ -81,10 +74,8 @@ class AccountManager
             ));
         }
         $this->access_role = $role;
-
         // 認証時の処理呼び出し
         $this->getAccount()->onAccess();
-
         // ログイン必須チェック
         if ($required && ! $this->getAccount()->check($required)) {
             // アクセス要求時の処理呼び出し
@@ -94,7 +85,6 @@ class AccountManager
 
         return true;
     }
-
     /**
      * 認証処理が完了しているかどうか
      */
@@ -102,7 +92,6 @@ class AccountManager
     {
         return $this->access_role;
     }
-
     /**
      * ログイン処理を行う
      */
@@ -129,7 +118,6 @@ class AccountManager
 
         return true;
     }
-
     /**
      * ログアウト処理を行う
      */
@@ -140,7 +128,6 @@ class AccountManager
         // ログアウト時の処理呼び出し
         $this->getAccount($role)->onLogout($params);
     }
-
     /**
      * ログインセッション情報を更新する
      */
@@ -153,20 +140,5 @@ class AccountManager
         }
 
         $this->getAccount($role)->reset($login_account_attr);
-    }
-
-    /**
-     * アカウント生成用のRoleクラスを取得
-     */
-    private function getRoleClass ($role)
-    {
-        $ns = "R\\App\\Role\\";
-        $role_class = str_camelize($role)."Role";
-
-        if (class_exists($role_class)) {
-            return $role_class;
-        }
-
-        return $ns.$role_class;
     }
 }

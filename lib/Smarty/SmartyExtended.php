@@ -24,11 +24,11 @@ class SmartyExtended extends SmartyBC
         parent::__construct();
 
         // テンプレート基本設定
-        $this->left_delimiter ='{{';
-        $this->right_delimiter ='}}';
-        $this->use_include_path =true;
-        $this->php_handling =self::PHP_ALLOW;
-        $this->allow_php_templates =true;
+        $this->left_delimiter = '{{';
+        $this->right_delimiter = '}}';
+        $this->use_include_path = false;
+        $this->php_handling = self::PHP_ALLOW;
+        $this->allow_php_templates = true;
 
         // プラグイン読み込み設定
         $this->registerDefaultPluginHandler(array($this,"pluginHandler"));

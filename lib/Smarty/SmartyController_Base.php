@@ -2,16 +2,17 @@
 namespace R\Lib\Smarty;
 
 use R\Lib\Form\FormRepositry;
+use R\Lib\Auth\Authenticator;
 
 //-------------------------------------
 //
-class SmartyController_Base extends SmartyExtended implements FormRepositry {
+class SmartyController_Base extends SmartyExtended implements FormRepositry, Authenticator {
 
-    protected $controller_name;
-    protected $action_name;
-    protected $vars;
-    protected $contexts;
-    protected $parent_controller;
+    protected $controller_name = null;
+    protected $action_name = null;
+    protected $vars = array();
+    protected $contexts = array();
+    protected $parent_controller = null;
 
     //-------------------------------------
     //
@@ -35,10 +36,6 @@ class SmartyController_Base extends SmartyExtended implements FormRepositry {
 
         $this->controller_name =$controller_name;
         $this->action_name =$action_name;
-
-        //$this->vars =& $this->_tpl_vars;
-        $this->vars =array();
-        $this->contexts =array();
 
         // Smarty上でincにより呼び出された場合、呼び出し元が設定される
         $this->parent =$options["parent_smarty_template"];
@@ -497,5 +494,17 @@ class SmartyController_Base extends SmartyExtended implements FormRepositry {
             "class_name" => get_class($this),
             "form_name" => $form_name,
         ));
+    }
+
+    protected static $access_as = null;
+    protected static $priv_required = false;
+
+    /**
+     * @implements R\Lib\Auth\Authenticator
+     */
+    public static function getAuthenticate ()
+    {
+        $auth = array("access_as"=>static::$access_as, "priv_required"=>static::$priv_required);
+        return $auth;
     }
 }

@@ -1,5 +1,5 @@
 <?php
-namespace R\Util;
+namespace R\Lib\Util;
 
 /**
  * 探索可能なClassを収集する
