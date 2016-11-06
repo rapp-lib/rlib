@@ -15,7 +15,14 @@
      */
     function config ($key)
     {
-        return registry($key);
+        $ref = & $GLOBALS["__REGISTRY__"];
+        if (is_array($key)) {
+            foreach ($key as $k=>$v) {
+                array_add($ref, $k, $v);
+            }
+        } elseif (is_string($key)) {
+            return array_get($ref, $key);
+        }
     }
 
     /**
@@ -251,4 +258,32 @@
                 unset($ref[$k]);
             }
         }
+    }
+
+// -- 移行する
+
+    /**
+     * @deprecated
+     */
+    function start_dync () {
+        if ($dync_key = config("Config.dync_key")) {
+            $dync =(array)$_SESSION["__dync"];
+            $sec =$_REQUEST["__ts"];
+            $min =floor(time()/60);
+            $sec_list =array();
+            foreach (range(-5,5) as $i) {
+                $sec_list[$i] =(substr(md5($dync_key."/".($min+$i)),12,12));
+            }
+            if ($_REQUEST[$dync_key] && $sec && (in_array($sec, $sec_list))) {
+                registry("Config.dync", $_SESSION["__dync"] = array_merge($dync,(array)$_REQUEST[$dync_key]));
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    function str_camelize ($str) {
+
+        return str_replace(' ','',ucwords(str_replace('_', ' ', $str)));
     }

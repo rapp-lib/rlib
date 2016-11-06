@@ -12,10 +12,13 @@ class SmartyFunctionInc
      */
     public static function callback ($params, $smarty)
     {
-        $vars =(array)$params["vars"];
-        $route = route($params["path"] ? $params["path"] : $params["page"]);
+        $route_name = $params["route"];
+        if ( ! $route_name && $params["path"]) {
+            $route_name = $params["path"];
+        }
+        $route = route($route_name);
         $template_file = $route->getFile();
-        $smarty->assign($vars);
+        $smarty->assign((array)$params["vars"]);
         $output = $smarty->fetch($template_file);
         return $output;
     }

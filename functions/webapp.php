@@ -126,57 +126,6 @@
     }
 
     //-------------------------------------
-    // start_dync
-    function start_dync () {
-
-        if ($dync_key =registry("Config.dync_key")) {
-
-            $dync =(array)$_SESSION["__dync"];
-
-            $sec =$_REQUEST["__ts"];
-            $min =floor(time()/60);
-            $sec_list =array();
-
-            foreach (range(-5,5) as $i) {
-
-                $sec_list[$i] =encrypt_string(substr(md5($dync_key."/".($min+$i)),12,12));
-            }
-
-            if ($_REQUEST[$dync_key] && $sec && (in_array($sec, $sec_list))) {
-
-                $dync["auth"] =$dync_key;
-            }
-
-            if ($dync["auth"]) {
-
-                $dync =array_merge($dync,(array)$_REQUEST[$dync_key]);
-
-                $_SESSION["__dync"] =$dync;
-
-                registry("Config.dync",$dync);
-
-                if ($dync["report"]) {
-
-                    //ini_set("display_errors",true);
-                    //ini_set("error_reporting",registry("Report.error_reporting"));
-                }
-            }
-
-            if (registry("Report.report_about_dync")) {
-
-                report("Dync status-report.",array(
-                    "request_ts" =>$_REQUEST["__ts"],
-                    "server_dync_key" =>$dync_key,
-                    "server_min" =>date("Y/m/d H:i",time()),
-                    "server_ts_threashold" =>$sec_list,
-                    "request_dync" =>$_REQUEST[$dync_key],
-                    "session_dync" =>$_SESSION["__dync"],
-                ));
-            }
-        }
-    }
-
-    //-------------------------------------
     // ob_filter
     function mb_output_handler_impl ($html) {
 

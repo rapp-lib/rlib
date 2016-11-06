@@ -198,7 +198,7 @@
     public function act_view_csv ()
     {
         set_time_limit(120);
-        registry("Report.error_reporting",E_USER_ERROR|E_ERROR);
+        error_reporting(E_ERROR);
         // 検索結果の取得
         $this->forms["search"]->restore();
         $res =$this->forms["search"]

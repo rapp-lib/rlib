@@ -9,13 +9,6 @@
     }
 
     //-------------------------------------
-    //
-    function str_camelize ($str) {
-
-        return str_replace(' ','',ucwords(str_replace('_', ' ', $str)));
-    }
-
-    //-------------------------------------
     // ランダム文字列の生成
     function rand_string (
             $length=8,

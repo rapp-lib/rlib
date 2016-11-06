@@ -93,7 +93,7 @@ class Webroot
     }
     /**
      * URLからPathと、必要に応じて埋め込みパラメータを取得する
-     * @return array array($path_tmp, $url_params)
+     * @return array array($path, $url_params, $path_matched)
      */
     public function parseUrl ($url)
     {
@@ -102,7 +102,7 @@ class Webroot
         if (preg_match('!^([^\?]+)\?(.*)$!', $url, $match)) {
             list(, $url, $query_string) =$match;
             parse_str($query_string, $url_params);
-            //$params =array_replace_recursive($url_params, $params);
+            //$params = array_replace_recursive($url_params, $params);
         }
         // webroot_urlを削る
         $webroot_url = $this->getAttr("webroot_url",true);
@@ -123,7 +123,7 @@ class Webroot
         if ($this->pathToPage($path_tmp)) {
             return array($path_tmp, $url_params);
         }
-        // 正規表現一致Routeの確認
+        // パターン一致Routeの確認
         foreach ($this->getPathPatterns() as $path => $pattern) {
             if (preg_match($pattern["regex"], $path_tmp, $match)) {
                 // 埋め込みパラメータの抽出
@@ -132,7 +132,7 @@ class Webroot
                         $url_params[$value_name] = $match[$i+1];
                     }
                 }
-                return array($path, $url_params);
+                return array($path, $url_params, $path_tmp);
             }
         }
         // Route定義のないURL
@@ -166,5 +166,15 @@ class Webroot
             return strlen($b)-strlen($a);
         });
         return $patterns;
+    }
+    /**
+     * @deprecated
+     */
+    public function __report ()
+    {
+        return array(
+            "webroot_name" => $this->webroot_name,
+            "attrs" => $this->attrs,
+        );
     }
 }

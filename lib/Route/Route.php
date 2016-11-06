@@ -32,7 +32,12 @@ class Route
         // "url:"で始まる場合URLと判断する
         } elseif (preg_match('!^(?:url:)(.*)$!',$route_name,$match)) {
             $url = $match[1];
-            list($this->path, $this->url_params) = $this->getWebroot()->parseUrl($url);
+            list($this->path, $this->url_params, $path_matched) = $this->getWebroot()->parseUrl($url);
+            // パターン一致を含むPathであればPage/Pathを独立にする
+            if (isset($path_matched)) {
+                $this->page = $this->getWebroot()->pathToPage($this->path);
+                $this->path = $path_matched;
+            }
         // "file:"で始まる場合ファイル名と判断する
         } elseif (preg_match('!^(?:file:)(.*)$!',$route_name,$match)) {
             $file = $match[1];
@@ -63,7 +68,7 @@ class Route
     public function getPage ()
     {
         if ( ! isset($this->page) && isset($this->path)) {
-            $this->page = $this->webroot->pathToPage($this->path);
+            $this->page = $this->getWebroot()->pathToPage($this->path);
         }
         return $this->page;
     }
@@ -73,7 +78,7 @@ class Route
     public function getPath ()
     {
         if ( ! isset($this->path) && isset($this->page)) {
-            $this->path = $this->webroot->pageToPath($this->page);
+            $this->path = $this->getWebroot()->pageToPath($this->page);
         }
         return $this->path;
     }
@@ -97,7 +102,7 @@ class Route
     public function getFile ()
     {
         $url = $this->getUrl();
-        return strlen($url) ? $this->webroot->getAttr("docroot_dir",true).$url : null;
+        return strlen($url) ? $this->getWebroot()->getAttr("docroot_dir",true).$url : null;
     }
     /**
      *
@@ -111,7 +116,7 @@ class Route
                 $path = str_replace('['.$key.']',$value,$path);
             }
         }
-        return strlen($path) ? $this->webroot->getAttr("webroot_url",true).$path : null;
+        return strlen($path) ? $this->getWebroot()->getAttr("webroot_url",true).$path : null;
     }
     /**
      *
@@ -119,10 +124,10 @@ class Route
     public function getFullUrl ()
     {
         $url = $this->getUrl();
-        return strlen($url) ? "//".$this->webroot->getAttr("domain_name",true).$url : null;
+        return strlen($url) ? "//".$this->getWebroot()->getAttr("domain_name",true).$url : null;
     }
     /**
-     * @deprecate
+     * @deprecated
      */
     public function __report ()
     {

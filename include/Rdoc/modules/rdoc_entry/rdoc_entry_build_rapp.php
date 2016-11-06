@@ -39,8 +39,8 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
             $c["name"] =$name;
             $c["access_as"] = $c["access_as"] ? $c["access_as"] : $c["accessor"];
             $c["priv_required"] = $c["priv_required"] ? $c["priv_required"] : ($c["auth"] ? "true" : "false");
-            $c["header"] ='{{inc path="/include/'.$c["access_as"].'_header.html"}}';
-            $c["footer"] ='{{inc path="/include/'.$c["access_as"].'_footer.html"}}';
+            $c["header"] ='{{inc route="/include/'.$c["access_as"].'_header.html"}}';
+            $c["footer"] ='{{inc route="/include/'.$c["access_as"].'_footer.html"}}';
             registry("Schema.controller.".$name,$c);
         }
 
@@ -172,7 +172,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $src =$this->find_skel($c["skel"],
                 "master/ProductMasterController.class.php");
         $dest =registry("Path.webapp_dir")
-                ."/app/Controller/".str_camelize($c["name"])."Controller.class.php";
+                ."/app/Controller/".str_camelize($c["name"])."Controller.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
 
         // HTMLの構築
@@ -204,7 +204,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $src =$this->find_skel($c["skel"],
                 "login/MemberLoginController.class.php");
         $dest =registry("Path.webapp_dir")
-                ."/app/Controller/".str_camelize($c["name"])."Controller.class.php";
+                ."/app/Controller/".str_camelize($c["name"])."Controller.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
 
         // HTMLの構築
@@ -244,7 +244,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $src =$this->find_skel($c["skel"],
                 "index/ProductMasterController.class.php");
         $dest =registry("Path.webapp_dir")
-                ."/app/Controller/".str_camelize($c["name"])."Controller.class.php";
+                ."/app/Controller/".str_camelize($c["name"])."Controller.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
 
         // HTMLの構築
