@@ -311,13 +311,21 @@
                 ? $options["errno"]
                 : E_USER_NOTICE;
 
+        if ($e = $options["exception"]) {
+            $options["errstr"] =$e->getMessage();
+            $options["errfile"] =$e->getFile();
+            $options["errline"] =$e->getLine();
+            $options["code"] =$e->getCode();
+            $options["backtraces"] =$e->getTrace();
+        }
+
         $backtraces =$options["backtraces"]
                 ? $options["backtraces"]
                 : debug_backtrace();
 
         // レポート出力判定
-        if (get_webapp_dync("report")
-                && (registry("Report.error_reporting") & $options["errno"])) {
+        if (app()->getDebugLevel()
+                && (error_reporting() & $options["errno"])) {
 
             $config =array();
             $config["output_format"] = ! get_cli_mode() && ! registry("Report.output_to_file") ? "html" : "plain";
@@ -345,6 +353,7 @@
 
         // エラー時の処理停止
         if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
+
             response()->error($errstr,array(
                 "options" =>$options,
                 "params" =>$params,

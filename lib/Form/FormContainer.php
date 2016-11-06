@@ -172,7 +172,7 @@ class FormContainer extends ArrayObject
     private function getTmpStorage ()
     {
         if ( ! isset($this->tmp_storage)) {
-            $this->tmp_storage = request()->session(__CLASS__)
+            $this->tmp_storage = session(__CLASS__)
                 ->session("tmp_storage")
                 ->session($this->getTmpStorageName());
         }

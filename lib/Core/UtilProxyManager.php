@@ -6,13 +6,12 @@ namespace R\Lib\Core;
  */
 class UtilProxyManager
 {
-    private static $singleton_proxy =array();
-    private static $static_proxy =array();
+    private static $proxies =array();
 
     /**
      * クラスに対応するMethodCallProxyの取得
      */
-    public static function getProxy ($class_name, $singleton=false) {
+    public static function getProxy ($class_name, $constructor_args=false) {
         // Classの探索
         if (class_exists($found_class_name_app = "R\\App\\Util\\".$class_name)) {
             $class_name = $found_class_name_app;
@@ -31,17 +30,15 @@ class UtilProxyManager
             ));
         }
         // Staticメソッドの呼び出し
-        if ( ! $singleton) {
-            if ( ! self::$static_proxy[$class_name]) {
-                self::$static_proxy[$class_name] = new MethodCallProxy($class_name);
+        if ($constructor_args===false) {
+            if ( ! self::$proxies[$class_name]) {
+                self::$proxies[$class_name] = new MethodCallProxy($class_name);
             }
-            return self::$static_proxy[$class_name];
-        // Singletonオブジェクトのメソッド呼び出し
+            return self::$proxies[$class_name];
+        // インスタンスの作成
         } else {
-            if ( ! self::$singleton_proxy[$class_name]) {
-                self::$singleton_proxy[$class_name] = new MethodCallProxy(new $class_name());
-            }
-            return self::$singleton_proxy[$class_name];
+            $ref = new \ReflectionClass($class_name);
+            return $ref->newInstanceArgs($constructor_args);
         }
     }
 }

@@ -7,12 +7,13 @@ namespace R\Lib\Auth;
 abstract class Role_Base
 {
     protected $account_manager;
-    protected $attrs;
+    protected $state;
+    protected $role_name;
 
     /**
      * ログイン試行
      */
-    abstract public function loginTrial ($attrs);
+    abstract public function loginTrial ($state);
 
     /**
      * ログイン時の処理
@@ -37,9 +38,11 @@ abstract class Role_Base
     /**
      * @override
      */
-    public function __constract ($account_manager)
+    public function __construct ($account_manager, $role_name)
     {
         $this->account_manager = $account_manager;
+        $this->role_name = $role_name;
+        $this->state = $this->getTmpStorage()->get("state");
     }
 
     /**
@@ -47,7 +50,7 @@ abstract class Role_Base
      */
     public function getRole ()
     {
-        return $this->attrs["role"];
+        return $this->role_name;
     }
 
     /**
@@ -55,15 +58,15 @@ abstract class Role_Base
      */
     public function getId ()
     {
-        return $this->attrs["id"];
+        return $this->state["id"];
     }
 
     /**
      * @getter
      */
-    public function getAttr ($name)
+    public function getState ($name)
     {
-        return $this->attrs[$name];
+        return $this->state[$name];
     }
 
     /**
@@ -71,7 +74,7 @@ abstract class Role_Base
      */
     public function isLogin ()
     {
-        return (bool)$this->attrs["login"];
+        return (bool)$this->state["login"];
     }
 
     /**
@@ -88,27 +91,41 @@ abstract class Role_Base
             }
             return true;
         }
-
+        if ( ! $this->isLogin()) {
+            return false;
+        }
         // trueの指定の場合ログインしているかどうかのみ確認
         if ($priv === true) {
-            return $this->attrs["login"];
+            return true;
         }
-
         // 権限を持つか確認
-        foreach ((array)$this->attrs["privs"] as $priv_check) {
+        foreach ((array)$this->state["privs"] as $priv_check) {
             if ($priv_check == $priv) {
                 return true;
             }
         }
-
         return false;
     }
 
     /**
-     * 更新処理
+     * 状態の更新
      */
-    public function reset ($attrs)
+    public function setState ($state)
     {
-        $this->attrs = $attrs;
+        $this->state = $state;
+        $this->getTmpStorage()->set("state",$state);
+    }
+
+    /**
+     * 保存領域の確保
+     */
+    protected function getTmpStorage ()
+    {
+        if ( ! isset($this->tmp_storage)) {
+            $this->tmp_storage = session(__CLASS__)
+                ->session("tmp_storage")
+                ->session($this->role_name);
+        }
+        return $this->tmp_storage;
     }
 }

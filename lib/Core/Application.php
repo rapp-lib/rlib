@@ -46,16 +46,10 @@ class Application
             if (isset($this->running["start_method"])) {
                 $start_method = $this->running["start_method"];
                 unset($this->running["start_method"]);
-                call_user_func(array($this, $this->running["start_method"]));
+                call_user_func(array($this, $start_method));
             }
-            $this->running["ending"] = true;
             $this->end();
         } catch (ApplicationEndingException $e) {
-            $this->running["ending"] = true;
-            $this->end();
-        } catch (Exception $e) {
-            $this->running["ending"] = true;
-            $this->end();
         }
         unset($this->running);
     }
@@ -68,15 +62,20 @@ class Application
             if (isset($this->running["end_method"])) {
                 $end_method = $this->running["end_method"];
                 unset($this->running["end_method"]);
-                call_user_func(array($this, $this->running["end_method"]));
+                call_user_func(array($this, $end_method));
             }
             if ( ! $this->running["ending"]) {
-                $this->running["ending"] = true;
-                throw ApplicationEndingException();
+                throw new ApplicationEndingException();
             }
         }
     }
-
+    /**
+     * アプリケーションが終了準備中になったことを設定
+     */
+    public function ending ()
+    {
+        $this->running["ending"] = true;
+    }
     public function config ($key)
     {
         return config($key);

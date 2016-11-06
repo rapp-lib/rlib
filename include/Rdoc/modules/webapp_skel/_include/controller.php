@@ -14,6 +14,8 @@
     ob_start();
 
 ?><?="<!?php\n\n"?>
+namespace R\App\Controller;
+
 /**
  * @controller
  */

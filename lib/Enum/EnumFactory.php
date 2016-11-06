@@ -13,12 +13,12 @@ class EnumFactory
     /**
      * EnumFactoryインスタンスを取得する
      */
-    public static function getInstance ($enum_set_name=null, $group=null)
+    public static function getInstance ($enum_set_name=false, $group=false)
     {
         if ( ! isset(self::$instance)) {
             self::$instance = new EnumFactory();
         }
-        return isset($enum_set_name)
+        return $enum_set_name!==false
             ? self::$instance->getEnum($enum_set_name, $group)
             : self::$instance;
     }
@@ -26,11 +26,11 @@ class EnumFactory
     /**
      * Enumインスタンスを取得する
      */
-    public function getEnum ($enum_set_name, $parent_key=null)
+    public function getEnum ($enum_set_name, $parent_key=false)
     {
         // Enumインスタンスを作成する
         $enum_id = $enum_set_name.":".$parent_key;
-        if ( ! isset($this->enums[$enum_id])) {
+        if ($this->enums[$enum_id]===false) {
             if (preg_match('!^([^\.]+)(?:\.([^\.]+))?$!', $enum_set_name, $match)) {
                 list(, $enum_name, $set_name) = $match;
                 $enum_class = "R\\App\\Enum\\".str_camelize($enum_name)."Enum";

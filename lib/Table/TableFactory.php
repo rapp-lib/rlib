@@ -16,10 +16,10 @@ class TableFactory
     /**
      * Tableインスタンスを生成
      */
-    public static function getInstance ($table_name=null)
+    public static function getInstance ($table_name=false)
     {
         // TableFactoryインスタンスを取得
-        if ( ! isset($table_name)) {
+        if ($table_name===false) {
             if ( ! isset($instance)) {
                 $instance = new TableFactory;
             }

@@ -36,9 +36,9 @@
                 if (auth()->login("<?=$c["access_as"]?>", $this->forms["login"])) {
                     // ログイン成功時の転送処理
                     if ($redirect = $this->forms["login"]["redirect"]) {
-                        redirect($redirect);
+                        response()->redirectUrl($redirect);
                     } else {
-                        redirect("page:<?=builder()->getSchema()->getController($c["name"])->getRole()->getIndexController()->getName()?>.index");
+                        response()->redirect("<?=builder()->getSchema()->getController($c["name"])->getRole()->getIndexController()->getName()?>.index");
                     }
                 } else {
                     $this->vars["login_error"] = true;
@@ -57,7 +57,7 @@
     public function act_logout ()
     {
         // ログアウト処理
-        auth()->logout("admin");
+        auth()->logout("<?=$c["access_as"]?>");
         // ログアウト後の転送処理
         redirect("page:.login");
     }

@@ -26,7 +26,7 @@ class <?=$role->getClassName()?> extends Role_App
     public function onLoginRequired ($required)
     {
         redirect("page:<?=$role->getLoginController()->getName()?>.login",array(
-            "redirect" => $this->getAttr("login") ? "" : registry("Request.request_uri"),
+            "redirect" => $this->isLogin() ? "" : route()->getCurrentRoute()->getUrl(),
         ));
     }
 

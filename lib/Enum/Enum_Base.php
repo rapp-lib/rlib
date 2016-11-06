@@ -15,7 +15,7 @@ class Enum_Base extends ArrayObject
     /**
      *
      */
-    public function __construct ($set_name, $parent_key=null)
+    public function __construct ($set_name, $parent_key=false)
     {
         $this->set_name = $set_name;
         $this->parent_key = $parent_key;
@@ -41,9 +41,9 @@ class Enum_Base extends ArrayObject
     /**
      * 全てのキーの初期化を行う
      */
-    public function initValues ($keys=null)
+    public function initValues ($keys=false)
     {
-        if (isset($this->parent_key)) {
+        if ($this->parent_key!==false) {
             if (method_exists($this, $method_name = "layered_values_".$this->set_name)) {
                 $values = call_user_func(array($this, $method_name), $this->parent_key, $keys);
                 $this->setValues($values);

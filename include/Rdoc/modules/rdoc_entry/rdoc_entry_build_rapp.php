@@ -172,7 +172,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $src =$this->find_skel($c["skel"],
                 "master/ProductMasterController.class.php");
         $dest =registry("Path.webapp_dir")
-                ."/app/controller/".str_camelize($c["name"])."Controller.class.php";
+                ."/app/Controller/".str_camelize($c["name"])."Controller.class.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
 
         // HTMLの構築
@@ -204,7 +204,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $src =$this->find_skel($c["skel"],
                 "login/MemberLoginController.class.php");
         $dest =registry("Path.webapp_dir")
-                ."/app/controller/".str_camelize($c["name"])."Controller.class.php";
+                ."/app/Controller/".str_camelize($c["name"])."Controller.class.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
 
         // HTMLの構築
@@ -244,7 +244,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         $src =$this->find_skel($c["skel"],
                 "index/ProductMasterController.class.php");
         $dest =registry("Path.webapp_dir")
-                ."/app/controller/".str_camelize($c["name"])."Controller.class.php";
+                ."/app/Controller/".str_camelize($c["name"])."Controller.class.php";
         $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
 
         // HTMLの構築

@@ -8,48 +8,36 @@ class AccountManager
 {
     private $access_role = null;
     private $accounts = array();
-    private $account_attrs = array();
+    private $tmp_storages = array();
     /**
      * 指定したアカウント、またはAccountManagerインスタンスを返す
      */
-    public static function getInstance ($name=null)
+    public static function getInstance ($name=false)
     {
         $account_manager = & ref_globals("account_manager");
         if ( ! $account_manager) {
             $account_manager = new self();
         }
-        return isset($name)
+        return $name!==false
             ? $account_manager->getAccount($name)
             : $account_manager;
     }
     /**
-     * @overload
-     */
-    public function __construct ()
-    {
-        $this->account_attrs = & ref_session("AccountManager_account_attrs");
-    }
-    /**
      * 指定したアカウントを取得する
      */
-    public function getAccount ($role=null)
+    public function getAccount ($role=false)
     {
         // 指定が無ければ認証済みアカウントを取得
-        if ( ! $role) {
+        if ($role===false) {
             if ( ! $this->access_role) {
-                report_error("未認証エラー",array());
+                report_error("未認証エラー");
             }
             $role = $this->access_role;
         }
-
         if ( ! $this->accounts[$role]) {
             // インスタンスの作成
             $class = "R\\App\\Role\\".str_camelize($role)."Role";
-            $this->accounts[$role] = new $class($this);
-
-            // セッションからの復帰
-            $login_account_attr = (array)$this->account_attrs[$role];
-            $this->accounts[$role]->reset($login_account_attr);
+            $this->accounts[$role] = new $class($this, $role);
         }
 
         return $this->accounts[$role];
@@ -97,8 +85,8 @@ class AccountManager
      */
     public function login ($role, $params)
     {
-        // セッション情報を初期化
-        $this->resetLoginAccount($role);
+        // 状態を初期化
+        $this->getAccount($role)->setState(array());
 
         // ログイン試行処理の呼び出し
         $result = $this->getAccount($role)->loginTrial($params);
@@ -106,12 +94,11 @@ class AccountManager
             return false;
         }
 
-        // ログインしたアカウントのセッション情報を更新
-        $result["role"] = $role;
+        // ログインしたアカウントの状態を更新
         $result["login"] = true;
         $result["id"] = (string)$result["id"];
         $result["privs"] = (array)$result["privs"];
-        $this->resetLoginAccount($role, $result);
+        $this->getAccount($role)->setState($result);
 
         // ログイン時の処理呼び出し
         $this->getAccount($role)->onLogin();
@@ -123,22 +110,9 @@ class AccountManager
      */
     public function logout ($role)
     {
-        // セッション情報を初期化
-        $this->resetLoginAccount($role);
+        // 状態を初期化
+        $this->getAccount($role)->setState(array());
         // ログアウト時の処理呼び出し
         $this->getAccount($role)->onLogout($params);
-    }
-    /**
-     * ログインセッション情報を更新する
-     */
-    private function resetLoginAccount ($role, $login_account_attr=null)
-    {
-        if ($login_account_attr) {
-            $this->account_attrs[$role] = $login_account_attr;
-        } else {
-            unset($this->account_attrs[$role]);
-        }
-
-        $this->getAccount($role)->reset($login_account_attr);
     }
 }

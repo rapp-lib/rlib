@@ -35,9 +35,17 @@
     }
 
     /**
+     * @facade R\Lib\Webapp\Session::getInstance
+     */
+    function session ($key)
+    {
+        return R\Lib\Webapp\Session::getInstance($key);
+    }
+
+    /**
      * @facade R\Lib\Auth\AccountManager::getInstance
      */
-    function auth ($name=null)
+    function auth ($name=false)
     {
         return R\Lib\Auth\AccountManager::getInstance($name);
     }
@@ -45,7 +53,7 @@
     /**
      * @facade R\Lib\Table\TableFactory::getInstance
      */
-    function table ($table_name=null)
+    function table ($table_name=false)
     {
         return R\Lib\Table\TableFactory::getInstance($table_name);
     }
@@ -53,7 +61,7 @@
     /**
      * @facade R\Lib\Route\RouteManager::getInstance
      */
-    function route ($route_name=null)
+    function route ($route_name=false)
     {
         return R\Lib\Route\RouteManager::getInstance($route_name);
     }
@@ -61,7 +69,7 @@
     /**
      * @facade R\Lib\Route\RouteManager->getWebroot
      */
-    function webroot ($webroot_name=null)
+    function webroot ($webroot_name=false)
     {
         return route()->getWebroot($webroot_name);
     }
@@ -77,7 +85,7 @@
     /**
      * @facade R\Lib\Enum\EnumFactory::getInstance
      */
-    function enum ($enum_set_name=null, $group=null)
+    function enum ($enum_set_name=false, $group=false)
     {
         return R\Lib\Enum\EnumFactory::getInstance($enum_set_name, $group);
     }
@@ -108,15 +116,15 @@
     /**
      * @facade R\Lib\Core\UtilProxyManager::getProxy
      */
-    function util ($class_name, $singleton=false)
+    function util ($class_name, $constructor_args=false)
     {
-        return R\Lib\Core\UtilProxyManager::getProxy($class_name,$singleton);
+        return R\Lib\Core\UtilProxyManager::getProxy($class_name,$constructor_args);
     }
 
     /**
      * @facade R\Lib\Core\ExtentionManager::getExtention
      */
-    function extention ($extention_group=null, $extention_name=null)
+    function extention ($extention_group, $extention_name)
     {
         return R\Lib\Core\ExtentionManager::getExtention($extention_group, $extention_name);
     }

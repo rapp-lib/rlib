@@ -27,27 +27,30 @@ class RouteManager
 {
     private static $instance = null;
     private $webroots = array();
-    private $current_webroot_name = null;
     private $current_route = null;
     /**
      * インスタンスを取得
      */
-    public static function getInstance ($route_name=null)
+    public static function getInstance ($route_name=false)
     {
         if ( ! isset(self::$instance)) {
             self::$instance = new RouteManager;
         }
-        return isset($route_name)
+        return $route_name !== false
             ? self::$instance->getWebroot()->getRoute($route_name)
             : self::$instance;
     }
     /**
      * Routeインスタンスを取得
      */
-    public function getWebroot ($webroot_name=null)
+    public function getWebroot ($webroot_name=false)
     {
-        if ( ! isset($webroot_name)) {
-            $webroot_name = $current_webroot_name;
+        if ($webroot_name===false) {
+            if ($current_route = $this->getCurrentRoute()) {
+                return $current_route->getWebroot();
+            } else {
+                report_error("CurrentRouteが未設定です");
+            }
         }
         if ( ! $this->webroots[$webroot_name]) {
             $this->webroots[$webroot_name] = new Webroot($this, $webroot_name);
@@ -55,19 +58,11 @@ class RouteManager
         return $this->webroots[$webroot_name];
     }
     /**
-     * 現在アクセスされているWebrootを設定する
-     */
-    public function setCurrentWebroot ($webroot)
-    {
-        $this->current_webroot_name = is_string($webroot) ? $this->getWebroot($webroot_name) : $webroot;
-    }
-    /**
      * 現在アクセスされているRouteを設定する
      */
     public function setCurrentRoute ($route)
     {
         $this->current_route = is_string($route) ? $this->getWebroot()->getRoute($route) : $route;
-        $this->setCurrentWebroot($this->current_route->getWebroot());
     }
     /**
      * 現在アクセスされているRouteを取得する
