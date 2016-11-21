@@ -19,8 +19,10 @@
         }
 
         // listの指定
-        $list_options =get_list($filter["list"]);
-        $list_params =(array)$filter["list_params"];
+        if ($filter["list"]) {
+            $list_options =get_list($filter["list"]);
+            $list_params =(array)$filter["list_params"];
+        }
         if ($filter["enum"]) {
             $enum = enum($filter["enum"],$list_params[0]);
             if ($mode == "r") {

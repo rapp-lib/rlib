@@ -35,7 +35,7 @@ class Rdoc_Schema_WebappBuilderCreateSchema extends WebappBuilder {
 
         $data =$this->load_schema_csv($src_file);
 
-        $this->deploy_src(registry("Path.webapp_dir")."/config/_schema.config.php", $data);
+        $this->deploy_src(registry("Path.webapp_dir")."/config/schema.config.php", $data);
     }
 
     //-------------------------------------

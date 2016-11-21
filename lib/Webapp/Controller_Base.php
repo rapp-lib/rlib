@@ -80,6 +80,8 @@ class Controller_Base implements FormRepositry, Authenticator
      */
     public static function getAuthenticate ()
     {
-        return array("access_as"=>static::$access_as, "priv_required"=>static::$priv_required);
+        return static::$access_as
+            ? array("access_as"=>static::$access_as, "priv_required"=>static::$priv_required)
+            : array();
     }
 }

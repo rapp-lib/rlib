@@ -206,10 +206,10 @@
             ->removePagenation()
             ->selectNoFetch();
         // CSVファイルの書き込み
-        $csv_filename =registry("Path.tmp_dir")
+        $csv_file =registry("Path.tmp_dir")
             ."/csv_output/<?=$t["name"]?>-".date("Ymd-His")."-"
             .sprintf("%04d",rand(0,9999)).".csv";
-        $csv =new CSVHandler($csv_filename,"w",$this->csv_setting);
+        $csv =util("CSVHandler",array($csv_file,"w",$this->csv_setting));
         while ($t = $res->fetch()) {
             $csv->write_line($t);
         }
@@ -258,9 +258,8 @@
                 redirect("page:.entry_csv_form", array("back"=>"1"));
             }
             // CSVファイルを開く
-            $csv_filename =obj("UserFileManager")
-                ->get_uploaded_file($this->forms["entry_csv"]["csv_file"], "private");
-            $csv =new CSVHandler($csv_filename,"r",$this->csv_setting);
+            $csv_file = file_storage()->get($this->forms["entry_csv"]["csv_file"])->getFile();
+            $csv =util("CSVHandler", array($csv_file,"r",$this->csv_setting));
             // DBへの登録処理
             <?=$__table_instance?>->transactionBegin();
             while ($t=$csv->read_line()) {

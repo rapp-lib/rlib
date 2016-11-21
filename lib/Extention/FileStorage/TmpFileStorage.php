@@ -67,7 +67,7 @@ class TmpFileStorage implements FileStorage
         if ( ! file_exists($meta_file)) {
             return null;
         }
-        $meta = (array)json_decode(util("File")->read($meta_file));
+        $meta = (array)json_decode(util("File")->read($meta_file), true);
         return $meta;
     }
     /**

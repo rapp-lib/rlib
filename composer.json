@@ -6,7 +6,6 @@
     "require": {
         "smarty/smarty": "v3.*@stable",
         "doctrine/dbal": "2.*@stable",
-        "ezyang/htmlpurifier": "4.*@stable",
 
         "pear/http_request2": "v2.*@stable",
         "pear/mail": "v1.*@stable",
@@ -14,21 +13,19 @@
     },
     "autoload": {
         "psr-4": {
-            "R\\Lib\\": "lib/",
-
-            "R\\Lib\\Form\\Rule\\": "lib/Extention/ValidateRule/Regacy/"
+            "R\\Lib\\": "lib/"
         },
         "files": [
             "functions/required.php"
         ]
     },
     "include-path":[
-        "include/",
-
-        "../../pear/pear_exception",
-        "../../pear/net_url2",
-        "../../pear/http_request2",
-        "../../pear/mail",
-        "../../pear/mail_mime"
-    ]
+        "include/"
+    ],
+    "config": {
+        "bin-dir": "bin"
+    },
+    "suggest": {
+        "ezyang/htmlpurifier": "Install optionally via your project's composer.json"
+    }
 }

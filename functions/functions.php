@@ -275,8 +275,9 @@
                 $sec_list[$i] =(substr(md5($dync_key."/".($min+$i)),12,12));
             }
             if ($_REQUEST[$dync_key] && $sec && (in_array($sec, $sec_list))) {
-                registry("Config.dync", $_SESSION["__dync"] = array_merge($dync,(array)$_REQUEST[$dync_key]));
+                $_SESSION["__dync"] = array_merge((array)$_SESSION["__dync"],(array)$_REQUEST[$dync_key]);
             }
+            registry("Config.dync", $_SESSION["__dync"]);
         }
     }
 

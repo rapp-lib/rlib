@@ -326,9 +326,9 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 
                 if ($tc['type'] == "file") {
 
-                    $group =$tc['group'] ? $tc['group'] : "public";
-                    $tc['modifier'] ='|userfile:"'.$group.'"';
-                    $tc['input_option'] =' group="'.$group.'"';
+                    //$group =$tc['group'] ? $tc['group'] : "public";
+                    //$tc['modifier'] ='|userfile:"'.$group.'"';
+                    //$tc['input_option'] =' group="'.$group.'"';
 
                     // FileStorage対応
                     $storage = $tc['storage'] ? $tc['storage'] : "tmp";
