@@ -324,8 +324,7 @@
                 : debug_backtrace();
 
         // レポート出力判定
-        if (app()->getDebugLevel()
-                && (error_reporting() & $options["errno"])) {
+        if (app()->getDebugLevel()) {
 
             $config =array();
             $config["output_format"] = ! get_cli_mode() && ! registry("Report.output_to_file") ? "html" : "plain";
@@ -359,12 +358,6 @@
                 "params" =>$params,
                 "backtraces" =>$backtraces,
             ));
-            // throw new ReportError(array(
-            //     "errstr" =>$errstr,
-            //     "options" =>$options,
-            //     "params" =>$params,
-            //     "backtraces" =>$backtraces,
-            // ));
         }
     }
 
