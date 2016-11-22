@@ -67,7 +67,7 @@
 
             $result ="Report depth ".$level." too deep.";
 
-        } elseif ($info =VarsProfiler::profile_function($target_value)) {
+        } elseif ($info =report_profile_function($target_value)) {
 
             $result .='function: '.$info["name"].'@'.$info["file_short"].'[L'.$info["line"].']'.$br_code;
 
@@ -424,6 +424,43 @@
 
             report_buffer_end($all);
         }
+    }
+
+    /**
+     * 関数/メソッドの情報を解析する
+     */
+    function report_profile_function ($func) {
+
+        $info =array();
+        $ref =null;
+
+        if (is_string($func) || ! is_callable($func)) {
+
+            return array();
+        }
+
+        if (is_array($func)) {
+            if ( ! method_exists($func[0], $func[1])) {
+                return array();
+            }
+            $ref =new ReflectionMethod($func[0], $func[1]);
+            $class_name =$ref->getDeclaringClass()->getName();
+
+        } else {
+
+            $ref =new ReflectionFunction($func);
+        }
+
+        $info["name"] =$ref->getName();
+        $info["file"] =$ref->getFileName();
+        $info["line"] =$ref->getStartLine();
+        $info["ns"] =$ref->getNamespaceName();
+        $info["comment"] =$ref->getDocComment();
+        $info["file_short"] =self::to_short_filename($info["file"]);
+
+        $info["params"] =array();
+
+        return $info;
     }
 
 //-------------------------------------
