@@ -123,7 +123,7 @@ class InputField
         } elseif ($this->attrs["type"]=="textarea") {
             $value = isset($this->field_value) ? $this->field_value : $attrs["value"];
             unset($attrs["value"]);
-            $this->html = tag("textarea",$attrs,$value);
+            $this->html = tag("textarea",$attrs,(string)$value);
         // type=fileであれば、valueからhiddenを生成
         } elseif ($this->attrs["type"]=="file") {
             $value = isset($this->field_value) ? $this->field_value : $attrs["value"];

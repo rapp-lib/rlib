@@ -30,7 +30,7 @@ class EnumFactory
     {
         // Enumインスタンスを作成する
         $enum_id = $enum_set_name.":".$parent_key;
-        if ($this->enums[$enum_id]===false) {
+        if ( ! isset($this->enums[$enum_id])) {
             if (preg_match('!^([^\.]+)(?:\.([^\.]+))?$!', $enum_set_name, $match)) {
                 list(, $enum_name, $set_name) = $match;
                 $enum_class = "R\\App\\Enum\\".str_camelize($enum_name)."Enum";
