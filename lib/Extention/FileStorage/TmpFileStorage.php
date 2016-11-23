@@ -17,7 +17,7 @@ class TmpFileStorage implements FileStorage
     protected function createCode ($src_file, $meta=array())
     {
         $ext = preg_match('!\.([^\./]+)$!',$meta["original_filename"],$match) ? ".".$match[1] : "";
-        return $this->storage_name.":/".date("Y/m/d/H/i-s-").mt_rand(1000000,9999999).$ext;
+        return $this->storage_name.":/".date("Y/m/d/His-").mt_rand(100000,999999).$ext;
     }
     /**
      * codeからファイル名を構築する
@@ -106,20 +106,22 @@ class TmpFileStorage implements FileStorage
         $meta = $this->getMeta($code);
         // ファイルの存在確認
         if ( ! $file) {
-            header("HTTP/1.1 404 Not Found");
+            header('HTTP', true, 404);
             return false;
         }
         // ダウンロード権限確認
         if ( ! $this->isAccessible($code,"download")) {
-            header("HTTP/1.1 403 Forbidden");
+            header('HTTP', true, 403);
             return false;
         }
         // Content-Typeヘッダ送信
-        $content_type = isset($meta["type"]) ? $meta["type"] : "application/octet-stream";
-        header("Content-Type: ".$content_type);
+        if (isset($meta["type"])) {
+            header("Content-Type: ".$meta["type"]);
+        }
         // Content-Dispositionヘッダ送信
-        $filename = isset($meta["original_filename"]) ? basename($meta["original_filename"]) : basename($file);
-        header("Content-Disposition: attachment; filename=".$filename);
+        if (isset($meta["original_filename"])) {
+            header("Content-Disposition: attachment; filename=".basename($meta["original_filename"]));
+        }
         // ファイルの内容の送信
         readfile($file);
         return true;
