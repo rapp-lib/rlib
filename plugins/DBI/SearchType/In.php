@@ -1,7 +1,6 @@
 <?php
 
 namespace R\Lib\Query\Search;
-use R\Lib\Query\St;
 
 /**
  *
@@ -23,7 +22,7 @@ class In extends BaseSearch {
             $query =$this->setting["query"];
             $query["conditions"][] =array($this->setting["query_target"] => $input);
 
-            return array($this->setting["target"].' IN ('.Query::stSelect($query).')');
+            return array($this->setting["target"].' IN ('.dbi()->st_select($query).')');
 
         // EXISTS (...query... AND target = input)
         } elseif ($this->setting["query"]) {
@@ -31,7 +30,7 @@ class In extends BaseSearch {
             $query =$this->setting["query"];
             $query["conditions"][] =array($this->setting["target"] => $input);
 
-            return array('EXISTS ('.St::select($query).')');
+            return array('EXISTS ('.dbi()->st_select($query).')');
 
         // target = input
         } else {

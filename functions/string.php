@@ -55,7 +55,7 @@
             $chartable="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") {
 
         $map =str_split($chartable);
-
+/*
         // 32bit compatible crc32
         $crc =abs(crc32($target));
         if ($crc & 0x80000000) {
@@ -65,8 +65,8 @@
         $crc =sprintf('%02d',$crc%100);
 
         $target =$target.$crc;
+*/
         $target =str_split($target);
-
         srand($key);
 
         foreach ($target as $i => $c) {
@@ -100,7 +100,7 @@
         }
 
         $target =implode("",$target);
-
+/*
         if (preg_match('!^(.*?)(..)$!',$target,$match)) {
 
             $target =$match[1];
@@ -112,8 +112,8 @@
                 return $target;
             }
         }
-
-        return null;
+*/
+        return $target;
     }
 
 

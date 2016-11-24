@@ -1,4 +1,5 @@
-
+	
+	jQuery.browser = {};
 	rui.require_js("jquery.datepick/jquery.datepick.min.js");
 	rui.require_js("jquery.datepick/jquery.datepick-ja.js");
 	rui.require_css("jquery.datepick/jquery.datepick.css");

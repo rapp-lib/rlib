@@ -72,6 +72,10 @@ class UserFileManager {
             return null;
         }
 
+        if ( ! file_exists($filename)) {
+            $this->read_backup($group, $code, $filename);
+        }
+
         // ファイルがない
         $file_notfound = ! file_exists($filename) || ! is_file($filename);
 
@@ -108,6 +112,20 @@ class UserFileManager {
         }
 
         return $filename;
+    }
+
+    //-------------------------------------
+    // アップロード完了時のローカルファイルのメタ情報を取得
+    public function get_uploaded_file_meta ($code, $group) {
+        $code =preg_replace('!\.\.!','__',$code);
+        $upload_dir =$this->get_config("upload_dir",$group,true);
+        $filename =$upload_dir."/".$code;
+        if ( ! file_exists($filename.".meta")) {
+            $this->read_backup($group, $code.".meta", $filename.".meta");
+        }
+        return file_exists($meta_filename = $filename.".meta")
+            ? json_decode(file_get_contents($meta_filename),true)
+            : array();
     }
 
     //-------------------------------------
@@ -151,6 +169,7 @@ class UserFileManager {
     public function save_file ($params) {
 
         $group =$params["group"];
+        $meta = array();
 
         // アップロードファイルがない
         if (($params["src_filename"] && ! file_exists($params["src_filename"]))
@@ -204,12 +223,7 @@ class UserFileManager {
         // アップロード時のファイル名を残す設定
         if ($this->get_config("save_raw_filename",$group)
                 && $params["src_filename_alias"]) {
-
-            // 拡張子が許可されている場合のみ指定を有効にする
-            if ($ext) {
-
-                $code =$key."/".basename($params["src_filename_alias"]);
-            }
+            $meta["raw_file_name"] = $params["src_filename_alias"];
         }
 
         $dest_filename =$upload_dir."/".$code;
@@ -247,6 +261,12 @@ class UserFileManager {
 
             $result =file_put_contents($dest_filename,$params["src_data"]);
         }
+
+        // メタデータの書き込み
+        file_put_contents($dest_filename.".meta",json_encode($meta));
+
+        $this->backup($group, $code, $dest_filename);
+        $this->backup($group, $code.".meta", $dest_filename.".meta");
 
         // ファイルの書き込みエラー
         if ( ! $result) {
@@ -325,6 +345,33 @@ class UserFileManager {
     public function get_filename ($code, $group) {
 
         return $this->get_uploaded_file($code, $group);
+    }
+
+    //-------------------------------------
+    // バックアップ
+    public function backup ($group, $code, $filename)
+    {
+        if (file_exists($filename) && $s3_config = $this->get_config("s3_backup",$group)) {
+            require_once __DIR__."/AWS/S3.php";
+            $s3 = new S3($s3_config);
+            $s3->put($filename, $group."/".$code);
+        }
+    }
+
+    //-------------------------------------
+    // バックアップを参照する
+    public function read_backup ($group, $code, $filename)
+    {
+        if ( ! file_exists($filename) && $s3_config = $this->get_config("s3_backup",$group)) {
+            require_once __DIR__."/AWS/S3.php";
+            $s3 = new S3($s3_config);
+            if ($s3_file = $s3->get($group."/".$code)) {
+                if ( ! file_exists(dirname($filename))) {
+                    mkdir(dirname($filename),0775,true);
+                }
+                file_put_contents($filename, $s3_file["Body"]);
+            }
+        }
     }
 }
 

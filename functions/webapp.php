@@ -139,7 +139,7 @@
 
             foreach (range(-5,5) as $i) {
 
-                $sec_list[$i] =encrypt_string(substr(md5($dync_key."/".($min+$i)),12,12));
+                $sec_list[$i] =substr(md5($dync_key."/".($min+$i)),12,12);
             }
 
             if ($_REQUEST[$dync_key] && $sec && (in_array($sec, $sec_list))) {

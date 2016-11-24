@@ -47,6 +47,7 @@
 			
 			// 子の要素をValueでまとめて記録しておく
 			ssp_values[elm_id] ={};
+			ssp_keys[elm_id] =[];
 			
 			// Selectの場合、子Optionを記録
 			if ($("#"+elm_id).get(0).tagName.match(/select/i)) {	
@@ -55,6 +56,7 @@
 					
 					var value =$(this).attr("value");
 					ssp_values[elm_id][value] =$(this);
+					ssp_keys[elm_id].push(value);
 				});
 				
 			// RadioまたはCheckboxならば子Input要素を記録
@@ -64,6 +66,7 @@
 					
 					var value =$("input[type!='hidden']",this).attr("value");
 					ssp_values[elm_id][value] =$(this);
+					ssp_keys[elm_id].push(value);
 				});
 			}
 			
@@ -78,7 +81,8 @@
 				$(elm).children().remove();
 				
 				// あらかじめ記録していた子要素の一覧を処理
-				for (var item_id in ssp_values[elm_id]) {
+				for (var i in ssp_keys[elm_id]) {
+					var item_id = ssp_keys[elm_id][i];
 					
 					// 複数の親に関連づけるよう配列を正規化
 					var pair_items =typeof pair[item_id] == "object"
@@ -105,7 +109,12 @@
 				$(elm).val(current_item_id);
 				
 				// 子の選択要素の変化時の処理を実行
-				$(elm).trigger("change");
+				//$(elm).trigger("change");
+				if (jQuery._data($(elm).get(0)).events) {
+					$.each(jQuery._data($(elm).get(0)).events.change,function(k,f){
+						f.handler();
+					});
+				}
 			};
 			
 			// pairがURLである場合の動関連付け
@@ -145,7 +154,12 @@
 						$(elm).val(current_item_id);
 						
 						// 子の選択要素の変化時の処理を実行
-						$(elm).trigger("change");
+						//$(elm).trigger("change");
+						if (jQuery._data($(elm).get(0)).events) {
+							$.each(jQuery._data($(elm).get(0)).events.change,function(k,f){
+								f.handler();
+							});
+						}
 					}
 				});
 			};
@@ -158,7 +172,8 @@
 			$("#"+parent_elm_id).bind("change",onchange_parent);
 			
 			// 親の選択要素の変化時の処理を実行
-			$("#"+parent_elm_id).trigger("change");
+			onchange_parent();
 		});
 	};
 	window.ssp_values ={};
+	window.ssp_keys ={};
