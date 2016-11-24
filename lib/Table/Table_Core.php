@@ -138,11 +138,26 @@ class Table_Core
     }
 
     /**
+     * Query中でのTable参照名の取得
+     */
+    public function getQueryTableName ()
+    {
+        $query_table_name = $this->query->getAlias();
+        if ( ! $query_table_name) {
+            $query_table_name = $this->query->getTable();
+        }
+        if ( ! $query_table_name) {
+            $query_table_name = static::$table_name;
+        }
+        return $query_table_name;
+    }
+
+    /**
      * ID属性の指定されたカラム名の取得
      */
-    protected function getIdColName ()
+    protected function getIdColName ($full_name=true)
     {
-        $id_col_name = $this->getColNameByAttr("id");
+        $id_col_name = $this->getColNameByAttr("id", $full_name);
         if ( ! $id_col_name) {
             report_error("idカラムが定義されていません",array(
                 "table" => $this,
@@ -154,11 +169,11 @@ class Table_Core
     /**
      * 属性の指定されたカラム名の取得
      */
-    protected function getColNameByAttr ($attr)
+    protected function getColNameByAttr ($attr, $full_name=true)
     {
         foreach (static::$cols as $col_name => $col) {
             if ($col[$attr]) {
-                return $col_name;
+                return $full_name ? $this->getQueryTableName().".".$col_name : $col_name;
             }
         }
         return null;
@@ -333,8 +348,7 @@ class Table_Core
     public function record_hydrate ($record, $data)
     {
         // QueryのFROMとなったテーブル名の確認
-        $query_table_name = $this->query->getAlias();
-        if ( ! $query_table_name) { $query_table_name = $this->query->getTable(); }
+        $query_table_name = $this->getQueryTableName();
         // QueryのFROMとなったテーブル以外の値は階層を下げてHydrate
         foreach ((array)$data as $table_name => $values) {
             foreach ((array)$values as $col_name => $value) {
