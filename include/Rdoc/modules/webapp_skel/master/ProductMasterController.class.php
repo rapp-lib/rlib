@@ -6,9 +6,9 @@
      */
     protected static $form_search = array(
         "search_page" => ".view_list",
-<? if ( ! $t["virtual"]): ?>
+<? if ( ! $t["nodef"]): ?>
         "search_table" => "<?=$t["name"]?>",
-<? endif; /* $t["virtual"]*/ ?>
+<? endif; /* $t["nodef"]*/ ?>
         "fields" => array(
             "freeword" => array("search"=>"word", "target_col"=>array(<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>"<?=$tc['short_name']?>",<? endforeach; ?>)),
             "p" => array("search"=>"page", "volume"=>20),
@@ -24,9 +24,9 @@
     protected static $form_entry = array(
         "auto_restore" => true,
         "form_page" => ".entry_form",
-<? if ( ! $t["virtual"]): ?>
+<? if ( ! $t["nodef"]): ?>
         "table" => "<?=$t["name"]?>",
-<? endif; /* $t["virtual"]*/ ?>
+<? endif; /* $t["nodef"]*/ ?>
         "fields" => array(
             "<?=$t['pkey']?>",
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
@@ -156,15 +156,15 @@
             if ( ! $this->forms["entry"]->isValid()) {
                 redirect("page:.entry_form", array("back"=>"1"));
             }
-<? if ($t["virtual"]): ?>
+<? if ($t["nodef"]): ?>
             // メールの送信
             $this->send_mail(array(
                 "template" => "<?=$c["name"]?>",
                 "vars" => $this->forms["entry"],
             ));
-<? else: /* $t["virtual"] */ ?>
+<? else: /* $t["nodef"] */ ?>
             $this->forms["entry"]->getRecord()->save();
-<? endif; /* $t["virtual"] */ ?>
+<? endif; /* $t["nodef"] */ ?>
             $this->forms["entry"]->clear();
         }
 <? if ($c["usage"] != "form"): ?>

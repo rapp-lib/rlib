@@ -35,8 +35,7 @@ class Migration
         foreach ($tables as $table) {
             $table_def = table()->getDef($table);
             // table_nameの指定がない、ds_nameが一致しないテーブルは対象外
-            if ( ! $table_def["table_name"]
-                || ($table_def["ds_name"] && $ds_name != $table_def["ds_name"])) {
+            if ( ! $table_def["table_name"] || ($table_def["ds_name"] && $ds_name != $table_def["ds_name"])) {
                 continue;
             }
             // Tableクラスの定義からTableSchemaの組み立て
@@ -83,7 +82,9 @@ class Migration
         }
 
         // 主キー
-        $table->setPrimaryKey($id_col_names);
+        if ($id_col_names) {
+            $table->setPrimaryKey($id_col_names);
+        }
 
         // Indexの作成
         foreach ((array)$table_def["indexes"] as $index) {

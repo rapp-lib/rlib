@@ -34,4 +34,11 @@ class TableElement extends Element_Base
         }
         return $this->cols[$col_name];
     }
+    /**
+     * テーブル定義を持つかどうか
+     */
+    public function hasDef ()
+    {
+        return ! $this->getAttr("nodef");
+    }
 }

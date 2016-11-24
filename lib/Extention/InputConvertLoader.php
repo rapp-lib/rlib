@@ -59,7 +59,7 @@ class InputConvertLoader
         // アップロード処理
         $meta = array(
             "original_filename" => basename($file["name"]),
-            "type" => $file["type"],
+            "content_type" => $file["type"],
         );
         $stored_file = file_storage()->create($field_def["storage"], $file["tmp_name"], $meta);
         if ( ! isset($stored_file)) {
