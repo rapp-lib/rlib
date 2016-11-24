@@ -6,9 +6,9 @@
      */
     protected static $form_search = array(
         "search_page" => ".view_list",
-<? if ( ! $t["virtual"]): ?>
+<? if ( ! $t["nodef"]): ?>
         "search_table" => "<?=$t["name"]?>",
-<? endif; /* $t["virtual"]*/ ?>
+<? endif; /* $t["nodef"]*/ ?>
         "fields" => array(
             "freeword" => array("search"=>"word", "target_col"=>array(<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>"<?=$tc['short_name']?>",<? endforeach; ?>)),
             "p" => array("search"=>"page", "volume"=>20),
@@ -24,9 +24,9 @@
     protected static $form_entry = array(
         "auto_restore" => true,
         "form_page" => ".entry_form",
-<? if ( ! $t["virtual"]): ?>
+<? if ( ! $t["nodef"]): ?>
         "table" => "<?=$t["name"]?>",
-<? endif; /* $t["virtual"]*/ ?>
+<? endif; /* $t["nodef"]*/ ?>
         "fields" => array(
             "<?=$t['pkey']?>",
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
@@ -82,9 +82,6 @@
                     "filter" =>"date"),
 <? endif; /* $tc['type'] == "date" */ ?>
 <? endforeach; ?>
-            array("filter" =>"validate",
-                    "required" =>array(),
-                    "rules" =>array()),
         ),
         "ignore_empty_line" =>true,
     );
@@ -159,15 +156,15 @@
             if ( ! $this->forms["entry"]->isValid()) {
                 redirect("page:.entry_form", array("back"=>"1"));
             }
-<? if ($t["virtual"]): ?>
+<? if ($t["nodef"]): ?>
             // メールの送信
             $this->send_mail(array(
                 "template" => "<?=$c["name"]?>",
                 "vars" => $this->forms["entry"],
             ));
-<? else: /* $t["virtual"] */ ?>
+<? else: /* $t["nodef"] */ ?>
             $this->forms["entry"]->getRecord()->save();
-<? endif; /* $t["virtual"] */ ?>
+<? endif; /* $t["nodef"] */ ?>
             $this->forms["entry"]->clear();
         }
 <? if ($c["usage"] != "form"): ?>
@@ -197,8 +194,6 @@
      */
     public function act_view_csv ()
     {
-        set_time_limit(120);
-        error_reporting(E_ERROR);
         // 検索結果の取得
         $this->forms["search"]->restore();
         $res =$this->forms["search"]
@@ -206,17 +201,15 @@
             ->removePagenation()
             ->selectNoFetch();
         // CSVファイルの書き込み
-        $csv_file =registry("Path.tmp_dir")
-            ."/csv_output/<?=$t["name"]?>-".date("Ymd-His")."-"
-            .sprintf("%04d",rand(0,9999)).".csv";
-        $csv =util("CSVHandler",array($csv_file,"w",$this->csv_setting));
+        $csv_file = file_storage()->create("tmp");
+        $csv = util("CSVHandler",array($csv_file->getFile(),"w",$this->csv_setting));
         while ($t = $res->fetch()) {
             $csv->write_line($t);
         }
         // データ出力
-        clean_output_shutdown(array(
-            "download" =>basename($csv_filename),
-            "file" =>$csv_filename,
+        response()->output(array(
+            "download" => "export-".date("Ymd-his").".csv",
+            "stored_file" => $csv_file,
         ));
     }
 
@@ -258,8 +251,8 @@
                 redirect("page:.entry_csv_form", array("back"=>"1"));
             }
             // CSVファイルを開く
-            $csv_file = file_storage()->get($this->forms["entry_csv"]["csv_file"])->getFile();
-            $csv =util("CSVHandler", array($csv_file,"r",$this->csv_setting));
+            $csv_file = file_storage()->get($this->forms["entry_csv"]["csv_file"]);
+            $csv = util("CSVHandler", array($csv_file->getFile(),"r",$this->csv_setting));
             // DBへの登録処理
             <?=$__table_instance?>->transactionBegin();
             while ($t=$csv->read_line()) {

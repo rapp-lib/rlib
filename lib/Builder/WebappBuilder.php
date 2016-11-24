@@ -48,9 +48,11 @@ class WebappBuilder
         }
         // Tableに関わるファイルの展開
         foreach (builder()->getSchema()->getTable() as $table) {
-            // Tableクラスの展開
-            $source = builder()->fetch("table/MemberTable.php",array("table"=>$table));
-            builder()->deploy("/app/Table/".$table->getClassName().".php", $source);
+            if ($table->hasDef()) {
+                // Tableクラスの展開
+                $source = builder()->fetch("table/MemberTable.php",array("table"=>$table));
+                builder()->deploy("/app/Table/".$table->getClassName().".php", $source);
+            }
         }
         // Enumに関わるファイルの展開
         foreach (builder()->getSchema()->getEnum() as $enum) {

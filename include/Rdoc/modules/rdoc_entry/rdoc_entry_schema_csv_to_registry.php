@@ -42,9 +42,9 @@ class Rdoc_Schema_WebappBuilderCreateSchema extends WebappBuilder {
     // SchemaConfigPHP：SchemaCSVファイルを読み込んで、SchemaConfigのPHPを生成する
     protected function load_schema_csv ($filename) {
 
-        $csv =new CSVHandler($filename,"r",array(
+        $csv =util("CSVHandler",array($filename,"r",array(
             "file_charset" =>"SJIS-WIN",
-        ));
+        )));
 
         // 読み込みモード/切り替え行
         $mode ="";

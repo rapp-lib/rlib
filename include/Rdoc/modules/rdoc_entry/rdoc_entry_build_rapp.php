@@ -46,116 +46,13 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 
         builder()->initSchemaFromRegistry();
         builder()->deployAll();
-/*
-        $wrapper_cache =array();
-*/
+
         // Controllerの構築
         foreach ((array)registry("Schema.controller") as $name => $c) {
-
-/*
-            $c["name"] =$name;
-            $c["header"] ='{{inc path="/include/'.$c["access_as"].'_header.html"}}';
-            $c["footer"] ='{{inc path="/include/'.$c["access_as"].'_footer.html"}}';
-            // 共通パーツの生成
-            if ( ! $c["wrapper"] && $c["accessor"]) {
-                $c["wrapper"] =$c["accessor"];
-            }
-            if ( ! $c["wrapper"]) {
-                $c["wrapper"] ='default';
-            }
-
-            $c["header"] =$c["header"] ? $c["header"]
-                    : '{{inc path="/include/'.$c["wrapper"].'_header.html"}}';
-            $c["footer"] =$c["footer"] ? $c["footer"]
-                    : '{{inc path="/include/'.$c["wrapper"].'_footer.html"}}';
-
-            if ( ! $wrapper_cache[$c["wrapper"]]) {
-
-                // Headerコピー
-                $src =$this->find_skel($c["skel"],
-                        "wrapper/default_header.html");
-                $dest =registry("Path.webapp_dir")
-                        ."/html/include/".$c["wrapper"]."_header.html";
-                $this->arch_template($src,$dest,array("c" =>$c, "s" =>registry("Schema")));
-
-                // Footerコピー
-                $src =$this->find_skel($c["skel"],
-                        "wrapper/default_footer.html");
-                $dest =registry("Path.webapp_dir")
-                        ."/html/include/".$c["wrapper"]."_footer.html";
-                $this->arch_template($src,$dest,array("c" =>$c));
-
-                $wrapper_cache[$c["wrapper"]] =true;
-            }
-*/
             $method_name ="build_controller_".$c["type"];
-
             registry("Schema.controller.".$name,$c);
-
             $this->$method_name($c);
         }
-
-        foreach ((array)$this->tables as $t_name => $t) {
-/*
-            foreach ((array)$t["fields"] as $tc_name => $tc) {
-
-                if ($tc["list"]) {
-
-                    // Listの構築
-                    $src =$this->find_skel($t["skel"],
-                            "list/ProductPriceList.class.php");
-                    $dest =registry("Path.webapp_dir")
-                            ."/app/list/".str_camelize($tc["list"])."List.class.php";
-                    $this->arch_template($src,$dest,array("t" =>$t, "tc" =>$tc));
-                }
-            }
-*/
-            if ( ! $t["nomodel"]) {
-
-                // Modelの構築
-/*
-                $src =$this->find_skel($t["skel"],
-                        "model/ProductModel.class.php");
-                $dest =registry("Path.webapp_dir")
-                        ."/app/model/".str_camelize($t["name"])."Model.class.php";
-                $this->arch_template($src,$dest,array("t" =>$t));
-*/
-            }
-/*
-            // Tableの構築
-            $src =$this->find_skel($t["skel"],
-                    "table/MemberTable.php");
-            $dest =registry("Path.webapp_dir")
-                    ."/app/Table/".str_camelize($t["name"])."Table.php";
-            $this->arch_template($src,$dest,array("t" =>$t));
-*/
-        }
-/*
-        // Enumの収集
-        $enums = array();
-        foreach ((array)$this->tables as $t_name => $t) {
-            foreach ((array)$t["fields"] as $tc_name => $tc) {
-                if ($tc["enum"] && preg_match('!^([^\.]+)\.([^\.]+)$!',$tc["enum"],$match)) {
-                    $enums[$match[1]][] = $match[2];
-                }
-            }
-        }
-        // Enumの構築
-        foreach ($enums as $enum_name => $set_names) {
-            $enum = array("enum_name"=>$enum_name, "set_names"=>$set_names);
-            $src =$this->find_skel($t["skel"],
-                    "table/MemberEnum.php");
-            $dest =registry("Path.webapp_dir")
-                    ."/app/Enum/".str_camelize($enum_name)."Enum.php";report($dest);
-            $this->arch_template($src,$dest,array("enum" =>$enum));
-        }
-*/
-/*
-        // configの構築
-        $src =$this->find_skel("","config/routing.config.php".$key);
-        $dest =registry("Path.webapp_dir")."/config/routing.config.php";
-        $this->arch_template($src,$dest);
-*/
     }
 
     //-------------------------------------
@@ -220,14 +117,6 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
                     ."/html".$action->getPath();
             $this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
         }
-/*
-        // Roleの構築
-        $src =$this->find_skel($c["skel"],
-                "login/MemberRole.php");
-        $dest =registry("Path.webapp_dir")
-                ."/app/Role/".str_camelize($c["account"])."Role.php";
-        $this->arch_template($src,$dest,array("c" =>$c, "t" =>$t));
-*/
     }
 
     //-------------------------------------
@@ -382,8 +271,8 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         // DB初期化SQL構築
         foreach ((array)$this->tables as $t_name => $t) {
 
-            if ($t["virtual"]) {
-
+            if ($t["nodef"]) {
+                $this->tables_def[$t_name]["virtual"] = true;
                 continue;
             }
 

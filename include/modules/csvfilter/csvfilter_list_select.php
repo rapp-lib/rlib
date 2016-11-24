@@ -25,9 +25,12 @@
         }
         if ($filter["enum"]) {
             $enum = enum($filter["enum"],$list_params[0]);
+            if ( ! isset($enum)) {
+                report_error("csv_filterのenum指定が不正です", $filter);
+            }
             if ($mode == "r") {
                 $enum->initValues();
-                $enum_reverse = array_reverse($enum);
+                $enum_reverse = array_flip((array)$enum);
             }
         }
 
