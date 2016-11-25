@@ -17,7 +17,9 @@
 {{/if}}
 
 {{form action="{{'.'|page_to_url}}" enctype="multipart/form-data" method="post" form=$forms.entry class="form-entry"}}
+<? if ( ! $t["nodef"]): ?>
 {{input name="id" type="hidden"}}
+<? endif; /* $t["nodef"]*/ ?>
 <table class="tbl_admin detail">
 <? foreach ($this->filter_fields($t["fields"],"input") as $tc): ?>
 	<tr>

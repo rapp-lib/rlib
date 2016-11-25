@@ -28,7 +28,9 @@
         "table" => "<?=$t["name"]?>",
 <? endif; /* $t["nodef"]*/ ?>
         "fields" => array(
+<? if ( ! $t["nodef"]): ?>
             "<?=$t['pkey']?>",
+<? endif; /* $t["nodef"]*/ ?>
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
             "<?=$tc['short_name']?>"<?=$tc['field_def']?>,
 <? endforeach; ?>
@@ -159,8 +161,10 @@
 <? if ($t["nodef"]): ?>
             // メールの送信
             $this->send_mail(array(
-                "template" => "<?=$c["name"]?>",
-                "vars" => $this->forms["entry"],
+                "template" => "sample",
+                "vars" => array(
+                    "form" => $this->forms["entry"],
+                ),
             ));
 <? else: /* $t["nodef"] */ ?>
             $this->forms["entry"]->getRecord()->save();

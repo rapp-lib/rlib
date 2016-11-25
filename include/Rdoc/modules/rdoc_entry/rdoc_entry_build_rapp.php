@@ -271,11 +271,6 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
         // DB初期化SQL構築
         foreach ((array)$this->tables as $t_name => $t) {
 
-            if ($t["nodef"]) {
-                $this->tables_def[$t_name]["virtual"] = true;
-                continue;
-            }
-
             $t_def =& $this->tables_def[$t_name];
             $t_def =(array)$t["def"];
             $t_def["table"] =$t_name;

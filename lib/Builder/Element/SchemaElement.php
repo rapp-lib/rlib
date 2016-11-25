@@ -33,12 +33,12 @@ class SchemaElement extends Element_Base
         // Enum登録
         $enum_set_names = array();
         foreach ($tables as $table_name => $table_attrs) {
-            foreach ((array)$table_attrs["cols"] as $col_name => $col_attrs) {
+            foreach ((array)$table_attrs["cols_all"] as $col_name => $col_attrs) {
                 $enum_set_name = null;
                 if ($col_attrs["enum"]) {
                     $enum_set_name = $col_attrs["enum"];
                 } elseif (in_array($col_attrs["type"],array("select","radioselect","checklist"))) {
-                    $enum_set_name = $table_name.".".$col_name;
+                    $enum_set_name = $table_name.".".$col_name;report_warning($enum_set_name);
                 }
                 if (preg_match('!^([^\.]+)\.([^\.]+)$!',$enum_set_name,$match)) {
                     list(, $enum_name, $set_name) = $match;

@@ -62,7 +62,7 @@ class ValidateRuleLoader
             return false;
         }
         // パラメータチェック
-        if ( ! isset(self::$formats[$rule["format"]])) {
+        if ( ! isset(self::$format_enable[$rule["format"]])) {
             report_error("パラメータの指定が不正です",array(
                 "rule" => $rule,
                 "format_enable" => array_keys(self::$format_enable),

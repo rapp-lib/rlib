@@ -28,6 +28,8 @@
 <? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 </div>
 
+{{if count($ts)>0}}
+
 <table class="tbl_admin list">
 	<tr>
 <? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
@@ -72,6 +74,13 @@
     </ul>
     </div>
 {{/if}}
+
+{{else}}
+
+<p>該当する情報がありません</p>
+
+{{/if}}{{*count($ts)>0*}}
+
 
 </div><!--right-->
 
