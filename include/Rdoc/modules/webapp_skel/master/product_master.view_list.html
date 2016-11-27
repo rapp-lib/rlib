@@ -5,15 +5,15 @@
 <h2 class="admin_h2" id="user"><?=$c["label"]?><span></span></h2>
 
 {{form action="."|page_to_url form=$forms.search}}
-	<div class="ad_btn clearfix">
-		<table class="tbl_admin search">
+    <div class="ad_btn clearfix">
+        <table class="tbl_admin search">
             <tr>
                 <th>フリーワード検索</th>
                 <td>{{input name="freeword" type="text" size="40" class="input-text"}}</td>
             </tr>
-		</table>
-		<a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" class="search"><i class="fa fa-search"></i>検索</a>
-	</div>
+        </table>
+        <a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" class="search"><i class="fa fa-search"></i>検索</a>
+    </div>
 {{/form}}
 
 <div class="ad_btn clearfix">
@@ -31,27 +31,27 @@
 {{if count($ts)>0}}
 
 <table class="tbl_admin list">
-	<tr>
+    <tr>
 <? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
-		<th><?=$tc['label']?></th>
+        <th><?=$tc['label']?></th>
 <? endforeach; ?>
-		<th>&nbsp;</th>
-	</tr>
-	{{foreach $ts as $t}}
-	<tr>
+        <th>&nbsp;</th>
+    </tr>
+    {{foreach $ts as $t}}
+    <tr>
 <? foreach ($this->filter_fields($t["fields"],"list") as $tc): ?>
-		<td>
-			{{$t.<?=$tc['name']?><?=$tc['modifier']?>}}
-		</td>
+        <td>
+            {{$t.<?=$tc['name']?><?=$tc['modifier']?>}}
+        </td>
 <? endforeach; ?>
-		<td>
+        <td>
 <? if ($c["usage"] != "view"): ?>
             <a href='{{".entry_form"|page_to_url|url:["id"=>$t.id]}}' class="edit">編集</a>
             <a href='{{".delete"|page_to_url|url:["id"=>$t.id]}}' class="delete" onclick="return confirm('削除します');">削除</a>
 <? endif; /* $c["usage"] != "view" */ ?>
-		</td>
-	</tr>
-	{{/foreach}}
+        </td>
+    </tr>
+    {{/foreach}}
 </table>
 
 {{if $p = $ts->getPager()}}
