@@ -230,14 +230,12 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
                 }
 
                 if ($tc['type'] == "select" || $tc['type'] == "radioselect") {
-
                     $tc['modifier'] ='|enum:"'.$tc['enum'].'"';
                     $tc['input_option'] =' enum="'.$tc['enum'].'"';
                 }
 
                 if ($tc['type'] == "checklist") {
-
-                    $tc['modifier'] ='|enum:"'.$tc['enum'].'"|@tostring:" "';
+                    $tc['modifier'] ='|enumeach:"'.$tc['enum'].'"|tostring:" "';
                     $tc['input_option'] =' enum="'.$tc['enum'].'"';
                 }
 

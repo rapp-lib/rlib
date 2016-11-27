@@ -135,6 +135,16 @@ class InputField
                 "value" => $value,
             ));
             $this->html = tag("input",$attrs).$hidden_html;
+        // type=passwordであれば、入力値を戻さない
+        } elseif ($this->attrs["type"]=="password") {
+            $this->html = tag("input",$attrs);
+        // type=dateであれば、入力値の形式を日付型に整形
+        } elseif ($this->attrs["type"]=="date") {
+            $attrs["value"] = isset($this->field_value) ? $this->field_value : $attrs["value"];
+            if ($date = longdate($attrs["value"])) {
+                $attrs["value"] = $date["Y"].'-'.$date["m"].'-'.$date["d"];
+            }
+            $this->html = tag("input",$attrs);
         // その他のtypeは標準のタグ表示
         } else {
             $attrs["value"] = isset($this->field_value) ? $this->field_value : $attrs["value"];

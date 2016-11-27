@@ -59,6 +59,11 @@ class Table_Core
     {
         $this->query = new Query;
         $this->result = null;
+
+        // テーブル名を関連づける
+        if (static::$table_name) {
+            $this->query->setTable(static::$table_name);
+        }
     }
 
     /**
@@ -138,24 +143,9 @@ class Table_Core
     }
 
     /**
-     * Query中でのTable参照名の取得
-     */
-    public function getQueryTableName ()
-    {
-        $query_table_name = $this->query->getAlias();
-        if ( ! $query_table_name) {
-            $query_table_name = $this->query->getTable();
-        }
-        if ( ! $query_table_name) {
-            $query_table_name = static::$table_name;
-        }
-        return $query_table_name;
-    }
-
-    /**
      * ID属性の指定されたカラム名の取得
      */
-    protected function getIdColName ($full_name=true)
+    protected function getIdColName ($full_name=false)
     {
         $id_col_name = $this->getColNameByAttr("id", $full_name);
         if ( ! $id_col_name) {
@@ -169,11 +159,11 @@ class Table_Core
     /**
      * 属性の指定されたカラム名の取得
      */
-    protected function getColNameByAttr ($attr, $full_name=true)
+    protected function getColNameByAttr ($attr, $full_name=false)
     {
         foreach (static::$cols as $col_name => $col) {
             if ($col[$attr]) {
-                return $full_name ? $this->getQueryTableName().".".$col_name : $col_name;
+                return $full_name ? $this->query->getTableName().".".$col_name : $col_name;
             }
         }
         return null;
@@ -348,7 +338,7 @@ class Table_Core
     public function record_hydrate ($record, $data)
     {
         // QueryのFROMとなったテーブル名の確認
-        $query_table_name = $this->getQueryTableName();
+        $query_table_name = $this->query->getTableName();
         // QueryのFROMとなったテーブル以外の値は階層を下げてHydrate
         foreach ((array)$data as $table_name => $values) {
             foreach ((array)$values as $col_name => $value) {
@@ -541,14 +531,6 @@ class Table_Core
                 "table" => $this,
             ));
         }
-
-        // テーブル名を関連づける
-        if ( ! static::$table_name) {
-            report_error("Tableが物理定義されていません",array(
-                "table" => $this,
-            ));
-        }
-        $this->query->setTable(static::$table_name);
 
         // Query組み立て処理を呼び出す
         $this->callBuildQueryMethods();

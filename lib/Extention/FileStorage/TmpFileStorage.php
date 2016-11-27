@@ -7,7 +7,7 @@ use R\Lib\Extention\FileStorage\LocalFileStorage;
  * session_idでアクセス制御を行うファイル保存ルール
  * 同一Session内であれば全てのアクセスが許可される
  */
-class TmpFileStorage implements LocalFileStorage
+class TmpFileStorage extends LocalFileStorage
 {
     protected $storage_name = "tmp";
     /**

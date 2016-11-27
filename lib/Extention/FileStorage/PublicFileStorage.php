@@ -6,7 +6,7 @@ use R\Lib\Extention\FileStorage\LocalFileStorage;
 /**
  * 自由にアクセス可能なファイル保存ルール
  */
-class PublicFileStorage implements LocalFileStorage
+class PublicFileStorage extends LocalFileStorage
 {
     protected $storage_name = "public";
     /**

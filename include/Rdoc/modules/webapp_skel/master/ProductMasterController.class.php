@@ -185,7 +185,7 @@
     public function act_delete ()
     {
         if ($id = $this->request["id"]) {
-            table("Product")->deleteById($id);
+            <?=$__table_instance?>->deleteById($id);
         }
         redirect("page:.view_list", array("back"=>"1"));
     }

@@ -65,7 +65,7 @@ class Query extends ArrayObject
             // fieldsであれば、既存の値を削除して値を設定
             if (($op=="add" || $op=="set" || $op=="remove") && $key=="fields") {
                 $fields = array();
-                // 引数の指定はValues/Value/Key,Valueの3パターン
+                // 引数の指定はFields / FieldName / Key(Alias),FieldNameの3パターン
                 if (is_array($args[0])) {
                     $fields = $args[0];
                 } elseif (count($args)==1) {
@@ -77,8 +77,17 @@ class Query extends ArrayObject
                     // 既存の値を削除
                     if ( ! is_numeric($k)) {
                         unset($this[$key][$k]);
+                    // FieldName指定時の削除処理
                     } elseif (($i = array_search($v,(array)$this[$key]))!==false) {
                         unset($this[$key][$i]);
+                    // 既存FieldNameはゆれを含めて削除
+                    } else {
+                        $field_name = preg_match('!\.!',$v)
+                            ? preg_replace('!^'.$this->getTableName().'\.!','',$v)
+                            : $this->getTableName().".".$v;
+                        if (($i = array_search($field_name,(array)$this[$key]))!==false) {
+                            unset($this[$key][$i]);
+                        }
                     }
                     if ($op=="remove") {
                         continue;
@@ -102,9 +111,29 @@ class Query extends ArrayObject
                     $values = array($args[0] => $args[1]);
                 }
                 foreach ($values as $k => $v) {
+                    // 既存FieldNameはゆれを含めて削除
+                    $field_name = preg_match('!\.!',$k)
+                        ? preg_replace('!^'.$this->getTableName().'\.!','',$k)
+                        : $this->getTableName().".".$k;
+                    if (isset($this[$key][$field_name])) {
+                        unset($this[$key][$field_name]);
+                    }
                     $this[$key][$k] = $v;
                 }
                 return;
+
+            // getValuesでField名を指定している場合、FieldNameのゆれを吸収する
+            } elseif ($op=="get" && count($args)==1) {
+                $k = $args[0];
+                $value = $this[$key][$k];
+                // 既存FieldNameはゆれを含めて取得
+                if ( ! isset($value)) {
+                    $field_name = preg_match('!\.!',$k)
+                        ? preg_replace('!^'.$this->getTableName().'\.!','',$k)
+                        : $this->getTableName().".".$k;
+                    $value = $this[$key][$field_name];
+                }
+                return $value;
 
             // get*であればgetter
             } elseif ($op=="get") {
@@ -149,6 +178,14 @@ class Query extends ArrayObject
             "args_count" => count($args),
             "query" => $this,
         ));
+    }
+
+    /**
+     * @getter
+     */
+    public function getTableName ()
+    {
+        return strlen($this["alias"]) ? $this["alias"] : $this["table"];
     }
 
     /**

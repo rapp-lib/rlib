@@ -206,8 +206,8 @@ class Table_Base extends Table_Core
                 "table" => $this,
             ));
         }
-        $this->query->where($login_id_col_name, (string)$login_id);
-        $this->query->where($login_pw_col_name, md5($login_pw));
+        $this->query->where($this->query->getTableName().".".$login_id_col_name, (string)$login_id);
+        $this->query->where($this->query->getTableName().".".$login_pw_col_name, md5($login_pw));
     }
 
     /**
@@ -306,6 +306,8 @@ class Table_Base extends Table_Core
             $value = $this->query->getValue($col_name);
             if (strlen($value)) {
                 $this->query->setValue($col_name, md5($value));
+            } else {
+                $this->query->removeValue($col_name);
             }
         } else {
             return false;
@@ -319,7 +321,7 @@ class Table_Base extends Table_Core
     protected function on_read_attachDelFlg ()
     {
         if ($col_name = $this->getColNameByAttr("del_flg")) {
-            $this->query->where($col_name, 0);
+            $this->query->where($this->query->getTableName().".".$col_name, 0);
         } else {
             return false;
         }

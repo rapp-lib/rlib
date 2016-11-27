@@ -58,9 +58,6 @@ abstract class LocalFileStorage implements FileStorage
         if ( ! file_exists($file)) {
             return null;
         }
-        if ( ! $this->isAccessible($code, "getFile")) {
-            return null;
-        }
         return $file;
     }
     /**
@@ -71,9 +68,6 @@ abstract class LocalFileStorage implements FileStorage
         $file = $this->createFilename($code);
         $meta_file = $file.".meta";
         if ( ! file_exists($meta_file)) {
-            return null;
-        }
-        if ( ! $this->isAccessible($code, "getMeta")) {
             return null;
         }
         $meta = (array)json_decode(util("File")->read($meta_file), true);
