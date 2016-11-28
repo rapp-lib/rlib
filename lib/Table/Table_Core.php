@@ -145,9 +145,9 @@ class Table_Core
     /**
      * ID属性の指定されたカラム名の取得
      */
-    protected function getIdColName ($full_name=false)
+    protected function getIdColName ()
     {
-        $id_col_name = $this->getColNameByAttr("id", $full_name);
+        $id_col_name = $this->getColNameByAttr("id");
         if ( ! $id_col_name) {
             report_error("idカラムが定義されていません",array(
                 "table" => $this,
@@ -159,14 +159,28 @@ class Table_Core
     /**
      * 属性の指定されたカラム名の取得
      */
-    protected function getColNameByAttr ($attr, $full_name=false)
+    protected function getColNameByAttr ($attr, $value=true)
     {
         foreach (static::$cols as $col_name => $col) {
-            if ($col[$attr]) {
-                return $full_name ? $this->query->getTableName().".".$col_name : $col_name;
+            if ($col[$attr]===$value) {
+                return $col_name;
             }
         }
         return null;
+    }
+
+    /**
+     * 属性の指定されたカラム名をすべて取得
+     */
+    protected function getColNamesByAttr ($attr, $value=true)
+    {
+        $cols = array();
+        foreach (static::$cols as $col_name => $col) {
+            if ($col[$attr]===$value) {
+                $cols[] = $col_name;
+            }
+        }
+        return $cols;
     }
 
     /**

@@ -36,7 +36,16 @@ class EnumFactory
                 $enum_class = "R\\App\\Enum\\".str_camelize($enum_name)."Enum";
                 if (class_exists($enum_class)) {
                     $this->enums[$enum_id] = new $enum_class($set_name);
+                } else {
+                    report_error("Enumクラスが定義されていません", array(
+                        "enum_class" => $enum_class,
+                        "enum_set_name" => $enum_set_name,
+                    ));
                 }
+            } else {
+                report_error("enum指定が不正です", array(
+                    "enum_set_name" => $enum_set_name,
+                ));
             }
         }
         return $this->enums[$enum_id];

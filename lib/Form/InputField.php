@@ -43,16 +43,14 @@ class InputField
         $values = is_array($this->field_value) ? $this->field_value : array($this->field_value);
         $options = array();
         if ($enum_name = $this->attrs["enum"]) {
-            if ($enum = enum($enum_name)) {
-                foreach ($enum as $k=>$v) {
-                    $selected = in_array($k,$values);
-                    $options[] = array(
-                        "selected" => $selected,
-                        "checked" => $selected,
-                        "value" => $k,
-                        "label" => $v,
-                    );
-                }
+            foreach (enum($enum_name) as $k=>$v) {
+                $selected = in_array($k,$values);
+                $options[] = array(
+                    "selected" => $selected,
+                    "checked" => $selected,
+                    "value" => $k,
+                    "label" => $v,
+                );
             }
         // @deprecated 旧Listから値を取得
         } elseif ($list_name = $this->attrs["options"]) {

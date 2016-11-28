@@ -19,6 +19,9 @@ class ColElement extends Element_Base
     {
         $def = (array)$this->getAttr("def");
         $def["comment"] = $this->getAttr("label");
+        if ($this->getAttr("type")=="checklist" && ! $def["format"]) {
+            $def["format"] = "json";
+        }
         foreach ($def as $k => $v) {
             if (is_numeric($v)) {
                 $v = $v;

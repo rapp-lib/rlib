@@ -369,7 +369,7 @@ class FormContainer extends ArrayObject
      * 検索ページのURLを取得する
      * ※関係するdef : search_page, fields.search
      */
-    public function getSearchPageUrl ($add_params)
+    public function getSearchPageUrl ($add_params=false)
     {
         if ( ! isset($this->def["search_page"])) {
             report_error("検索ページのURLを取得するにはsearch_pageの指定が必須です",array(
@@ -379,7 +379,7 @@ class FormContainer extends ArrayObject
         $params = array("_f"=>$this->getFormName());
         $values = $this->getValues();
         foreach ($this->def["fields"] as $field_name => $field_def) {
-            if (isset($field_def["search"])) {
+            if ($add_params!==false && isset($field_def["search"])) {
                 $value = $values[$field_name];
                 if (isset($add_params[$field_name])) {
                     $value = $add_params[$field_name];
@@ -444,8 +444,6 @@ class FormContainer extends ArrayObject
             }
             $col_name = $field_def["col"];
             $table_name = $field_def["table"];
-            //TODO: テーブル定義の確認
-            // $col_def = table()->getDef($table_name,$col_name);
             // fields型の場合下層の要素を処理
             if ($field_def["type"]=="fields") {
                 // 要素別の処理
@@ -498,6 +496,8 @@ class FormContainer extends ArrayObject
                 }
             // 下層を処理しない型の処理
             } else {
+                //TODO: テーブル定義の確認
+                // $col_def = table()->getDef($table_name,$col_name);
                 // 値を登録
                 if ($is_record_to_values) {
                     $this[$field_name] = $record[$col_name];

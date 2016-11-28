@@ -13,6 +13,7 @@
             </tr>
         </table>
         <a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" class="search"><i class="fa fa-search"></i>検索</a>
+        <a href="{{$forms.search->getSearchPageUrl()}}" class="search">リセット</a>
     </div>
 {{/form}}
 

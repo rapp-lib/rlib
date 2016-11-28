@@ -297,7 +297,7 @@ class Table_Base extends Table_Core
     }
 
     /**
-     * @hook on_fetch
+     * @hook on_write
      * ハッシュされたパスワードを関連づける
      */
     protected function on_write_hashPw ()
@@ -308,6 +308,36 @@ class Table_Base extends Table_Core
                 $this->query->setValue($col_name, md5($value));
             } else {
                 $this->query->removeValue($col_name);
+            }
+        } else {
+            return false;
+        }
+    }
+    /**
+     * @hook on_write
+     * JSON形式で保存するカラムの処理
+     */
+    protected function on_write_jsonFormat ()
+    {
+        if ($col_names = $this->getColNamesByAttr("format", "json")) {
+            foreach ($col_names as $col_name) {
+                $value = $this->query->getValue($col_name);
+                $this->query->setValue($col_name, json_encode((array)$value));
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @hook on_fetch
+     * JSON形式で保存するカラムの処理
+     */
+    protected function on_fetch_jsonFormat ($record)
+    {
+        if ($col_names = $this->getColNamesByAttr("format", "json")) {
+            foreach ($col_names as $col_name) {
+                $record[$col_name] = (array)json_decode($record[$col_name]);
             }
         } else {
             return false;
