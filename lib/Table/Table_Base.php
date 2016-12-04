@@ -109,6 +109,15 @@ class Table_Base extends Table_Core
 
     /**
      * @hook chain
+     * FROMに対するAS句の設定
+     */
+    public function chain_alias ($alias)
+    {
+        $this->query->setAlias($alias);
+    }
+
+    /**
+     * @hook chain
      * JOIN句の設定
      */
     public function chain_join ($table, $alias=null, $on=array(), $type="LEFT")

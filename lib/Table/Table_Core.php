@@ -184,6 +184,14 @@ class Table_Core
     }
 
     /**
+     * Query上で参照可能なTable名の取得
+     */
+    public function getQueryTableName ()
+    {
+        return $this->query->getTableName();
+    }
+
+    /**
      * @hook result
      * Pagerの取得
      */
@@ -575,6 +583,8 @@ class Table_Core
 
         // Updateを物理削除に切り替え
         if ($type=="update" && $query["delete"]) {
+            unset($query["delete"]);
+            $query["type"] = "delete";
             $type = "delete";
         }
 

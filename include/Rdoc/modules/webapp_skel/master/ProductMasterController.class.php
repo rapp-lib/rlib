@@ -12,7 +12,7 @@
         "fields" => array(
             "freeword" => array("search"=>"word", "target_col"=>array(<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>"<?=$tc['short_name']?>",<? endforeach; ?>)),
             "p" => array("search"=>"page", "volume"=>20),
-            "order" => array("search"=>"sort", "default"=>"<?=$t['pkey']?>@ASC"),
+            "order" => array("search"=>"sort", "default"=>"<?=$t["name"]?>.<?=$t['pkey']?>@ASC"),
         ),
     );
 

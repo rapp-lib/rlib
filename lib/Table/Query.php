@@ -211,14 +211,23 @@ class Query extends ArrayObject
      * @setter
      * joinsを設定する
      */
-    public function join ($table, $alias=null, $on=array(), $type="LEFT")
+    public function join ($table, $on=array(), $type="LEFT")
     {
-        if (is_array($on)) {
+        $alias = null;
+        if (is_string($table)) {
+            $alias = $table;
+        } elseif (is_array($table) && isset($table[0])) {
+            $table = $table[0];
+            $alias = $table[1];
+        } elseif (is_a($table,"\\R\\Lib\\Table\\Table")) {
+            $alias = $table->getQueryTableName();
+        }
+        if ( ! is_array($on)) {
             $on = array($on);
         }
         $this["joins"][] = array(
             "table" => $table,
-            "alias" => $alias ? $alias : $table,
+            "alias" => $alias,
             "conditions" => $on,
             "type" => $type,
         );
