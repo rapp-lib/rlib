@@ -217,9 +217,9 @@ class Query extends ArrayObject
         if (is_string($table)) {
             $alias = $table;
         } elseif (is_array($table) && isset($table[0])) {
-            $table = $table[0];
             $alias = $table[1];
-        } elseif (is_a($table,"\\R\\Lib\\Table\\Table")) {
+            $table = $table[0];
+        } elseif (is_a($table,"R\\Lib\\Table\\Table_Base")) {
             $alias = $table->getQueryTableName();
         }
         if ( ! is_array($on)) {

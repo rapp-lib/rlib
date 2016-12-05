@@ -203,8 +203,16 @@ class Table_Core
         }
         if ( ! isset($this->pager)) {
             // Pager取得用にSQL再発行
-            $query_array = (array)$this->query;
-            $count = $this->getDBI()->select_count($query_array);
+            $query = (array)$this->query;
+            $query["fields"] =array("count"=>"COUNT(*)");
+            unset($query["limit"]);
+            unset($query["offset"]);
+            unset($query["order"]);
+            $statement = $this->queryToStatement($query);
+            $result = $this->getDBI()->exec($statement,array("Query"=>$query));
+            $t = $result->fetch();
+            $count =(int)$t["count"];
+            // Pager組み立て
             $this->pager = new Pager($result, $count, $this->query["offset"], $this->query["limit"]);
         }
         return $this->pager;
@@ -558,15 +566,21 @@ class Table_Core
         $this->callBuildQueryMethods();
 
         // SQL組み立て用配列をDBIの仕様にあわせて加工
-        $query = (array)$this->query;
-
-        // 空のfieldsを*に変換
-        if ($type=="select" && ! $query["fields"]) {
+        return $this->statement = $this->queryToStatement($this->query);
+    }
+    /**
+     * 完成済みのQueryからSQL文を取得する
+     */
+    public function queryToStatement ($query)
+    {
+        $query = (array)$query;
+        if ($query["type"]=="select" && ! $query["fields"]) {
+            // 空のfieldsを*に変換
             $query["fields"] = array("*");
         }
         foreach ((array)$query["fields"] as $k => $v) {
             // Fieldsのサブクエリ展開
-            if (method_exists($v,"buildQuery")) {
+            if (is_a($v,"R\\Lib\\Table\\Table_Base")) {
                 $query["fields"][$k] = $v = "(".$v->buildQuery("select").")";
             }
             // FieldsのAlias展開
@@ -580,18 +594,15 @@ class Table_Core
                 $query["joins"][$k]["table"] = $v["table"] = "(".$v["table"]->buildQuery("select").")";
             }
         }
-
         // Updateを物理削除に切り替え
-        if ($type=="update" && $query["delete"]) {
+        if ($query["type"]=="update" && $query["delete"]) {
             unset($query["delete"]);
             $query["type"] = "delete";
-            $type = "delete";
         }
 
         // SQL文の作成
-        $st_method = "st_".$type;
-        $this->statement = $this->getDBI()->$st_method($query);
-        return $this->statement;
+        $st_method = "st_".$query["type"];
+        return $this->getDBI()->$st_method($query);
     }
 
     /**

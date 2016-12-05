@@ -120,9 +120,9 @@ class Table_Base extends Table_Core
      * @hook chain
      * JOIN句の設定
      */
-    public function chain_join ($table, $alias=null, $on=array(), $type="LEFT")
+    public function chain_join ($table, $on=array(), $type="LEFT")
     {
-        $this->query->join($table, $alias, $on, $type);
+        $this->query->join($table, $on, $type);
     }
 
     /**
