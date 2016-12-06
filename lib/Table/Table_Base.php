@@ -163,7 +163,7 @@ class Table_Base extends Table_Core
      */
     public function chain_findById ($id)
     {
-        $this->query->where($this->getIdColName("id"), $id);
+        $this->query->where($this->getQueryTableName().".".$this->getIdColName("id"), $id);
     }
 
     /**
@@ -360,7 +360,7 @@ class Table_Base extends Table_Core
     protected function on_read_attachDelFlg ()
     {
         if ($col_name = $this->getColNameByAttr("del_flg")) {
-            $this->query->where($this->query->getTableName().".".$col_name, 0);
+            $this->query->where($this->getQueryTableName().".".$col_name, 0);
         } else {
             return false;
         }
