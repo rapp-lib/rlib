@@ -25,6 +25,9 @@
         ->required("nicEdit-css");
     $asset->registerCssUrl("nicEdit-css:0.9", $url.'/nicEdit.css');
 
+    // ckeditor
+    $asset->registerJsUrl("ckeditor:4.6.0", "//cdn.ckeditor.com/4.6.0/standard/ckeditor.js");
+
     // rui.require
     $asset->registerJsUrl("rui.require", $url.'/rui.js');
 
