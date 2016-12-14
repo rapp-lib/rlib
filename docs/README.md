@@ -1,7 +1,7 @@
 rapp-lib/rlib - Library
 ========================================
 
-[Core](lib/Core.md) - Webアプリケーションの入出力操作
+[lib/Core](lib/Core.md) - Webアプリケーションの入出力操作
 -------------------------------------
     @TODO: Reportクラスを導入する
     Applecation - App\Applecationの親
@@ -10,6 +10,13 @@ rapp-lib/rlib - Library
     ExtentionManager - 各拡張機能の呼び出し
     UtilProxyManager - Util名前空間の参照
     Util\File - ファイル入出力
+
+[lib/Util](lib/Util.md) - Webアプリケーションの入出力操作
+-------------------------------------
+    CSVHandker - CSVファイルの入出力
+    Migration - Doctrineを使用したMigration
+    ClassFinder - Namespaceからクラスを探索する
+    Reflection - 各種Reflection
 
 [lib/Table](lib/Table.md) - テーブル単位のSchema管理とSQL発行
 -------------------------------------
@@ -26,19 +33,19 @@ rapp-lib/rlib - Library
         Table_Base内で$this->queryでアクセスできる
     Pager - Pagenationデータ
 
-[FileStorage](lib/FileStorage.md) - ファイル保存領域の管理
+[lib/FileStorage](lib/FileStorage.md) - ファイル保存領域の管理
 -------------------------------------
     FileStorageManager = file_storage() - 動的作成される保存ファイルの読み書き
     FileStorage = extention("file_storage.xxx_file_storage") - Storage種別のInterface
         Extention/FileStorage/XxxFileStorageがimplementsする
     StoredFile - file_storage("storage_type:/stored/file/code")
 
-[Frontend](lib/Frontend.md) - JS/CSSなどのフロントエンドリソース管理
+[lib/Asset](lib/Asset.md) - JS/CSS、PHPファイルなどの管理
 -------------------------------------
-    FrontendAssetManager - asset()
-    Resource - FrontendAssetManager内部で使用するオブジェクト
+    AssetManager - asset()
+    Asset - AssetManager内部で使用するオブジェクト
 
-[Auth](lib/Auth.md) - 認証機能
+[lib/Auth](lib/Auth.md) - 認証機能
 -------------------------------------
     AccountManager - auth()
     Role_Base - auth($role)
@@ -46,31 +53,39 @@ rapp-lib/rlib - Library
     Authenticator - 認証情報を返すInterface
         Controllerがimplementsする
 
-[Webapp](lib/Webapp.md) - Webアプリケーションの入出力操作
+[lib/Webapp](lib/Webapp.md) - Webアプリケーションの入出力操作
 -------------------------------------
-    Request
-    Response
-    Session
-    Controller_Base
+    Request = request() - GETとPOSTのリクエスト値を扱うArrayObject
+    Response = response() - テンプレート変数を扱うArrayObject兼、応答様式の設定
+        redirect($url)
+        error()
+    Session = session() - Session変数のGetter/Setterをもつオブジェクト
+    Controller_Base - Controllerの親
+        Controllerではフォームの定義、URLに対応する処理をもつ
+        フォームの定義はController名で外部からも参照可能
+        認証の単位はController単位となっているので、URLに対する処理の呼び出し前に参照される
 
-[Form](lib/Form.md) - 入力値の操作とフォームの生成
+[lib/Form](lib/Form.md) - 入力値の操作とフォームの生成
 -------------------------------------
-    FormFactory
-    FormContainer
-    FormRepositry
-    FormRepositryProxy
+    FormContainer - 定義に基づいてフォームの入力値を管理
+    FormFactory = form() - FormContainerの作成と、FormRepositryProxyの管理
+    FormRepositryProxy - FormRepositryの定義を参照してFormContainerを返すArrayObject
+    FormRepositry - フォームの定義を持つクラス（Controller）がimplementsするinterface
 
-[Enum](lib/Enum.md) - プルダウンなどで利用する値リストの管理
+[lib/Enum](lib/Enum.md) - プルダウンなどで利用する値リストの管理
 -------------------------------------
-    EnumManager
-    Enum_Base
+    EnumManager = enum() - Enumを管理
+    Enum_Base = enum("SomeEnumClass.values_name") - values（値リスト）の定義の管理
+        値リストの実体となるArrayObjectを兼ねる
 
-[Builder](lib/Builder.md) - コード生成
+[lib/Builder](lib/Builder.md) - コード生成
 -------------------------------------
     @TODO: テンプレートのElementモデル移行
     @TODO: Controller生成の移行
-    WebappBuilder - builder()
-    Element/SchemaElement
+    WebappBuilder = builder() - 生成エンジン
+    Element/Element_Base - 各Elementの親
+    Element/SchemaElement - Schemaデータを解析して他の各Elementの組み立てを行う
+        (Schema→(Controller→Action),(Table→Col),Role,Enum)というツリー構造
     Element/ControllerElement
     Element/ActionElement
     Element/TableElement
@@ -78,44 +93,29 @@ rapp-lib/rlib - Library
     Element/RoleElement
     Element/EnumElement
 
-DBAL - DB接続データソースの操作
+lib/Smarty - Smartyテンプレートエンジンの操作
+-------------------------------------
+    SmartyExtended
+
+lib/DBAL - DB接続データソースの操作
 -------------------------------------
     @MEMO: DBI実装で動作可能なので移行の優先度は低い
     Connection_Base @future
 
-Smarty - Smartyテンプレートエンジンの操作
+lib/DBI - DB接続とSQL発行の旧実装
 -------------------------------------
-    SmartyExtended
+    DBI_Base - Cake2を利用したDBAL旧実装
+    Model_Base - DBIの各機能の呼び出しをラッピングする旧実装
 
-DBI - DB接続とSQL発行の旧実装
+functions - 関数定義
 -------------------------------------
-    Model_Base - @deprecated
-    DBI_Base - @deprecated
+    functions.php - 各ライブラリ機能のfacadeとなる関数群
 
-Report
+assets - プログラム以外のファイル
 -------------------------------------
-    @TODO: report(...)をreport()->error(...)に拡張する
+    frontend - asset()経由で参照する共通JS/CSSファイル
 
-Core
+include - 旧ライブラリから移行したNamespace未対応のクラス
 -------------------------------------
-    Migration @fixed 2.x 2016/10/01
-    ClassCollector
-         @dep Composer
-         > Namespaceに属するClass一覧を得る
-    Reflection
-         > Reflection機能
-
-- functions
-    > 関数定義
-    required.php
-
-- assets
-    rui
-         > 共通JS/CSSアセット
-
-- include
-    > Namespace未対応のクラス
-    cake2 @deprecated
-         > DBIで使用しているCake2ライブラリ
-
-
+    cake2 - DBIで使用しているCake2ライブラリ
+    Rdoc - 旧コード生成とdync実装

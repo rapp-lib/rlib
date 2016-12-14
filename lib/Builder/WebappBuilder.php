@@ -20,6 +20,17 @@ class WebappBuilder
         return static::$instance;
     }
     /**
+     *
+     */
+    public function start ()
+    {
+        $schema_csv_file = $this->getConfig("schema_csv_file");
+        $create_schema = new R\Lib\Builder\Regacy\CreateSchema;
+        $schema = $create_schema->load_schema_csv($schema_csv_file);
+        $deploy_files = new R\Lib\Builder\Regacy\DeployFiles;
+        $deploy_files->deploy_files($schema);
+    }
+    /**
      * SchemaRegistryからSchemaElementを構築する
      */
     public function initSchemaFromRegistry ()
@@ -63,6 +74,20 @@ class WebappBuilder
         // routing.config.phpの構築
         $source = builder()->fetch("config/routing.config.php",array("schema"=>builder()->getSchema()));
         builder()->deploy("/config/routing.config.php", $source);
+        // Controllerに関わるファイルの展開
+        foreach (builder()->getSchema()->getController() as $controller) {
+            $source = builder()->fetch("master/ProductMasterController.class.php",
+                array("controller"=>$controller));
+            builder()->deploy("/app/Controller/".$controller->getClassName().".php", $source);
+            // HTMLの構築
+            foreach ($controller->getAction() as $action) {
+                if ($action->getAttr("has_html")) {
+                    $source = builder()->fetch("master/product_master.".$action->getName().".html",
+                        array("action"=>$action));
+                    builder()->deploy("/html".$action->getPath(), $source);
+                }
+            }
+        }
     }
     /**
      * @getter
@@ -86,7 +111,7 @@ class WebappBuilder
     public function getConfig ($key)
     {
         if ($key == "template_dir") {
-            return __DIR__."/../../include/Rdoc/modules/webapp_skel";
+            return __DIR__."/../../assets/builder/skel";
         } elseif ($key == "current_dir") {
             return registry("Path.webapp_dir");
         } elseif ($key == "deploy_dir") {
@@ -94,7 +119,7 @@ class WebappBuilder
         } elseif ($key == "schema_csv_file") {
             return registry("Path.webapp_dir")."/config/schema.config.csv";
         } elseif ($key == "dryrun") {
-            return false;
+            return ! app()->config("Config.auto_deploy");
         } elseif ($key == "show_source") {
             return true;
         }

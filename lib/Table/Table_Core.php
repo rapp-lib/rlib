@@ -261,43 +261,7 @@ class Table_Core
         $ds = $this->getDBI()->get_datasource();
         $id_col_name = $this->getIdColName();
         $table_name = static::$table_name;
-        return $this->ds->lastInsertId($table_name,$id_col_name);
-    }
-
-    /**
-     * @hook result
-     * Insert/UpdateしたレコードのIDを複数取得
-     */
-    public function result_getLastSaveIds ($result)
-    {
-        $id = null;
-        $type = $this->query->getType();
-        if ($type == "insert") {
-            $id = $result->getLastInsertId();
-        } elseif ($type == "update") {
-            $id_col_name = $this->getIdColName();
-            $id = $this->query->getCondition($id_col_name);
-        }
-        if ( ! $id) {
-            report_error("IDが取得できません",array(
-                "table" => $this,
-            ));
-        }
-        return is_array($id) ? $id : array($id);
-    }
-
-    /**
-     * @hook result
-     * Insert/UpdateしたレコードのIDを取得
-     */
-    public function result_getLastSaveId ($result)
-    {
-        $ids = $result->getLastSaveIds();
-        if (count($ids)>1) {
-            report_error("条件にIDが複数指定されています",array(
-                "table" => $this,
-            ));
-        }
+        return $this->getDBI()->get_datasource()->lastInsertId($table_name,$id_col_name);
     }
 
     /**
@@ -394,7 +358,12 @@ class Table_Core
         unset($values[$id_col_name]);
         $table = $this->createTable();
         // IDが指定されていればUpdate、指定が無ければInsert
-        return $id ? $table->updateById($id,$values) : $table->insert($values);
+        if (isset($id)) {
+            $table->updateById($id,$values);
+            return $id;
+        } else {
+            return $table->insert($values)->getLastInsertId();
+        }
     }
 
 // -- SELECT文の発行

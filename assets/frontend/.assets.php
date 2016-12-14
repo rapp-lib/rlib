@@ -29,7 +29,7 @@
     $asset->registerJsUrl("ckeditor:4.6.0", "//cdn.ckeditor.com/4.6.0/standard/ckeditor.js");
 
     // rui.require
-    $asset->registerJsUrl("rui.require", $url.'/rui.js');
+    $asset->registerJsUrl("rui.require", $url.'/rui.require/rui.js');
 
     // rui.ajaxr
     $asset->registerJsUrl("rui.ajaxr", $url.'/jquery.ajaxr/jquery.ajaxr.js')

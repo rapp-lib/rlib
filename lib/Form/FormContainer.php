@@ -261,11 +261,15 @@ class FormContainer extends ArrayObject
                 "value" => md5(session_id()),
             ));
         }
-        // form_pageでactionのURLを補完
+        // form_page/search_pageでactionのURLを補完
         if ( ! isset($attrs["action"])) {
-            $attrs["action"] = page_to_url($this->def["form_page"]);
+            if (isset($this->def["form_page"])) {
+                $attrs["action"] = route($this->def["form_page"])->getUrl();
+            } elseif (isset($this->def["search_page"])) {
+                $attrs["action"] = route($this->def["search_page"])->getUrl();
+            }
         }
-        $attrs["action"] =url($params["action"]);
+        $attrs["action"] = url($attrs["action"]);
         return tag("form",$attrs,$content);
     }
 
@@ -317,6 +321,14 @@ class FormContainer extends ArrayObject
             $this->is_valid = count($this->errors) ? false : true;
         }
         return $this->is_valid;
+    }
+
+    /**
+     * @setter
+     */
+    public function setIsValid ($is_valid)
+    {
+        $this->is_valid = (bool)$is_valid;
     }
 
     /**

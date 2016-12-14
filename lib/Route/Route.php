@@ -20,13 +20,16 @@ class Route
         if (preg_match('!^(?:path:)?(/.*)$!',$route_name,$match)) {
             $this->path = $match[1];
         // "page:","XXX.XXX",".XXX"形式である場合Pageと判断する
-        } elseif (preg_match('!^(?:page:)?([a-zA-Z0-9_]+)?\.([a-zA-Z0-9_]+)$!',$route_name,$match)) {
+        } elseif (preg_match('!^(?:page:)?([a-zA-Z0-9_]+)?\.([a-zA-Z0-9_]+)?$!',$route_name,$match)) {
             $controller_name = $match[1];
             $action_name = $match[2];
             // 相対Pageで記述されている場合、現在アクセスしているPageから補完
             if (strlen($controller_name)==0) {
                 $current_page = $this->getWebroot()->getRouteManager()->getCurrentRoute()->getPage();
                 $controller_name = preg_replace('!\.[^\.]+$!', '', $current_page);
+                if (strlen($action_name)==0) {
+                    $action_name = preg_replace('!^[^\.]+\.!', '', $current_page);
+                }
             }
             $this->page = $controller_name.".".$action_name;
         // "url:"で始まる場合URLと判断する
@@ -124,7 +127,12 @@ class Route
     public function getFullUrl ()
     {
         $url = $this->getUrl();
-        return strlen($url) ? "//".$this->getWebroot()->getAttr("domain_name",true).$url : null;
+        if ( ! strlen($url)) {
+            return null;
+        }
+        $schema = $this->getWebroot()->getAttr("is_secure") ? "https:" : "http:";
+        $url = $schema."//".$this->getWebroot()->getAttr("domain_name",true).$url;
+        return $url;
     }
     /**
      * @deprecated

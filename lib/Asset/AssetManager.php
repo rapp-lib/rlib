@@ -2,14 +2,14 @@
 /**
  * @require functions/tag
  */
-namespace R\Lib\Frontend;
+namespace R\Lib\Asset;
 
 /**
- * フロントエンドリソース管理機能
+ * リソース管理機能
  */
-class FrontendAssetManager
+class AssetManager
 {
-    private static $instance = null;
+    private static $instances = array();
 
     private $modules = array();
     private $buffer = array();
@@ -26,14 +26,14 @@ class FrontendAssetManager
     private $state = 0;
 
     /**
-     * FrontendAssetManagerのSingletonインスタンスを返す
+     * AssetManagerのSingletonインスタンスを返す
      */
-    public static function getInstance ()
+    public static function getInstance ($asset_group="frontend")
     {
-        if ( ! self::$instance) {
-            self::$instance = new FrontendAssetManager();
+        if ( ! self::$instances[$asset_group]) {
+            self::$instances[$asset_group] = new AssetManager();
         }
-        return self::$instance;
+        return self::$instances[$asset_group];
     }
 
 // -- アセット管理
@@ -45,14 +45,14 @@ class FrontendAssetManager
     {
         $assets_file = $route->getFile();
         $assets_url = $route->getUrl();
-        $this->registerAssetsDirUrl(dirname($assets_file), dirname($assets_url));
+        $this->registerAssetsDir(dirname($assets_file), dirname($assets_url));
     }
 
     /**
      * アセットDIR/URLを登録する
      * アセットDIR以下の.assets.phpからモジュールカタログを読み込む
      */
-    public function registerAssetsDirUrl ($dir, $url)
+    public function registerAssetsDir ($dir, $url=null)
     {
         // ディレクトリがなければエラー
         if ( ! is_dir($dir)) {
@@ -113,13 +113,13 @@ class FrontendAssetManager
 // -- バッファ制御
 
     /**
-     * Buffer済みのResourceを作成
+     * Buffer済みのAssetを作成
      */
     public function buffer ($data, $data_type, $buffer_name)
     {
-        $resource = new Resource($this, $data, $data_type);
-        $this->buffer[$buffer_name][] = $resource;
-        return $resource;
+        $asset = new Asset($this, $data, $data_type);
+        $this->buffer[$buffer_name][] = $asset;
+        return $asset;
     }
 
     /**
@@ -139,8 +139,8 @@ class FrontendAssetManager
         // Buffer内のリソースを依存解決したコードにして取得
         $html = "";
         foreach ($buffer_name as $buffer_name_str) {
-            foreach ((array)$this->buffer[$buffer_name_str] as $resource) {
-                $html .= $resource->getHtmlWithDepenedencies();
+            foreach ((array)$this->buffer[$buffer_name_str] as $asset) {
+                $html .= $asset->getHtmlWithDepenedencies();
             }
         }
         return $html;
@@ -149,18 +149,18 @@ class FrontendAssetManager
 // -- モジュール依存管理
 
     /**
-     * モジュールとして登録されたResourceを作成
+     * モジュールとして登録されたAssetを作成
      */
-    public function register ($module_version, $data, $data_type)
+    public function register ($module_version, $data, $data_type="none")
     {
         list($module_name, $version) = $this->extractModuleVersion($module_version);
         if ( ! $version) {
             $version = "0";
         }
-        $resource = new Resource($this, $data, $data_type);
-        $resource->setModuleName($module_name, $version);
-        $this->modules[$module_name][$version] = $resource;
-        return $resource;
+        $asset = new Asset($this, $data, $data_type);
+        $asset->setModuleName($module_name, $version);
+        $this->modules[$module_name][$version] = $asset;
+        return $asset;
     }
 
     /**
@@ -181,9 +181,9 @@ class FrontendAssetManager
         // 適合する最新版のモジュールを読み込む
         if (is_array($this->modules[$module_name])) {
             krsort($this->modules[$module_name]);
-            foreach ((array)$this->modules[$module_name] as $version => $resource) {
+            foreach ((array)$this->modules[$module_name] as $version => $asset) {
                 if ($this->checkVersion($version, $required_version)) {
-                    return $resource;
+                    return $asset;
                 }
             }
         }
@@ -211,9 +211,9 @@ class FrontendAssetManager
             return "";
         }
 
-        $resource = $this->getRegisteredModule($required_module_version);
+        $asset = $this->getRegisteredModule($required_module_version);
         // 読み込めない場合はエラー
-        if ( ! $resource) {
+        if ( ! $asset) {
             report_error("依存モジュールが読み込めませんでした",array(
                 "module_name" => $module_name,
                 "required_version" => $required_version,
@@ -221,8 +221,8 @@ class FrontendAssetManager
             ));
         }
         // ロード済みとして記録してHTMLを返す
-        $this->loaded_modules[$module_name] = $resource->getVersion();
-        return $resource->getHtmlWithDepenedencies();
+        $this->loaded_modules[$module_name] = $asset->getVersion();
+        return $asset->getHtmlWithDepenedencies();
     }
 
     /**
@@ -281,7 +281,7 @@ class FrontendAssetManager
     }
 
     /**
-     * requiredするためのResourceをbufferに登録
+     * requiredするためのAssetをbufferに登録
      */
     public function required ($module_version, $buffer_name="html")
     {

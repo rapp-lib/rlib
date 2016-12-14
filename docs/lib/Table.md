@@ -5,6 +5,7 @@ CONCEPT
 --------
 
 - テーブルの定義
+
 ```php
     /**
      * @table
@@ -14,10 +15,13 @@ CONCEPT
         /**
          * テーブル定義
          */
+        // テーブルの定義名を記述
         protected static $table_name = "Member";
+        // テーブル上のカラムの定義を記述
         protected static $cols = array(
             "name" => array("type"=>"text", "comment"=>"氏名"),
             "mail" => array("type"=>"text", "comment"=>"メールアドレス",
+                // table("Member")->getNameByAttr("login_id")で"mail"を参照するために宣言
                 "login_id"=>true),
             "login_pw" => array("type"=>"text", "comment"=>"パスワード",
                 "login_pw"=>true, "hash_pw"=>true),
@@ -39,12 +43,18 @@ CONCEPT
                 "table"=>"Product", "fkey"=>"rep_product_id"),
         );
         protected static $def = array(
+            // このテーブルのINDEXの定義を記述
             "indexes" => array(),
         );
+
+        // ここまでの記述によって、schema.phpはテーブル定義の作成を行う
+    }
 ```
 
 - SQLの発行
-```
+
+```php
+
     $ts = table("Member")
         ->findBySearchForm($list_setting, $input)
         ->select();
@@ -70,6 +80,14 @@ CONCEPT
         ->selectOne();
     report("ログイン結果",$result);
 
+    // JOIN
+    table("Member")
+        ->join(table("FavoritePosts"), "Member.id=FavoritePosts.member_id")
+        ->select();
+    table("Member")
+        ->join(array(table("FavoritePosts"), "Member.id=FavoritePosts.member_id"))
+        ->select();
+
     // FieldsにSQL直でのサブクエリ
     $result = table("Member")
         ->with("(SELECT COUNT(*) AS count FROM Product WHERE Product.id=id)","own_product_count")
@@ -89,147 +107,144 @@ CONCEPT
         ->with("owner_member_id")
         ->groupBy("owner_member_id");
     table("Member")
-        ->join($sub,"own_product_count",array("own_product_count.owner_member_id=Member.id"))
+        ->join(array($sub,"own_product_count"),array("own_product_count.owner_member_id=Member.id"))
         ->select();
-
-    // Assoc解決
-    $result = table("Member")
-        ->with("own_products")
-        ->select();
-    $result = table("Member")
-        ->with("favorite_products")
-        ->select();
-    report("多→多ID参照",$result);
-    $result = table("Member")
-        ->with("rep_product")
-        ->select();
-    report("JOIN 1→1参照",$result);
 ```
 
 
-- フック機能
-```
+- 各種フック機能
 
+```php
     /**
-     * @hook on_fetch
-     * Adminでログインしていなければ
+     * @table
      */
-    public function on_read_checkEnable ()
+    class Table_App extends Table_Base
     {
-        if (auth()->getAccount()->getRole() != "admin") {
-            $this->query->where("enable_flg", 1);
-            $this->query->where(array("enable_start_date<NOW()","enable_end_date>NOW()"));
-        } else {
-            return false;
+        // chain_から始まるメソッドは->findById(1)->findById(1)のように続けて呼び出せる
+        // 主にQueryの書き換えを行う目的の機能を定義する
+
+        /**
+         * @hook chain
+         * IDを条件に指定する
+         */
+        public function chain_findById ($id)
+        {
+            $this->query->where($this->getQueryTableName().".".$this->getIdColName("id"), $id);
         }
-    }
 
-    /**
-     * @hook on_fetch
-     * Insert/Update/Delete文を発行するとログに追記
-     */
-    public function on_writeAsAdmin_putAdminLog ()
-    {
-        table("AdminLog")->insert(array(
-            "action" => $this->query->getType(),
-            "delete" => $this->query->getDelete(),
-            "table" => self::$table_name,
-            "admin_id" => auth("admin")->getId(),
-        ));
-    }
+        // on_*で始まるメソッドはtableのSELECTやINSERT、Fetchが実行されたタイミングで自動的呼び出される
+        // テーブルの各操作が発生したときに自動的にQueryや結果の書き換え、他Tableへの反映を行うことができる
+        // 以下のようなパターンでフック可能
+        // ・SQL発生時に呼び出されるもの: select, insert, update, write(insert or update), read(select or update)
+        // ・SQL実行完了時に呼び出されるもの: afterWrite(insert or updateの完了時)
+        // ・Fetch時: fetch(1件のFetch時), fetchEnd(全件のFetch完了時)
 
-    /**
-     * @hook on_fetch
-     * ハッシュされたパスワードを関連づける
-     */
-    protected function on_fetch_hashPw ($record)
-    {
-        if ($col_name = $this->getColNameByAttr("hash_pw")) {
-            $record[$col_name] = "";
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @hook on_fetch
-     * ハッシュされたパスワードを関連づける
-     */
-    protected function on_write_hashPw ()
-    {
-        if ($col_name = $this->getColNameByAttr("hash_pw")) {
-            $value = $this->query->getValue($col_name);
-            if (strlen($value)) {
-                $this->query->setValue($col_name, md5($value));
+        /**
+         * @hook on_write
+         * JSON形式で保存するカラムの処理
+         */
+        protected function on_write_jsonFormat ()
+        {
+            if ($col_names = $this->getColNamesByAttr("format", "json")) {
+                foreach ($col_names as $col_name) {
+                    $value = $this->query->getValue($col_name);
+                    $this->query->setValue($col_name, json_encode((array)$value));
+                }
+            } else {
+                return false;
             }
-        } else {
-            return false;
         }
-    }
-
-    /**
-     * @hook on_read
-     * 削除フラグを関連づける
-     */
-    protected function on_read_attachDelFlg ()
-    {
-        if ($col_name = $this->getColNameByAttr("del_flg")) {
-            $this->query->where($col_name, 0);
-        } else {
-            return false;
+        /**
+         * @hook on_fetch
+         * JSON形式で保存するカラムの処理
+         */
+        protected function on_fetch_jsonFormat ($record)
+        {
+            if ($col_names = $this->getColNamesByAttr("format", "json")) {
+                foreach ($col_names as $col_name) {
+                    $record[$col_name] = (array)json_decode($record[$col_name]);
+                }
+            } else {
+                return false;
+            }
         }
-    }
-
-    /**
-     * @hook on_update
-     * 削除フラグを関連づける
-     */
-    protected function on_update_attachDelFlg ()
-    {
-        if ($col_name = $this->getColNameByAttr("del_flg") && $this->query->getDelete()) {
-            $this->query->setDelete(false);
-            $this->query->setValue($col_name, 1);
-        } else {
-            return false;
+        /**
+         * @hook on_read
+         * 削除フラグを関連づける
+         */
+        protected function on_read_attachDelFlg ()
+        {
+            if ($col_name = $this->getColNameByAttr("del_flg")) {
+                $this->query->where($this->getQueryTableName().".".$col_name, 0);
+            } else {
+                return false;
+            }
         }
-    }
 
-    /**
-     * @hook on_insert
-     * 削除日を関連づける
-     */
-    protected function on_update_attachDelDate ()
-    {
-        if ($col_name = $this->getColNameByAttr("del_date") && $this->query->getDelete()) {
-            $this->query->setValue($col_name, date("Y/m/d H:i:s"));
-        } else {
-            return false;
+        // formから入力値に従った検索を行うときのsearch typeの定義
+
+        /**
+         * @hook search where
+         * 一致、比較（）、IN（値を配列指定）
+         */
+        public function search_typeWhere ($form, $field_def, $value)
+        {
+            if (isset($value)) {
+                // 対象カラムは複数指定に対応
+                $target_cols = $field_def["target_col"];
+                if ( ! is_array($target_cols)) {
+                    $target_cols = array($target_cols);
+                }
+                $conditions_or = array();
+                foreach ($target_cols as $i => $target_col) {
+                    $conditions_or[$i] = array($target_col => $value);
+                }
+                if (count($conditions_or)==1) {
+                    $this->query->where(array_pop($conditions_or));
+                // 複数のカラムが有効であればはORで接続
+                } elseif (count($conditions_or)>1) {
+                    $this->query->where(array("OR"=>$conditions_or));
+                }
+            }
         }
-    }
 
-    /**
-     * @hook on_insert
-     * 登録日を関連づける
-     */
-    protected function on_insert_attachRegDate ()
-    {
-        if ($col_name = $this->getColNameByAttr("reg_date")) {
-            $this->query->setValue($col_name, date("Y/m/d H:i:s"));
-        } else {
-            return false;
+        // SQL実行結果に対するメソッド呼び出し時に呼び出されるメソッドの定義
+        // 以下の例はtable("Member")->select()->getHashedBy()で呼び出される
+
+        /**
+         * @hook result
+         * 各レコードの特定カラムのみの配列を取得する
+         */
+        public function result_getHashedBy ($result, $col_name, $col_name_sub=false)
+        {
+            $hashed_result = array();
+            foreach ($result as $key => $record) {
+                if ($col_name_sub === false) {
+                    $hashed_result[$key] = $record[$col_name];
+                } else {
+                    $hashed_result[$key] = $record[$col_name][$col_name_sub];
+                }
+            }
+            return $hashed_result;
         }
-    }
 
-    /**
-     * @hook on_write
-     * 更新日を関連づける
-     */
-    protected function on_write_attachUpdateDate ()
-    {
-        if ($col_name = $this->getColNameByAttr("update_date")) {
-            $this->query->setValue($col_name, date("Y/m/d H:i:s"));
-        } else {
-            return false;
+        // SELECT結果1件に対するメソッド呼び出し時に呼び出されるメソッドの定義
+        // 以下の例はtable("Member")->selectOne()->getHashedBy()で呼び出される
+
+        /**
+         * @hook record
+         * IDの設定によりInsert/Update処理
+         */
+        public function record_save ($record)
+        {
+            $values =(array)$record;
+            // IDが指定されていれば削除してIDを条件に指定する
+            $id_col_name = $this->getIdColName();
+            $id = $values[$id_col_name];
+            unset($values[$id_col_name]);
+            $table = $this->createTable();
+            // IDが指定されていればUpdate、指定が無ければInsert
+            return $id ? $table->updateById($id,$values) : $table->insert($values);
         }
     }
 ```

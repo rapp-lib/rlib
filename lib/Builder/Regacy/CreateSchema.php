@@ -1,46 +1,13 @@
 <?php
-
-    //-------------------------------------
-    // schema.config.csv→config生成
-    function rdoc_entry_schema_csv_to_registry ($options=array()) {
-
-        $obj =obj("Rdoc_Schema_WebappBuilderCreateSchema");
-        $obj->init(array(
-            "schema"=>1,
-            "src"=>"csv",
-            "force"=>1,
-        ));
-        $obj->create_schema();
-    }
+namespace R\Lib\Builder\Regacy;
 
 //-------------------------------------
 //
-class Rdoc_Schema_WebappBuilderCreateSchema extends WebappBuilder {
-
-    //-------------------------------------
-    // csvからschema.config.phpを生成する
-    public function create_schema () {
-
-        report("HistoryKey: ".$this->history);
-        $this->append_history("memo", date("Y/m/d H:i"), "create_schema_registry_from_csv");
-
-        $src_file =registry("Path.webapp_dir")."/config/schema.config.csv";
-
-        if ( ! file_exists($src_file)) {
-
-            report_error("src_file is-not exists",array(
-                "src_file" =>$src_file,
-            ));
-        }
-
-        $data =$this->load_schema_csv($src_file);
-
-        $this->deploy_src(registry("Path.webapp_dir")."/config/schema.config.php", $data);
-    }
+class CreateSchema extends OldBuilder {
 
     //-------------------------------------
     // SchemaConfigPHP：SchemaCSVファイルを読み込んで、SchemaConfigのPHPを生成する
-    protected function load_schema_csv ($filename) {
+    public function load_schema_csv ($filename) {
 
         $csv =util("CSVHandler",array($filename,"r",array(
             "file_charset" =>"SJIS-WIN",
@@ -133,7 +100,7 @@ class Rdoc_Schema_WebappBuilderCreateSchema extends WebappBuilder {
         }
 
         report("Schema csv loaded.",array("schema" =>$s));
-
+        /*
         // スクリプト生成
         $g =new ScriptGenerator;
         $g->node("root",array("p",array(
@@ -144,6 +111,8 @@ class Rdoc_Schema_WebappBuilderCreateSchema extends WebappBuilder {
         )));
 
         return $g->get_script();
+        */
+       return $s;
     }
 
     //-------------------------------------
