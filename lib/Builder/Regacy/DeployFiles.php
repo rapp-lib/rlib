@@ -17,7 +17,7 @@ class DeployFiles extends OldBuilder {
         $this->history ="U".date("ymdHis").sprintf("%03d",rand(001,999));
 
         // Registry_Schema_Tableの補完
-        registry("Schema",$schema);
+        registry($schema);
         $this->fetch_table_schema($schema);
         registry("Schema.tables",false);
         registry("Schema.tables",$this->tables);
@@ -342,7 +342,7 @@ class DeployFiles extends OldBuilder {
 
         return $fields;
     }
-
+/*
     //-------------------------------------
     // テンプレートファイルの検索
     public function find_skel ($skel_name, $target_file) {
@@ -354,4 +354,5 @@ class DeployFiles extends OldBuilder {
 
         return find_include_path("modules/webapp_skel/".$target_file);
     }
+*/
 }
