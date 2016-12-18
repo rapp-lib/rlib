@@ -4,9 +4,7 @@ namespace R\Lib\Core;
 class Application
 {
     private static $app = null;
-
     private $running = null;
-
     /**
      * Applicationインスタンスを取得
      */
@@ -20,12 +18,6 @@ class Application
             }
         }
         return self::$app;
-    }
-    /**
-     * アプリケーションの初期化
-     */
-    public function init ()
-    {
     }
     /**
      * アプリケーションの開始
@@ -70,18 +62,95 @@ class Application
         }
     }
     /**
+     * アプリケーションの初期化
+     */
+    public function init ()
+    {
+        // Composer未対応クラスの互換読み込み処理
+        spl_autoload_register("load_class");
+        // 終了処理
+        set_error_handler(function($errno, $errstr, $errfile=null, $errline=null, $errcontext=null) {
+            report($errstr,$errcontext,array(
+                "errno" =>$errno,
+                "errstr" =>$errstr,
+                "errfile" =>$errfile,
+                "errline" =>$errline,
+            ));
+        },error_reporting());
+        set_exception_handler(function($e) {
+            app()->ending();
+            report("[Uncaught ".get_class($e)."] ".$e->getMessage(),array(
+                "exception" =>$e,
+            ),array(
+                "errno" =>E_ERROR,
+                "exception" =>$e,
+            ));
+        });
+        register_shutdown_function(function() {
+            app()->ending();
+            // FatalErrorによる強制終了
+            $error = error_get_last();
+            if ($error && ($error['type'] == E_ERROR || $error['type'] == E_PARSE
+                || $error['type'] == E_CORE_ERROR || $error['type'] == E_COMPILE_ERROR)) {
+                try {
+                    report("[Fatal] ".$error["message"] ,$error ,array(
+                        "type" =>"error_handler",
+                        "errno" =>$error['type'],
+                        "errstr" =>"Fatal Error. ".$error['message'],
+                        "errfile" =>$error['file'],
+                        "errline" =>$error['line'],
+                    ));
+                } catch (ApplicationEndingException $e) {
+                }
+            }
+        });
+    }
+    /**
      * アプリケーションが終了準備中になったことを設定
      */
     public function ending ()
     {
         $this->running["ending"] = true;
     }
+    /**
+     * 設定の読み書き
+     */
     public function config ($key)
     {
         return config($key);
     }
+    /**
+     * デバッグモードの取得
+     */
     public function getDebugLevel ()
     {
         return registry("Report.force_reporting") || registry("Config.dync.report") ? 1 : false;
+    }
+    /**
+     * routeに対応するActionの呼び出し
+     */
+    public function invokeRouteAction ($route)
+    {
+        $page = $route->getPage();
+        if ( ! $page) {
+            return null;
+        }
+        // Pageに対応するControllerクラスの特定
+        list($controller_name, $action_name) = explode('.',$page,2);
+        $controller_class_name = "R\\App\\Controller\\".str_camelize($controller_name)."Controller";
+        $action_method_name = "act_".$action_name;
+        if ( ! method_exists($controller_class_name, $action_method_name)) {
+            report_error("RoutingのPage設定に対応するActionがありません",array(
+                "action_method_call" => $controller_class_name."::".$action_method_name,
+                "route" => $route,
+            ));
+        }
+        // 認証処理
+        if ($auth = $controller_class_name::getAuthenticate()) {
+            auth()->authenticate($auth["access_as"], $auth["priv_required"]);
+        }
+        // Actionメソッドの呼び出し
+        $controller = new $controller_class_name();
+        $controller->$action_method_name();
     }
 }

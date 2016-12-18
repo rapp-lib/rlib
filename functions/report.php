@@ -339,9 +339,8 @@
             // Report.buffer_enableによる出力抑止
             } else if ($buffer_level =registry("Report.buffer_enable")) {
 
-                //$report_buffer =& ref_globals("report_buffer");
-                //$report_buffer[$buffer_level] .=$html;
-                response()->writeReportBuffer($html);
+                $report_buffer =& ref_globals("report_buffer");
+                $report_buffer[$buffer_level] .=$html;
 
             // 直接出力
             } else {

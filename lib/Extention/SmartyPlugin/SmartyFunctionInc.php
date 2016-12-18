@@ -17,6 +17,9 @@ class SmartyFunctionInc
             $route_name = $params["path"];
         }
         $route = route($route_name);
+        // Actionの実行
+        app()->invokeRouteAction($route);
+        // テンプレートの読み込み
         $template_file = $route->getFile();
         $smarty->assign((array)$params["vars"]);
         $output = $smarty->fetch($template_file);
