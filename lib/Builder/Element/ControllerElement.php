@@ -48,6 +48,13 @@ class ControllerElement extends Element_Base
         }
     }
     /**
+     * クラス名の取得
+     */
+    public function getClassName ()
+    {
+        return str_camelize($this->getName())."Controller";
+    }
+    /**
      * Actionの取得
      */
     public function getAction ($action_name=null)
@@ -63,5 +70,12 @@ class ControllerElement extends Element_Base
     public function getRole ()
     {
         return $this->getSchema()->getRole($this->getAttr("access_as"));
+    }
+    /**
+     * Tableの取得
+     */
+    public function getTable ()
+    {
+        return $this->getSchema()->getTable($this->getAttr("table"));
     }
 }

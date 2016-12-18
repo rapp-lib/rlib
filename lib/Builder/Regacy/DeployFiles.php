@@ -1,39 +1,27 @@
 <?php
-
-    //-------------------------------------
-    // schema.config.php→生成/展開
-    function rdoc_entry_build_rapp ($options=array()) {
-
-        $obj =obj("Rdoc_Builder_WebappBuilderDeployFiles");
-        $obj->init(array(
-            "deploy" =>1,
-            "force" =>1,
-        ));
-        $obj->deploy_files();
-    }
+namespace R\Lib\Builder\Regacy;
 
 //-------------------------------------
 //
-class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
+class DeployFiles extends OldBuilder {
 
     protected $tables =array();
     protected $tables_def =array();
 
     //-------------------------------------
     // Schemaからコード生成
-    public function deploy_files () {
-
-        report("HistoryKey: ".$this->history);
-
-        $this->append_history(
-                "memo",
-                date("Y/m/d H:i"),
-                $_SERVER["REQUEST_URI"]."?".$_SERVER["QUERY_STRING"]);
+    public function deploy_files ($schema)
+    {
+        $this->options =array();
+        $this->tmp_dir =$tmp_dir =registry("Path.tmp_dir")."/webapp_build/";
+        $this->history ="U".date("ymdHis").sprintf("%03d",rand(001,999));
 
         // Registry_Schema_Tableの補完
-        $this->fetch_table_schema();
+        registry($schema);
+        $this->fetch_table_schema($schema);
         registry("Schema.tables",false);
         registry("Schema.tables",$this->tables);
+
         // Registry_Schema_Controllerの補完
         foreach ((array)registry("Schema.controller") as $name => $c) {
             $c["name"] =$name;
@@ -46,15 +34,16 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 
         builder()->initSchemaFromRegistry();
         builder()->deployAll();
-
+/*
         // Controllerの構築
         foreach ((array)registry("Schema.controller") as $name => $c) {
             $method_name ="build_controller_".$c["type"];
             registry("Schema.controller.".$name,$c);
             $this->$method_name($c);
         }
+*/
     }
-
+/*
     //-------------------------------------
     //
     protected function build_controller_master ($c) {
@@ -150,7 +139,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
             $this->arch_template($src,$dest,array("c" =>$c, "a" =>$a, "t" =>$t));
         }
     }
-
+*/
     //-------------------------------------
     //
     protected function fetch_table_schema () {
@@ -353,7 +342,7 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 
         return $fields;
     }
-
+/*
     //-------------------------------------
     // テンプレートファイルの検索
     public function find_skel ($skel_name, $target_file) {
@@ -365,4 +354,5 @@ class Rdoc_Builder_WebappBuilderDeployFiles extends WebappBuilder {
 
         return find_include_path("modules/webapp_skel/".$target_file);
     }
+*/
 }

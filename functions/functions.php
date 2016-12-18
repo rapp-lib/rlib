@@ -98,10 +98,10 @@
     }
 
     /**
-     * @facade R\Lib\Frontend\FrontendAssetManager::getInstance
+     * @facade R\Lib\Asset\AssetManager::getInstance
      */
     function asset () {
-        return R\Lib\Frontend\FrontendAssetManager::getInstance();
+        return R\Lib\Asset\AssetManager::getInstance();
     }
 
     /**
@@ -278,6 +278,9 @@
                 $_SESSION["__dync"] = array_merge((array)$_SESSION["__dync"],(array)$_REQUEST[$dync_key]);
             }
             registry("Config.dync", $_SESSION["__dync"]);
+            if (app()->getDebugLevel() && $_POST["__rdoc"]["entry"]=="build_rapp") {
+                builder()->start();
+            }
         }
     }
 

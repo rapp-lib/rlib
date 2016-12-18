@@ -1,8 +1,9 @@
 <?php
+namespace R\Lib\Builder\Regacy;
 
 //-------------------------------------
 //
-class WebappBuilder {
+class OldBuilder {
 
     protected $tmp_dir ="";
     protected $history ="";
@@ -212,7 +213,7 @@ class WebappBuilder {
         }
 
         // 既存ファイルのバックアップ
-        if (file_exists($dest_file) && $this->options["force"]) {
+        if (file_exists($dest_file)) {
 
             // 同一性チェック
             if ($src !== null) {

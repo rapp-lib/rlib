@@ -215,8 +215,8 @@ class Table_Base extends Table_Core
                 "table" => $this,
             ));
         }
-        $this->query->where($this->query->getTableName().".".$login_id_col_name, (string)$login_id);
-        $this->query->where($this->query->getTableName().".".$login_pw_col_name, md5($login_pw));
+        $this->query->where($this->getQueryTableName().".".$login_id_col_name, (string)$login_id);
+        $this->query->where($this->getQueryTableName().".".$login_pw_col_name, md5($login_pw));
     }
 
     /**
@@ -225,7 +225,7 @@ class Table_Base extends Table_Core
      */
     public function chain_findNothing ()
     {
-        $this->query->where("0=1");
+        $this->query->addWhere("0=1");
     }
 
     /**
@@ -331,7 +331,9 @@ class Table_Base extends Table_Core
         if ($col_names = $this->getColNamesByAttr("format", "json")) {
             foreach ($col_names as $col_name) {
                 $value = $this->query->getValue($col_name);
-                $this->query->setValue($col_name, json_encode((array)$value));
+                if (is_array($value)) {
+                    $this->query->setValue($col_name, json_encode((array)$value));
+                }
             }
         } else {
             return false;
@@ -346,7 +348,10 @@ class Table_Base extends Table_Core
     {
         if ($col_names = $this->getColNamesByAttr("format", "json")) {
             foreach ($col_names as $col_name) {
-                $record[$col_name] = (array)json_decode($record[$col_name]);
+                $value = $record[$col_name];
+                if (strlen($value)) {
+                    $record[$col_name] = (array)json_decode($record[$col_name]);
+                }
             }
         } else {
             return false;

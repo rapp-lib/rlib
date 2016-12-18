@@ -1,6 +1,42 @@
-<?php require __DIR__."/../_include/controller.php"; ?>
-<?=$__controller_header?>
+<?php
+    $controller_label = $controller->getAttr("label");
+
+    $role_required = $controller->getAttr("auth");
+    $role_login = $controller->getAttr("accessor");
+    $role_accessor = $controller->getAttr("accessor");
+
+    $table = $controller->getAttr("table");
+    $__table_instance = 'table("'.$table.'")';
+
+?><?="<!?php\n"?>
+namespace R\App\Controller;
+
+/**
+ * @controller
+ */
+class <?=$controller->getClassName()?> extends Controller_App
+{
+    /**
+     * 認証設定
+     */
+    protected static $access_as = "<?=$role_accessor?>";
+    protected static $priv_required = <?=$role_required ? "true" : "false"?>;
+
+<? if ($c["type"] == "master"): ?>
+    /**
+     * @page
+     * @title <?=$controller_label?> TOP
+     */
+    public function act_index ()
+    {
+<? if ($c["usage"] == "form"): ?>
+        redirect("page:.entry_form");
+<? else: ?>
+        redirect("page:.view_list");
+<? endif; ?>
+    }
 <? if ($c["usage"] != "form"): ?>
+
     /**
      * 検索フォーム
      */
@@ -17,7 +53,23 @@
     );
 
 <? endif /* $c["usage"] != "form" */ ?>
+<? if ($c["usage"] != "form"): /* ------------------- act_view_* ------------------ */ ?>
+    /**
+     * @page
+     * @title <?=$controller_label?> 一覧表示
+     */
+    public function act_view_list ()
+    {
+        if ($this->forms["search"]->receive()) {
+            $this->forms["search"]->save();
+        } elseif ($this->request["back"]) {
+            $this->forms["search"]->restore();
+        }
+        $this->vars["ts"] = $this->forms["search"]->search()->select();
+    }
+<? endif; /* $c["usage"] != "form" */ ?>
 <? if ($c["usage"] != "view"): ?>
+
     /**
      * 入力フォーム
      */
@@ -38,24 +90,78 @@
         "rules" => array(
         ),
     );
-
 <? endif /* $c["usage"] != "view" */ ?>
-<? if($c["usage"] != "view" && $c["use_csv"]): ?>
+<? if ($c["usage"] != "view"): /* ------------------- act_entry_* ------------------ */ ?>
     /**
-     * CSVアップロードフォーム
+     * @page
+     * @title <?=$controller_label?> 入力フォーム
      */
-    protected static $form_entry_csv = array(
-        "auto_restore" => true,
-        "fields" => array(
-            "csv_file",
-        ),
-        "rules" => array(
-            "csv_file",
-        ),
-    );
-
-<? endif /* $c["usage"] != "view" && $c["use_csv"] */ ?>
+    public function act_entry_form ()
+    {
+        if ($this->forms["entry"]->receive()) {
+            if ($this->forms["entry"]->isValid()) {
+                $this->forms["entry"]->save();
+                redirect("page:.entry_confirm");
+            }
+        } elseif ($id = $this->request["id"]) {
+            $this->forms["entry"]->init($id);
+        } elseif ( ! $this->request["back"]) {
+            $this->forms["entry"]->clear();
+        }
+    }
+    /**
+     * @page
+     * @title <?=$controller_label?> 確認
+     */
+    public function act_entry_confirm ()
+    {
+<? if ($c["usage"] != "form"): ?>
+        redirect("page:.entry_exec");
+<? endif; ?>
+    }
+    /**
+     * @page
+     * @title <?=$controller_label?> 完了
+     */
+    public function act_entry_exec ()
+    {
+        if ( ! $this->forms["entry"]->isEmpty()) {
+            if ( ! $this->forms["entry"]->isValid()) {
+                redirect("page:.entry_form", array("back"=>"1"));
+            }
+<? if ($t["nodef"]): ?>
+            // メールの送信
+            $this->send_mail(array(
+                "template" => "sample",
+                "vars" => array(
+                    "form" => $this->forms["entry"],
+                ),
+            ));
+<? else: /* $t["nodef"] */ ?>
+            $this->forms["entry"]->getRecord()->save();
+<? endif; /* $t["nodef"] */ ?>
+            $this->forms["entry"]->clear();
+        }
+<? if ($c["usage"] != "form"): ?>
+        redirect("page:.view_list", array("back"=>"1"));
+<? endif; ?>
+    }
+<? endif; /* $c["usage"] != "view" */ ?>
+<? if($c["usage"] == ""): /* ------------------- act_delete_* ------------------ */ ?>
+    /**
+     * @page
+     * @title <?=$controller_label?> 削除
+     */
+    public function act_delete ()
+    {
+        if ($id = $this->request["id"]) {
+            <?=$__table_instance?>->deleteById($id);
+        }
+        redirect("page:.view_list", array("back"=>"1"));
+    }
+<? endif; /* $c["usage"] == "" */ ?>
 <? if($c["use_csv"]): /* ------------------- csv_setting ------------------ */ ?>
+
     /**
      * CSV設定
      */
@@ -87,114 +193,11 @@
         ),
         "ignore_empty_line" =>true,
     );
-
 <? endif; /* $c["use_csv"] */ ?>
-    /**
-     * @page
-     * @title <?=$c["label"]?> TOP
-     */
-    public function act_index ()
-    {
-<? if ($c["usage"] == "form"): ?>
-        redirect("page:.entry_form");
-<? else: ?>
-        redirect("page:.view_list");
-<? endif; ?>
-    }
-
-<? if ($c["usage"] != "form"): /* ------------------- act_view_* ------------------ */ ?>
-    /**
-     * @page
-     * @title <?=$c["label"]?> 一覧表示
-     */
-    public function act_view_list ()
-    {
-        if ($this->forms["search"]->receive()) {
-            $this->forms["search"]->save();
-        } elseif ($this->request["back"]) {
-            $this->forms["search"]->restore();
-        }
-        $this->vars["ts"] = $this->forms["search"]->search()->select();
-    }
-
-<? endif; /* $c["usage"] != "form" */ ?>
-<? if ($c["usage"] != "view"): /* ------------------- act_entry_* ------------------ */ ?>
-    /**
-     * @page
-     * @title <?=$c["label"]?> 入力フォーム
-     */
-    public function act_entry_form ()
-    {
-        if ($this->forms["entry"]->receive()) {
-            if ($this->forms["entry"]->isValid()) {
-                $this->forms["entry"]->save();
-                redirect("page:.entry_confirm");
-            }
-        } elseif ($id = $this->request["id"]) {
-            $this->forms["entry"]->init($id);
-        } elseif ( ! $this->request["back"]) {
-            $this->forms["entry"]->clear();
-        }
-    }
-
-    /**
-     * @page
-     * @title <?=$c["label"]?> 確認
-     */
-    public function act_entry_confirm ()
-    {
-<? if ($c["usage"] != "form"): ?>
-        redirect("page:.entry_exec");
-<? endif; ?>
-    }
-
-    /**
-     * @page
-     * @title <?=$c["label"]?> 完了
-     */
-    public function act_entry_exec ()
-    {
-        if ( ! $this->forms["entry"]->isEmpty()) {
-            if ( ! $this->forms["entry"]->isValid()) {
-                redirect("page:.entry_form", array("back"=>"1"));
-            }
-<? if ($t["nodef"]): ?>
-            // メールの送信
-            $this->send_mail(array(
-                "template" => "sample",
-                "vars" => array(
-                    "form" => $this->forms["entry"],
-                ),
-            ));
-<? else: /* $t["nodef"] */ ?>
-            $this->forms["entry"]->getRecord()->save();
-<? endif; /* $t["nodef"] */ ?>
-            $this->forms["entry"]->clear();
-        }
-<? if ($c["usage"] != "form"): ?>
-        redirect("page:.view_list", array("back"=>"1"));
-<? endif; ?>
-    }
-
-<? endif; /* $c["usage"] != "view" */ ?>
-<? if($c["usage"] == ""): /* ------------------- act_delete_* ------------------ */ ?>
-    /**
-     * @page
-     * @title <?=$c["label"]?> 削除
-     */
-    public function act_delete ()
-    {
-        if ($id = $this->request["id"]) {
-            <?=$__table_instance?>->deleteById($id);
-        }
-        redirect("page:.view_list", array("back"=>"1"));
-    }
-
-<? endif; /* $c["usage"] == "" */ ?>
 <? if($c["usage"] != "form" && $c["use_csv"]): /* ------------------- act_view_csv ------------------ */ ?>
     /**
      * @page
-     * @title <?=$c["label"]?> CSVダウンロード
+     * @title <?=$controller_label?> CSVダウンロード
      */
     public function act_view_csv ()
     {
@@ -216,8 +219,22 @@
             "stored_file" => $csv_file,
         ));
     }
-
 <? endif; /* $c["usage"] != "form" && $c["use_csv"] */ ?>
+<? if($c["usage"] != "view" && $c["use_csv"]): ?>
+
+    /**
+     * CSVアップロードフォーム
+     */
+    protected static $form_entry_csv = array(
+        "auto_restore" => true,
+        "fields" => array(
+            "csv_file",
+        ),
+        "rules" => array(
+            "csv_file",
+        ),
+    );
+<? endif /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 <? if($c["usage"] != "view" && $c["use_csv"]): /* ------------------- act_csv_entry ------------------ */ ?>
     /**
      * @page
@@ -234,7 +251,6 @@
             $this->forms["entry"]->clear();
         }
     }
-
     /**
      * @page
      * @title CSVインポート確認
@@ -243,7 +259,6 @@
     {
         redirect('page:.entry_csv_exec');
     }
-
     /**
      * @page
      * @title CSVインポート完了
@@ -268,4 +283,78 @@
         redirect("page:.view_list", array("back"=>"1"));
     }
 <? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
-}
+<? elseif ($c["type"] == "login"): /* $c["type"] == "master" */ ?>
+
+    /**
+     * ログインフォーム
+     */
+    protected static $form_login = array(
+        "form_page" => ".index",
+        "fields" => array(
+            "login_id",
+            "login_pass",
+            "redirect",
+        ),
+        "rules" => array(
+        ),
+    );
+    /**
+     * @page
+     * @title <?=$controller_label?> TOP
+     */
+    public function act_index ()
+    {
+        redirect("page:.login");
+    }
+    /**
+     * @page
+     * @title <?=$controller_label?> ログインフォーム
+     */
+    public function act_login ()
+    {
+        if ($this->forms["login"]->receive()) {
+            if ($this->forms["login"]->isValid()) {
+                // ログイン処理
+                if (auth()->login("<?=$c["access_as"]?>", $this->forms["login"])) {
+                    // ログイン成功時の転送処理
+                    if ($redirect = $this->forms["login"]["redirect"]) {
+                        response()->redirectUrl($redirect);
+                    } else {
+                        response()->redirect("<?=builder()->getSchema()->getController($c["name"])->getRole()->getIndexController()->getName()?>.index");
+                    }
+                } else {
+                    $this->vars["login_error"] = true;
+                }
+            }
+        // 転送先の設定
+        } elseif ($redirect = $this->request["redirect"]) {
+            $this->forms["login"]["redirect"] = sanitize_decode($redirect);
+        }
+    }
+    /**
+     * @page
+     * @title <?=$controller_label?> ログアウト
+     */
+    public function act_logout ()
+    {
+        // ログアウト処理
+        auth()->logout("<?=$c["access_as"]?>");
+        // ログアウト後の転送処理
+        redirect("page:.login");
+    }
+<? elseif ($c["type"] == "index"): /* $c["type"] == "login" */ ?>
+    /**
+     * @page
+     * @title <?=$controller_label?> INDEX<?="\n"?>
+     */
+    public function act_index ()
+    {
+    }
+    /**
+     * @page
+     * @title <?=$controller_label?> STATIC<?="\n"?>
+     */
+    public function act_static ()
+    {
+    }
+<? endif; /* $c["type"] == "index" */ ?>}

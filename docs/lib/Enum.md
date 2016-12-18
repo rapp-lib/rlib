@@ -6,9 +6,9 @@ Classes
     EnumFactory
     Enum_Base
 
-Enumクラスのサンプル
--------------------------------------
-~~~
+# Enumクラスのサンプル
+
+~~~php
 class MemberEnum extends Enum_Base
 {
     // (例) $enum = enum("Member.pref"); $enum[13]; => "東京都"
