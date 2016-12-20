@@ -37,7 +37,7 @@ class FormRepositryProxy extends ArrayObject
         // 定義されている全てのform_nameを取得
         $class_name = $this->repositry_class_name;
         foreach ($class_name::getFormDef($class_name) as $form_name => $form_def) {
-            $this->initOffset($form_name);
+            $this->initValue($form_name);
         }
     }
     /**

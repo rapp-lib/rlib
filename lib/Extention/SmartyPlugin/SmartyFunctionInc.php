@@ -18,10 +18,12 @@ class SmartyFunctionInc
         }
         $route = route($route_name);
         // Actionの実行
-        app()->invokeRouteAction($route);
+        $request = new \R\Lib\Webapp\Request($params);
+        $response = new \R\Lib\Webapp\Response(array());
+        app()->invokeRouteAction($route, $request, $response);
         // テンプレートの読み込み
         $template_file = $route->getFile();
-        $smarty->assign((array)$params["vars"]);
+        $smarty->assign((array)$response);
         $output = $smarty->fetch($template_file);
         return $output;
     }

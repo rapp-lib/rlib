@@ -117,7 +117,41 @@ class Application
      */
     public function config ($key)
     {
-        return config($key);
+        $ref = & $GLOBALS["__REGISTRY__"];
+        if (is_array($key)) {
+            foreach ($key as $k=>$v) {
+                array_add($ref, $k, $v);
+            }
+        } elseif (is_string($key)) {
+            return array_get($ref, $key);
+        }
+    }
+    /**
+     * @singleton
+     */
+    public function request ()
+    {
+        if ( ! isset($this->request)) {
+            $this->request = new \R\Lib\Webapp\Request();
+        }
+        return $this->request;
+    }
+    /**
+     * @singleton
+     */
+    public function response ()
+    {
+        if ( ! isset($this->response)) {
+            $this->response = new \R\Lib\Webapp\Response();
+        }
+        return $this->response;
+    }
+    /**
+     * @factory
+     */
+    public function session ($key)
+    {
+        return new \R\Lib\Webapp\Session($key);
     }
     /**
      * デバッグモードの取得
@@ -129,7 +163,7 @@ class Application
     /**
      * routeに対応するActionの呼び出し
      */
-    public function invokeRouteAction ($route)
+    public function invokeRouteAction ($route, $request, $response)
     {
         $page = $route->getPage();
         if ( ! $page) {
@@ -149,8 +183,10 @@ class Application
         if ($auth = $controller_class_name::getAuthenticate()) {
             auth()->authenticate($auth["access_as"], $auth["priv_required"]);
         }
+        // FormRepositryの取得
+        $response["forms"] = form()->addRepositry($controller_class_name);
         // Actionメソッドの呼び出し
-        $controller = new $controller_class_name();
+        $controller = new $controller_class_name($request, $response);
         $controller->$action_method_name();
     }
 }

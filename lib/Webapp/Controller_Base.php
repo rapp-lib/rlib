@@ -12,15 +12,23 @@ class Controller_Base implements FormRepositry, Authenticator
     protected $request;
     protected $response;
     protected $forms;
+    protected $vars;
+    /**
+     * FormRepositry経由で読み込まれるフォームの定義
+     */
     protected static $defs = null;
-
+    /**
+     * Authenticator経由で読み込みあれる認証設定
+     */
     protected static $access_as = null;
     protected static $priv_required = false;
-
-    public function __construct ()
+    /**
+     * 初期化
+     */
+    public function __construct ($request, $response)
     {
-        $this->request = request();
-        $this->response = response();
+        $this->request = $request;
+        $this->response = $response;
         $this->vars = $this->response;
         $this->forms = form()->addRepositry($this);
     }
@@ -74,14 +82,18 @@ class Controller_Base implements FormRepositry, Authenticator
             "form_name" => $form_name,
         ));
     }
-
     /**
      * @implements R\Lib\Auth\Authenticator
      */
     public static function getAuthenticate ()
     {
-        return static::$access_as
-            ? array("access_as"=>static::$access_as, "priv_required"=>static::$priv_required)
-            : array();
+        $authenticate = array();
+        if (static::$access_as) {
+            $authenticate["access_as"] =static::$access_as;
+        }
+        if (static::$access_as) {
+            $authenticate["priv_required"] =static::$priv_required;
+        }
+        return $authenticate;
     }
 }

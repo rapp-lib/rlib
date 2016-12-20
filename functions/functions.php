@@ -9,46 +9,27 @@
     {
         return R\Lib\Core\Application::getInstance();
     }
-
     /**
-     * @facade registry
+     * @deprecated
      */
     function config ($key)
     {
-        $ref = & $GLOBALS["__REGISTRY__"];
-        if (is_array($key)) {
-            foreach ($key as $k=>$v) {
-                array_add($ref, $k, $v);
-            }
-        } elseif (is_string($key)) {
-            return array_get($ref, $key);
-        }
+        return app()->config($key);
     }
-
     /**
-     * @facade R\Lib\Webapp\Request::getInstance
+     * @deprecated
      */
     function request ()
     {
-        return R\Lib\Webapp\Request::getInstance();
+        return app()->request();
     }
-
     /**
-     * @facade R\Lib\Webapp\Response::getInstance
+     * @deprecated
      */
     function response ()
     {
-        return R\Lib\Webapp\Response::getInstance();
+        return app()->response();
     }
-
-    /**
-     * @facade R\Lib\Webapp\Session::getInstance
-     */
-    function session ($key)
-    {
-        return R\Lib\Webapp\Session::getInstance($key);
-    }
-
     /**
      * @facade R\Lib\Auth\AccountManager::getInstance
      */

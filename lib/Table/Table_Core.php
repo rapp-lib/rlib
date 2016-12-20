@@ -229,7 +229,7 @@ class Table_Core
             if ($col_name_sub === false) {
                 $hashed_result[$key] = $record[$col_name];
             } else {
-                $hashed_result[$key] = $record[$col_name][$col_name_sub];
+                $hashed_result[$record[$col_name]] = $record[$col_name_sub];
             }
         }
         return $hashed_result;

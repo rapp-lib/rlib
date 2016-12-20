@@ -352,7 +352,7 @@
         // エラー時の処理停止
         if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
 
-            response()->error($errstr,array(
+            app()->response()->error($errstr,array(
                 "options" =>$options,
                 "params" =>$params,
                 "backtraces" =>$backtraces,
@@ -448,7 +448,7 @@
         $info["line"] =$ref->getStartLine();
         $info["ns"] =$ref->getNamespaceName();
         $info["comment"] =$ref->getDocComment();
-        $info["file_short"] =self::to_short_filename($info["file"]);
+        $info["file_short"] =$info["file"];
 
         $info["params"] =array();
 

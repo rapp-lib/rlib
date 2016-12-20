@@ -10,12 +10,6 @@ class Session
      * 参照の起点
      */
     private $base_key;
-
-    public static function getInstance ($key)
-    {
-        return new Session($key);
-    }
-
     /**
      *
      */
@@ -23,7 +17,6 @@ class Session
     {
         $this->base_key = $key;
     }
-
     /**
      * 下層の領域を取得
      */
@@ -32,7 +25,6 @@ class Session
         $key = strlen($key) ? $this->base_key.".".$key : $this->base_key;
         return new Session($key);
     }
-
     /**
      * 値を登録する
      */
@@ -41,7 +33,6 @@ class Session
         $key = strlen($key) ? $this->base_key.".".$key : $this->base_key;
         array_set($_SESSION, $key, $value);
     }
-
     /**
      * 登録されている値を取得する
      */
@@ -50,7 +41,6 @@ class Session
         $key = strlen($key) ? $this->base_key.".".$key : $this->base_key;
         return array_get($_SESSION, $key);
     }
-
     /**
      * 値を削除する
      */

@@ -90,3 +90,8 @@
     $asset->registerJsUrl("rui.show-errors", $url.'/rui.show-errors/rui.show-errors.js')
         ->required("jquery");
 
+    // input_plugin
+    $asset->registerJsUrl("input_plugin.zero_option", $url.'/input_plugin/zero_option.js')
+        ->required("jquery");
+    $asset->registerJsUrl("input_plugin.split_text", $url.'/input_plugin/split_text.js')
+        ->required("jquery");

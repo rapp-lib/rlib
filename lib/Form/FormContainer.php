@@ -172,7 +172,7 @@ class FormContainer extends ArrayObject
     private function getTmpStorage ()
     {
         if ( ! isset($this->tmp_storage)) {
-            $this->tmp_storage = session(__CLASS__)
+            $this->tmp_storage = app()->session(__CLASS__)
                 ->session("tmp_storage")
                 ->session($this->getTmpStorageName());
         }
@@ -188,7 +188,7 @@ class FormContainer extends ArrayObject
     public function receive ()
     {
         if ( ! isset($this->received)) {
-            $request = request();
+            $request = app()->request();
             $form_param_name = "_f";
             $form_name = $this->getFormName();
             // csrf_checkの指定があればCSRF対策キーを確認する

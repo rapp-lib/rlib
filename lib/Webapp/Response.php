@@ -5,29 +5,15 @@ use ArrayObject;
 
 class Response extends ArrayObject
 {
-    private static $instance = null;
-
     private $output = null;
     private $report_buffer = array();
-
-    /**
-     * インスタンスを取得
-     */
-    public static function getInstance ()
-    {
-        if ( ! isset(self::$instance)) {
-            self::$instance = new Response;
-        }
-        return self::$instance;
-    }
     /**
      * 出力内容の設定
      */
     public function output ($output)
     {
         if ($this->hasOutput()) {
-            report_warning("設定済みの出力内容を上書きします",array(
-            ));
+            report_warning("設定済みの出力内容を上書きします");
         }
         $this->output = $output;
         app()->end();
