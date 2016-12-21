@@ -148,7 +148,7 @@ class ValidateRuleLoader
      */
     public static function callbackDuplecate ($validator, $value, $rule)
     {
-        if (strlen($value)) {
+        if ( ! strlen($value)) {
             return false;
         }
         $rule["table"];
@@ -162,7 +162,7 @@ class ValidateRuleLoader
      */
     public static function callbackConfirm ($validator, $value, $rule)
     {
-        if (strlen($value)) {
+        if ( ! strlen($value)) {
             return false;
         }
         $target_value = $validator->getValue($rule["target"]);
