@@ -18,7 +18,7 @@ class SmartyFunctionInput
             $input_field = $form->getInputField($attrs["name"], $attrs);
             // assignが指定されている場合、分解したHTMLを変数としてアサイン
             if ($attrs["assign"]) {
-                $smarty->assign($params["assign"], $input_field);
+                $smarty_template->assign($params["assign"], $input_field);
                 return;
             }
             return $input_field->getHtml();

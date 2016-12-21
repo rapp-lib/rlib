@@ -9,20 +9,86 @@ use R\Lib\Auth\Authenticator;
  */
 class Controller_Base implements FormRepositry, Authenticator
 {
+    protected $vars = array();
     protected $request;
     protected $response;
     protected $forms;
+    /**
+     * FormRepositry経由で読み込まれるフォームの定義
+     */
     protected static $defs = null;
-
+    /**
+     * Authenticator経由で読み込まれる認証設定
+     */
     protected static $access_as = null;
     protected static $priv_required = false;
-
+    /**
+     * Pageに対応するActionの処理の実行
+     */
+    public static function invokeAction ($page)
+    {
+        list($controller_name, $action_name) = explode('.',$page,2);
+        $controller_class_name = "R\\App\\Controller\\".str_camelize($controller_name)."Controller";
+        $action_method_name = "act_".$action_name;
+        if ( ! method_exists($controller_class_name, $action_method_name)) {
+            report_warning("Page設定に対応するActionがありません",array(
+                "action_method_call" => $controller_class_name."::".$action_method_name,
+                "page" => $page,
+            ));
+            return null;
+        }
+        // 認証処理
+        $auth = $controller_class_name::getAuthenticate();
+        if ($auth && ! auth()->authenticate($auth["access_as"], $auth["priv_required"])) {
+            report_warning("認証エラー",array(
+                "controller_class" => $controller_class_name,
+                "auth" => $auth,
+                "page" => $page,
+            ));
+            return null;
+        }
+        // Actionメソッドの呼び出し
+        $controller = new $controller_class_name();
+        call_user_func(array($controller,$action_method_name));
+        return $controller;
+    }
+    /**
+     * Pageに対応するIncludeActionの処理の実行
+     */
+    public static function invokeIncludeAction ($page)
+    {
+        list($controller_name, $action_name) = explode('.',$page,2);
+        $controller_class_name = "R\\App\\Controller\\".str_camelize($controller_name)."Controller";
+        $action_method_name = "inc_".$action_name;
+        if ( ! method_exists($controller_class_name, $action_method_name)) {
+            report_warning("Page設定に対応するIncludeActionがありません",array(
+                "action_method_call" => $controller_class_name."::".$action_method_name,
+                "page" => $page,
+            ));
+            return null;
+        }
+        $controller = new $controller_class_name();
+        call_user_func(array($controller,$action_method_name));
+        return $controller;
+    }
+    /**
+     * 初期化
+     */
     public function __construct ()
     {
-        $this->request = request();
-        $this->response = response();
-        $this->vars = $this->response;
+        $this->vars = array();
+        $this->request = app()->request();
+        $this->response = app()->response();
         $this->forms = form()->addRepositry($this);
+        $this->vars["forms"] = $this->forms;
+    }
+    /**
+     * @getter
+     * 設定された変数の取得
+     */
+    public function getVars ()
+    {
+        return $this->vars;
     }
     /**
      * @implements R\Lib\Form\FormRepositry
@@ -74,14 +140,18 @@ class Controller_Base implements FormRepositry, Authenticator
             "form_name" => $form_name,
         ));
     }
-
     /**
      * @implements R\Lib\Auth\Authenticator
      */
     public static function getAuthenticate ()
     {
-        return static::$access_as
-            ? array("access_as"=>static::$access_as, "priv_required"=>static::$priv_required)
-            : array();
+        $authenticate = array();
+        if (static::$access_as) {
+            $authenticate["access_as"] =static::$access_as;
+        }
+        if (static::$access_as) {
+            $authenticate["priv_required"] =static::$priv_required;
+        }
+        return $authenticate;
     }
 }

@@ -30,7 +30,8 @@ class AccountManager
         // 指定が無ければ認証済みアカウントを取得
         if ($role===false) {
             if ( ! $this->access_role) {
-                report_error("未認証エラー");
+                report_warning("未認証エラー");
+                return null;
             }
             $role = $this->access_role;
         }
@@ -48,18 +49,20 @@ class AccountManager
     public function authenticate ($role, $required=true)
     {
         if ( ! $role) {
-            report_error("認証エラー",array(
+            report_warning("認証エラー",array(
                 "role" => $role,
                 "required" => $required,
             ));
+            return false;
         }
         // 既に認証済みであれば多重認証処理エラー
         // ※複数のRoleでアクセスする可能性がある場合は共用Roleを用意する
         if ($this->access_role) {
-            report_error("多重認証エラー",array(
+            report_warning("多重認証エラー",array(
                 "role" => $role,
                 "access_role" => $this->access_role,
             ));
+            return false;
         }
         $this->access_role = $role;
         // 認証時の処理呼び出し

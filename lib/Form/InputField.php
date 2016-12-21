@@ -77,6 +77,16 @@ class InputField
     private function buildHtml ()
     {
         $attrs = $this->attrs;
+        // pluginに対応するJS呼び出し
+        if ($plugins = $attrs["plugins"]) {
+            if ( ! isset($attrs["id"])) {
+                $attrs["id"] = "input-".$this->attrs["type"]."-".mt_rand(100000,999999);
+            }
+            foreach ($plugins as $plugin_name => $plugin_params) {
+                asset()->bufferJsCode('input_plugin_'.$plugin_name.'("'.$attrs["id"].'",'.json_encode($plugin_params).');')->required('input_plugin.'.$plugin_name);
+            }
+            unset($attrs["plugins"]);
+        }
         // type=selectであれば選択肢構築
         if ($this->attrs["type"]=="select") {
             $option_html = array();
@@ -88,6 +98,7 @@ class InputField
                 }
                 $option_html[] = tag("option",$option_attrs,$option["label"]);
             }
+            unset($attrs["type"]);
             $this->html = tag("select",$attrs,implode('',$option_html));
         // type=checklistであれば選択肢構築
         } elseif ($this->attrs["type"]=="checklist") {
@@ -102,6 +113,7 @@ class InputField
                 }
                 $option_html[] = tag("label",array(),tag("input",$option_attrs).tag("span",array(),$option["label"]));
             }
+            unset($attrs["type"]);
             $this->html = implode('',$option_html);
         // type=radioselectであれば選択肢構築
         } elseif ($this->attrs["type"]=="radioselect") {
@@ -116,10 +128,12 @@ class InputField
                 }
                 $option_html[] = tag("label",array(),tag("input",$option_attrs).tag("span",array(),$option["label"]));
             }
+            unset($attrs["type"]);
             $this->html = implode('',$option_html);
         // type=textareaであれば、タグの様式変更
         } elseif ($this->attrs["type"]=="textarea") {
             $value = isset($this->field_value) ? $this->field_value : $attrs["value"];
+            unset($attrs["type"]);
             unset($attrs["value"]);
             $this->html = tag("textarea",$attrs,(string)$value);
         // type=fileであれば、valueからhiddenを生成

@@ -16,10 +16,30 @@ class SmartyFunctionInc
         if ( ! $route_name && $params["path"]) {
             $route_name = $params["path"];
         }
+        if ( ! $route_name && $params["page"]) {
+            $route_name = $params["page"];
+        }
         $route = route($route_name);
-        $template_file = $route->getFile();
-        $smarty->assign((array)$params["vars"]);
-        $output = $smarty->fetch($template_file);
-        return $output;
+        $page = $route->getPage();
+        $vars = array();
+        // Routeに対応する処理の実行
+        if ($controller = \R\Lib\Webapp\Controller_Base::invokeIncludeAction($page)) {
+            report("IncludeAction実行",array(
+                "page" => $page,
+            ));
+            $vars = $controller->getVars();
+        }
+        $request_file = $route->getFile();
+        if ( ! file_exists($request_file)) {
+            report_error("incタグの対象となるテンプレートファイルがありません",array(
+                "request_file" => $request_file,
+                "route" => $route,
+            ));
+            return;
+        }
+        // テンプレートの読み込み
+        $smarty_clone = clone($smarty);
+        $smarty_clone->assign($vars);
+        return $smarty_clone->fetch($request_file);
     }
 }

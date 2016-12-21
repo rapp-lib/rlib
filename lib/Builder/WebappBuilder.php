@@ -25,9 +25,9 @@ class WebappBuilder
     public function start ()
     {
         $schema_csv_file = $this->getConfig("schema_csv_file");
-        $create_schema = new R\Lib\Builder\Regacy\CreateSchema;
+        $create_schema = new \R\Lib\Builder\Regacy\CreateSchema;
         $schema = $create_schema->load_schema_csv($schema_csv_file);
-        $deploy_files = new R\Lib\Builder\Regacy\DeployFiles;
+        $deploy_files = new \R\Lib\Builder\Regacy\DeployFiles;
         $deploy_files->deploy_files($schema);
     }
     /**
@@ -76,14 +76,20 @@ class WebappBuilder
         builder()->deploy("/config/routing.config.php", $source);
         // Controllerに関わるファイルの展開
         foreach (builder()->getSchema()->getController() as $controller) {
-            $source = builder()->fetch("master/ProductMasterController.class.php",
-                array("controller"=>$controller));
+            $table = $controller->getTable();
+            if ($table) {
+                $t = $table->getAttr();
+            }
+            $c = $controller->getAttr();
+            $source = builder()->fetch("controller/ProductMasterController.class.php",
+                array("controller"=>$controller, "c"=>$c, "t"=>$t));
             builder()->deploy("/app/Controller/".$controller->getClassName().".php", $source);
             // HTMLの構築
             foreach ($controller->getAction() as $action) {
                 if ($action->getAttr("has_html")) {
-                    $source = builder()->fetch("master/product_master.".$action->getName().".html",
-                        array("action"=>$action));
+                    $a = $action->getAttr();
+                    $source = builder()->fetch("controller/".$action->getName().".html",
+                        array("action"=>$action, "c"=>$c, "t"=>$t, "a"=>$a));
                     builder()->deploy("/html".$action->getPath(), $source);
                 }
             }
@@ -113,13 +119,20 @@ class WebappBuilder
         if ($key == "template_dir") {
             return __DIR__."/../../assets/builder/skel";
         } elseif ($key == "current_dir") {
-            return registry("Path.webapp_dir");
+            return app()->config("Path.webapp_dir");
+        } elseif ($key == "work_dir") {
+            if ( ! $this->config["work_dir"]) {
+                $this->config["work_dir"] = app()->config("Path.tmp_dir")."/builder/work-".date("Ymd-his");
+            }
+            return $this->config["work_dir"];
         } elseif ($key == "deploy_dir") {
-            return registry("Path.webapp_dir");
+            return app()->config("Config.auto_deploy")
+                ? $this->getConfig("current_dir")
+                : $this->getConfig("work_dir")."/deploy";
         } elseif ($key == "schema_csv_file") {
-            return registry("Path.webapp_dir")."/config/schema.config.csv";
+            return app()->config("Path.webapp_dir")."/config/schema.config.csv";
         } elseif ($key == "dryrun") {
-            return ! app()->config("Config.auto_deploy");
+            return false;
         } elseif ($key == "show_source") {
             return true;
         }
@@ -159,9 +172,17 @@ class WebappBuilder
         if ( ! $this->getConfig("dryrun")) {
             util("File")->write($deploy_file, $source);
         }
-        report("ファイルの展開 ".$status." ".$deploy_name);
+        report("Deploy ".$status." ".$deploy_name);
         if ($status != "nochange" && $this->getConfig("show_source")) {
             print '<pre>'.htmlspecialchars($source)."</pre>";
         }
+    }
+    /**
+     * @deprecated
+     */
+    public function filter_fields ($fields, $type)
+    {
+        $deploy_files = new \R\Lib\Builder\Regacy\DeployFiles;
+        return $deploy_files->filter_fields($fields,$type);
     }
 }

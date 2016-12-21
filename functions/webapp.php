@@ -556,7 +556,7 @@
     //-------------------------------------
     //
     function redirect ($url, $params=array(), $anchor=null) {
-        return response()->redirect($url, $params);
+        return app()->response()->redirect($url, $params);
 
         if (preg_match('!^page:(.*)$!',$url,$match)) {
 

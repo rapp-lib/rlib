@@ -122,7 +122,7 @@ abstract class Role_Base
     protected function getTmpStorage ()
     {
         if ( ! isset($this->tmp_storage)) {
-            $this->tmp_storage = session(__CLASS__)
+            $this->tmp_storage = app()->session(__CLASS__)
                 ->session("tmp_storage")
                 ->session($this->role_name);
         }
