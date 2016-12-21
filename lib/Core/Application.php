@@ -160,33 +160,4 @@ class Application
     {
         return registry("Report.force_reporting") || registry("Config.dync.report") ? 1 : false;
     }
-    /**
-     * routeに対応するActionの呼び出し
-     */
-    public function invokeRouteAction ($route, $request, $response)
-    {
-        $page = $route->getPage();
-        if ( ! $page) {
-            return null;
-        }
-        // Pageに対応するControllerクラスの特定
-        list($controller_name, $action_name) = explode('.',$page,2);
-        $controller_class_name = "R\\App\\Controller\\".str_camelize($controller_name)."Controller";
-        $action_method_name = "act_".$action_name;
-        if ( ! method_exists($controller_class_name, $action_method_name)) {
-            report_error("RoutingのPage設定に対応するActionがありません",array(
-                "action_method_call" => $controller_class_name."::".$action_method_name,
-                "route" => $route,
-            ));
-        }
-        // 認証処理
-        if ($auth = $controller_class_name::getAuthenticate()) {
-            auth()->authenticate($auth["access_as"], $auth["priv_required"]);
-        }
-        // FormRepositryの取得
-        $response["forms"] = form()->addRepositry($controller_class_name);
-        // Actionメソッドの呼び出し
-        $controller = new $controller_class_name($request, $response);
-        $controller->$action_method_name();
-    }
 }

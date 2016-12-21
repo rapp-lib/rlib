@@ -15,8 +15,13 @@ class ExtentionManager
             if ($callback = call_user_func(array($class_name,"getCallback"),$name)) {
                 return $callback;
             }
-            $base_class_name = str_camelize($group)."\\".str_camelize($name).str_camelize($group);
+            // ClassName::methodNameの形式でメソッドの定義であればそのまま返す
+            if (preg_match('!^(.*?)::(.*?)$!',$name,$match)
+                && class_exists($match[1]) && method_exists($match[1], $match[2])) {
+                return $name;
+            }
             // R\Lib\Extention\[Group]\[Name][Group]を探索
+            $base_class_name = str_camelize($group)."\\".str_camelize($name).str_camelize($group);
             if (class_exists($class_name = "R\\Lib\\Extention\\".$base_class_name)
                 && method_exists($class_name, "callback")) {
                 return array($class_name, "callback");
@@ -31,8 +36,12 @@ class ExtentionManager
             if ($class = call_user_func(array($class_name,"getClass"),$name)) {
                 return $class;
             }
-            $base_class_name = str_camelize($group)."\\".str_camelize($name).str_camelize($group);
+            // クラス名であればそのまま返す
+            if (class_exists($name) && method_exists($name, $name)) {
+                return $name;
+            }
             // R\Lib\Extention\[Group]\[Name][Group]を探索
+            $base_class_name = str_camelize($group)."\\".str_camelize($name).str_camelize($group);
             if (class_exists($class_name = "R\\Lib\\Extention\\".$base_class_name)) {
                 return $class_name;
             // R\App\Extention\[Group]\[Name][Group]を探索
