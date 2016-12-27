@@ -147,6 +147,17 @@ class InputField
                 "value" => $value,
             ));
             $this->html = tag("input",$attrs).$hidden_html;
+        // type=checkboxであれば、checkedに値を反映
+        } elseif ($this->attrs["type"]=="checkbox") {
+            if ( ! strlen($attrs["value"])) {
+                $attrs["value"] = "1";
+            }
+            if ($attrs["value"] == $this->field_value) {
+                $attrs["checked"] = "checked";
+            } else {
+                unset($attrs["checked"]);
+            }
+            $this->html = tag("input",$attrs);
         // type=passwordであれば、入力値を戻さない
         } elseif ($this->attrs["type"]=="password") {
             $this->html = tag("input",$attrs);

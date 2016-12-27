@@ -29,7 +29,9 @@ window.input_plugin_split_text = function (id, params) {
         var values = $elm.val().split(params.delim);
         for (var i in bind_elms) {
             var $bind_elm = bind_elms[i];
-            $bind_elm.val(values[i]);
+            if (values[i]) {
+                $bind_elm.val(values[i]);
+            }
         }
         // 値の更新時の処理
         var on_update_bind_input = function () {
@@ -37,7 +39,7 @@ window.input_plugin_split_text = function (id, params) {
             for (var i in bind_elms) {
                 var $bind_elm = bind_elms[i];
                 value += $bind_elm.val();
-                if (i < bind_elms.length-1) {
+                if (i < bind_elms.length-1 && $bind_elm.val()) {
                     value += params.delim;
                 }
             }
