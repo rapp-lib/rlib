@@ -138,9 +138,16 @@ class Table_Base extends Table_Core
      * @hook chain
      * ORDER_BY句の設定
      */
-    public function chain_orderBy ($col_name, $asc=true)
+    public function chain_orderBy ($col_name, $order=null)
     {
-        $this->query->addOrder($col_name.($asc ? " ASC" : " DESC"));
+        if ($order==="ASC" || $order==="asc" || $order===true) {
+            $order = "ASC";
+        } elseif ($order==="DESC" || $order==="desc" || $order===false) {
+            $order = "DESC";
+        } else {
+            $order = null;
+        }
+        $this->query->addOrder($col_name.(strlen($order) ? " ".$order : ""));
     }
 
     /**

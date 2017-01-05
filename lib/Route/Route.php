@@ -36,8 +36,8 @@ class Route
         } elseif (preg_match('!^(?:url:)(.*)$!',$route_name,$match)) {
             $url = $match[1];
             list($this->path, $this->url_params, $path_matched) = $this->getWebroot()->parseUrl($url);
-            // パターン一致を含むPathであればPage/Pathを独立にする
-            if (isset($path_matched)) {
+            // 非パラメータ埋め込みでパターン一致を含むPathであればPage/Pathを独立にする
+            if ($path_matched && ! $this->url_params) {
                 $this->page = $this->getWebroot()->pathToPage($this->path);
                 $this->path = $path_matched;
             }
@@ -104,7 +104,8 @@ class Route
      */
     public function getFile ()
     {
-        $url = $this->getUrl();
+        $path = $this->getPath();
+        $url = strlen($path) ? $this->getWebroot()->getAttr("webroot_url",true).$path : null;
         return strlen($url) ? $this->getWebroot()->getAttr("docroot_dir",true).$url : null;
     }
     /**
@@ -114,8 +115,8 @@ class Route
     {
         $path = $this->getPath();
         // 埋め込みパラメータの置換
-        if (isset($this->embed_values)) {
-            foreach ($this->embed_values as $key => $value) {
+        if (isset($this->url_params)) {
+            foreach ($this->url_params as $key => $value) {
                 $path = str_replace('['.$key.']',$value,$path);
             }
         }

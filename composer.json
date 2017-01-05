@@ -9,7 +9,8 @@
 
         "pear/http_request2": "v2.*@stable",
         "pear/mail": "v1.*@stable",
-        "pear/mail_mime": "v1.*@stable"
+        "pear/mail_mime": "v1.*@stable",
+        "phpmailer/phpmailer": "v5.*@stable"
     },
     "autoload": {
         "psr-4": {

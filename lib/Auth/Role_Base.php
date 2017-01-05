@@ -7,34 +7,28 @@ namespace R\Lib\Auth;
 abstract class Role_Base
 {
     protected $account_manager;
-    protected $state;
     protected $role_name;
-
+    protected $state;
     /**
      * ログイン試行
      */
     abstract public function loginTrial ($state);
-
     /**
      * ログイン時の処理
      */
     abstract public function onLogin ();
-
     /**
      * ログアウト時の処理
      */
     abstract public function onLogout ();
-
     /**
      * アクセス時の処理
      */
     abstract public function onAccess ();
-
     /**
      * 認証要求時の処理
      */
     abstract public function onLoginRequired ($required);
-
     /**
      * @override
      */
@@ -42,25 +36,22 @@ abstract class Role_Base
     {
         $this->account_manager = $account_manager;
         $this->role_name = $role_name;
-        $this->state = $this->getTmpStorage()->get("state");
+        $this->state = $this->getAccountManager()->restoreAccountState($this->getRoleName());
     }
-
     /**
      * @getter
      */
-    public function getRole ()
+    public function getAccountManager ()
+    {
+        return $this->account_manager;
+    }
+    /**
+     * @getter
+     */
+    public function getRoleName ()
     {
         return $this->role_name;
     }
-
-    /**
-     * @getter
-     */
-    public function getId ()
-    {
-        return $this->state["id"];
-    }
-
     /**
      * @getter
      */
@@ -68,20 +59,32 @@ abstract class Role_Base
     {
         return $this->state[$name];
     }
-
+    /**
+     * @getter
+     */
+    public function getId ()
+    {
+        return $this->getState("id");
+    }
     /**
      * @getter
      */
     public function isLogin ()
     {
-        return (bool)$this->state["login"];
+        return (bool)$this->getState("login");
     }
-
     /**
      * 権限を持つかどうか確認
      */
     public function check ($priv)
     {
+        if ( ! $this->isLogin()) {
+            return false;
+        }
+        // trueの指定の場合ログインしているかどうかのみ確認
+        if ($priv === true) {
+            return true;
+        }
         // 複数指定の場合、全ての権限を持つか確認する
         if (is_array($priv)) {
             foreach ($priv as $v) {
@@ -91,15 +94,8 @@ abstract class Role_Base
             }
             return true;
         }
-        if ( ! $this->isLogin()) {
-            return false;
-        }
-        // trueの指定の場合ログインしているかどうかのみ確認
-        if ($priv === true) {
-            return true;
-        }
         // 権限を持つか確認
-        foreach ((array)$this->state["privs"] as $priv_check) {
+        foreach ((array)$this->getState("privs") as $priv_check) {
             if ($priv_check == $priv) {
                 return true;
             }
@@ -108,24 +104,11 @@ abstract class Role_Base
     }
 
     /**
-     * 状態の更新
+     * @getter
+     * @deprecated
      */
-    public function setState ($state)
+    public function getRole ()
     {
-        $this->state = $state;
-        $this->getTmpStorage()->set("state",$state);
-    }
-
-    /**
-     * 保存領域の確保
-     */
-    protected function getTmpStorage ()
-    {
-        if ( ! isset($this->tmp_storage)) {
-            $this->tmp_storage = app()->session(__CLASS__)
-                ->session("tmp_storage")
-                ->session($this->role_name);
-        }
-        return $this->tmp_storage;
+        return $this->getRoleName();
     }
 }
