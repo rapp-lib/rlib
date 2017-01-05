@@ -54,7 +54,7 @@ class WebappBuilder
             $source = builder()->fetch("wrapper/default_footer.html",array("role"=>$role));
             builder()->deploy("/html/include/".$role->getName()."_footer.html", $source);
             // Roleクラスの展開
-            $source = builder()->fetch("login/MemberRole.php",array("role"=>$role));
+            $source = builder()->fetch("role/MemberRole.php",array("role"=>$role));
             builder()->deploy("/app/Role/".$role->getClassName().".php", $source);
         }
         // Tableに関わるファイルの展開
@@ -76,7 +76,7 @@ class WebappBuilder
         builder()->deploy("/config/routing.config.php", $source);
         // Controllerに関わるファイルの展開
         foreach (builder()->getSchema()->getController() as $controller) {
-            $table = $controller->getTable();
+            $table = $controller->getTable();report($table);
             if ($table) {
                 $t = $table->getAttr();
             }

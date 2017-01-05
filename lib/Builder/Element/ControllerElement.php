@@ -76,6 +76,7 @@ class ControllerElement extends Element_Base
      */
     public function getTable ()
     {
-        return $this->getSchema()->getTable($this->getAttr("table"));
+        $table_name = $this->getAttr("table");
+        return $table_name ? $this->getSchema()->getTable($table_name) : null;
     }
 }
