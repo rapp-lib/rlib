@@ -152,7 +152,7 @@ class Webroot
                 $value_names = array();
                 foreach ($matches[1] as $i => $value_name) {
                     $value_names[$i] = $value_name;
-                    $regex = str_replace('['.$value_name.']', '[a-zA-Z1-9_]*?', $regex);
+                    $regex = str_replace('\['.$value_name.'\]', '([a-zA-Z0-9_]+?)', $regex);
                 }
                 $patterns[$path] = array("regex"=>$regex, "value_names"=>$value_names);
             // "/*"の後方一致パターンを含むPath

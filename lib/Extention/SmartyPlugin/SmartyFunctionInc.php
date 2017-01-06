@@ -23,7 +23,7 @@ class SmartyFunctionInc
         $page = $route->getPage();
         $vars = array();
         // Routeに対応する処理の実行
-        if ($controller = \R\Lib\Webapp\Controller_Base::invokeIncludeAction($page)) {
+        if ($page && $controller = \R\Lib\Webapp\Controller_Base::invokeIncludeAction($page)) {
             report("IncludeAction実行",array(
                 "page" => $page,
             ));
@@ -31,7 +31,7 @@ class SmartyFunctionInc
         }
         $request_file = $route->getFile();
         if ( ! file_exists($request_file)) {
-            report_error("incタグの対象となるテンプレートファイルがありません",array(
+            report_warning("incタグの対象となるテンプレートファイルがありません",array(
                 "request_file" => $request_file,
                 "route" => $route,
             ));

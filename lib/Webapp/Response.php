@@ -51,7 +51,7 @@ class Response extends ArrayObject
     /**
      * URL文字列指定による転送
      */
-    public function redirectUrl ($url, $url_params=null)
+    public function redirectUrl ($url, $url_params=array())
     {
         $this->output(array(
             "mode" => "redirect",

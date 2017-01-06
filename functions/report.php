@@ -71,7 +71,7 @@
 
             $result .='function: '.$info["name"].'@'.$info["file_short"].'[L'.$info["line"].']'.$br_code;
 
-        } elseif (is_arraylike($target_value)) {
+        } elseif (is_arraylike($target_value) && ! (is_object($target_value) && method_exists($target_value,"__report"))) {
 
             $result .=is_object($target_value) ? get_class($target_value)." :array" : 'array';
             $result .='('.count($target_value).'):'.$br_code;

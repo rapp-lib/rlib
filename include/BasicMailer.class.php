@@ -422,9 +422,14 @@ class BasicMailer {
                 && file_get_contents($options["template_file"])) {
 
             extract($options["template_options"],EXTR_SKIP);
+
+            report_buffer_start();
+
             ob_start();
             include($options["template_file"]);
             $template_text =ob_get_clean();
+
+            report_buffer_end();
 
             $options =$this->parse_mail_template($template_text,$options);
         }

@@ -13,7 +13,7 @@ class Application
         if ( ! isset(self::$app)) {
             if (class_exists($app_class = "R\\App\\Application")) {
                 self::$app = new $app_class;
-            } elseif (class_exists($app_class = "R\\Lib\\Core\\App\\Application_Base")) {
+            } elseif (class_exists($app_class = "R\\Lib\\Core\\Application")) {
                 self::$app = new $app_class;
             }
         }
@@ -152,6 +152,20 @@ class Application
     public function session ($key)
     {
         return new \R\Lib\Webapp\Session($key);
+    }
+    /**
+     * APP_ROOT_DIRの取得
+     */
+    public function getAppRootDir ()
+    {
+        return $this->config("Path.webapp_dir");
+    }
+    /**
+     * TMP_DIRの取得
+     */
+    public function getTmpDir ()
+    {
+        return $this->config("Path.tmp_dir");
     }
     /**
      * デバッグモードの取得

@@ -359,10 +359,11 @@ class Table_Core
         $table = $this->createTable();
         // IDが指定されていればUpdate、指定が無ければInsert
         if (isset($id)) {
-            $table->updateById($id,$values);
-            return $id;
+            return $table->updateById($id,$values);
         } else {
-            return $table->insert($values)->getLastInsertId();
+            $result = $table->insert($values);
+            $record[$id_col_name] = $result->getLastInsertId();
+            return $result;
         }
     }
 
