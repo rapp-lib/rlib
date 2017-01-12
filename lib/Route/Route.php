@@ -37,7 +37,7 @@ class Route
             $url = $match[1];
             list($this->path, $this->url_params, $path_matched) = $this->getWebroot()->parseUrl($url);
             // 非パラメータ埋め込みでパターン一致を含むPathであればPage/Pathを独立にする
-            if ($path_matched && ! $this->url_params) {
+            if ($path_matched && preg_match('!/\*$!', $this->path)) {
                 $this->page = $this->getWebroot()->pathToPage($this->path);
                 $this->path = $path_matched;
             }
