@@ -5,6 +5,7 @@ class Application
 {
     private static $app = null;
     private $running = null;
+    private $initialized = false;
     /**
      * Applicationインスタンスを取得
      */
@@ -16,6 +17,7 @@ class Application
             } elseif (class_exists($app_class = "R\\Lib\\Core\\Application")) {
                 self::$app = new $app_class;
             }
+            self::$app->init();
         }
         return self::$app;
     }
@@ -66,6 +68,10 @@ class Application
      */
     public function init ()
     {
+        if ($this->initialized) {
+            return;
+        }
+        $this->initialized = true;
         // Composer未対応クラスの互換読み込み処理
         spl_autoload_register("load_class");
         // 終了処理
