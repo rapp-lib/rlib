@@ -123,14 +123,10 @@ class Application
      */
     public function config ($key)
     {
-        $ref = & $GLOBALS["__REGISTRY__"];
-        if (is_array($key)) {
-            foreach ($key as $k=>$v) {
-                array_add($ref, $k, $v);
-            }
-        } elseif (is_string($key)) {
-            return array_get($ref, $key);
+        if (is_null($this->config)) {
+            $this->config = new \R\Lib\Core\Configure();
         }
+        return $this->config->config($key);
     }
     /**
      * @singleton
@@ -178,6 +174,13 @@ class Application
      */
     public function getDebugLevel ()
     {
-        return registry("Report.force_reporting") || registry("Config.dync.report") ? 1 : false;
+        return $this->config("Config.debug_level");
+    }
+    /**
+     * アクセスを確認
+     */
+    public function isDevClient ()
+    {
+        return defined("DEV_HOSTS") ? util("ServerVars")->ipCheck(constant("DEV_HOSTS")) : true;
     }
 }

@@ -106,12 +106,8 @@ class Webroot
         }
         // webroot_urlを削る
         $webroot_url = $this->getAttr("webroot_url",true);
-        // 変換できない領域のURLであればエラー
+        // 変換できない領域のURLであればそのままあつかう
         if (strlen($webroot_url) && strpos($webroot_url, $url)!==0) {
-            report_warning("Webroot外のURLはRouteを定義できません",array(
-                "webroot" => $this->webroot,
-                "url" => $url,
-            ));
             return array(null, $url_params);
         }
         $path_tmp = str_replace($webroot_url, "", $url);
