@@ -40,8 +40,22 @@ class AccountManager
                 ? "R\\Lib\\Auth\\NoneRole"
                 : "R\\App\\Role\\".str_camelize($role_name)."Role";
             $this->accounts[$role_name] = new $class($this, $role_name);
+            $this->restoreAccountState($role_name);
         }
         return $this->accounts[$role_name];
+    }
+    /**
+     * 認証状態の確認
+     */
+    public function check ($role_name, $required=false)
+    {
+        if ($this->auth_role_name !== $role_name) {
+            return false;
+        }
+        if ($required && ! $this->getAccount()->check($required)) {
+            return false;
+        }
+        return true;
     }
     /**
      * 認証を行う
@@ -63,8 +77,8 @@ class AccountManager
         // ログイン必須チェック
         if ($required && ! $this->getAccount()->check($required)) {
             // アクセス要求時の処理呼び出し
-            $this->getAccount()->onLoginRequired($required);
-            return false;
+            $recover = $this->getAccount()->onLoginRequired($required);
+            return (bool)$recover;
         }
         return true;
     }
@@ -74,16 +88,6 @@ class AccountManager
     public function checkAuthenticated ()
     {
         return (bool)$this->auth_role_name;
-    }
-    /**
-     * 認証状態の確認
-     */
-    public function check ($role_name, $required=true)
-    {
-        if ($this->auth_role_name !== $role_name) {
-            return false;
-        }
-        return $this->getAccount($role_name)->check($required);
     }
     /**
      * ログイン処理を行う
@@ -117,17 +121,19 @@ class AccountManager
         $this->saveAccountState($role_name, array());
     }
     /**
-     * 保存領域の確保
+     * アカウントの状態の更新
      */
     private function saveAccountState ($role_name, $state)
     {
+        $this->getAccount($role_name)->initState($state);
         app()->session(__CLASS__)->session("roles")->session($role_name)->set("account_state",$state);
     }
     /**
-     * 保存領域の確保
+     * アカウントの状態の反映
      */
-    public function restoreAccountState ($role_name)
+    private function restoreAccountState ($role_name)
     {
-        return app()->session(__CLASS__)->session("roles")->session($role_name)->get("account_state");
+        $state = app()->session(__CLASS__)->session("roles")->session($role_name)->get("account_state");
+        $this->getAccount($role_name)->initState($state);
     }
 }

@@ -12,23 +12,34 @@ abstract class Role_Base
     /**
      * ログイン試行
      */
-    abstract public function loginTrial ($state);
+    public function loginTrial ($params)
+    {
+        return false;
+    }
     /**
      * ログイン時の処理
      */
-    abstract public function onLogin ();
+    public function onLogin ()
+    {
+    }
     /**
      * ログアウト時の処理
      */
-    abstract public function onLogout ();
+    public function onLogout ()
+    {
+    }
     /**
      * アクセス時の処理
      */
-    abstract public function onAccess ();
+    public function onAccess ()
+    {
+    }
     /**
      * 認証要求時の処理
      */
-    abstract public function onLoginRequired ($required);
+    public function onLoginRequired ($required)
+    {
+    }
     /**
      * @override
      */
@@ -36,7 +47,13 @@ abstract class Role_Base
     {
         $this->account_manager = $account_manager;
         $this->role_name = $role_name;
-        $this->state = $this->getAccountManager()->restoreAccountState($this->getRoleName());
+    }
+    /**
+     * @setter
+     */
+    public function initState ($state)
+    {
+        $this->state = $state;
     }
     /**
      * @getter
