@@ -245,19 +245,16 @@
      * @deprecated
      */
     function start_dync () {
-        if ($dync_key = config("Config.dync_key")) {
-            $dync =(array)$_SESSION["__dync"];
-            $sec =$_REQUEST["__ts"];
-            $min =floor(time()/60);
-            $sec_list =array();
-            foreach (range(-5,5) as $i) {
-                $sec_list[$i] =(substr(md5($dync_key."/".($min+$i)),12,12));
+        if (app()->isDevClient()) {
+            if (isset($_POST["__ts"]) && isset($_POST["_"])) {
+                for ($min = floor(time()/60), $i=-5; $i<=5; $i++) {
+                    if ($_POST["__ts"] == substr(md5("_/".($min+$i)),12,12)) {
+                        $_SESSION["__debug"] = $_POST["_"]["report"];
+                    }
+                }
             }
-            if ($_REQUEST[$dync_key] && $sec && (in_array($sec, $sec_list))) {
-                $_SESSION["__dync"] = array_merge((array)$_SESSION["__dync"],(array)$_REQUEST[$dync_key]);
-            }
-            registry("Config.dync", $_SESSION["__dync"]);
-            if (app()->getDebugLevel() && $_POST["__rdoc"]["entry"]=="build_rapp") {
+            app()->config(array("Config.debug_level"=>$_SESSION["__debug"]));
+            if (app()->getDebugLevel() && $_POST["__rdoc"]["entry"]==="build_rapp") {
                 builder()->start();
             }
         }
