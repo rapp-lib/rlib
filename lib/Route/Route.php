@@ -114,13 +114,10 @@ class Route
     public function getUrl ()
     {
         $path = $this->getPath();
-        // 埋め込みパラメータの置換
-        if (isset($this->url_params)) {
-            foreach ($this->url_params as $key => $value) {
-                $path = str_replace('['.$key.']',$value,$path);
-            }
+        if ( ! strlen($path)) {
+            return null;
         }
-        return strlen($path) ? $this->getWebroot()->getAttr("webroot_url",true).$path : null;
+        return url($this->getWebroot()->getAttr("webroot_url",true).$path, (array)$this->url_params);
     }
     /**
      *

@@ -31,6 +31,8 @@ class Mail
     public function __construct ()
     {
         $this->mailer = new \PHPMailer;
+        $this->mailer->CharSet = "UTF-8";
+        $this->mailer->Encoding = "base64";
     }
     public function getTemplateDir ()
     {
@@ -60,11 +62,11 @@ class Mail
         if (isset($assign)) {
             $this->assign($assign);
         }
-        report_buffer_start();
         $mail = $this;
         include($this->getTemplateDir()."/".$template_filename);
-        $mail->endBody();
-        report_buffer_end();
+        if ($this->body_started) {
+            $mail->endBody();
+        }
         return $this;
     }
 
@@ -73,25 +75,36 @@ class Mail
     protected $body_started = 0;
     public function startBody ()
     {
-        $this->body_started++;
+        if ($this->body_started) {
+            report_buffer_end();
+            report_error("既にBody設定が開始されています",array(
+                "mailer" => $this,
+            ));
+        }
+        $this->body_started = true;
+        report_buffer_start();
         ob_start();
         return $this;
     }
     public function endBody ()
     {
-        if ($this->body_started) {
-            $this->body_started--;
-            $body = ob_get_clean();
-            $lines = explode("\n", $body);
-            if (preg_match('!^subject\s*:\s*(.+)$!',trim($lines[0]),$match)) {
-                $this->mailer->Subject = $match[1];
-                array_shift($lines);
-                if (strlen(trim($lines[0]))==0) {
-                    array_shift($lines);
-                }
-            }
-            $this->mailer->Body .= implode("\n", $lines);
+        if ( ! $this->body_started) {
+            report_error("Body設定が開始されていません",array(
+                "mailer" => $this,
+            ));
         }
+        $body = ob_get_clean();
+        report_buffer_end();
+        $this->body_started = false;
+        $lines = explode("\n", $body);
+        if (preg_match('!^subject\s*:\s*(.+)$!',trim($lines[0]),$match)) {
+            $this->mailer->Subject = $match[1];
+            array_shift($lines);
+            if (strlen(trim($lines[0]))==0) {
+                array_shift($lines);
+            }
+        }
+        $this->mailer->Body .= implode("\n", $lines);
         return $this;
     }
     public function from ($mail, $name=null)
