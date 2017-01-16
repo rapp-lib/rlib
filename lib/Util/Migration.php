@@ -28,6 +28,10 @@ class Migration
                 $db_config["dbname"] = $db_config["database"];
                 unset($db_config["database"]);
             }
+            if ($db_config["login"]) {
+                $db_config["user"] = $db_config["login"];
+                unset($db_config["login"]);
+            }
         }
 
         $tables = self::collectTables();
