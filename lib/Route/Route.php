@@ -145,7 +145,7 @@ class Route
         if ( ! strlen($url)) {
             return null;
         }
-        if ( ! preg_match('!^https?://!',$route_name,$url)) {
+        if ( ! preg_match('!^https?://!',$url)) {
             $schema = $this->getWebroot()->getAttr("is_secure") ? "https:" : "http:";
             $url = $schema."//".$this->getWebroot()->getAttr("domain_name",true).$url;
         }
