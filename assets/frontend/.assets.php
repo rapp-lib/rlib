@@ -91,12 +91,14 @@
         ->required("jquery");
 
     // input_plugin
+    $asset->registerJsUrl("InputPluginRegistry", $url.'/input_plugin/InputPluginRegistry.js')
+        ->required("jquery");
     $asset->registerJsUrl("input_plugin.zero_option", $url.'/input_plugin/zero_option.js')
-        ->required("jquery");
+        ->required("InputPluginRegistry");
     $asset->registerJsUrl("input_plugin.split_text", $url.'/input_plugin/split_text.js')
-        ->required("jquery");
+        ->required("InputPluginRegistry");
     $asset->registerJsUrl("input_plugin.show_uploaded_file", $url.'/input_plugin/show_uploaded_file.js')
-        ->required("jquery")
+        ->required("InputPluginRegistry")
         ->required("config.current_webroot_url");
 
     // config

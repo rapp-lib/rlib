@@ -79,11 +79,10 @@ class InputField
         $attrs = $this->attrs;
         // pluginに対応するJS呼び出し
         if ($plugins = $attrs["plugins"]) {
-            if ( ! isset($attrs["id"])) {
-                $attrs["id"] = "input-".$this->attrs["type"]."-".mt_rand(100000,999999);
-            }
+            $attrs["data-plugin-elmid"] = mt_rand(1000000,9999999);
+            $asset = asset()->bufferJsCode('InputPluginRegistry.registerElement("'.$attrs["data-plugin-elmid"].'",'.json_encode($plugins).');')->required('InputPluginRegistry');
             foreach ($plugins as $plugin_name => $plugin_params) {
-                asset()->bufferJsCode('input_plugin_'.$plugin_name.'("'.$attrs["id"].'",'.json_encode($plugin_params).');')->required('input_plugin.'.$plugin_name);
+                $asset->required('input_plugin.'.$plugin_name);
             }
             unset($attrs["plugins"]);
         }

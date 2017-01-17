@@ -282,7 +282,7 @@ class Table_Core
         }
         // fetch実処理
         $ds->resultSet($ds->_result = $this->result_res);
-        $data =$ds->fetchResult();
+        $data = $ds->fetchResult();
 
         // 結果セットの残りがなければ完了済みとする
         if ( ! $data) {
@@ -385,7 +385,13 @@ class Table_Core
     {
         $this->query->addFields($fields);
         $this->execQuery("select");
-        return $this->result->fetch();
+        $record = $this->result->fetch();
+        if ($this->result->fetch()) {
+            report_warnig("複数Record取得して最初の1件のみを結果とします",array(
+                "table" => $table,
+            ));
+        }
+        return $record;
     }
 
     /**
@@ -582,26 +588,19 @@ class Table_Core
     {
         // 呼び出すHookを選択
         $hooks = array();
-        $suffixes = array("");
-        if (auth()->checkAuthenticated()) {
-            // 認証時の処理呼び出し
-            $suffixes[] = "As".str_camelize(auth()->getAccount()->getRole());
-        }
         $type = $this->query->getType();
-        foreach ($suffixes as $suffix) {
-            // type別
-            $hooks[] =$type.$suffix;
-            // valuesを持つQuery
-            if ($type=="insert" || $type=="update") {
-                $hooks[] ="write".$suffix;
-            }
-            // whereを持つQuery
-            if ($type=="select" || $type=="update") {
-                $hooks[] ="read".$suffix;
-            }
-            // 全て
-            $hooks[] ="any".$suffix;
+        // type別
+        $hooks[] =$type;
+        // valuesを持つQuery
+        if ($type=="insert" || $type=="update") {
+            $hooks[] ="write";
         }
+        // whereを持つQuery
+        if ($type=="select" || $type=="update") {
+            $hooks[] ="read";
+        }
+        // 全て
+        $hooks[] ="any";
         // 呼び出す
         foreach ($hooks as $hook) {
             $this->callListenerMethod($hook,array());
@@ -640,7 +639,7 @@ class Table_Core
     /**
      * on hookメソッドを呼び出す
      */
-    private function callListenerMethod ($hook, $args=array())
+    protected function callListenerMethod ($hook, $args=array())
     {
         // 定義されているon_*_*メソッド名を収集
         $defined = & self::$defined_listener_method[get_class($this)];
@@ -664,7 +663,7 @@ class Table_Core
     /**
      * hookメソッドを呼び出す
      */
-    private function callHookMethod ($method_name, $args=array())
+    protected function callHookMethod ($method_name, $args=array())
     {
         if (method_exists($this, $method_name)) {
             $result = call_user_func_array(array($this,$method_name),$args);
