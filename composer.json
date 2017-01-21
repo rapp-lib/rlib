@@ -5,11 +5,9 @@
     "license": "MIT",
     "require": {
         "smarty/smarty": "v3.*@stable",
-        "doctrine/dbal": "2.*@stable",
-
-        "pear/http_request2": "v2.*@stable",
-        "pear/mail": "v1.*@stable",
-        "pear/mail_mime": "v1.*@stable"
+        "doctrine/dbal": "v2.*@stable",
+        "monolog/monolog": "v1.*@stable",
+        "phpmailer/phpmailer": "v5.*@stable"
     },
     "autoload": {
         "psr-4": {
@@ -19,13 +17,7 @@
             "functions/required.php"
         ]
     },
-    "include-path":[
-        "include/"
-    ],
     "config": {
         "bin-dir": "bin"
-    },
-    "suggest": {
-        "ezyang/htmlpurifier": "Install optionally via your project's composer.json"
     }
 }
