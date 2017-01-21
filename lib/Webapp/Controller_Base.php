@@ -61,10 +61,6 @@ class Controller_Base implements FormRepositry, Authenticator
         $controller_class_name = "R\\App\\Controller\\".str_camelize($controller_name)."Controller";
         $action_method_name = "inc_".$action_name;
         if ( ! method_exists($controller_class_name, $action_method_name)) {
-            report_warning("Page設定に対応するIncludeActionがありません",array(
-                "action_method_call" => $controller_class_name."::".$action_method_name,
-                "page" => $page,
-            ));
             return null;
         }
         $controller = new $controller_class_name();

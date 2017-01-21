@@ -195,7 +195,7 @@ class FormContainer extends ArrayObject
             if ($this->def["csrf_check"] && $request["_csrf_token"]!=md5(session_id())) {
                 $this->received = false;
             // form_param_nameに自分のform_nameが設定されていれば受け取り状態
-            } elseif ($form_name && $request[$form_param_name]==$form_name) {
+            } elseif ($this->def["receive_all"] || ($form_name && $request[$form_param_name]==$form_name)) {
                 foreach ($request as $k => $v) {
                     if ($k==$form_param_name || $k=="_csrf_token") {
                         continue;
@@ -224,12 +224,12 @@ class FormContainer extends ArrayObject
                 continue;
             }
             // 変換処理の逐次適用
-            self::applyFieldFilter($input_values, $field_name, function($value, $parts) use ($field_name, $field_def) {
+            self::applyFieldFilter($input_values, $field_name, function($value, $field_name) use ($field_def) {
                 // 変換処理の複数指定に対応
                 $input_converts = $field_def["input_convert"];
                 $input_converts = is_array($input_converts) ? $input_converts : array($input_converts);
                 foreach ($input_converts as $input_convert) {
-                    $value = call_user_func(extention("InputConvert",$input_convert), $value, $parts, $field_def);
+                    $value = call_user_func(extention("input_convert",$input_convert), $value, $field_name, $field_def);
                 }
                 return $value;
             });
@@ -248,11 +248,13 @@ class FormContainer extends ArrayObject
     public function getFormHtml ($attrs, $content)
     {
         // receiveで受付確認ができるHiddenタグを追加
-        $content .= tag("input",array(
-            "type" => "hidden",
-            "name" => "_f",
-            "value" => $this->getFormName(),
-        ));
+        if ( ! $this->def["receive_all"]) {
+            $content .= tag("input",array(
+                "type" => "hidden",
+                "name" => "_f",
+                "value" => $this->getFormName(),
+            ));
+        }
         // csrf_checkの指定があればCSRF対策キーを埋め込む
         if ($this->def["csrf_check"]) {
             $content .= tag("input",array(
@@ -388,7 +390,10 @@ class FormContainer extends ArrayObject
                 "form_def" => $this->def,
             ));
         }
-        $params = array("_f"=>$this->getFormName());
+        $params = array();
+        if ( ! $this->def["receive_all"]) {
+            $params["_f"] = $this->getFormName();
+        }
         $values = $this->getValues();
         foreach ($this->def["fields"] as $field_name => $field_def) {
             if ($add_params!==false && isset($field_def["search"])) {
@@ -532,13 +537,13 @@ class FormContainer extends ArrayObject
             if ( ! isset($values[$parts[0]])) {
                 return;
             }
-            $values[$parts[0]] = call_user_func($function, $values[$parts[0]], $parts);
+            $values[$parts[0]] = call_user_func($function, $values[$parts[0]], $field_name);
         // 対象が1次配列
         } elseif (count($parts)==2) {
             if ( ! isset($values[$parts[0]][$parts[1]])) {
                 return;
             }
-            $values[$parts[0]][$parts[1]] = call_user_func($function, $values[$parts[0]][$parts[1]], $parts);
+            $values[$parts[0]][$parts[1]] = call_user_func($function, $values[$parts[0]][$parts[1]], $field_name);
         // 対象が2次配列
         } elseif (count($parts)==3) {
             if (count($values[$parts[0]])==0) {
@@ -549,7 +554,7 @@ class FormContainer extends ArrayObject
                 if ( ! isset($values[$parts[0]][$parts[1]][$parts[2]])) {
                     continue;
                 }
-                $values[$parts[0]][$parts[1]][$parts[2]] = call_user_func($function, $values[$parts[0]][$parts[1]][$parts[2]], $parts);
+                $values[$parts[0]][$parts[1]][$parts[2]] = call_user_func($function, $values[$parts[0]][$parts[1]][$parts[2]], $field_name);
             }
         }
     }
@@ -616,6 +621,11 @@ class FormContainer extends ArrayObject
                 if ( ! isset($field_def["col"])) {
                     $field_def["col"] = $field_col_name;
                 }
+            }
+            // file_uploadの補完
+            if (isset($def["file_upload_to"])) {
+                $field_def["input_convert"][] = "file_upload";
+                $field_def["storage"] = $def["file_upload_to"];
             }
             $field_def["field_name"] = $field_name;
         }

@@ -5,6 +5,7 @@ class Application
 {
     private static $app = null;
     private $running = null;
+    private $initialized = false;
     /**
      * Applicationインスタンスを取得
      */
@@ -13,9 +14,10 @@ class Application
         if ( ! isset(self::$app)) {
             if (class_exists($app_class = "R\\App\\Application")) {
                 self::$app = new $app_class;
-            } elseif (class_exists($app_class = "R\\Lib\\Core\\App\\Application_Base")) {
+            } elseif (class_exists($app_class = "R\\Lib\\Core\\Application")) {
                 self::$app = new $app_class;
             }
+            self::$app->init();
         }
         return self::$app;
     }
@@ -66,6 +68,10 @@ class Application
      */
     public function init ()
     {
+        if ($this->initialized) {
+            return;
+        }
+        $this->initialized = true;
         // Composer未対応クラスの互換読み込み処理
         spl_autoload_register("load_class");
         // 終了処理
@@ -117,14 +123,10 @@ class Application
      */
     public function config ($key)
     {
-        $ref = & $GLOBALS["__REGISTRY__"];
-        if (is_array($key)) {
-            foreach ($key as $k=>$v) {
-                array_add($ref, $k, $v);
-            }
-        } elseif (is_string($key)) {
-            return array_get($ref, $key);
+        if (is_null($this->config)) {
+            $this->config = new \R\Lib\Core\Configure();
         }
+        return $this->config->config($key);
     }
     /**
      * @singleton
@@ -154,10 +156,31 @@ class Application
         return new \R\Lib\Webapp\Session($key);
     }
     /**
+     * APP_ROOT_DIRの取得
+     */
+    public function getAppRootDir ()
+    {
+        return $this->config("Path.webapp_dir");
+    }
+    /**
+     * TMP_DIRの取得
+     */
+    public function getTmpDir ()
+    {
+        return $this->config("Path.tmp_dir");
+    }
+    /**
      * デバッグモードの取得
      */
     public function getDebugLevel ()
     {
-        return registry("Report.force_reporting") || registry("Config.dync.report") ? 1 : false;
+        return $this->config("Config.debug_level");
+    }
+    /**
+     * アクセスを確認
+     */
+    public function isDevClient ()
+    {
+        return defined("DEV_HOSTS") ? util("ServerVars")->ipCheck(constant("DEV_HOSTS")) : true;
     }
 }

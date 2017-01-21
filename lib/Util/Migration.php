@@ -28,6 +28,10 @@ class Migration
                 $db_config["dbname"] = $db_config["database"];
                 unset($db_config["database"]);
             }
+            if ($db_config["login"]) {
+                $db_config["user"] = $db_config["login"];
+                unset($db_config["login"]);
+            }
         }
 
         $tables = self::collectTables();
@@ -88,7 +92,7 @@ class Migration
 
         // Indexの作成
         foreach ((array)$table_def["indexes"] as $index) {
-            $table->addIndex((array)$index[0],$index[1],(array)$index[2],(array)$index[3]);
+            $table->addIndex((array)$index["cols"],$index["name"],(array)$index["flags"],(array)$index["options"]);
         }
 
         return $table;

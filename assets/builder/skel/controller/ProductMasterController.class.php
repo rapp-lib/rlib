@@ -228,7 +228,7 @@ class <?=$controller->getClassName()?> extends Controller_App
     protected static $form_entry_csv = array(
         "auto_restore" => true,
         "fields" => array(
-            "csv_file",
+            "csv_file" => array("file_upload_to" => "tmp"),
         ),
         "rules" => array(
             "csv_file",

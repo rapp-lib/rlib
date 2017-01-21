@@ -106,12 +106,8 @@ class Webroot
         }
         // webroot_urlを削る
         $webroot_url = $this->getAttr("webroot_url",true);
-        // 変換できない領域のURLであればエラー
+        // 変換できない領域のURLであればそのままあつかう
         if (strlen($webroot_url) && strpos($webroot_url, $url)!==0) {
-            report_warning("Webroot外のURLはRouteを定義できません",array(
-                "webroot" => $this->webroot,
-                "url" => $url,
-            ));
             return array(null, $url_params);
         }
         $path_tmp = str_replace($webroot_url, "", $url);
@@ -152,7 +148,7 @@ class Webroot
                 $value_names = array();
                 foreach ($matches[1] as $i => $value_name) {
                     $value_names[$i] = $value_name;
-                    $regex = str_replace('['.$value_name.']', '[a-zA-Z1-9_]*?', $regex);
+                    $regex = str_replace('\['.$value_name.'\]', '([a-zA-Z0-9_]+?)', $regex);
                 }
                 $patterns[$path] = array("regex"=>$regex, "value_names"=>$value_names);
             // "/*"の後方一致パターンを含むPath

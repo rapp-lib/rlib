@@ -9,6 +9,8 @@ class Route
     private $webroot;
     private $path = null;
     private $page = null;
+    private $glob_path = null;
+    private $url = null;
     private $url_params = array();
     /**
      *
@@ -32,13 +34,20 @@ class Route
                 }
             }
             $this->page = $controller_name.".".$action_name;
+        // "http(s)://"で始まる場合URLと判断する
+        } elseif (preg_match('!^(?:url:)?(https?://.*)$!',$route_name,$match)) {
+            $url = $match[1];
         // "url:"で始まる場合URLと判断する
         } elseif (preg_match('!^(?:url:)(.*)$!',$route_name,$match)) {
             $url = $match[1];
             list($this->path, $this->url_params, $path_matched) = $this->getWebroot()->parseUrl($url);
-            // パターン一致を含むPathであればPage/Pathを独立にする
-            if (isset($path_matched)) {
+            // webroot外のURLであればそのままあつかう
+            if ( ! isset($this->path)) {
+                $this->url = $url;
+            // glob_pathであればPage/Pathを独立にする
+            } elseif ($path_matched && preg_match('!/\*$!', $this->path)) {
                 $this->page = $this->getWebroot()->pathToPage($this->path);
+                $this->glob_path = $this->path;
                 $this->path = $path_matched;
             }
         // "file:"で始まる場合ファイル名と判断する
@@ -49,9 +58,12 @@ class Route
             // 先頭のdocroot_dir+webroot_urlを削る
             if (strpos($webroot_dir, $file)===0) {
                 $this->path = str_replace($webroot_dir, "", $file);
+            // 先頭のdocroot_dirを削る
+            } elseif (strpos($docroot_dir, $file)===0) {
+                $this->url = str_replace($docroot_dir, "", $file);
             // 変換できない領域のファイルであればエラー
             } else {
-                report_warning("Webroot外のファイルはRouteを定義できません",array(
+                report_warning("Docroot外のファイルはRouteを定義できません",array(
                     "webroot" => $this->webroot,
                     "file" => $file,
                 ));
@@ -104,34 +116,39 @@ class Route
      */
     public function getFile ()
     {
-        $url = $this->getUrl();
+        $path = $this->getPath();
+        $url = strlen($path) ? $this->getWebroot()->getAttr("webroot_url",true).$path : null;
         return strlen($url) ? $this->getWebroot()->getAttr("docroot_dir",true).$url : null;
     }
     /**
      *
      */
-    public function getUrl ()
+    public function getUrl ($url_params=array())
     {
+        $url = null;
         $path = $this->getPath();
-        // 埋め込みパラメータの置換
-        if (isset($this->embed_values)) {
-            foreach ($this->embed_values as $key => $value) {
-                $path = str_replace('['.$key.']',$value,$path);
-            }
+        if (strlen($path)) {
+            $url = $this->getWebroot()->getAttr("webroot_url",true).$path;
+        } elseif (strlen($this->url)) {
+            $url = $this->url;
+        } else {
+            return null;
         }
-        return strlen($path) ? $this->getWebroot()->getAttr("webroot_url",true).$path : null;
+        return url($url, array_merge((array)$this->url_params, (array)$url_params));
     }
     /**
      *
      */
-    public function getFullUrl ()
+    public function getFullUrl ($url_params=array())
     {
-        $url = $this->getUrl();
+        $url = $this->getUrl($url_params);
         if ( ! strlen($url)) {
             return null;
         }
-        $schema = $this->getWebroot()->getAttr("is_secure") ? "https:" : "http:";
-        $url = $schema."//".$this->getWebroot()->getAttr("domain_name",true).$url;
+        if ( ! preg_match('!^https?://!',$url)) {
+            $schema = $this->getWebroot()->getAttr("is_secure") ? "https:" : "http:";
+            $url = $schema."//".$this->getWebroot()->getAttr("domain_name",true).$url;
+        }
         return $url;
     }
     /**

@@ -79,11 +79,10 @@ class InputField
         $attrs = $this->attrs;
         // pluginに対応するJS呼び出し
         if ($plugins = $attrs["plugins"]) {
-            if ( ! isset($attrs["id"])) {
-                $attrs["id"] = "input-".$this->attrs["type"]."-".mt_rand(100000,999999);
-            }
+            $attrs["data-plugin-elmid"] = mt_rand(1000000,9999999);
+            $asset = asset()->bufferJsCode('InputPluginRegistry.registerElement("'.$attrs["data-plugin-elmid"].'",'.json_encode($plugins).');')->required('InputPluginRegistry');
             foreach ($plugins as $plugin_name => $plugin_params) {
-                asset()->bufferJsCode('input_plugin_'.$plugin_name.'("'.$attrs["id"].'",'.json_encode($plugin_params).');')->required('input_plugin.'.$plugin_name);
+                $asset->required('input_plugin.'.$plugin_name);
             }
             unset($attrs["plugins"]);
         }
@@ -147,6 +146,17 @@ class InputField
                 "value" => $value,
             ));
             $this->html = tag("input",$attrs).$hidden_html;
+        // type=checkboxであれば、checkedに値を反映
+        } elseif ($this->attrs["type"]=="checkbox") {
+            if ( ! strlen($attrs["value"])) {
+                $attrs["value"] = "1";
+            }
+            if ($attrs["value"] == $this->field_value) {
+                $attrs["checked"] = "checked";
+            } else {
+                unset($attrs["checked"]);
+            }
+            $this->html = tag("input",$attrs);
         // type=passwordであれば、入力値を戻さない
         } elseif ($this->attrs["type"]=="password") {
             $this->html = tag("input",$attrs);

@@ -49,6 +49,8 @@ Request受付機能
             任意指定、trueを指定するとformタグでCSRF対策のキーを渡して、receivedで突き合わせを行う
         field.input_convert
             任意指定、対応するInputConvertの変換処理を入力値に適用する
+        receive_all
+            任意指定、trueを指定するとreceiveが常に値を受け付けるようになる
     拡張
         変換処理を拡張する
             R\Extention\InputConvert\XxxInputConvert::callback($value,field_name_parts,$field_def) => $value を定義する
