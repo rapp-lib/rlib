@@ -40,6 +40,7 @@ class DBI_Base {
         }
 
         $this->ds =$cake_loader->get_cake_datasource($this->name,$connect_info);
+        $this->driver_name = $connect_info["driver"];
     }
 
     //-------------------------------------
@@ -126,7 +127,7 @@ class DBI_Base {
 
         // SQL文の調査
         if ($this->check_driver("is_support_analyze_sql")
-                && get_webapp_dync("report") && ! $this->ds->error) {
+                && app()->getDebugLevel() && ! $this->ds->error) {
 
             $explain =$this->analyze_sql($st,$elapsed);
 

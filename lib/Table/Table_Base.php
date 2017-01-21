@@ -460,7 +460,7 @@ class Table_Base extends Table_Core
             }
             if ($col_name == "*") {
                 foreach (static::$cols as $def_col_name  => $def_col) {
-                    if (static::$cols[$col_name]["assoc"]["auto_select"]) {
+                    if ( ! static::$cols[$col_name]["assoc"]["except"]) {
                         $col_names[$def_col_name] = $def_col_name;
                     }
                 }

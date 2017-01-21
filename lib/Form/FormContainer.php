@@ -622,6 +622,11 @@ class FormContainer extends ArrayObject
                     $field_def["col"] = $field_col_name;
                 }
             }
+            // file_uploadの補完
+            if (isset($def["file_upload_to"])) {
+                $field_def["input_convert"][] = "file_upload";
+                $field_def["storage"] = $def["file_upload_to"];
+            }
             $field_def["field_name"] = $field_name;
         }
         // rulesを補完してfieldsに統合

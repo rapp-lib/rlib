@@ -22,7 +22,7 @@ class InputConvertLoader
         $result = util("FileUpload")->storeUploadedFile($field_def["storage"], $file);
         // アップロードエラーの場合は書き換えない
         if ($result["error"]) {
-            if ( ! $result["error"]["type"] != "nofile") {
+            if ($result["error"]["type"] != "nofile") {
                 report_warning("ファイルアップロード失敗", array(
                     "field_name" => $field_name,
                     "storage" => $field_def["storage"],
