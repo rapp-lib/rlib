@@ -22,6 +22,13 @@ class EnumFactory
             ? self::$instance->getEnum($enum_set_name, $group)
             : self::$instance;
     }
+    /**
+     * Enumインスタンスから値を取得する
+     */
+    public static function selectValue ($value, $enum_set_name=false, $group=false)
+    {
+        self::getInstance()->getEnum($enum_set_name, $group)->offsetGet($value);
+    }
 
     /**
      * Enumインスタンスを取得する

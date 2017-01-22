@@ -7,118 +7,95 @@
      */
     function app ()
     {
-        return R\Lib\Core\Application::getInstance();
+        static $app;
+        if ( ! isset($app)) {
+            $provider_method = constant("R_APP_PROVIDER");
+            $app = call_user_func($provider_method,array());
+        }
+        return $app;
     }
     /**
-     * @deprecated
-     */
-    function config ($key)
-    {
-        return app()->config($key);
-    }
-    /**
-     * @deprecated
-     */
-    function request ()
-    {
-        return app()->request();
-    }
-    /**
-     * @deprecated
-     */
-    function response ()
-    {
-        return app()->response();
-    }
-    /**
-     * @facade R\Lib\Auth\AccountManager::getInstance
+     * @facade Application Provider
      */
     function auth ($name=false)
     {
-        return R\Lib\Auth\AccountManager::getInstance($name);
+        return app()->auth($name);
     }
     /**
-     * @facade R\Lib\Auth\AccountManager::getAccount
-     */
-    function auccount ($name=false)
-    {
-        return auth()->getAccount($name);
-    }
-    /**
-     * @facade R\Lib\Table\TableFactory::getInstance
+     * @facade Application Provider
      */
     function table ($table_name=false)
     {
-        return R\Lib\Table\TableFactory::getInstance($table_name);
+        return app()->table($table_name);
     }
     /**
-     * @facade R\Lib\Route\RouteManager::getInstance
+     * @facade Application Provider
+     */
+    function router ()
+    {
+        return app()->router();
+    }
+    /**
+     * @facade Application Provider
      */
     function route ($route_name=false)
     {
-        return R\Lib\Route\RouteManager::getInstance($route_name);
+        return app()->route($route_name);
     }
     /**
-     * @facade R\Lib\Route\RouteManager->getWebroot
-     */
-    function webroot ($webroot_name=false)
-    {
-        return route()->getWebroot($webroot_name);
-    }
-    /**
-     * @facade R\Lib\Form\FormFactory::getInstance
+     * @deprecated
      */
     function form ()
     {
-        return R\Lib\Form\FormFactory::getInstance();
+        return app()->form();
     }
     /**
-     * @facade R\Lib\Enum\EnumFactory::getInstance
+     * @facade Application Provider
      */
     function enum ($enum_set_name=false, $group=false)
     {
-        return R\Lib\Enum\EnumFactory::getInstance($enum_set_name, $group);
+        return app()->enum($enum_set_name, $group);
     }
     /**
-     * @facade R\Lib\Enum\Enum_Base::offsetGet
+     * @facade Application Provider
      */
     function enum_select ($value, $enum_set_name=false, $group=false)
     {
-        return enum($enum_set_name, $group)->offsetGet($value);
+        return app()->enum_select($value, $enum_set_name, $group);
     }
     /**
-     * @facade R\Lib\Asset\AssetManager::getInstance
+     * @facade Application Provider
      */
     function asset () {
-        return R\Lib\Asset\AssetManager::getInstance();
+        return app()->asset();
     }
     /**
-     * @facade R\Lib\FileStorage\FileStorageManager::getInstance
+     * @facade Application Provider
      */
     function file_storage ()
     {
-        return R\Lib\FileStorage\FileStorageManager::getInstance();
+        return app()->file_storage();
     }
     /**
-     * @facade R\Lib\Builder\WebappBuilder::getInstance
+     * @facade Application Provider
      */
     function builder ()
     {
-        return R\Lib\Builder\WebappBuilder::getInstance();
+        return app()->builder();
     }
     /**
-     * @facade R\Lib\Core\UtilProxyManager::getProxy
+     * @facade Application Provider
      */
     function util ($class_name, $constructor_args=false)
     {
-        return R\Lib\Core\UtilProxyManager::getProxy($class_name,$constructor_args);
+        return app()->util($class_name, $constructor_args);
     }
     /**
-     * @facade R\Lib\Core\ExtentionManager::getExtention
+     * @facade Application Provider
      */
     function extention ($extention_group, $extention_name)
     {
-        return R\Lib\Core\ExtentionManager::getExtention($extention_group, $extention_name);
+        return app()->extention($extention_group, $extention_name);
     }
 
 // -- 配列操作
@@ -245,7 +222,7 @@
      * @deprecated
      */
     function start_dync () {
-        if (app()->isDevClient()) {
+        if (defined("DEV_HOSTS") ? util("ServerVars")->ipCheck(constant("DEV_HOSTS")) : true) {
             if (isset($_POST["__ts"]) && isset($_POST["_"])) {
                 for ($min = floor(time()/60), $i=-5; $i<=5; $i++) {
                     if ($_POST["__ts"] == substr(md5("_/".($min+$i)),12,12)) {
@@ -255,7 +232,7 @@
             }
             app()->config(array("Config.debug_level"=>$_SESSION["__debug"]));
             if (app()->getDebugLevel() && $_POST["__rdoc"]["entry"]==="build_rapp") {
-                builder()->start();
+                app()->builder()->start();
             }
         }
     }

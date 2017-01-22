@@ -1,45 +1,13 @@
 <?php
 namespace R\Lib\Route;
 
-/*
-SAMPLE
--------------------------------------
-    route()->setCurrent("www", "/index.html");
-    route()->getWebroot("www")->setAttrs(array(
-        "docroot_dir" => "/var/www/html",
-    ));
-    route()->getWebroot("www")->setAttrs(array(
-        "domain_name" => "www.example.com",
-        "webroot_url" => "/system",
-    ));
-    route()->getWebroot("www")->addRouting(array(
-        "index.index" => "/index.html",
-        "index.test" => "/test.html",
-    ));
-    $url = route("/test.html")->getUrl(array("back"=>1));
-    route(".test")->getFile();
- */
-
 /**
  *
  */
 class RouteManager
 {
-    private static $instance = null;
     private $webroots = array();
     private $current_route = null;
-    /**
-     * インスタンスを取得
-     */
-    public static function getInstance ($route_name=false)
-    {
-        if ( ! isset(self::$instance)) {
-            self::$instance = new RouteManager;
-        }
-        return $route_name !== false
-            ? self::$instance->getWebroot()->getRoute($route_name)
-            : self::$instance;
-    }
     /**
      * Routeインスタンスを取得
      */
@@ -60,9 +28,9 @@ class RouteManager
     /**
      * 現在アクセスされているRouteを設定する
      */
-    public function setCurrentRoute ($route)
+    public function setCurrent ($webroot_name, $route_name)
     {
-        $this->current_route = is_string($route) ? $this->getWebroot()->getRoute($route) : $route;
+        $this->current_route = $this->getWebroot($webroot_name)->getRoute($route_name);
     }
     /**
      * 現在アクセスされているRouteを取得する

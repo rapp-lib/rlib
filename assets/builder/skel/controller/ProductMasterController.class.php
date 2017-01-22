@@ -131,12 +131,10 @@ class <?=$controller->getClassName()?> extends Controller_App
             }
 <? if ($t["nodef"]): ?>
             // メールの送信
-            $this->send_mail(array(
-                "template" => "sample",
-                "vars" => array(
-                    "form" => $this->forms["entry"],
-                ),
-            ));
+            util("Mail")->factory()
+                ->import("sample.php")
+                ->assign("form", $this->forms["entry"])
+                ->send();
 <? else: /* $t["nodef"] */ ?>
             $this->forms["entry"]->getRecord()->save();
 <? endif; /* $t["nodef"] */ ?>

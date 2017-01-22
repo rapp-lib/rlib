@@ -10,7 +10,6 @@ class String
     {
         return str_camelize($str);
     }
-
     /**
      * 命名規則の変更 XxxXxx->xxx_xxx
      */
@@ -18,7 +17,6 @@ class String
     {
         return str_underscore($str);
     }
-
     /**
      * ランダムな文字列を取得
      */

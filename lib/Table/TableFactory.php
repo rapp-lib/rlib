@@ -6,35 +6,10 @@ namespace R\Lib\Table;
  */
 class TableFactory
 {
-    private static $instance = null;
-
     /**
      * getDefのために使うTableインスタンス
      */
     private $tables = array();
-
-    /**
-     * Tableインスタンスを生成
-     */
-    public static function getInstance ($table_name=false)
-    {
-        // TableFactoryインスタンスを取得
-        if ($table_name===false) {
-            if ( ! isset($instance)) {
-                $instance = new TableFactory;
-            }
-            return $instance;
-        }
-        // tableインスタンスの生成
-        $class = "R\\App\\Table\\".str_camelize($table_name)."Table";
-        if ( ! $table_name || ! class_exists($class)) {
-            report_error("テーブルの指定が不正です",array(
-                "table_name" => $table_name,
-            ));
-        }
-        $table = new $class;
-        return $table;
-    }
     /**
      * Tableの構成を取得
      */

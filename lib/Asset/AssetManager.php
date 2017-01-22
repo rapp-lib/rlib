@@ -39,44 +39,33 @@ class AssetManager
 // -- アセット管理
 
     /**
-     * アセットカタログPHPのRouteによりアセットDIR/URLを登録する
-     */
-    public function registerAssetsRoute ($route)
-    {
-        $assets_file = $route->getFile();
-        $assets_url = $route->getUrl();
-        $this->registerAssetsDir(dirname($assets_file), dirname($assets_url));
-    }
-
-    /**
      * アセットDIR/URLを登録する
      * アセットDIR以下の.assets.phpからモジュールカタログを読み込む
      */
-    public function registerAssetsDir ($dir, $url=null)
+    public function loadAssetCatalog ($catalog_config)
     {
-        // ディレクトリがなければエラー
-        if ( ! is_dir($dir)) {
-            report_error("アセットディレクトリが不正です",array(
-                "dir" => $dir,
+        if (is_array($catalog_config)) {
+            $catalog_php = $catalog_config["catalog_php"];
+            $url = $catalog_config["url"];
+        } elseif (is_a($catalog_config,"\\R\\Lib\\Route\\Route")) {
+            $catalog_php = $catalog_config->getFile();
+            $url = dirname($catalog_config->getUrl());
+        }
+        $catalog_php = realpath($catalog_php);
+        // ファイルがなければエラー
+        if ( ! file_exists($catalog_php)) {
+            report_warning("AssetCatalogの指定が不正です",array(
+                "asset_catalog_php" => $asset_catalog_php,
                 "url" => $url,
             ));
+            return;
         }
-        $dir = realpath($dir);
-        // 登録済みであればエラー
-        if ($this->assets_dirs[$dir]) {
-            report_error("アセットディレクトリが登録済みです",array(
-                "dir" => $dir,
-                "url" => $url,
-                "url_registered" => $this->assets_dirs[$dir],
-            ));
-        }
-        $this->assets_dirs[$dir] = $url;
         // アセットカタログPHPを読み込む
-        $assets_catalog_php = $dir."/.assets.php";
-        if (file_exists($assets_catalog_php)) {
+        if ( ! $this->assets_dirs[$catalog_php]) {
             $asset = $this;
-            include($assets_catalog_php);
+            include($catalog_php);
         }
+        $this->assets_dirs[$catalog_php] = $url;
     }
 
 // -- ステート管理

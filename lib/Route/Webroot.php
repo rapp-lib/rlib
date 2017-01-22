@@ -19,7 +19,7 @@ class Webroot
      *      "webroot_url" => "/system",
      *      "directory_index" => "index.html",
      */
-    private $attrs = array();
+    private $config = array();
     /**
      *
      */
@@ -27,7 +27,7 @@ class Webroot
     {
         $this->route_manager = $route_manager;
         $this->webroot_name = $webroot_name;
-        $this->attrs = $attrs;
+        $this->config = $config;
     }
     /**
      * @getter
@@ -46,25 +46,25 @@ class Webroot
     /**
      * 設定値の設定
      */
-    public function setAttrs ($attrs)
+    public function setConfig ($config)
     {
-        foreach ($attrs as $key => $value) {
-            $this->attrs[$key] = $value;
+        foreach ($config as $key => $value) {
+            $this->config[$key] = $value;
         }
     }
     /**
      * 設定値の取得
      */
-    public function getAttr ($key, $required=false)
+    public function getConfig ($key, $required=false)
     {
-        if ($required && ! isset($this->attrs[$key])) {
+        if ($required && ! isset($this->config[$key])) {
             report_error("設定値が未設定です",array(
                 "key" => $key,
                 "webroot_name" => $this->webroot_name,
-                "attrs" => $this->attrs,
+                "config" => $this->config,
             ));
         }
-        return $this->attrs[$key];
+        return $this->config[$key];
     }
     /**
      * RoutingTableにpage:pathの対応を追加
@@ -105,7 +105,7 @@ class Webroot
             //$params = array_replace_recursive($url_params, $params);
         }
         // webroot_urlを削る
-        $webroot_url = $this->getAttr("webroot_url",true);
+        $webroot_url = $this->getConfig("webroot_url",true);
         // 変換できない領域のURLであればそのままあつかう
         if (strlen($webroot_url) && strpos($webroot_url, $url)!==0) {
             return array(null, $url_params);
@@ -170,7 +170,7 @@ class Webroot
     {
         return array(
             "webroot_name" => $this->webroot_name,
-            "attrs" => $this->attrs,
+            "config" => $this->config,
         );
     }
 }

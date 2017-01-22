@@ -23,7 +23,7 @@ class SmartyFunctionInc
         $page = $route->getPage();
         $vars = array();
         // Routeに対応する処理の実行
-        if ($page && $controller = \R\Lib\Webapp\Controller_Base::invokeIncludeAction($page)) {
+        if ($page && $controller = app()->router()->invokeIncludePage($page)) {
             report("IncludeAction実行",array(
                 "page" => $page,
             ));

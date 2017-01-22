@@ -53,8 +53,8 @@ class Route
         // "file:"で始まる場合ファイル名と判断する
         } elseif (preg_match('!^(?:file:)(.*)$!',$route_name,$match)) {
             $file = $match[1];
-            $docroot_dir = $this->webroot->getAttr("docroot_dir",true);
-            $webroot_dir = $docroot_dir.$this->webroot->getAttr("webroot_url",true);
+            $docroot_dir = $this->webroot->getConfig("docroot_dir",true);
+            $webroot_dir = $docroot_dir.$this->webroot->getConfig("webroot_url",true);
             // 先頭のdocroot_dir+webroot_urlを削る
             if (strpos($webroot_dir, $file)===0) {
                 $this->path = str_replace($webroot_dir, "", $file);
@@ -117,8 +117,8 @@ class Route
     public function getFile ()
     {
         $path = $this->getPath();
-        $url = strlen($path) ? $this->getWebroot()->getAttr("webroot_url",true).$path : null;
-        return strlen($url) ? $this->getWebroot()->getAttr("docroot_dir",true).$url : null;
+        $url = strlen($path) ? $this->getWebroot()->getConfig("webroot_url",true).$path : null;
+        return strlen($url) ? $this->getWebroot()->getConfig("docroot_dir",true).$url : null;
     }
     /**
      *
@@ -128,7 +128,7 @@ class Route
         $url = null;
         $path = $this->getPath();
         if (strlen($path)) {
-            $url = $this->getWebroot()->getAttr("webroot_url",true).$path;
+            $url = $this->getWebroot()->getConfig("webroot_url",true).$path;
         } elseif (strlen($this->url)) {
             $url = $this->url;
         } else {
@@ -146,8 +146,8 @@ class Route
             return null;
         }
         if ( ! preg_match('!^https?://!',$url)) {
-            $schema = $this->getWebroot()->getAttr("is_secure") ? "https:" : "http:";
-            $url = $schema."//".$this->getWebroot()->getAttr("domain_name",true).$url;
+            $schema = $this->getWebroot()->getConfig("is_secure") ? "https:" : "http:";
+            $url = $schema."//".$this->getWebroot()->getConfig("domain_name",true).$url;
         }
         return $url;
     }

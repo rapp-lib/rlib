@@ -351,12 +351,7 @@
 
         // エラー時の処理停止
         if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
-
-            app()->response()->error($errstr,array(
-                "options" =>$options,
-                "params" =>$params,
-                "backtraces" =>$backtraces,
-            ));
+            app()->response()->error($errstr,$params,$options);
         }
     }
 

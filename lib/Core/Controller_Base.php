@@ -11,7 +11,6 @@ class Controller_Base implements FormRepositry, Authenticator
 {
     protected $vars = array();
     protected $request;
-    protected $response;
     protected $forms;
     /**
      * FormRepositry経由で読み込まれるフォームの定義
@@ -23,51 +22,6 @@ class Controller_Base implements FormRepositry, Authenticator
     protected static $access_as = null;
     protected static $priv_required = false;
     /**
-     * Pageに対応するActionの処理の実行
-     */
-    public static function invokeAction ($page)
-    {
-        list($controller_name, $action_name) = explode('.',$page,2);
-        $controller_class_name = "R\\App\\Controller\\".str_camelize($controller_name)."Controller";
-        $action_method_name = "act_".$action_name;
-        if ( ! method_exists($controller_class_name, $action_method_name)) {
-            report_warning("Page設定に対応するActionがありません",array(
-                "action_method_call" => $controller_class_name."::".$action_method_name,
-                "page" => $page,
-            ));
-            return null;
-        }
-        // 認証処理
-        $auth = $controller_class_name::getAuthenticate();
-        if ($auth && ! auth()->authenticate($auth["access_as"], $auth["priv_required"])) {
-            report_warning("認証エラー",array(
-                "controller_class" => $controller_class_name,
-                "auth" => $auth,
-                "page" => $page,
-            ));
-            return null;
-        }
-        // Actionメソッドの呼び出し
-        $controller = new $controller_class_name();
-        call_user_func(array($controller,$action_method_name));
-        return $controller;
-    }
-    /**
-     * Pageに対応するIncludeActionの処理の実行
-     */
-    public static function invokeIncludeAction ($page)
-    {
-        list($controller_name, $action_name) = explode('.',$page,2);
-        $controller_class_name = "R\\App\\Controller\\".str_camelize($controller_name)."Controller";
-        $action_method_name = "inc_".$action_name;
-        if ( ! method_exists($controller_class_name, $action_method_name)) {
-            return null;
-        }
-        $controller = new $controller_class_name();
-        call_user_func(array($controller,$action_method_name));
-        return $controller;
-    }
-    /**
      * 初期化
      */
     public function __construct ()
@@ -75,7 +29,7 @@ class Controller_Base implements FormRepositry, Authenticator
         $this->vars = array();
         $this->request = app()->request();
         $this->response = app()->response();
-        $this->forms = form()->addRepositry($this);
+        $this->forms = app()->form()->addRepositry($this);
         $this->vars["forms"] = $this->forms;
     }
     /**
