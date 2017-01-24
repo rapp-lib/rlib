@@ -27,7 +27,14 @@ class Webroot
     {
         $this->route_manager = $route_manager;
         $this->webroot_name = $webroot_name;
-        $this->config = $config;
+        $this->config = (array)app()->config("router.webroot.".$webroot_name.".config");
+        $this->routing = array_dot((array)app()->config("router.webroot.".$webroot_name.".routing"));
+        if ( ! isset($this->config["domain_name"])) {
+            $this->config["domain_name"] = $_SERVER["SERVER_NAME"];
+        }
+        if ( ! isset($this->config["domain_name"])) {
+           $this->config["docroot_dir"] = $_SERVER["DOCUMENT_ROOT"];
+       }
     }
     /**
      * @getter

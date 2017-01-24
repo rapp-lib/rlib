@@ -1,21 +1,13 @@
 <?php
-namespace R\Lib\Core;
+namespace R\Lib\Core\Provider;
 
-/**
- *
- */
-class Report
+use R\Lib\Core\Contract\InvokableProvider;
+
+class ReportDriver implements InvokableProvider
 {
-    private static $instance;
-    /**
-     * シングルトンインスタンスの取得
-     */
-    public static function getInstance ()
+    public function invoke ()
     {
-        if ( ! isset(self::$instance)) {
-            self::$instance = new Report;
-        }
-        return self::$instance;
+        //
     }
     /**
      * 標準エラーと警告を取得するように設定

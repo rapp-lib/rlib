@@ -324,7 +324,7 @@
                 : debug_backtrace();
 
         // レポート出力判定
-        if (app()->getDebugLevel()) {
+        if (app()->debug()) {
 
             $config =array();
             $config["output_format"] = ! get_cli_mode() && ! registry("Report.output_to_file") ? "html" : "plain";
@@ -351,7 +351,7 @@
 
         // エラー時の処理停止
         if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
-            app()->response()->error($errstr,$params,$options);
+            app()->response->error($errstr,$params,$options);
         }
     }
 

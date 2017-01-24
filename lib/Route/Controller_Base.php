@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Webapp;
+namespace R\Lib\Route;
 
 use R\Lib\Form\FormRepositry;
 use R\Lib\Auth\Authenticator;
@@ -27,8 +27,8 @@ class Controller_Base implements FormRepositry, Authenticator
     public function __construct ()
     {
         $this->vars = array();
-        $this->request = app()->request();
-        $this->response = app()->response();
+        $this->request = app()->request;
+        $this->response = app()->response;
         $this->forms = app()->form()->addRepositry($this);
         $this->vars["forms"] = $this->forms;
     }

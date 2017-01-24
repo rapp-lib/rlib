@@ -126,7 +126,7 @@ class WebappBuilder
             }
             return $this->config["work_dir"];
         } elseif ($key == "deploy_dir") {
-            return app()->config("Config.auto_deploy")
+            return app()->config("builder.overwrite")
                 ? $this->getConfig("current_dir")
                 : $this->getConfig("work_dir")."/deploy";
         } elseif ($key == "schema_csv_file") {

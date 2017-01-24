@@ -1,7 +1,9 @@
 <?php
-namespace R\Lib\Core;
+namespace R\Lib\Core\Exception;
 
-class ResponseException extends \Exception
+use Exception;
+
+class ResponseException extends Exception
 {
     protected $response;
     public function __construct ($response)

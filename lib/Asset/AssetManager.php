@@ -9,12 +9,9 @@ namespace R\Lib\Asset;
  */
 class AssetManager
 {
-    private static $instances = array();
-
     private $modules = array();
     private $buffer = array();
     private $assets_urls = array();
-
     private static $state_ids = array(
         "html.before" => 0,
         "head.start" => 1,
@@ -25,15 +22,11 @@ class AssetManager
     );
     private $state = 0;
 
-    /**
-     * AssetManagerのSingletonインスタンスを返す
-     */
-    public static function getInstance ($asset_group="frontend")
+    public function __construct ()
     {
-        if ( ! self::$instances[$asset_group]) {
-            self::$instances[$asset_group] = new AssetManager();
+        foreach ((array)app()->config("asset.catalogs") as $catalog_path) {
+            $this->loadAssetCatalog(app()->route($catalog_path));
         }
-        return self::$instances[$asset_group];
     }
 
 // -- アセット管理
@@ -47,7 +40,7 @@ class AssetManager
         if (is_array($catalog_config)) {
             $catalog_php = $catalog_config["catalog_php"];
             $url = $catalog_config["url"];
-        } elseif (is_a($catalog_config,"\\R\\Lib\\Route\\Route")) {
+        } elseif (is_a($catalog_config,'R\Lib\Route\Route')) {
             $catalog_php = $catalog_config->getFile();
             $url = dirname($catalog_config->getUrl());
         }

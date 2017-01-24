@@ -1,8 +1,14 @@
 <?php
 namespace R\Lib\Core;
 
+use R\Lib\Core\Contract\InvokableProvider;
+
 class ExtentionManager
 {
+    public function invoke ($group, $name)
+    {
+        return $this->getExtention($group, $name);
+    }
     /**
      * Extentionを取得する
      */

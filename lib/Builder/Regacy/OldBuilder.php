@@ -197,7 +197,7 @@ class OldBuilder {
     protected function deploy_src ($dest_file, $src) {
 
         // 自動展開機能がOFFであれば設定によらず勝手にファイルの上書きを行わない
-        if ( ! registry("Config.auto_deploy")) {
+        if ( ! registry("builder.overwrite")) {
 
             $replace_pattern ='!^'.preg_quote(registry("Path.webapp_dir"),'!').'!';
 

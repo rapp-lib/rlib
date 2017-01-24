@@ -1,13 +1,18 @@
 <?php
-namespace R\Lib\Core;
+namespace R\Lib\Core\Provider;
+
+use R\Lib\Core\Contract\InvokableProvider;
 
 /**
  *
  */
-class UtilProxyManager
+class UtilLoader implements InvokableProvider
 {
+    public function invoke ($class_name, $constructor_args=false)
+    {
+        return $this->getProxy($class_name, $constructor_args);
+    }
     private static $proxies =array();
-
     /**
      * クラスに対応するMethodCallProxyの取得
      */

@@ -1,18 +1,21 @@
 <?php
-namespace R\Lib\Core;
+namespace R\Lib\Core\Provider;
+
+use R\Lib\Core\Contract\InvokableProvider;
 
 /**
  * $_SESSIONへのアクセス
  */
-class Session
+class Session implements InvokableProvider
 {
     /**
-     * インスタンスを取得
+     * @override InvokableProvider
      */
-    public static function getInstance ($key="")
+    public function invole ($key="")
     {
         return new self($key);
     }
+    private $is_started = false;
     /**
      * 参照の起点
      */
@@ -22,6 +25,10 @@ class Session
      */
     public function __construct ($key="")
     {
+        if ( ! $this->is_started) {
+            $this->start();
+            $this->is_started = true;
+        }
         $this->base_key = $key;
     }
     /**
@@ -73,5 +80,20 @@ class Session
             $key = strlen($key) ? $this->base_key.".".$key : $this->base_key;
         }
         array_unset($_SESSION, $key);
+    }
+    /**
+     * session_start
+     */
+    public function start ()
+    {
+        // セッションの開始
+        ini_set("session.cookie_httponly",true);
+        ini_set("session.cookie_secure",$_SERVER['HTTPS']);
+        session_cache_limiter('');
+        header("Pragma: public");
+        header("Expires: Thu, 19 Nov 1981 08:52:00 GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
+        header("P3P: CP='UNI CUR OUR'");
+        session_start();
     }
 }

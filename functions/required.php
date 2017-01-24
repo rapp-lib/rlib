@@ -1,4 +1,5 @@
 <?php
+    define("R_LIB_ROOT_DIR", realpath(__DIR__."/.."));
 
     require_once __DIR__."/functions.php";
 

@@ -127,7 +127,7 @@ class DBI_Base {
 
         // SQL文の調査
         if ($this->check_driver("is_support_analyze_sql")
-                && app()->getDebugLevel() && ! $this->ds->error) {
+                && app()->debug() && ! $this->ds->error) {
 
             $explain =$this->analyze_sql($st,$elapsed);
 

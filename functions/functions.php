@@ -3,42 +3,39 @@
 // -- 各クラスのインスタンス取得
 
     /**
-     * @facade R\Lib\Core\Application::getInstance
+     *
+     */
+    function app_init ($container_class, $init_params)
+    {
+        $GLOBALS["R_CONTAINER"] = new $container_class();
+        $GLOBALS["R_CONTAINER"]->init($init_params);
+    }
+    /**
+     *
      */
     function app ()
     {
-        static $app;
-        if ( ! isset($app)) {
-            $provider_method = constant("R_APP_PROVIDER");
-            $app = call_user_func($provider_method,array());
-        }
-        return $app;
+        return $GLOBALS["R_CONTAINER"];
     }
     /**
-     * @facade Application Provider
+     * @deprecated
      */
-    function auth ($name=false)
+    function auth ()
     {
-        return app()->auth($name);
+        report_warning("@deprecated");
+        return app()->auth;
     }
     /**
-     * @facade Application Provider
+     * @alias
      */
-    function table ($table_name=false)
+    function table ($table_name)
     {
         return app()->table($table_name);
     }
     /**
-     * @facade Application Provider
+     * @alias
      */
-    function router ()
-    {
-        return app()->router();
-    }
-    /**
-     * @facade Application Provider
-     */
-    function route ($route_name=false)
+    function route ($route_name)
     {
         return app()->route($route_name);
     }
@@ -47,51 +44,57 @@
      */
     function form ()
     {
+        report_warning("@deprecated");
         return app()->form();
     }
     /**
-     * @facade Application Provider
+     * @deprecated
      */
     function enum ($enum_set_name=false, $group=false)
     {
+        report_warning("@deprecated");
         return app()->enum($enum_set_name, $group);
     }
     /**
-     * @facade Application Provider
+     * @deprecated
      */
     function enum_select ($value, $enum_set_name=false, $group=false)
     {
+        report_warning("@deprecated");
         return app()->enum_select($value, $enum_set_name, $group);
     }
     /**
-     * @facade Application Provider
+     * @deprecated
      */
     function asset () {
+        report_warning("@deprecated");
         return app()->asset();
     }
     /**
-     * @facade Application Provider
+     * @deprecated
      */
     function file_storage ()
     {
+        report_warning("@deprecated");
         return app()->file_storage();
     }
     /**
-     * @facade Application Provider
+     * @deprecated
      */
     function builder ()
     {
+        report_warning("@deprecated");
         return app()->builder();
     }
     /**
-     * @facade Application Provider
+     * @alias
      */
     function util ($class_name, $constructor_args=false)
     {
         return app()->util($class_name, $constructor_args);
     }
     /**
-     * @facade Application Provider
+     * @alias
      */
     function extention ($extention_group, $extention_name)
     {
@@ -215,27 +218,26 @@
             }
         }
     }
+    /**
+     * 配列を完全なドット記法配列に変換する
+     */
+    function array_dot ( & $ref)
+    {
+        $result = array();
+        foreach ($ref as $k=>$v) {
+            if (is_arraylike($v)) {
+                foreach (array_dot($v) as $k_inner=>$v_inner) {
+                    $result[$k.".".$k_inner] = $v_inner;
+                }
+            } else {
+                $result[$k] = $v;
+            }
+        }
+        return $result;
+    }
 
 // -- 移行する
 
-    /**
-     * @deprecated
-     */
-    function start_dync () {
-        if (defined("DEV_HOSTS") ? util("ServerVars")->ipCheck(constant("DEV_HOSTS")) : true) {
-            if (isset($_POST["__ts"]) && isset($_POST["_"])) {
-                for ($min = floor(time()/60), $i=-5; $i<=5; $i++) {
-                    if ($_POST["__ts"] == substr(md5("_/".($min+$i)),12,12)) {
-                        $_SESSION["__debug"] = $_POST["_"]["report"];
-                    }
-                }
-            }
-            app()->config(array("Config.debug_level"=>$_SESSION["__debug"]));
-            if (app()->getDebugLevel() && $_POST["__rdoc"]["entry"]==="build_rapp") {
-                app()->builder()->start();
-            }
-        }
-    }
     /**
      *
      */
