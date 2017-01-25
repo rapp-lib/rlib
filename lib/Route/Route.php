@@ -98,6 +98,13 @@ class Route
         return $this->path;
     }
     /**
+     *
+     */
+    public function getController ()
+    {
+        return $this->getWebroot()->getRouteManager()->getRouteController($this);
+    }
+    /**
      * URLパラメータを取得
      */
     public function getUrlParams ()

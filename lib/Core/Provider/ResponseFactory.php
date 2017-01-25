@@ -6,49 +6,59 @@ use R\Lib\Core\Contract\Provider;
 class ResponseFactory implements Provider
 {
     /**
-     * 出力内容の設定
+     * 応答の作成
      */
     public function output ($output)
     {
-        if ( ! isset($output["type"])) {
-            $output["type"] = "unknown";
-        }
-        return app()->make("response.".$output["type"], array($output));
+        $response = app()->make("response", array($output));
+        return $response;
     }
     /**
-     * 転送応答の設定
+     * View応答の作成
      */
-    public function redirect ($route, $url_params=null)
+    public function view ($file, $vars=array(), $output=array())
     {
-        $route = is_string($route) ? route($route) : $route;
-        if (isset($url_params)) {
-            $route->setUrlParams($url_params);
-        }
-        $this->output(array(
-            "type" => "redirect",
-            "url" => $route->getUrl(),
-        ))->raise();
+        $output["type"] = "view";
+        $output["file"] = $vars;
+        $output["vars"] = $vars;
+        return $this->output($output);
     }
     /**
-     * URL文字列指定による転送
+     * JSON応答の作成
      */
-    public function redirectUrl ($url, $url_params=array())
+    public function json ($vars, $output=array())
     {
-        $this->output(array(
-            "type" => "redirect",
-            "url" => url($url, $url_params),
-        ))->raise();
+        $output["type"] = "json";
+        $output["vars"] = $vars;
+        return $this->output($output);
     }
     /**
-     * エラー応答の設定
+     * ファイルダウンロード応答の作成
      */
-    public function error ($message, $error_context=array(), $error_options=array())
+    public function download ($file, $output=array())
     {
-        $this->output(array(
-            "type" => "error",
-            "message" => $message,
-            "error_context" => $error_context,
-            "response_code" => $error_options["response_code"],
-        ))->raise();
+        $output["type"] = "download";
+        $output["file"] = "file";
+        return $this->output($output);
+    }
+    /**
+     * 転送応答の作成
+     */
+    public function redirect ($url, $url_params=array(), $output=array())
+    {
+        $output["type"] = "redirect";
+        $output["url"] = $url;
+        $output["url_params"] = $url_params;
+        return $this->output($output);
+    }
+    /**
+     * エラー応答の作成
+     */
+    public function error ($message, $code, $output=array())
+    {
+        $output["type"] = "error";
+        $output["message"] = $message;
+        $output["code"] = $code;
+        return $this->output($output);
     }
 }

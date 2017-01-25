@@ -17,9 +17,11 @@ class ConfigBasedApplication implements Container
                 $response = $e->getResponse();
                 $response->render();
             } else {
-                app()->response->error("Uncaught. ".get_class($e).": ".$e->getMessage(),array(
+                report_error("Uncaught. ".get_class($e).": ".$e->getMessage(),array(
                     "exception" =>$e,
-                ))->render();
+                ),array(
+                    "unrecoverable" => true,
+                ));
             }
         });
         register_shutdown_function(function() {
@@ -27,12 +29,13 @@ class ConfigBasedApplication implements Container
             $error = error_get_last();
             if ($error && ($error['type'] == E_ERROR || $error['type'] == E_PARSE
                     || $error['type'] == E_CORE_ERROR || $error['type'] == E_COMPILE_ERROR)) {
-                app()->response->error("Fatal Error. ".$error["message"] ,array("error"=>$error) ,array(
+                report_error("Fatal Error. ".$error["message"] ,array("error"=>$error) ,array(
                     "errno" =>$error['type'],
                     "errstr" =>"Fatal Error. ".$error['message'],
                     "errfile" =>$error['file'],
                     "errline" =>$error['line'],
-                ))->render();
+                    "unrecoverable" => true,
+                ));
             }
         });
         set_error_handler(function($errno, $errstr, $errfile=null, $errline=null, $errcontext=null) {
@@ -53,8 +56,7 @@ class ConfigBasedApplication implements Container
                 "value" => $callback,
             ));
         }
-        $response = call_user_func($callback, app()->request);
-        var_dump($callback);
+        $response = call_user_func($callback);
         return $response;
     }
 
@@ -112,25 +114,35 @@ class ConfigBasedApplication implements Container
     /**
      * クラスの探索
      */
-    public function find ($class, $required=false)
+    public function find ($class)
     {
         if (isset($this->aliases[$class])) {
             $class = $this->aliases[$class];
-        }
-        if ( ! class_exists($class) && $required) {
-            report_error("Classの定義がありません",array(
-                "class" => $class,
-            ));
         }
         return $class;
     }
     /**
      * Singletonインスタンスの取得
      */
-    public function singleton ($class)
+    public function singleton ($class_find)
     {
-        $class = $this->find($class,true);
+        $class = $this->find($class_find);
+        if ( ! class_exists($class)) {
+            report_warning("クラス定義がありません",array(
+                "class" => $class,
+                "class_find" => $class_find,
+            ));
+            return null;
+        }
         if ( ! isset($this->singleton_instances[$class])) {
+            if ( ! $this->hasContract($class, $class_find)) {
+                report_warning("クラス契約が不正です",array(
+                    "class" => $class,
+                    "class_find" => $class_find,
+                    "contract_class" => $this->aliases["contract.".$class_find],
+                ));
+                return null;
+            }
             if (method_exists($class, "singletonFactory")) {
                 $this->singleton_instances[$class] = call_user_func(array($class,"singletonFactory"));
             } else {
@@ -142,11 +154,39 @@ class ConfigBasedApplication implements Container
     /**
      * インスタンスの作成
      */
-    public function make ($class, $constructor_args)
+    public function make ($class_find, $constructor_args=array())
     {
-        $class = $this->find($class,true);
+        $class = $this->find($class_find,true);
+        if ( ! class_exists($class)) {
+            report_warning("クラス定義がありません",array(
+                "class" => $class,
+                "class_find" => $class_find,
+            ));
+            return null;
+        }
+        if ( ! $this->hasContract($class, $class_find)) {
+            report_warning("クラス契約が不正です",array(
+                "class" => $class,
+                "class_find" => $class_find,
+                "contract_class" => $this->aliases["contract.".$class_find],
+            ));
+            return null;
+        }
         $ref = new \ReflectionClass($class);
         return $ref->newInstanceArgs($constructor_args);
+    }
+    /**
+     * Contractを持つかどうか確認
+     */
+    public function hasContract ($class, $contract_name, $required=false)
+    {
+        $class = is_object($class) ? get_class($class) : $class;
+        $contract_class = $this->aliases["contract.".$class];
+        if ( ! $contract_class) {
+            return true;
+        }
+        $result = is_subclass_of($class, $contract_class) || $class === $contract_class;
+        return $result;
     }
 
 // -- Providerによる機能構成
@@ -156,24 +196,26 @@ class ConfigBasedApplication implements Container
      */
     public function bindProvider ($provider_name, $provider_class)
     {
-        $this->alias("provider.".$provider_name, $provider_class);
+        $this->bind("provider.".$provider_name, $provider_class);
     }
     /**
      * Providerの取得
      */
     protected function getProvider ($provider_name)
     {
-        return $this->singleton("provider.".$provider_name);
+        $object = $this->singleton("provider.".$provider_name);
+        return $object;
     }
     /**
-     * InvokerProvider::invokeの呼び出し
+     * InvokableProvider::invokeの呼び出し
      */
     public function __call ($provider_name, $args)
     {
         $provider = $this->getProvider($provider_name);
         if ( ! isset($provider)) {
-            report_error("Providerが登録されていません",array(
+            report_error("InvokableProviderの登録が不正です",array(
                 "provider_name" => $provider_name,
+                "provider" => $provider,
             ));
         }
         return call_user_func_array(array($provider,"invoke"),$args);
@@ -185,8 +227,9 @@ class ConfigBasedApplication implements Container
     {
         $provider = $this->getProvider($provider_name);
         if ( ! isset($provider)) {
-            report_error("Providerが登録されていません",array(
+            report_error("Providerの登録が不正です",array(
                 "provider_name" => $provider_name,
+                "provider" => $provider,
             ));
         }
         return $provider;

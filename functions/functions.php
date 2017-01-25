@@ -249,7 +249,10 @@
     //-------------------------------------
     // URLの組み立て
     function url ($base_url=null, $params=array(), $anchor=null) {
-
+        if (is_object($base_url) && method_exists($base_url, "getUrl")) {
+            $base_url = $base_url->getUrl($params);
+            $params = array();
+        }
         $url =$base_url;
 
         // 文字列形式のURLパラメータを配列に変換

@@ -9,7 +9,42 @@ class HttpResponse implements Response
     protected $output;
     public function __construct ($output)
     {
-        $this->output;
+        // View応答
+        if ($output["type"] == "view") {
+            $output["data"] = app()->view($output["file"], $output["vars"]);
+            if ( ! $output["content_type"]) {
+                $output["content_type"] = "text/html; charset=utf-8";
+            }
+        }
+        // JSONデータ応答
+        if ($output["type"] == "json") {
+            $output["data"] = json_encode($output["vars"]);
+            if ( ! $output["content_type"]) {
+                $output["content_type"] = "application/json; charset=utf-8";
+            }
+        }
+        if ($output["type"] == "download") {
+            if (isset($output["file"])) {
+                if ( ! is_readable($output["file"])) {
+                    report_error("ダウンロードファイルの指定が不正です",array(
+                        "file" => $output["file"],
+                    ));
+                }
+            } elseif (isset($output["stored_file"])) {
+                if ( ! is_a($output["stored_file"], 'R\Lib\FileStorage\StoredFile')) {
+                    report_error("StoredFileの指定が不正です",array(
+                        "stored_file" => $output["stored_file"],
+                    ));
+                }
+            } elseif (isset($output["data"])) {
+                //
+            } else {
+                report_error("ダウンロード対象の指定が不正です",array(
+                    "output" => $output,
+                ));
+            }
+        }
+        $this->output = $output;
     }
     public function raise ()
     {
@@ -18,13 +53,13 @@ class HttpResponse implements Response
     public function render ()
     {
         $output = $this->output;
-        report("実行終了",array(
+        report("Render Response",array(
             "route" => app()->router->getCurrentRoute(),
             "request" => app()->request,
-            "response" => $this,
+            "output_type" => $output["type"],
         ));
         // エラー応答
-        if ( ! $output["type"] || $output["type"] == "error") {
+        if ($output["type"] == "error") {
             $response_code = $output["response_code"];
             if ( ! $response_code) {
                 $response_code = 500;
@@ -36,9 +71,11 @@ class HttpResponse implements Response
             } else {
                 print $response_code;
             }
+            return true;
+        }
         // 転送応答
-        } elseif ($output["type"] == "redirect") {
-            $url = $output["url"];
+        if ($output["type"] == "redirect") {
+            $url = url($output["url"], $output["url_params"]);
             if (app()->debug()) {
                 print tag("a",array("href"=>$url),'<div style="padding:20px;'
                     .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
@@ -46,38 +83,38 @@ class HttpResponse implements Response
             } else {
                 header("Location: ".$url);
             }
-        // データ出力応答
-        } else {
-            // HTML表示以外の出力であればバッファを消去
-            if ( ! preg_match('!^text/html!i',$output["content_type"])) {
-                while (ob_get_level()) {
-                    ob_get_clean();
-                }
+            return true;
+        }
+        // HTML表示以外の出力であればバッファを消去
+        if ( ! preg_match('!^text/html!i',$output["content_type"])) {
+            while (ob_get_level()) {
+                ob_get_clean();
             }
-            // Content-Typeヘッダの送信
-            if (isset($output["content_type"])) {
-                header("Content-Type: ".$output["content_type"]);
-            } elseif (isset($output["download"])) {
-                header("Content-Type: application/octet-stream");
-            }
-            // ダウンロードファイル名の指定
-            if (isset($output["download"])) {
-                if (is_string($output["download"])) {
-                    header("Content-Disposition: attachment; filename=".$output["download"]);
-                } elseif (isset($output["file"])) {
-                    header("Content-Disposition: attachment; filename=".basename($output["file"]));
-                }
-            }
-            if (isset($output["data"])) {
-                print $output["data"];
+        }
+        // Content-Typeヘッダの送信
+        if (isset($output["content_type"])) {
+            header("Content-Type: ".$output["content_type"]);
+        } elseif (isset($output["download"])) {
+            header("Content-Type: application/octet-stream");
+        }
+        // ダウンロードファイル名の補完
+        if (isset($output["download"])) {
+            if (is_string($output["download"])) {
+                header("Content-Disposition: attachment; filename=".$output["download"]);
             } elseif (isset($output["file"])) {
-                if (is_readable($output["file"])) {
-                    readfile($output["file"]);
-                }
-            } elseif (isset($output["stored_file"])) {
-                if (is_a($output["stored_file"], "R\\Lib\\FileStorage\\StoredFile")) {
-                    $output["stored_file"]->download();
-                }
+                header("Content-Disposition: attachment; filename=".basename($output["file"]));
+            }
+        }
+        // 形式に従って出力
+        if (isset($output["data"])) {
+            echo($output["data"]);
+        } elseif (isset($output["file"])) {
+            if (is_readable($output["file"])) {
+                readfile($output["file"]);
+            }
+        } elseif (isset($output["stored_file"])) {
+            if (is_a($output["stored_file"], 'R\Lib\FileStorage\StoredFile')) {
+                $output["stored_file"]->download();
             }
         }
     }

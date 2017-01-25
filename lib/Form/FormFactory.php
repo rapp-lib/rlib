@@ -3,21 +3,8 @@ namespace R\Lib\Form;
 
 class FormFactory
 {
-    private static $instance = null;
-
     private $current_repositry = null;
     private $repositries = array();
-
-    /**
-     * インスタンスを取得
-     */
-    public static function getInstance ()
-    {
-        if ( ! self::$instance) {
-            self::$instance = new FormFactory();
-        }
-        return self::$instance;
-    }
 
 // -- Form作成
 

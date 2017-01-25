@@ -1,60 +1,4 @@
 <?php
-
-
-    //-------------------------------------
-    // 標準レポートハンドラ
-    function std_error_handler (
-            $errno,
-            $errstr,
-            $errfile=null,
-            $errline=null,
-            $errcontext=null) {
-
-        if ( ! (get_webapp_dync("report")
-                && (registry("Report.error_reporting") & $errno)
-                && (error_reporting()!==0))) {
-
-            return;
-        }
-
-        report($errstr,$errcontext,array(
-            "type" =>"error_handler",
-            "errno" =>$errno,
-            "errstr" =>$errstr,
-            "errfile" =>$errfile,
-            "errline" =>$errline,
-        ));
-    }
-
-    //-------------------------------------
-    // 標準例外ハンドラ
-    function std_exception_handler ($e) {
-
-        try {
-
-            if (is_a($e,"ReportError")) {
-
-                throw $e;
-            }
-
-            report("[".get_class($e)."] ".$e->getMessage(),array(
-                "exception" =>$e,
-            ),array(
-                "type" =>"exception_handler",
-                "errno" =>E_ERROR,
-                "errstr" =>$e->getMessage(),
-                "errfile" =>$e->getFile(),
-                "errline" =>$e->getLine(),
-                "code" =>$e->getCode(),
-                "exception" =>$e,
-            ));
-
-        } catch (ReportError $e_report) {
-
-            $e_report->shutdown();
-        }
-    }
-
     //-------------------------------------
     // 値のHTML出力整形
     function decorate_value ($target_value, $html_mode=false, $level=1) {
@@ -351,7 +295,16 @@
 
         // エラー時の処理停止
         if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
-            app()->response->error($errstr,$params,$options);
+            try {
+                $response = app()->response->error($options["response_message"], $options["response_code"]);
+            } catch (R\Lib\Core\Exception\ResponseException $e) {
+                $response = $e->getResponse();
+            }
+            if ($options["unrecoverable"]) {
+                $response->render();
+            } else {
+                $response->raise();
+            }
         }
     }
 

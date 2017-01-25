@@ -1,16 +1,16 @@
 <?php
-namespace R\Lib\Route;
+namespace R\Lib\Controller;
 
 use R\Lib\Form\FormRepositry;
 use R\Lib\Auth\Authenticator;
 
-/**
- *
- */
-class Controller_Base implements FormRepositry, Authenticator
+class HttpController implements FormRepositry, Authenticator
 {
-    protected $vars = array();
+    protected $controller_name;
+    protected $action_name;
+    protected $vars;
     protected $request;
+    protected $response;
     protected $forms;
     /**
      * FormRepositry経由で読み込まれるフォームの定義
@@ -24,12 +24,14 @@ class Controller_Base implements FormRepositry, Authenticator
     /**
      * 初期化
      */
-    public function __construct ()
+    public function __construct ($controller_name, $action_name)
     {
+        $this->controller_name = $controller_name;
+        $this->action_name = $action_name;
         $this->vars = array();
         $this->request = app()->request;
         $this->response = app()->response;
-        $this->forms = app()->form()->addRepositry($this);
+        $this->forms = app()->form->addRepositry($this);
         $this->vars["forms"] = $this->forms;
     }
     /**
@@ -39,6 +41,45 @@ class Controller_Base implements FormRepositry, Authenticator
     public function getVars ()
     {
         return $this->vars;
+    }
+    /**
+     * Actionの実行
+     */
+    public function exec ($args=array())
+    {
+        $action_method_name = "act_".$this->action_name;
+        if ( ! method_exists($this, $action_method_name)) {
+            report_error("Page設定に対応するActionがありません",array(
+                "action_method" => get_class($this)."::".$action_method_name,
+            ));
+        }
+        $callback_array = array($this,$action_method_name);
+        $callback = function () use ($callback_array) {
+            call_user_func($callback_array);
+        };
+        // Middlewareの読み込み
+        $middleware_config = (array)app()->config("controller.middleware");
+        foreach ($middleware_config as $middleware_name => $check) {
+            if ($check()) {
+                $middleware = app()->make("middleware.".$middleware_name);
+                $middleware_callback = array($middleware,"handler");
+                $callback = function () use ($callback, $middleware_callback) {
+                    return call_user_func($middleware_callback,$callback);
+                };
+            }
+        }
+        return call_user_func_array($callback, $args);
+    }
+    /**
+     * Include Actionの実行
+     */
+    public function execInc ($args=array())
+    {
+        $action_method_name = "inc_".$this->action_name;
+        if ( ! method_exists($this, $action_method_name)) {
+            return;
+        }
+        return call_user_func_array(array($this,$action_method_name), $args);
     }
     /**
      * @implements R\Lib\Form\FormRepositry
