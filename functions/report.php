@@ -1,4 +1,94 @@
 <?php
+    function install_report ()
+    {
+        // 終了処理
+        register_shutdown_function(function() {
+            // エラーによる終了のLogging
+            $error = error_get_last();
+            $error_type = $error['type'];
+            if ($error && $error_type & (E_ERROR|E_PARSE|E_CORE_ERROR|E_COMPILE_ERROR)) {
+                $report = array();
+                $report["message"] = $error["message"];
+                $report["vars"] = array();
+                $report["errno"] = E_ERROR;
+                $report["errfile"] = $error['file'];
+                $report["errline"] = $error['line'];
+                $report["unrecoverable"] = true;
+                report($report["message"],$report["vars"],$report);
+            }
+        });
+        set_exception_handler(function($e) {
+            try {
+                if ($e instanceof \R\Lib\Core\Exception\ResponseException) {
+                    $response = $e->getResponse();
+                    $response->render();
+                    return;
+                } else {
+                    $report = array();
+                    $report["message"] = "Uncaught ".get_class($e).". ".$e->getMessage();
+                    $report["vars"] = array("exception"=>$e);
+                    $report["errno"] = E_ERROR;
+                    $report["errfile"] = $e->getFile();
+                    $report["errline"] = $e->getLine();
+                    $options["backtraces"] = $e->getTrace();
+                    $report["unrecoverable"] = true;
+                    report($report["message"],$report["vars"],$report);
+                    return;
+                }
+            } catch (\Exception $e_internal) {
+                //set_error_handler(null);
+                //set_exception_handler(null);
+                throw $e_internal;
+            }
+        });
+        set_error_handler(function($errno, $errstr, $errfile=null, $errline=null, $errcontext=null) {
+            if ($errno&(E_ERROR|E_USER_ERROR)) {
+                //set_error_handler(null);
+            }
+            if ($errno&(E_ERROR|E_WARNING)) {
+                $report = array();
+                $report["type"] = $errno&E_ERROR ? "error" : "warning";
+                $report["message"] = $errstr;
+                $report["vars"] = array("context"=>$errcontext);
+                $report["errno"] = $errno;
+                $report["errfile"] = $errfile;
+                $report["errline"] = $errline;
+                report($report["message"],$report["vars"],$report);
+            } elseif ($errno&(E_USER_ERROR|E_USER_WARNING|E_USER_NOTICE)) {
+                $report = $GLOBALS["__REPORT_LAST"];
+                unset($GLOBALS["__REPORT_LAST"]);
+                report($report["message"],$report["vars"],$report);
+            }
+        },E_ERROR|E_WARNING|E_USER_ERROR|E_USER_WARNING|E_USER_NOTICE);
+    }
+    function report_info ($message, $vars=array(), $report=array())
+    {
+        $report["type"] = "info";
+        $report["errno"] = E_USER_NOTICE;
+        $report["message"] = $message;
+        $report["vars"] = $vars;
+        $GLOBALS["__REPORT_LAST"] = $report;
+        trigger_error($message, E_USER_NOTICE);
+    }
+    function report_warning ($message, $vars=array(), $report=array())
+    {
+        $report["type"] = "warning";
+        $report["errno"] = E_USER_WARNING;
+        $report["message"] = $message;
+        $report["vars"] = $vars;
+        $GLOBALS["__REPORT_LAST"] = $report;
+        trigger_error($message, E_USER_WARNING);
+    }
+    function report_error ($message, $vars=array(), $report=array())
+    {
+        $report["type"] = "error";
+        $report["errno"] = E_USER_ERROR;
+        $report["message"] = $message;
+        $report["vars"] = $vars;
+        $GLOBALS["__REPORT_LAST"] = $report;
+        trigger_error($message, E_USER_ERROR);
+    }
+
     //-------------------------------------
     // 値のHTML出力整形
     function decorate_value ($target_value, $html_mode=false, $level=1) {
@@ -268,7 +358,7 @@
                 : debug_backtrace();
 
         // レポート出力判定
-        if (app()->debug()) {
+        if (app()->hasProvider("debug") && app()->debug()) {
 
             $config =array();
             $config["output_format"] = ! get_cli_mode() && ! registry("Report.output_to_file") ? "html" : "plain";
@@ -294,34 +384,22 @@
         }
 
         // エラー時の処理停止
-        if ($options["errno"] & (E_USER_ERROR | E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) {
-            try {
-                $response = app()->response->error($options["response_message"], $options["response_code"]);
-            } catch (R\Lib\Core\Exception\ResponseException $e) {
-                $response = $e->getResponse();
-            }
-            if ($options["unrecoverable"]) {
-                $response->render();
+        if ($options["errno"] & (E_USER_ERROR|E_ERROR)) {
+            if (app()->hasProvider("response")) {
+                try {
+                    $response = app()->response->error($options["response_message"], $options["response_code"]);
+                } catch (R\Lib\Core\Exception\ResponseException $e) {
+                    $response = $e->getResponse();
+                }
+                if ($options["unrecoverable"]) {
+                    $response->render();
+                } else {
+                    $response->raise();
+                }
             } else {
-                $response->raise();
+                throw new \Exception($errstr);
             }
         }
-    }
-
-    //-------------------------------------
-    //
-    function report_warning ($message, $params=array(), $options=array()) {
-
-        $options["errno"] =E_USER_WARNING;
-        report($message,$params,$options);
-    }
-
-    //-------------------------------------
-    //
-    function report_error ($message, $params=array(), $options=array()) {
-
-        $options["errno"] =E_USER_ERROR;
-        report($message,$params,$options);
     }
 
     //-------------------------------------

@@ -11,7 +11,7 @@ class Session implements InvokableProvider
     /**
      * @override InvokableProvider
      */
-    public function invole ($key="")
+    public function invoke ($key="")
     {
         return new self($key);
     }

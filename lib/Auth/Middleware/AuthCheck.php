@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Auth;
+namespace R\Lib\Auth\Middleware;
 
 use R\Lib\Core\Contract\Middleware;
 
@@ -7,7 +7,7 @@ class AuthCheck implements Middleware
 {
     public function handler ($next)
     {
-        $controller = $this->getCurrentRoute()->getController();
+        $controller = app()->router->getCurrentRoute()->getController();
         try {
             $auth = $controller->getAuthenticate();
             $auth_result = app()->auth->authenticate($auth["access_as"], $auth["priv_required"]);

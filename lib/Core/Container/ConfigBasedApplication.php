@@ -7,45 +7,9 @@ class ConfigBasedApplication implements Container
 {
     public function init ($init_params)
     {
-        // bindの反映
         $this->applyBindConfig($init_params);
-        // configの反映
         $this->applyConfigValues($init_params);
-        // 終了処理
-        set_exception_handler(function($e) {
-            if (is_a($e,"R\Lib\Core\Exception\ResponseException")) {
-                $response = $e->getResponse();
-                $response->render();
-            } else {
-                report_error("Uncaught. ".get_class($e).": ".$e->getMessage(),array(
-                    "exception" =>$e,
-                ),array(
-                    "unrecoverable" => true,
-                ));
-            }
-        });
-        register_shutdown_function(function() {
-            // FatalErrorによる強制終了
-            $error = error_get_last();
-            if ($error && ($error['type'] == E_ERROR || $error['type'] == E_PARSE
-                    || $error['type'] == E_CORE_ERROR || $error['type'] == E_COMPILE_ERROR)) {
-                report_error("Fatal Error. ".$error["message"] ,array("error"=>$error) ,array(
-                    "errno" =>$error['type'],
-                    "errstr" =>"Fatal Error. ".$error['message'],
-                    "errfile" =>$error['file'],
-                    "errline" =>$error['line'],
-                    "unrecoverable" => true,
-                ));
-            }
-        });
-        set_error_handler(function($errno, $errstr, $errfile=null, $errline=null, $errcontext=null) {
-            report($errstr,$errcontext,array(
-                "errno" => $errno,
-                "errstr" => $errstr,
-                "errfile" => $errfile,
-                "errline" => $errline,
-            ));
-        },error_reporting());
+        install_report();
     }
     public function exec ()
     {
@@ -64,12 +28,50 @@ class ConfigBasedApplication implements Container
 
     private function applyBindConfig ($params)
     {
+        $base_binds = array(
+            "middleware" => array(
+                "auth" => 'R\Lib\Auth\Middleware\AuthCheck',
+                "view_response_fallback" => 'R\Lib\Core\Middleware\ViewResponseFallback',
+                "json_response_fallback" => 'R\Lib\Core\Middleware\JsonResponseFallback',
+            ),
+            "provider" => array(
+                "router" => 'R\Lib\Route\RouteManager',
+                "route" => 'R\Lib\Route\RouteManager',
+                "config" => 'R\Lib\Core\Provider\Configure',
+                "env" => 'R\Lib\Core\Provider\Env',
+                "view" => 'R\Lib\View\SmartyViewFactory',
+                "table" => 'R\Lib\Table\TableFactory',
+                "form" => 'R\Lib\Form\FormFactory',
+                "enum" => 'R\Lib\Enum\EnumFactory',
+                "file_storage" => 'R\Lib\FileStorage\FileStorageManager',
+                "builder" => 'R\Lib\Builder\WebappBuilder',
+                "util" => 'R\Lib\Core\Provider\UtilLoader',
+                "extention" => 'R\Lib\Core\Provider\ExtentionLoader',
+                "debug" => 'R\Lib\Core\Provider\DebugDriver',
+                "auth" => 'R\Lib\Auth\AccountManager',
+                "asset" => 'R\Lib\Asset\AssetManager',
+                "report" => 'R\Lib\Core\Provider\ReportDriver',
+                "response" => 'R\Lib\Core\Provider\ResponseFactory',
+                "request" => 'R\Lib\Core\Provider\Request',
+                "session" => 'R\Lib\Core\Provider\Session',
+            ),
+            "contract" => array(
+                "provider" => array(
+                    "router" => 'R\Lib\Route\RouteManager',
+                ),
+            ),
+            "response" => 'R\Lib\Core\Response\HttpResponse',
+        );
+        $base_binds = array_dot($base_binds);
         $config = $this->filterConfig($params["config"], $params["tags"], "bind");
         foreach ($config as $binds) {
             $binds = array_dot($binds);
             foreach ($binds as $name => $class) {
-                $this->bind($name, $class);
+                $base_binds[$name] = $class;
             }
+        }
+        foreach ($base_binds as $name => $class) {
+            $this->bind($name, $class);
         }
     }
     private function applyConfigValues ($params)
@@ -114,26 +116,21 @@ class ConfigBasedApplication implements Container
     /**
      * クラスの探索
      */
-    public function find ($class)
+    public function find ($class_find, $required=false)
     {
-        if (isset($this->aliases[$class])) {
-            $class = $this->aliases[$class];
+        if ( ! isset($this->aliases[$class_find]) && $required) {
+            report_error("クラスが登録されていません : ".$class_find,array(
+                "class_find" => $class_find,
+            ));
         }
-        return $class;
+        return $this->aliases[$class_find];
     }
     /**
      * Singletonインスタンスの取得
      */
     public function singleton ($class_find)
     {
-        $class = $this->find($class_find);
-        if ( ! class_exists($class)) {
-            report_warning("クラス定義がありません",array(
-                "class" => $class,
-                "class_find" => $class_find,
-            ));
-            return null;
-        }
+        $class = $this->find($class_find, true);
         if ( ! isset($this->singleton_instances[$class])) {
             if ( ! $this->hasContract($class, $class_find)) {
                 report_warning("クラス契約が不正です",array(
@@ -143,11 +140,7 @@ class ConfigBasedApplication implements Container
                 ));
                 return null;
             }
-            if (method_exists($class, "singletonFactory")) {
-                $this->singleton_instances[$class] = call_user_func(array($class,"singletonFactory"));
-            } else {
-                $this->singleton_instances[$class] = new $class();
-            }
+            $this->singleton_instances[$class] = new $class();
         }
         return $this->singleton_instances[$class];
     }
@@ -157,13 +150,6 @@ class ConfigBasedApplication implements Container
     public function make ($class_find, $constructor_args=array())
     {
         $class = $this->find($class_find,true);
-        if ( ! class_exists($class)) {
-            report_warning("クラス定義がありません",array(
-                "class" => $class,
-                "class_find" => $class_find,
-            ));
-            return null;
-        }
         if ( ! $this->hasContract($class, $class_find)) {
             report_warning("クラス契約が不正です",array(
                 "class" => $class,
@@ -201,10 +187,16 @@ class ConfigBasedApplication implements Container
     /**
      * Providerの取得
      */
-    protected function getProvider ($provider_name)
+    public function getProvider ($provider_name)
     {
-        $object = $this->singleton("provider.".$provider_name);
-        return $object;
+        return $this->singleton("provider.".$provider_name);
+    }
+    /**
+     * Providerの登録確認
+     */
+    public function hasProvider ($provider_name)
+    {
+        return $this->find("provider.".$provider_name);
     }
     /**
      * InvokableProvider::invokeの呼び出し
@@ -212,10 +204,10 @@ class ConfigBasedApplication implements Container
     public function __call ($provider_name, $args)
     {
         $provider = $this->getProvider($provider_name);
-        if ( ! isset($provider)) {
-            report_error("InvokableProviderの登録が不正です",array(
+        if ( ! method_exists($provider,"invoke")) {
+            report_error("Provider::invokeの定義がありません",array(
                 "provider_name" => $provider_name,
-                "provider" => $provider,
+                "class" => get_class($provider),
             ));
         }
         return call_user_func_array(array($provider,"invoke"),$args);
@@ -226,12 +218,6 @@ class ConfigBasedApplication implements Container
     public function __get ($provider_name)
     {
         $provider = $this->getProvider($provider_name);
-        if ( ! isset($provider)) {
-            report_error("Providerの登録が不正です",array(
-                "provider_name" => $provider_name,
-                "provider" => $provider,
-            ));
-        }
         return $provider;
     }
 }
