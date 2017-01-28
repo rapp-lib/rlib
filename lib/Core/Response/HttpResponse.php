@@ -3,6 +3,7 @@ namespace R\Lib\Core\Response;
 
 use R\Lib\Core\Contract\Response;
 use R\Lib\Core\Exception\ResponseException;
+use R\Lib\FileStorage\StoredFile;
 
 class HttpResponse implements Response
 {
@@ -23,24 +24,23 @@ class HttpResponse implements Response
                 $output["content_type"] = "application/json; charset=utf-8";
             }
         }
+        // データ出力応答
+        if ($output["type"] == "output") {
+            if (isset($output["html"])) {
+                if ( ! $output["content_type"]) {
+                    $output["content_type"] = "text/html; charset=utf-8";
+                }
+            }
+        }
+        // ダウンロード応答
         if ($output["type"] == "download") {
-            if (isset($output["file"])) {
-                if ( ! is_readable($output["file"])) {
-                    report_error("ダウンロードファイルの指定が不正です",array(
-                        "file" => $output["file"],
-                    ));
-                }
-            } elseif (isset($output["stored_file"])) {
-                if ( ! is_a($output["stored_file"], 'R\Lib\FileStorage\StoredFile')) {
-                    report_error("StoredFileの指定が不正です",array(
-                        "stored_file" => $output["stored_file"],
-                    ));
-                }
-            } elseif (isset($output["data"])) {
-                //
-            } else {
-                report_error("ダウンロード対象の指定が不正です",array(
-                    "output" => $output,
+            if (isset($output["file"]) && ! is_readable($output["file"])) {
+                report_error("ダウンロードファイルの指定が不正です",array(
+                    "file" => $output["file"],
+                ));
+            } elseif (isset($output["stored_file"]) && ! $output["stored_file"] instanceof StoredFile) {
+                report_error("StoredFileの指定が不正です",array(
+                    "stored_file" => $output["stored_file"],
                 ));
             }
         }
@@ -94,28 +94,21 @@ class HttpResponse implements Response
         // Content-Typeヘッダの送信
         if (isset($output["content_type"])) {
             header("Content-Type: ".$output["content_type"]);
-        } elseif (isset($output["download"])) {
-            header("Content-Type: application/octet-stream");
         }
-        // ダウンロードファイル名の補完
-        if (isset($output["download"])) {
-            if (is_string($output["download"])) {
-                header("Content-Disposition: attachment; filename=".$output["download"]);
-            } elseif (isset($output["file"])) {
-                header("Content-Disposition: attachment; filename=".basename($output["file"]));
-            }
-        }
-        // 形式に従って出力
-        if (isset($output["data"])) {
-            echo($output["data"]);
+        // ファイル名
+        if (isset($output["filename"])) {
+            header("Content-Disposition: attachment; filename=".$output["filename"]);
         } elseif (isset($output["file"])) {
-            if (is_readable($output["file"])) {
-                readfile($output["file"]);
-            }
-        } elseif (isset($output["stored_file"])) {
-            if (is_a($output["stored_file"], 'R\Lib\FileStorage\StoredFile')) {
-                $output["stored_file"]->download();
-            }
+            header("Content-Disposition: attachment; filename=".basename($output["file"]));
         }
+        // 出力
+        if (isset($output["file"])) {
+            readfile($output["file"]);
+        } elseif (isset($output["data"])) {
+            echo($output["data"]);
+        } elseif (isset($output["stored_file"])) {
+            $output["stored_file"]->download();
+        }
+        return true;
     }
 }

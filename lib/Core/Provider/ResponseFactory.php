@@ -1,6 +1,7 @@
 <?php
 namespace R\Lib\Core\Provider;
 
+use R\Lib\Core\Response\HttpResponse;
 use R\Lib\Core\Contract\Provider;
 
 class ResponseFactory implements Provider
@@ -10,8 +11,25 @@ class ResponseFactory implements Provider
      */
     public function output ($output)
     {
-        $response = app()->make("response", array($output));
-        return $response;
+        return new HttpResponse($output);
+    }
+    /**
+     * 出力応答の作成
+     */
+    public function outputData ($data, $output)
+    {
+        $output["type"] = "output";
+        $output["data"] = $data;
+        return $this->output($output);
+    }
+    /**
+     * HTML出力応答の作成
+     */
+    public function outputHtml ($html, $output)
+    {
+        $output["type"] = "output";
+        $output["html"] = $html;
+        return $this->output($output);
     }
     /**
      * View応答の作成
@@ -35,10 +53,19 @@ class ResponseFactory implements Provider
     /**
      * ファイルダウンロード応答の作成
      */
-    public function download ($file, $output=array())
+    public function downloadFile ($file, $output=array())
     {
         $output["type"] = "download";
-        $output["file"] = "file";
+        $output["file"] = $file;
+        return $this->output($output);
+    }
+    /**
+     * ファイルダウンロード応答の作成
+     */
+    public function downloadStoredFile ($stored_file, $output=array())
+    {
+        $output["type"] = "download";
+        $output["stored_file"] = $stored_file;
         return $this->output($output);
     }
     /**
