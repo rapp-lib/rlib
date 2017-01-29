@@ -110,10 +110,10 @@ class Webroot
         // webroot_urlを削る
         $webroot_url = $this->getConfig("webroot_url",true);
         // 変換できない領域のURLであればそのままあつかう
-        if (strlen($webroot_url) && strpos($webroot_url, $url)!==0) {
+        if (strlen($webroot_url) && strpos($url,$webroot_url)!==0) {
             return array(null, $url_params);
         }
-        $path_tmp = str_replace($webroot_url, "", $url);
+        $path_tmp = substr($url, strlen($webroot_url));
         // 末尾が"/"であればdirectory_indexを追加する
         if (preg_match('!/$!',$path_tmp)) {
             $path_tmp .= "index.html";
