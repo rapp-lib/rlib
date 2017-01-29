@@ -6,28 +6,17 @@ namespace R\Lib\Enum;
  */
 class EnumFactory
 {
-    private static $instance = null;
-
-    private $enums = array();
-
-    /**
-     * EnumFactoryインスタンスを取得する
-     */
-    public static function getInstance ($enum_set_name=false, $group=false)
+    public function invoke ($enum_set_name=false, $group=false)
     {
-        if ( ! isset(self::$instance)) {
-            self::$instance = new EnumFactory();
-        }
-        return $enum_set_name!==false
-            ? self::$instance->getEnum($enum_set_name, $group)
-            : self::$instance;
+        return $this->getEnum($enum_set_name, $group);
     }
+    private $enums = array();
     /**
      * Enumインスタンスから値を取得する
      */
-    public static function selectValue ($value, $enum_set_name=false, $group=false)
+    public function selectValue ($value, $enum_set_name=false, $group=false)
     {
-        self::getInstance()->getEnum($enum_set_name, $group)->offsetGet($value);
+        $this->getEnum($enum_set_name, $group)->offsetGet($value);
     }
 
     /**

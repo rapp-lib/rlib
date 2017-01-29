@@ -19,9 +19,8 @@ class <?=$controller->getClassName()?> extends Controller_App
     /**
      * 認証設定
      */
-    protected static $access_as = "<?=$role_accessor?>";
+    protected static $access_as = <?=$role_accessor ? '"'.$role_accessor.'"' : 'null'?>;
     protected static $priv_required = <?=$role_required ? "true" : "false"?>;
-
 <? if ($c["type"] == "master"): ?>
     /**
      * @page
@@ -30,13 +29,12 @@ class <?=$controller->getClassName()?> extends Controller_App
     public function act_index ()
     {
 <? if ($c["usage"] == "form"): ?>
-        redirect("page:.entry_form");
+        return redirect("page:.entry_form");
 <? else: ?>
-        redirect("page:.view_list");
+        return redirect("page:.view_list");
 <? endif; ?>
     }
 <? if ($c["usage"] != "form"): ?>
-
     /**
      * 検索フォーム
      */
@@ -51,7 +49,6 @@ class <?=$controller->getClassName()?> extends Controller_App
             "order" => array("search"=>"sort", "default"=>"<?=$t["name"]?>.<?=$t['pkey']?>@ASC"),
         ),
     );
-
 <? endif /* $c["usage"] != "form" */ ?>
 <? if ($c["usage"] != "form"): /* ------------------- act_view_* ------------------ */ ?>
     /**
@@ -69,7 +66,6 @@ class <?=$controller->getClassName()?> extends Controller_App
     }
 <? endif; /* $c["usage"] != "form" */ ?>
 <? if ($c["usage"] != "view"): ?>
-
     /**
      * 入力フォーム
      */
@@ -101,7 +97,7 @@ class <?=$controller->getClassName()?> extends Controller_App
         if ($this->forms["entry"]->receive()) {
             if ($this->forms["entry"]->isValid()) {
                 $this->forms["entry"]->save();
-                redirect("page:.entry_confirm");
+                return redirect("page:.entry_confirm");
             }
         } elseif ($id = $this->request["id"]) {
             $this->forms["entry"]->init($id);
@@ -116,7 +112,7 @@ class <?=$controller->getClassName()?> extends Controller_App
     public function act_entry_confirm ()
     {
 <? if ($c["usage"] != "form"): ?>
-        redirect("page:.entry_exec");
+        return redirect("page:.entry_exec");
 <? endif; ?>
     }
     /**
@@ -127,7 +123,7 @@ class <?=$controller->getClassName()?> extends Controller_App
     {
         if ( ! $this->forms["entry"]->isEmpty()) {
             if ( ! $this->forms["entry"]->isValid()) {
-                redirect("page:.entry_form", array("back"=>"1"));
+                return redirect("page:.entry_form", array("back"=>"1"));
             }
 <? if ($t["nodef"]): ?>
             // メールの送信
@@ -141,7 +137,7 @@ class <?=$controller->getClassName()?> extends Controller_App
             $this->forms["entry"]->clear();
         }
 <? if ($c["usage"] != "form"): ?>
-        redirect("page:.view_list", array("back"=>"1"));
+        return redirect("page:.view_list", array("back"=>"1"));
 <? endif; ?>
     }
 <? endif; /* $c["usage"] != "view" */ ?>
@@ -155,41 +151,40 @@ class <?=$controller->getClassName()?> extends Controller_App
         if ($id = $this->request["id"]) {
             <?=$__table_instance?>->deleteById($id);
         }
-        redirect("page:.view_list", array("back"=>"1"));
+        return redirect("page:.view_list", array("back"=>"1"));
     }
 <? endif; /* $c["usage"] == "" */ ?>
 <? if($c["use_csv"]): /* ------------------- csv_setting ------------------ */ ?>
-
     /**
      * CSV設定
      */
     protected $csv_setting = array(
-        "file_charset" =>"SJIS-WIN",
-        "data_charset" =>"UTF-8",
-        "rows" =>array(
-            "<?=$t['pkey']?>" =>"#ID",
+        "file_charset" => "SJIS-WIN",
+        "data_charset" => "UTF-8",
+        "rows" => array(
+            "<?=$t['pkey']?>" => "#ID",
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
-            "<?=$tc['short_name']?>" =>"<?=$tc['label']?>",
+            "<?=$tc['short_name']?>" => "<?=$tc['label']?>",
 <? endforeach; ?>
         ),
-        "filters" =>array(
-            array("filter" =>"sanitize"),
+        "filters" => array(
+            array("filter" => "sanitize"),
 <? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
 <? if ($tc['enum']): ?>
-            array("target" =>"<?=$tc['short_name']?>",
-                    "filter" =>"list_select",
+            array("target" => "<?=$tc['short_name']?>",
+                    "filter" => "list_select",
 <? if ($tc['type'] == "checklist"): ?>
-                    "delim" =>"/",
+                    "delim" => "/",
 <? endif; /* $tc['type'] == "checklist" */ ?>
-                    "enum" =>"<?=$tc['enum']?>"),
+                    "enum" => "<?=$tc['enum']?>"),
 <? endif; /* $tc['enum'] */ ?>
 <? if ($tc['type'] == "date"): ?>
-            array("target" =>"<?=$tc['short_name']?>",
-                    "filter" =>"date"),
+            array("target" => "<?=$tc['short_name']?>",
+                    "filter" => "date"),
 <? endif; /* $tc['type'] == "date" */ ?>
 <? endforeach; ?>
         ),
-        "ignore_empty_line" =>true,
+        "ignore_empty_line" => true,
     );
 <? endif; /* $c["use_csv"] */ ?>
 <? if($c["usage"] != "form" && $c["use_csv"]): /* ------------------- act_view_csv ------------------ */ ?>
@@ -201,7 +196,7 @@ class <?=$controller->getClassName()?> extends Controller_App
     {
         // 検索結果の取得
         $this->forms["search"]->restore();
-        $res =$this->forms["search"]
+        $res = $this->forms["search"]
             ->search()
             ->removePagenation()
             ->selectNoFetch();
@@ -219,7 +214,6 @@ class <?=$controller->getClassName()?> extends Controller_App
     }
 <? endif; /* $c["usage"] != "form" && $c["use_csv"] */ ?>
 <? if($c["usage"] != "view" && $c["use_csv"]): ?>
-
     /**
      * CSVアップロードフォーム
      */
@@ -243,7 +237,7 @@ class <?=$controller->getClassName()?> extends Controller_App
         if ($this->forms["entry_csv"]->receive()) {
             if ($this->forms["entry_csv"]->isValid()) {
                 $this->forms["entry_csv"]->save();
-                redirect("page:.entry_csv_confirm");
+                return redirect("page:.entry_csv_confirm");
             }
         } elseif ( ! $this->request["back"]) {
             $this->forms["entry"]->clear();
@@ -255,7 +249,7 @@ class <?=$controller->getClassName()?> extends Controller_App
      */
     public function act_entry_csv_confirm ()
     {
-        redirect('page:.entry_csv_exec');
+        return redirect('page:.entry_csv_exec');
     }
     /**
      * @page
@@ -265,7 +259,7 @@ class <?=$controller->getClassName()?> extends Controller_App
     {
         if ( ! $this->forms["entry_csv"]->isEmpty()) {
             if ( ! $this->forms["entry_csv"]->isValid()) {
-                redirect("page:.entry_csv_form", array("back"=>"1"));
+                return redirect("page:.entry_csv_form", array("back"=>"1"));
             }
             // CSVファイルを開く
             $csv_file = file_storage()->get($this->forms["entry_csv"]["csv_file"]);
@@ -278,11 +272,10 @@ class <?=$controller->getClassName()?> extends Controller_App
             <?=$__table_instance?>->transactionCommit();
             $this->forms["entry_csv"]->clear();
         }
-        redirect("page:.view_list", array("back"=>"1"));
+        return redirect("page:.view_list", array("back"=>"1"));
     }
 <? endif; /* $c["usage"] != "view" && $c["use_csv"] */ ?>
 <? elseif ($c["type"] == "login"): /* $c["type"] == "master" */ ?>
-
     /**
      * ログインフォーム
      */
@@ -302,7 +295,7 @@ class <?=$controller->getClassName()?> extends Controller_App
      */
     public function act_index ()
     {
-        redirect("page:.login");
+        return redirect("page:.login");
     }
     /**
      * @page
@@ -313,12 +306,12 @@ class <?=$controller->getClassName()?> extends Controller_App
         if ($this->forms["login"]->receive()) {
             if ($this->forms["login"]->isValid()) {
                 // ログイン処理
-                if (auth()->login("<?=$c["access_as"]?>", $this->forms["login"])) {
+                if (app()->auth->login("<?=$c["access_as"]?>", $this->forms["login"])) {
                     // ログイン成功時の転送処理
                     if ($redirect = $this->forms["login"]["redirect"]) {
-                        response()->redirectUrl($redirect);
+                        return redirect("url:".$redirect);
                     } else {
-                        response()->redirect("<?=builder()->getSchema()->getController($c["name"])->getRole()->getIndexController()->getName()?>.index");
+                        return redirect("page:<?=builder()->getSchema()->getController($c["name"])->getRole()->getIndexController()->getName()?>.index");
                     }
                 } else {
                     $this->vars["login_error"] = true;
@@ -336,9 +329,9 @@ class <?=$controller->getClassName()?> extends Controller_App
     public function act_logout ()
     {
         // ログアウト処理
-        auth()->logout("<?=$c["access_as"]?>");
+        app()->auth->logout("<?=$c["access_as"]?>");
         // ログアウト後の転送処理
-        redirect("page:.login");
+        return redirect("page:.login");
     }
 <? elseif ($c["type"] == "index"): /* $c["type"] == "login" */ ?>
     /**
@@ -356,3 +349,4 @@ class <?=$controller->getClassName()?> extends Controller_App
     {
     }
 <? endif; /* $c["type"] == "index" */ ?>}
+

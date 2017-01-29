@@ -45,6 +45,23 @@ class RouteManager implements InvokableProvider
         return $this->current_route;
     }
     /**
+     * 現在アクセスされているRouteに関係する処理を実行する
+     */
+    public function execCurrentRoute ()
+    {
+        $middleware_config = app()->config("router.middleware");
+        if ( ! is_array($middleware_config)) {
+            report_error("RouterのMiddleware設定が不正です",array(
+                "router.middleware" => $middleware_config,
+            ));
+        }
+        $callback = function () {
+            return app()->router->getCurrentRoute()->getController()->execAct();
+        };
+        $callback = app()->middleware->apply($callback, $middleware_config);
+        return call_user_func($callback);
+    }
+    /**
      * Routeに対応するControllerインスタンスを取得する
      */
     public function getRouteController ($route)

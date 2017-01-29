@@ -10,6 +10,23 @@ use Doctrine\DBAL\DriverManager;
 class Migration
 {
     /**
+     * schemaコマンドの実行
+     */
+    public static function execSchemaCommand ()
+    {
+        try {
+            $params = get_cli_params();
+            foreach (util("Migration")->getMigrateSQL($params["ds"]) as $statement) {
+                print $statement.";\n\n";
+            }
+        } catch (R\Lib\Core\Exception\ResponseException $e) {
+            print "error\n";
+        } catch (\Exception $e) {
+            print "# ".$e->getMessage()."\n";
+            print "error\n";
+        }
+    }
+    /**
      * Migrate結果のSQLを取得
      */
     public static function getMigrateSQL ($ds_name)
@@ -20,7 +37,7 @@ class Migration
         $db_config = null;
         // [Deprecate] Cake2向け接続情報の記述方法の変換
         if ( ! $db_config) {
-            $db_config = registry("DBI.connection.".$ds_name);
+            $db_config = registry("db.connection.".$ds_name);
             if ($db_config["driver"]) {
                 $db_config["driver"] = "pdo_".$db_config["driver"];
             }
@@ -37,7 +54,7 @@ class Migration
         $tables = self::collectTables();
         $schema = new Schema;
         foreach ($tables as $table) {
-            $table_def = table()->getDef($table);
+            $table_def = app()->table->getDef($table);
             // table_nameの指定がない、ds_nameが一致しないテーブルは対象外
             if ( ! $table_def["table_name"] || ($table_def["ds_name"] && $ds_name != $table_def["ds_name"])) {
                 continue;

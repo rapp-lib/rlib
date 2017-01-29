@@ -1,4 +1,14 @@
 <?php
+    function install_debug ()
+    {
+        if (app()->hasProvider("debug") && app()->debug()) {
+            if ($_POST["__rdoc"]["entry"]==="build_rapp") {
+                if (app()->hasProvider("builder")) {
+                    app()->builder->start();
+                }
+            }
+        }
+    }
     function install_report ()
     {
         // 終了処理
@@ -358,7 +368,7 @@
                 : debug_backtrace();
 
         // レポート出力判定
-        if (app()->hasProvider("debug") && app()->debug()) {
+        if (app() && app()->hasProvider("debug") && app()->debug()) {
 
             $config =array();
             $config["output_format"] = ! get_cli_mode() && ! registry("Report.output_to_file") ? "html" : "plain";
@@ -385,7 +395,7 @@
 
         // エラー時の処理停止
         if ($options["errno"] & (E_USER_ERROR|E_ERROR)) {
-            if (app()->hasProvider("response")) {
+            if (app() && app()->hasProvider("response")) {
                 try {
                     $response = app()->response->error($options["response_message"], $options["response_code"]);
                 } catch (R\Lib\Core\Exception\ResponseException $e) {

@@ -8,22 +8,15 @@ use R\Lib\Builder\Element\SchemaElement;
  */
 class WebappBuilder
 {
-    private static $instance = null;
-
     private $config = array();
-
-    public static function getInstance ()
-    {
-        if ( ! static::$instance) {
-            static::$instance = new WebappBuilder();
-        }
-        return static::$instance;
-    }
     /**
      *
      */
     public function start ()
     {
+        if ( ! ini_get("short_open_tag")) {
+            report_error("short_open_tag設定が無効です");
+        }
         $schema_csv_file = $this->getConfig("schema_csv_file");
         $create_schema = new \R\Lib\Builder\Regacy\CreateSchema;
         $schema = $create_schema->load_schema_csv($schema_csv_file);
@@ -76,7 +69,7 @@ class WebappBuilder
         builder()->deploy("/config/routing.config.php", $source);
         // Controllerに関わるファイルの展開
         foreach (builder()->getSchema()->getController() as $controller) {
-            $table = $controller->getTable();report($table);
+            $table = $controller->getTable();
             if ($table) {
                 $t = $table->getAttr();
             }
@@ -117,12 +110,12 @@ class WebappBuilder
     public function getConfig ($key)
     {
         if ($key == "template_dir") {
-            return __DIR__."/../../assets/builder/skel";
+            return constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
         } elseif ($key == "current_dir") {
-            return app()->config("Path.webapp_dir");
+            return constant("R_APP_ROOT_DIR");
         } elseif ($key == "work_dir") {
             if ( ! $this->config["work_dir"]) {
-                $this->config["work_dir"] = app()->config("Path.tmp_dir")."/builder/work-".date("Ymd-his");
+                $this->config["work_dir"] = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
             }
             return $this->config["work_dir"];
         } elseif ($key == "deploy_dir") {
@@ -130,7 +123,7 @@ class WebappBuilder
                 ? $this->getConfig("current_dir")
                 : $this->getConfig("work_dir")."/deploy";
         } elseif ($key == "schema_csv_file") {
-            return app()->config("Path.webapp_dir")."/config/schema.config.csv";
+            return constant("R_APP_ROOT_DIR")."/config/schema.config.csv";
         } elseif ($key == "dryrun") {
             return false;
         } elseif ($key == "show_source") {
@@ -150,10 +143,12 @@ class WebappBuilder
     public function fetch ($template_name, $vars=array())
     {
         $template_file = $this->getConfig("template_dir")."/".$template_name;
-        extract($vars,EXTR_REFS);
+        report_buffer_start();
         ob_start();
+        extract($vars,EXTR_REFS);
         include($template_file);
         $source = ob_get_clean();
+        report_buffer_end();
         $source = str_replace(array('<!?','<#?'),'<?',$source);
         return $source;
     }

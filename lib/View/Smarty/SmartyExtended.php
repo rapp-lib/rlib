@@ -79,6 +79,7 @@ class SmartyExtended extends SmartyBC
         try {
             $result = parent::fetch($template, $cache_id, $compile_id, $parent);
         } catch (\Exception $e) {
+            report_buffer_end();
             throw $e;
         }
         report_buffer_end();

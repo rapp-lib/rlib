@@ -71,11 +71,12 @@ class ResponseFactory implements Provider
     /**
      * 転送応答の作成
      */
-    public function redirect ($url, $url_params=array(), $output=array())
+    public function redirect ($route, $url_params=array(), $url_anchor=null, $output=array())
     {
         $output["type"] = "redirect";
-        $output["url"] = $url;
+        $output["url"] = is_object($route) ? $route->getUrl() : app()->route($route)->getUrl();
         $output["url_params"] = $url_params;
+        $output["url_anchor"] = $url_anchor;
         return $this->output($output);
     }
     /**

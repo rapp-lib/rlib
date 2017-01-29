@@ -17,7 +17,7 @@ class App {
     }
     public static function location ($class_name) {
         return self::$class_locations[$class_name];
-    }    
+    }
 }
 
 class Object {

@@ -21,6 +21,10 @@ class DebugDriver implements InvokableProvider
         $this->sessionCheck();
         return $this->debug_level;
     }
+    public function setDebugLevel ($debug_level)
+    {
+        $this->debug_level = $debug_level;
+    }
     private function configCheck ()
     {
         if ($this->config_checked) {
@@ -34,8 +38,11 @@ class DebugDriver implements InvokableProvider
     }
     private function sessionCheck ()
     {
-        if ($this->session_checked || ! isset($_SESSION)) {
+        if ($this->session_checked) {
             return;
+        }
+        if (app()->hasProvider("session") && app()->session && ! app()->session->isStarted()) {
+            $this->session_checked = true;
         }
         if (app()->util("ServerVars")->ipCheck(app()->config("debug.dev_cidr"))) {
             if (isset($_POST["__ts"]) && isset($_POST["_"])) {
@@ -47,9 +54,6 @@ class DebugDriver implements InvokableProvider
             }
             if (isset($_SESSION["__debug"])) {
                 $this->debug_level = $_SESSION["__debug"];
-            }
-            if ($this->debug_level && $_POST["__rdoc"]["entry"]==="build_rapp") {
-                app()->builder->start();
             }
         }
         $this->session_checked = true;

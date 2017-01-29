@@ -102,4 +102,4 @@
         ->required("config.current_webroot_url");
 
     // config
-    $asset->register("config.current_webroot_url", 'window.current_webroot_url = "'.app()->router()->getWebroot()->getConfig("webroot_url").'";', "js_code");
+    $asset->register("config.current_webroot_url", 'window.current_webroot_url = "'.app()->router->getWebroot()->getConfig("webroot_url").'";', "js_code");

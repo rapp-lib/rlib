@@ -43,41 +43,27 @@ class HttpController implements FormRepositry, Authenticator
         return $this->vars;
     }
     /**
-     * Actionの実行
+     * act_*の実行
      */
-    public function exec ($args=array())
+    public function execAct ($args=array())
     {
         $action_method_name = "act_".$this->action_name;
         if ( ! method_exists($this, $action_method_name)) {
-            report_error("Page設定に対応するActionがありません",array(
+            report_warning("Page設定に対応するActionがありません",array(
                 "action_method" => get_class($this)."::".$action_method_name,
             ));
+            return null;
         }
-        $callback_array = array($this,$action_method_name);
-        $callback = function () use ($callback_array) {
-            call_user_func($callback_array);
-        };
-        // Middlewareの読み込み
-        $middleware_config = (array)app()->config("controller.middleware");
-        foreach ($middleware_config as $middleware_name => $check) {
-            if ($check()) {
-                $middleware = app()->make("middleware.".$middleware_name);
-                $middleware_callback = array($middleware,"handler");
-                $callback = function () use ($callback, $middleware_callback) {
-                    return call_user_func($middleware_callback,$callback);
-                };
-            }
-        }
-        return call_user_func_array($callback, $args);
+        return call_user_func_array(array($this,$action_method_name), $args);
     }
     /**
-     * Include Actionの実行
+     * inc_*の実行
      */
     public function execInc ($args=array())
     {
         $action_method_name = "inc_".$this->action_name;
         if ( ! method_exists($this, $action_method_name)) {
-            return;
+            return null;
         }
         return call_user_func_array(array($this,$action_method_name), $args);
     }

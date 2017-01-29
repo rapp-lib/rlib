@@ -27,7 +27,7 @@ class SmartyFunctionAsset
 
         // state指定
         if ($state = $params["state"]) {
-            asset()->setState($state);
+            app()->asset->setState($state);
         }
         // required指定
         if ($required = $params["required"]) {
@@ -41,7 +41,7 @@ class SmartyFunctionAsset
                 $required = array($required);
             }
             foreach ($required as $required_item) {
-                asset()->required($required_item, $buffer_name);
+                app()->asset->required($required_item, $buffer_name);
             }
         }
         // loaded指定
@@ -51,7 +51,7 @@ class SmartyFunctionAsset
                 $loaded = array($loaded);
             }
             foreach ($loaded as $loaded_item) {
-                asset()->loaded($loaded_item);
+                app()->asset->loaded($loaded_item);
             }
         }
         // flush指定
@@ -64,7 +64,7 @@ class SmartyFunctionAsset
                 if ($buffer_name === true) {
                     $buffer_name = "default";
                 }
-                $html .= asset()->flush($buffer_name);
+                $html .= app()->asset->flush($buffer_name);
             }
         }
 

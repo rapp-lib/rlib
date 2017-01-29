@@ -552,7 +552,7 @@
             include($error_document);
         }
     }
-
+/*
     //-------------------------------------
     //
     function redirect ($url, $params=array(), $anchor=null) {
@@ -604,7 +604,7 @@
             "url" =>$url,
         ));
     }
-
+*/
     //-------------------------------------
     //
     function redirect_permanently ($url, $params=array(), $flush_message=null) {

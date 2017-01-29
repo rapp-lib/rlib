@@ -45,7 +45,7 @@
     function form ()
     {
         report_warning("@deprecated");
-        return app()->form();
+        return app()->form;
     }
     /**
      * @deprecated
@@ -68,7 +68,7 @@
      */
     function asset () {
         report_warning("@deprecated");
-        return app()->asset();
+        return app()->asset;
     }
     /**
      * @deprecated
@@ -76,15 +76,14 @@
     function file_storage ()
     {
         report_warning("@deprecated");
-        return app()->file_storage();
+        return app()->file_storage;
     }
     /**
-     * @deprecated
+     * @alias
      */
     function builder ()
     {
-        report_warning("@deprecated");
-        return app()->builder();
+        return app()->builder;
     }
     /**
      * @alias
@@ -100,6 +99,12 @@
     {
         return app()->extention($extention_group, $extention_name);
     }
+    /**
+     * @alias
+     */
+    function redirect ($url, $params=array(), $anchor=null) {
+        return app()->response->redirect($url, $params, $anchor);
+    }
 
 // -- 配列操作
 
@@ -113,7 +118,7 @@
     /**
      * ドット記法で配列の値を設定する
      */
-    function array_set ( & $ref, $key, $value=null)
+    function array_set ( & $ref, $key, $value)
     {
         $key_parts = explode(".",$key);
         foreach ($key_parts as $key_part) {
@@ -151,6 +156,21 @@
             $ref = & $ref[$key_part];
         }
         $ref = $value;
+    }
+    /**
+     * ドット記法で配列の値が設定されているか確認
+     */
+    function array_isset ( & $ref, $key)
+    {
+        $key_parts = explode(".",$key);
+        $key_last = array_pop($key_parts);
+        foreach ($key_parts as $key_part) {
+            if ( ! is_array($ref)) {
+                return false;
+            }
+            $ref = & $ref[$key_part];
+        }
+        return isset($ref[$key_last]);
     }
     /**
      * ドット記法で配列の値を取得する

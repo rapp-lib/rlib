@@ -1,6 +1,7 @@
 <?php
 namespace R\Lib\DBI;
-use Cake2Loader;
+
+use ConnectionManager;
 use Model;
 
 /**
@@ -32,14 +33,18 @@ class DBI_Base {
 
     //-------------------------------------
     // DB接続
-    public function connect ($connect_info) {
-
+    public function connect ($connect_info)
+    {
         static $cake_loader;
         if ( ! $cake_loader) {
-            $cake_loader = new Cake2Loader;
+            require_once constant("R_LIB_ROOT_DIR")."/assets/dbi/cake2/rlib_cake2.php";
+            require_once constant("CAKE_DIR").'/Model/ConnectionManager.php';
         }
-
-        $this->ds =$cake_loader->get_cake_datasource($this->name,$connect_info);
+        if ($connect_info["driver"] && ! $connect_info["datasource"]) {
+            $connect_info["datasource"] ='Database/'.str_camelize($connect_info["driver"]);
+        }
+        ConnectionManager::create($this->name, $connect_info);
+        $this->ds =ConnectionManager::getDataSource($this->name);
         $this->driver_name = $connect_info["driver"];
     }
 

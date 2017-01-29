@@ -86,6 +86,9 @@ class Session implements InvokableProvider
      */
     public function start ()
     {
+        if (php_sapi_name()==="cli") {
+            return false;
+        }
         // セッションの開始
         ini_set("session.cookie_httponly",true);
         ini_set("session.cookie_secure",$_SERVER['HTTPS']);
@@ -95,5 +98,12 @@ class Session implements InvokableProvider
         header("Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
         header("P3P: CP='UNI CUR OUR'");
         session_start();
+    }
+    /**
+     *
+     */
+    public function isStarted ()
+    {
+        return $this->is_started;
     }
 }

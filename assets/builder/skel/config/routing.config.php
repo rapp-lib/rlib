@@ -1,7 +1,5 @@
 <#?php
-    webroot("www")->addRouting(array(
-        "include.static" => "/include/*",
-        "service.file" => "/file:/*",
+    return array("router.webroot.www.routing"=>array(
 <?php foreach ($schema->getController() as $controller): ?>
 
         // <?=$controller->getAttr('label')?><?="\n"?>

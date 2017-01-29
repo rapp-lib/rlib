@@ -10,18 +10,7 @@ class ConfigBasedApplication implements Container
         $this->applyBindConfig($init_params);
         $this->applyConfigValues($init_params);
         install_report();
-    }
-    public function exec ()
-    {
-        $callback = app()->config("app.exec");
-        if ( ! is_callable($callback)) {
-            report_error("設定が不正です", array(
-                "key" => "Config.app_exec_callback",
-                "value" => $callback,
-            ));
-        }
-        $response = call_user_func($callback);
-        return $response;
+        install_debug();
     }
 
 // -- init_config配列の読み込み
@@ -33,6 +22,7 @@ class ConfigBasedApplication implements Container
                 "auth" => 'R\Lib\Auth\Middleware\AuthCheck',
                 "view_response_fallback" => 'R\Lib\Core\Middleware\ViewResponseFallback',
                 "json_response_fallback" => 'R\Lib\Core\Middleware\JsonResponseFallback',
+                "stored_file_service" => 'R\Lib\Core\Middleware\StoredFileService',
             ),
             "provider" => array(
                 "router" => 'R\Lib\Route\RouteManager',
@@ -54,13 +44,14 @@ class ConfigBasedApplication implements Container
                 "response" => 'R\Lib\Core\Provider\ResponseFactory',
                 "request" => 'R\Lib\Core\Provider\Request',
                 "session" => 'R\Lib\Core\Provider\Session',
+                "middleware" => 'R\Lib\Core\Provider\MiddlewareApplicator',
+                "mailer" => 'R\Lib\Core\Provider\MailerFactory',
             ),
             "contract" => array(
                 "provider" => array(
                     "router" => 'R\Lib\Route\RouteManager',
                 ),
             ),
-            "response" => 'R\Lib\Core\Response\HttpResponse',
         );
         $base_binds = array_dot($base_binds);
         $config = $this->filterConfig($params["config"], $params["tags"], "bind");

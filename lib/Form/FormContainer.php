@@ -188,15 +188,14 @@ class FormContainer extends ArrayObject
     public function receive ()
     {
         if ( ! isset($this->received)) {
-            $request = app()->request();
             $form_param_name = "_f";
             $form_name = $this->getFormName();
             // csrf_checkの指定があればCSRF対策キーを確認する
-            if ($this->def["csrf_check"] && $request["_csrf_token"]!=md5(session_id())) {
+            if ($this->def["csrf_check"] && app()->request["_csrf_token"]!=md5(session_id())) {
                 $this->received = false;
             // form_param_nameに自分のform_nameが設定されていれば受け取り状態
-            } elseif ($this->def["receive_all"] || ($form_name && $request[$form_param_name]==$form_name)) {
-                foreach ($request as $k => $v) {
+            } elseif ($this->def["receive_all"] || ($form_name && app()->request[$form_param_name]==$form_name)) {
+                foreach (app()->request as $k => $v) {
                     if ($k==$form_param_name || $k=="_csrf_token") {
                         continue;
                     }
@@ -376,7 +375,7 @@ class FormContainer extends ArrayObject
                 "form_def" => $this->def,
             ));
         }
-        return table($this->def["search_table"])->findBySearchFields($this, $this->def["fields"]);
+        return app()->table($this->def["search_table"])->findBySearchFields($this, $this->def["fields"]);
     }
 
     /**

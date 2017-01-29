@@ -726,7 +726,7 @@ class Table_Core
         $name =static::$ds_name;
 
         if ( ! $instance[$name]) {
-            $connect_info =registry("DBI.connection.".$name);
+            $connect_info =app()->config("db.connection.".$name);
             $instance[$name] =new DBI_Base($name);
             $instance[$name]->connect($connect_info);
         }

@@ -56,7 +56,7 @@ class HttpResponse implements Response
         report("Render Response",array(
             "route" => app()->router->getCurrentRoute(),
             "request" => app()->request,
-            "output_type" => $output["type"],
+            "response" => $this,
         ));
         // エラー応答
         if ($output["type"] == "error") {
@@ -95,20 +95,40 @@ class HttpResponse implements Response
         if (isset($output["content_type"])) {
             header("Content-Type: ".$output["content_type"]);
         }
-        // ファイル名
-        if (isset($output["filename"])) {
-            header("Content-Disposition: attachment; filename=".$output["filename"]);
-        } elseif (isset($output["file"])) {
-            header("Content-Disposition: attachment; filename=".basename($output["file"]));
-        }
-        // 出力
-        if (isset($output["file"])) {
-            readfile($output["file"]);
-        } elseif (isset($output["data"])) {
+        // テンプレート/JSON
+        if ($output["type"]=="view" || $output["type"]=="json") {
             echo($output["data"]);
-        } elseif (isset($output["stored_file"])) {
-            $output["stored_file"]->download();
+            return true;
         }
-        return true;
+        // ダウンロード
+        if ($output["type"]=="download") {
+            // ファイル名
+            if (isset($output["filename"])) {
+                header("Content-Disposition: attachment; filename=".$output["filename"]);
+            } elseif (isset($output["file"])) {
+                header("Content-Disposition: attachment; filename=".basename($output["file"]));
+            }
+            // 出力
+            if (isset($output["file"])) {
+                readfile($output["file"]);
+            } elseif (isset($output["data"])) {
+                echo($output["data"]);
+            } elseif (isset($output["stored_file"])) {
+                $output["stored_file"]->download();
+            }
+            return true;
+        }
+    }
+    public function __report ()
+    {
+        $output = $this->output;
+        if (isset($output["data"])) {
+            $output["data"] = "...";
+        }
+        return array(
+            "type" => $output["type"],
+            "output" => $output,
+            "vars" => $this->vars,
+        );
     }
 }

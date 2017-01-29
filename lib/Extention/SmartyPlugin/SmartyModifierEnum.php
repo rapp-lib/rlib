@@ -11,7 +11,7 @@ class SmartyModifierEnum
      */
     function callback ($key ,$enum_set_name, $parent_key=null)
     {
-        $enum = enum($enum_set_name, $parent_key);
+        $enum = app()->enum($enum_set_name, $parent_key);
         return $enum[$key];
     }
 }

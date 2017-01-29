@@ -65,11 +65,10 @@ class AccountManager
         // 既に認証済みであれば多重認証処理エラー
         // ※複数のRoleでアクセスする可能性がある場合は共用Roleを用意する
         if ($this->auth_role_name) {
-            report_warning("多重認証エラー",array(
+            report_error("多重認証エラー",array(
                 "role" => $role_name,
                 "auth_role_name" => $this->auth_role_name,
             ));
-            return false;
         }
         $this->auth_role_name = $role_name;
         // 認証時の処理呼び出し
@@ -77,10 +76,8 @@ class AccountManager
         // ログイン必須チェック
         if ($required && ! $this->getAccount()->check($required)) {
             // アクセス要求時の処理呼び出し
-            $recover = $this->getAccount()->onLoginRequired($required);
-            return (bool)$recover;
+            return $this->getAccount()->onLoginRequired($required);
         }
-        return true;
     }
     /**
      * 認証処理が完了しているかどうか
