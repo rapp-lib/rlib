@@ -1,89 +1,136 @@
 <?php
 namespace R\Lib\Builder;
 
+use R\Lib\Contract\Provider;
 use R\Lib\Builder\Element\SchemaElement;
 
-/**
- *
- */
-class WebappBuilder
+class WebappBuilder extends SchemaElement implements Provider
 {
     private $config = array();
+    public function __construct ()
+    {
+        $dir = constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
+        $current_dir = constant("R_APP_ROOT_DIR");
+        $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
+        $deploy_dir = app()->config("builder.overwrite") ? $current_dir : $work_dir."/deploy";
+        $schema_csv_file = constant("R_APP_ROOT_DIR")."/config/schema.config.csv";
+        $this->config = array(
+            "template_dir" => $dir,
+            "current_dir" => $current_dir,
+            "work_dir" => $work_dir,
+            "deploy_dir" => $deploy_dir,
+            "schema_csv_file" => $schema_csv_file,
+            "dryrun" => false,
+            "show_source" => true,
+            "pageset.blank" => array(
+                "index_page" => "blank",
+                "controller.template_file" => $dir."/pageset/blank/controller.php",
+                "pages.blank.template_file" => $dir."/pageset/blank/blank.html",
+            ),
+            "pageset.login" => array(
+                "index_page" => "form",
+                "controller.template_file" => $dir."/pageset/login/controller.php",
+                "pages.form.template_file" => $dir."/pageset/login/form.html",
+                "pages.logout.template_file" => null,// $dir."/pageset/login/logout.html",
+            ),
+            "pageset.show" => array(
+                "index_page" => "list",
+                "controller.template_file" => $dir."/pageset/show/controller.php",
+                "pages.list.template_file" => $dir."/pageset/show/list.html",
+                "pages.detail.template_file" => $dir."/pageset/show/detail.html",
+            ),
+            "pageset.form" => array(
+                "index_page" => "form",
+                "controller.template_file" => $dir."/pageset/form/controller.php",
+                "pages.form.template_file" => $dir."/pageset/form/form.html",
+                "pages.confirm.template_file" => $dir."/pageset/master/confirm.html",
+                "pages.complete.template_file" => $dir."/pageset/master/complete.html",
+            ),
+            "pageset.delete" => array(
+                "index_page" => "delete",
+                "controller.template_file" => $dir."/pageset/change/controller.php",
+                "pages.delete.template_file" => null,// $dir."/pageset/change/delete.html",
+            ),
+            "pageset.csv_import" => array(
+                "index_page" => "form",
+                "controller.template_file" => $dir."/pageset/csv_import/controller.php",
+                "pages.form.template_file" => $dir."/pageset/csv_import/form.html",
+                "pages.confirm.template_file" => null,// $dir."/pageset/csv_import/confirm.html",
+                "pages.complete.template_file" => null,// $dir."/pageset/csv_import/complete.html",
+            ),
+            "pageset.csv_export" => array(
+                "index_page" => "download",
+                "controller.template_file" => $dir."/pageset/csv_export/controller.php",
+                "pages.download.template_file" => null,// $dir."/pageset/csv_export/download.html",
+            ),
+            "include_html" => array(
+                "header.template_file" => $dir."/include_html/header.html",
+                "footer.template_file" => $dir."/include_html/footer.html",
+            ),
+            "classes" => array(
+                "role_controller.template_file" => $dir."/classes/RoleControllerClass.php",
+                "controller.template_file" => $dir."/classes/ControllerClass.php",
+                "table.template_file" => $dir."/classes/TableClass.php",
+                "enum.template_file" => $dir."/classes/EnumClass.php",
+                "role.template_file" => $dir."/classes/RoleClass.php",
+            ),
+            "config" => array(
+                "routing.template_file" => $dir."/config/routing.config.php",
+            ),
+            "frame" => array(
+                "page.template_file" => $dir."/frame/page.html",
+            ),
+        );
+    }
     /**
      *
      */
     public function start ()
     {
-        if ( ! ini_get("short_open_tag")) {
-            report_error("short_open_tag設定が無効です");
-        }
-        $schema_csv_file = $this->getConfig("schema_csv_file");
-        $create_schema = new \R\Lib\Builder\Regacy\CreateSchema;
-        $schema = $create_schema->load_schema_csv($schema_csv_file);
-        $deploy_files = new \R\Lib\Builder\Regacy\DeployFiles;
-        $deploy_files->deploy_files($schema);
-    }
-    /**
-     * SchemaRegistryからSchemaElementを構築する
-     */
-    public function initSchemaFromRegistry ()
-    {
-        $this->schema = new SchemaElement();
-        $controllers = (array)registry("Schema.controller");
-        $tables = (array)registry("Schema.tables");
-        $this->schema->loadFromSchema($controllers, $tables);
-    }
-    /**
-     * 全ファイルを展開する
-     */
-    public function deployAll ()
-    {
-        // Roleに関わるファイルの展開
-        foreach (builder()->getSchema()->getRole() as $role) {
-            // ヘッダーHTMLファイルの展開
-            $source = builder()->fetch("wrapper/default_header.html",array("role"=>$role));
-            builder()->deploy("/html/include/".$role->getName()."_header.html", $source);
-            // フッターHTMLファイルの展開
-            $source = builder()->fetch("wrapper/default_footer.html",array("role"=>$role));
-            builder()->deploy("/html/include/".$role->getName()."_footer.html", $source);
-            // Roleクラスの展開
-            $source = builder()->fetch("role/MemberRole.php",array("role"=>$role));
-            builder()->deploy("/app/Role/".$role->getClassName().".php", $source);
-        }
+        // CSV読み込み
+        $this->initFromSchemaCsv($this->getConfig("schema_csv_file"));
+        // routing.config
+        builder()->fetch("config.routing", array("schema"=>$this),
+            "/config/routing.config.php");
         // Tableに関わるファイルの展開
-        foreach (builder()->getSchema()->getTable() as $table) {
+        foreach (builder()->getTables() as $table) {
             if ($table->hasDef()) {
-                // Tableクラスの展開
-                $source = builder()->fetch("table/MemberTable.php",array("table"=>$table));
-                builder()->deploy("/app/Table/".$table->getClassName().".php", $source);
+                // Tableクラス
+                builder()->fetch("classes.table", array("table"=>$table),
+                    "/app/Table/".$table->getClassName().".php");
+            }
+            if ($table->getEnum()) {
+                // Enumクラス
+                builder()->fetch("classes.enum", array("table"=>$table),
+                    "/app/Enum/".$table->getEnum()->getClassName().".php");
             }
         }
-        // Enumに関わるファイルの展開
-        foreach (builder()->getSchema()->getEnum() as $enum) {
-            // Enumクラスの展開
-            $source = builder()->fetch("table/MemberEnum.php",array("enum"=>$enum));
-            builder()->deploy("/app/Enum/".$enum->getClassName().".php", $source);
+        // Roleに関わるファイル
+        foreach (builder()->getRoles() as $role) {
+            // ヘッダー/フッターHTMLファイル
+            builder()->fetch("include_html.header", array("role"=>$role),
+                "/html/".$role->getHeaderPath());
+            builder()->fetch("include_html.footer", array("role"=>$role),
+                "/html/".$role->getFooterPath());
+            // Roleクラス
+            builder()->fetch("classes.role", array("role"=>$role),
+                "/app/Role/".$role->getClassName().".php");
+            // RoleControllerクラス
+            builder()->fetch("classes.role_controller", array("role"=>$role),
+                "/app/Controller/".$role->getRollControllerClassName().".php");
         }
-        // routing.config.phpの構築
-        $source = builder()->fetch("config/routing.config.php",array("schema"=>builder()->getSchema()));
-        builder()->deploy("/config/routing.config.php", $source);
-        // Controllerに関わるファイルの展開
-        foreach (builder()->getSchema()->getController() as $controller) {
-            $table = $controller->getTable();
-            if ($table) {
-                $t = $table->getAttr();
-            }
-            $c = $controller->getAttr();
-            $source = builder()->fetch("controller/ProductMasterController.class.php",
-                array("controller"=>$controller, "c"=>$c, "t"=>$t));
-            builder()->deploy("/app/Controller/".$controller->getClassName().".php", $source);
-            // HTMLの構築
-            foreach ($controller->getAction() as $action) {
-                if ($action->getAttr("has_html")) {
-                    $a = $action->getAttr();
-                    $source = builder()->fetch("controller/".$action->getName().".html",
-                        array("action"=>$action, "c"=>$c, "t"=>$t, "a"=>$a));
-                    builder()->deploy("/html".$action->getPath(), $source);
+        // Controllerに関わるファイル
+        foreach (builder()->getControllers() as $controller) {
+            // Controllerクラス
+            builder()->fetch("classes.controller", array("controller"=>$controller),
+                "/app/Enum/".$table->getClassName().".php");
+            foreach ($controller->getPagesets() as $pageset) {
+                foreach ($pageset as $page) {
+                    if ($page->hasHtml()) {
+                        // pageのHtmlファイル
+                        builder()->fetch("frame.page", array("page"=>$page),
+                            "/html/".$page->getPath());
+                    }
                 }
             }
         }
@@ -93,63 +140,48 @@ class WebappBuilder
      */
     public function getSchema ()
     {
-        return $this->schema;
-    }
-    /**
-     * @setter
-     */
-    public function setConfig ($config)
-    {
-        foreach ($config as $key => $value) {
-            $this->config[$key] = $value;
-        }
+        report("@deprecated");
+        return $this;
     }
     /**
      * @getter
      */
     public function getConfig ($key)
     {
-        if ($key == "template_dir") {
-            return constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
-        } elseif ($key == "current_dir") {
-            return constant("R_APP_ROOT_DIR");
-        } elseif ($key == "work_dir") {
-            if ( ! $this->config["work_dir"]) {
-                $this->config["work_dir"] = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
-            }
-            return $this->config["work_dir"];
-        } elseif ($key == "deploy_dir") {
-            return app()->config("builder.overwrite")
-                ? $this->getConfig("current_dir")
-                : $this->getConfig("work_dir")."/deploy";
-        } elseif ($key == "schema_csv_file") {
-            return constant("R_APP_ROOT_DIR")."/config/schema.config.csv";
-        } elseif ($key == "dryrun") {
-            return false;
-        } elseif ($key == "show_source") {
-            return true;
-        }
-        if ( ! isset($this->config[$key])) {
+        if ( ! array_isset($this->config, $key)) {
             report_error("設定がありません",array(
                 "key" => $key,
-                "config" => $this->config,
             ));
         }
-        return $this->config[$key];
+        return array_get($this->config, $key);
     }
     /**
      * テンプレートファイルの読み込み
      */
-    public function fetch ($template_name, $vars=array())
+    public function fetch ($config_entry, $vars=array(), $deploy=false)
     {
-        $template_file = $this->getConfig("template_dir")."/".$template_name;
+        if ( ! ini_get("short_open_tag")) {
+            report_error("short_open_tag=On設定が必須です");
+        }
+        $template_file = $this->getConfig($config_entry.".template_file");
+        if ( ! file_exists($template_file)) {
+            report_error("テンプレートファイルが読み込めません",array(
+                "template_file" => $template_file,
+                "config_entry" => $config_entry,
+            ));
+        }
+        // テンプレートファイルの読み込み
         report_buffer_start();
         ob_start();
         extract($vars,EXTR_REFS);
         include($template_file);
         $source = ob_get_clean();
-        report_buffer_end();
         $source = str_replace(array('<!?','<#?'),'<?',$source);
+        report_buffer_end();
+        // ファイルの配置
+        if ($deploy) {
+            $this->deploy($deploy, $source);
+        }
         return $source;
     }
     /**
@@ -177,7 +209,37 @@ class WebappBuilder
      */
     public function filter_fields ($fields, $type)
     {
-        $deploy_files = new \R\Lib\Builder\Regacy\DeployFiles;
-        return $deploy_files->filter_fields($fields,$type);
+        report_warning("@deprecated");
+        $fields = (array)$fields;
+        foreach ($fields as $tc_name => $tc) {
+            if ($type == "search"
+                    && ($tc["type"] != "textarea"
+                    && $tc["type"] != "text")) {
+                unset($fields[$tc_name]);
+            }
+            if ($type == "sort"
+                    && ($tc["type"] == "textarea"
+                    || $tc["type"] == "file"
+                    || $tc["type"] == "password")) {
+                unset($fields[$tc_name]);
+            }
+            if ($type == "list"
+                    && ($tc["type"] == "textarea"
+                    || $tc["type"] == "file"
+                    || $tc["type"] == "password")) {
+                unset($fields[$tc_name]);
+            }
+            if ($type == "save"
+                    && (false)) {
+                unset($fields[$tc_name]);
+            }
+        }
+        if ($type == "search" || $type == "sort") {
+            $fields =array_slice($fields,0,3);
+        }
+        if ($type == "list") {
+            $fields =array_slice($fields,0,6);
+        }
+        return $fields;
     }
 }

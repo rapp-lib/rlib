@@ -1,41 +1,51 @@
 <?php
 namespace R\Lib\Builder\Element;
 
-/**
- *
- */
 class TableElement extends Element_Base
 {
-    protected $cols = array();
-
-    /**
-     * @override
-     */
     protected function init ()
     {
-        foreach ((array)$this->getAttr("cols_all") as $col_name => $col_attrs) {
-            $this->cols[$col_name] = new ColElement($col_name, $col_attrs, $this);
+        // Col登録
+        $cols = (array)$this->getAttr("cols_all");
+        $enum_set_names = array();
+        foreach ($cols as $col_name => $col_attrs) {
+            $this->children["cols"][$col_name] = new ColElement($col_name, $col_attrs, $this);
+            if (in_array($col_attrs["type"],array("select","radioselect","checklist"))) {
+                $enum_set_names[] = $col_name;
+            }
+        }
+        // Enum登録
+        if ($enum_set_names) {
+            $enum_attrs = array(
+                "set_names" => $enum_set_names,
+            );
+            $this->children["enum"] = new EnumElement($this->getName(), $enum_attrs, $this);
         }
     }
-    /**
-     * クラス名の取得
-     */
     public function getClassName ()
     {
         return str_camelize($this->getName())."Table";
     }
     /**
-     * ColElementの取得
+     * @getter Cols
      */
-    public function getCol ($col_name=null)
+    public function getCol ($name)
     {
-        if ( ! $col_name) {
-            return $this->cols;
-        }
-        return $this->cols[$col_name];
+        return $this->children["cols"][$name];
+    }
+    public function getCols ()
+    {
+        return $this->children["cols"];
     }
     /**
-     * テーブル定義を持つかどうか
+     * @getter
+     */
+    public function getEnum ()
+    {
+        return $this->children["enum"];
+    }
+    /**
+     * Tableクラスの定義があるかどうか
      */
     public function hasDef ()
     {

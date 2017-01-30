@@ -1,0 +1,29 @@
+{{if $forms.entry->getErrors()}}
+    <div class="errmsg">※入力エラーがあります</div>
+    {{code type="js" required=["jquery:*","app.show-errors"]}}
+        $(function(){
+            showErrors({
+                errors: {{$forms.entry->getErrors()|json_encode}},
+                $form: $("form.form-entry")
+            });
+        });
+    {{/code}}
+{{/if}}
+
+{{form action='.'|page_to_url enctype="multipart/form-data" method="post" form=$forms.entry class="form-entry"}}
+<?php if ($controller->hasDef()): ?>
+{{input name="id" type="hidden"}}
+<?php endif; ?>
+<table class="tbl_admin detail">
+<?php foreach ($controller->getInputCols() as $col): ?>
+    <tr>
+        <th><?=$col->getLabel()?></th>
+        <td class="inputBlock"><?=$col->getInputSource()?></td>
+    </tr>
+<?php endforeach; ?>
+</table>
+<div class="ad_btn">
+    <a href='{{".view_list"|page_to_url|url:["back"=>1]}}' class="rBtn">戻る</a>
+    <a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" class="sBtn">確認</a>
+</div>
+{{/form}}

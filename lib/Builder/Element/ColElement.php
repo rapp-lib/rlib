@@ -1,16 +1,25 @@
 <?php
 namespace R\Lib\Builder\Element;
 
-/**
- *
- */
 class ColElement extends Element_Base
 {
-    /**
-     * @override
-     */
-    protected function init ()
+    public function getLabel ()
     {
+        return $this->getAttr("label");
+    }
+    /**
+     * 表示HTMLソースの取得
+     */
+    public function getShowSource ($var_name)
+    {
+        return '{{'.$var_name.'.'.$this->getName().'}}';
+    }
+    /**
+     * 入力HTMLソースの取得
+     */
+    public function getInputSource ()
+    {
+        return '{{input type="'.$this->getAttr("type").'" name="'.$this->getName().'"}}';
     }
     /**
      * $colsの定義行の取得
