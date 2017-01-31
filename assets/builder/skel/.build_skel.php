@@ -100,10 +100,14 @@
                 "pages.delete.template_file" => null,// $dir."/pageset/delete/delete.html",
             ),
             "csv" => array(
-                "index_page" => "form",
+                "index_page" => "download",
                 "controller.template_file" => $dir."/pageset/csv/csv_controller.php",
-                "pages.form.template_file" => $dir."/pageset/csv/form.html",
-                "pages.confirm.template_file" => null,// $dir."/pageset/csv/confirm.html",
+                "pages.download.template_file" => null,// $dir."/pageset/csv/download.html",
+            ),
+            "import" => array(
+                "index_page" => "form",
+                "controller.template_file" => $dir."/pageset/import/import_controller.php",
+                "pages.form.template_file" => $dir."/pageset/import/form.html",
                 "pages.complete.template_file" => null,// $dir."/pageset/csv/complete.html",
             ),
         ),
