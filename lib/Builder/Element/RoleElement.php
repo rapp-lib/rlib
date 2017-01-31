@@ -7,7 +7,7 @@ class RoleElement extends Element_Base
     {
         return str_camelize($this->getName())."Role";
     }
-    public function getRollControllerClassName ()
+    public function getRoleControllerClassName ()
     {
         return "Controller_".str_camelize($this->getName());
     }

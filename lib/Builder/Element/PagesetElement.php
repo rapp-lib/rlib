@@ -8,14 +8,15 @@ class PagesetElement extends Element_Base
         // Page登録
         $page_configs = (array)$this->getSchema()->getConfig($this->getTemplateEntry().".pages");
         foreach ($page_configs as $page_type => $page_config) {
-            $page_name = $this->getParent()->getName().".".$page_type;
+            //TODO: typeをそのままnameにしてしまっている
+            $page_name = $page_type;
             $page_attrs = array("type"=>$page_type);
             $this->children["page"][$page_name] = new PageElement($page_name, $page_attrs, $this);
         }
     }
     public function getTemplateEntry ()
     {
-        return "pageset.".$this->getAttr("type").".controller";
+        return "pageset.".$this->getAttr("type");
     }
     public function getLabel ()
     {
@@ -50,8 +51,9 @@ class PagesetElement extends Element_Base
     public function getControllerSource ()
     {
         $controller = $this->getParent();
-        $role = $this->getRole();
-        return $this->getSchema()->fetch($this->getTemplateEntry(), array(
-            "pageset"=>$this, "controller"=>$controller, "role"=>$role));
+        $role = $controller->getRole();
+        $table = $controller->getTable();
+        return $this->getSchema()->fetch($this->getTemplateEntry().".controller", array(
+            "pageset"=>$this, "controller"=>$controller, "role"=>$role, "table"=>$table));
     }
 }

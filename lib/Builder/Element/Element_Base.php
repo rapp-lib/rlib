@@ -21,7 +21,7 @@ class Element_Base
     {
         // Overrideして処理を記述
     }
-    protected function deply ($recursive=false)
+    protected function deploy ($recursive=false)
     {
         $deploy_callbacks = (array)$this->getSchema()->getConfig("deploy.".$this->getElementType());
         foreach ($deploy_callbacks as $deploy_callback) {
@@ -53,7 +53,7 @@ class Element_Base
         if ( ! $this->parent) {
             return $this;
         } else {
-            return $this->getParent()->getSchema();
+            return $this->parent->getSchema();
         }
     }
     /**

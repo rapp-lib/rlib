@@ -57,7 +57,7 @@ class ControllerElement extends Element_Base
     public function getRole ()
     {
         $role_name = $this->getAttr("access_as");
-        return $this->getSchema()->getRole($role_name);
+        return $this->getSchema()->getRoleByName($role_name);
     }
     /**
      * 関係するTableの取得
@@ -65,7 +65,7 @@ class ControllerElement extends Element_Base
     public function getTable ()
     {
         $table_name = $this->getAttr("table");
-        return $this->getSchema()->getTable($table_name);
+        return $this->getSchema()->getTableByName($table_name);
     }
     /**
      * 入力画面に表示するColの取得
@@ -103,7 +103,7 @@ class ControllerElement extends Element_Base
     {
         //TODO: 1番目のPageが取得されてしまうので、制御を加える
         foreach ($this->getPagesets() as $pageset) {
-            foreach ($pageset->getPage() as $page) {
+            foreach ($pageset->getPages() as $page) {
                 return $page;
             }
         }

@@ -13,7 +13,13 @@ class PageElement extends Element_Base
     }
     public function getPath ()
     {
-        return "/".$this->getName().".html";
+        $path = "/".str_replace('_','/',$this->getParent()->getParent()->getName())."/".$this->getName().".html";
+        if (preg_match('!/index/index\.html$!',$path)) {
+            $path = preg_match('!/index/index\.html$!','/index.html',$path);
+        } elseif (preg_match('!/index/static\.html$!',$path)) {
+            $path = preg_match('!/index/static\.html$!','/*',$path);
+        }
+        return $path;
     }
     public function getFullPage ()
     {
@@ -34,15 +40,17 @@ class PageElement extends Element_Base
     {
         $pageset = $this->getParent();
         $controller = $pageset->getParent();
-        $role = $this->getRole();
+        $role = $controller->getRole();
+        $table = $controller->getTable();
         return $this->getSchema()->fetch($this->getTemplateEntry(), array(
-            "page"=>$this, "pageset"=>$pageset, "controller"=>$controller, "role"=>$role));
+            "page"=>$this, "pageset"=>$pageset,
+            "controller"=>$controller, "role"=>$role, "table"=>$table));
     }
     /**
      * Controller中でのメソッド宣言部分のPHPコードを取得
      */
     public function getMethodDecSource ()
     {
-        return $this->getSchema()->fetch("frame.page_method_dec", array("page"=>$this));
+        return $this->getSchema()->fetch("parts.page_method_dec", array("page"=>$this));
     }
 }

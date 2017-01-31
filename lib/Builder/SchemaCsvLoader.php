@@ -5,8 +5,9 @@ class SchemaCsvLoader
 {
     public function load ($filename)
     {
-        $schema = $this->load_schema_csv($schema_csv_file);
+        $schema = $this->load_schema_csv($filename);
         $schema = $this->complete_schema($schema);
+        report("Schema csv loaded.",array("schema" => $schema));
         return $schema;
     }
     private function load_schema_csv ($filename)
@@ -73,7 +74,6 @@ class SchemaCsvLoader
             }
             $this->parse_other($ref, $current_data["other"]);
         }
-        report("Schema csv loaded.",array("schema" => $s));
         return $s;
     }
     /**

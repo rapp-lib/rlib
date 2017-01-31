@@ -38,9 +38,9 @@
             <!--<dd><ul><li class="current"></li></ul></dd>-->
         </dl>
         <dl>
-<?php foreach ($role->getSchema()->getRole() as $role_others): ?>
+<?php foreach ($role->getSchema()->getRoles() as $role_others): ?>
 <?php if ($role_others->getName() != $role->getName()): ?>
-            <dt class="toggle"><a href='{{"<?=$role_others->getIndexController()->getName()?>.index"|page_to_url}}' class="button"><?=$role_others->getIndexController()->->getLabel()?></a></dt>
+            <dt class="toggle"><a href='{{"<?=$role_others->getIndexController()->getIndexPage()->getFullPage()?>"|page_to_url}}' class="button"><?=$role_others->getIndexController()->getLabel()?></a></dt>
 <?php endif; ?>
 <?php endforeach; ?>
         </dl>

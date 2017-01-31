@@ -45,7 +45,7 @@ class TableElement extends Element_Base
      */
     public function getCols ()
     {
-        return $this->children["col"];
+        return (array)$this->children["col"];
     }
     /**
      * @getter children.enum

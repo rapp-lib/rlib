@@ -4,11 +4,11 @@
     protected static $form_entry = array(
         "auto_restore" => true,
         "form_page" => ".entry_form",
-<?php if ($controller->hasDef()): ?>
+<?php if ($table->hasDef()): ?>
         "table" => "<?=$table->getName()?>",
 <?php endif; ?>
         "fields" => array(
-<?php if ($controller->hasDef()): ?>
+<?php if ($table->hasDef()): ?>
             "id",
 <?php endif; ?>
 <?php foreach ($controller->getInputCols() as $col): ?>

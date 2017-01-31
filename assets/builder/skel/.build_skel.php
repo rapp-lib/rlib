@@ -22,6 +22,18 @@
                     }
                 },
             ),
+            "col" => array(
+                function ($col) {
+                },
+            ),
+            "enum" => array(
+                function ($enum) {
+                },
+            ),
+            "enum_set" => array(
+                function ($enum_set) {
+                },
+            ),
             "role" => array(
                 function ($role) {
                     // ヘッダー/フッターHTMLファイル
@@ -34,21 +46,25 @@
                         "/app/Role/".$role->getClassName().".php");
                     // RoleControllerクラス
                     $role->getSchema()->fetch("classes.role_controller", array("role"=>$role),
-                        "/app/Controller/".$role->getRollControllerClassName().".php");
+                        "/app/Controller/".$role->getRoleControllerClassName().".php");
                 },
             ),
             "controller" => array(
                 function ($controller) {
                     // Controllerクラス
                     $controller->getSchema()->fetch("classes.controller", array("controller"=>$controller),
-                        "/app/Enum/".$table->getClassName().".php");
+                        "/app/Controller/".$controller->getClassName().".php");
+                },
+            ),
+            "pageset" => array(
+                function ($pageset) {
                 },
             ),
             "page" => array(
                 function ($page) {
                     if ($page->hasHtml()) {
                         // pageのHtmlファイル
-                        $page->getSchema()->fetch("frame.page", array("page"=>$page),
+                        $page->getSchema()->fetch("parts.page_frame", array("page"=>$page),
                             "/html/".$page->getPath());
                     }
                 },
@@ -77,8 +93,8 @@
                 "index_page" => "form",
                 "controller.template_file" => $dir."/pageset/form/form_controller.php",
                 "pages.form.template_file" => $dir."/pageset/form/form.html",
-                "pages.confirm.template_file" => $dir."/pageset/master/confirm.html",
-                "pages.complete.template_file" => $dir."/pageset/master/complete.html",
+                "pages.confirm.template_file" => $dir."/pageset/form/confirm.html",
+                "pages.complete.template_file" => $dir."/pageset/form/complete.html",
             ),
             "delete" => array(
                 "index_page" => "delete",
@@ -107,8 +123,8 @@
         "config" => array(
             "routing.template_file" => $dir."/config/routing.config.php",
         ),
-        "frame" => array(
-            "page.template_file" => $dir."/frame/page.html",
-            "page_method_dec.template_file" => $dir."/frame/page_method_dec.php",
+        "parts" => array(
+            "page_frame.template_file" => $dir."/parts/page_frame.html",
+            "page_method_dec.template_file" => $dir."/parts/page_method_dec.php",
         ),
     );

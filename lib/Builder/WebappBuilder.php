@@ -1,45 +1,29 @@
 <?php
 namespace R\Lib\Builder;
 
-use R\Lib\Contract\Provider;
+use R\Lib\Core\Contract\Provider;
 use R\Lib\Builder\Element\SchemaElement;
 
 class WebappBuilder extends SchemaElement implements Provider
 {
-    private $config = array();
+    protected $config = array();
     public function __construct ()
     {
         $skel_dir = constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
         $current_dir = constant("R_APP_ROOT_DIR");
         $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
-        $deploy_dir = app()->config("builder.overwrite") ? $current_dir : $work_dir."/deploy";
+        //$deploy_dir = app()->config("builder.overwrite") ? $current_dir : $work_dir."/deploy";
+        $deploy_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/test-01";
         $schema_csv_file = constant("R_APP_ROOT_DIR")."/config/schema.config.csv";
-        $this->config = array(
+        array_add($this->config, array(
             "current_dir" => $current_dir,
             "work_dir" => $work_dir,
             "deploy_dir" => $deploy_dir,
             "schema_csv_file" => $schema_csv_file,
             "dryrun" => false,
             "show_source" => true,
-        );
-        $this->addSkel(include($skel_dir."/.build_skel.php"));
-    }
-    /**
-     * 所定のCSVを読み込んで記載されているSchema全体をdeploy
-     */
-    public function start ()
-    {
-        // CSV読み込み
-        $this->initFromSchemaCsv($this->getConfig("schema_csv_file"));
-        // Schema全体をdeploy
-        $this->deploy(true);
-    }
-    /**
-     * @override
-     */
-    public function getElementType ()
-    {
-        return "schema";
+        ));
+        $this->addSkel($skel_dir);
     }
     /**
      * Configの取得
@@ -66,6 +50,23 @@ class WebappBuilder extends SchemaElement implements Provider
         }
         $config = (array)include($config_file);
         array_add($this->config, $config);
+    }
+    /**
+     * 所定のCSVを読み込んで記載されているSchema全体をdeploy
+     */
+    public function start ()
+    {
+        // CSV読み込み
+        $this->initFromSchemaCsv($this->getConfig("schema_csv_file"));
+        // Schema全体をdeploy
+        $this->deploy(true);
+    }
+    /**
+     * @override
+     */
+    public function getElementType ()
+    {
+        return "schema";
     }
     /**
      * テンプレートファイルの読み込み

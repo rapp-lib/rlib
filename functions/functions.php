@@ -137,25 +137,17 @@
         // keyを配列で指定した場合
         if (is_array($key)) {
             foreach ($key as $k => $v) {
-                array_set($ref, $k, $v);
+                array_add($ref, $k, $v);
             }
-            return;
         // valueを配列で指定した場合
         } elseif (is_array($value)) {
             $ref_sub = & array_get_ref($ref, $key);
             foreach ($value as $k => $v) {
-                array_set($ref_sub, $k, $v);
+                array_add($ref_sub, $k, $v);
             }
-            return;
+        } else {
+            array_set($ref, $key, $value);
         }
-        $key_parts = explode(".",$key);
-        foreach ($key_parts as $key_part) {
-            if ( ! is_array($ref)) {
-                $ref = array();
-            }
-            $ref = & $ref[$key_part];
-        }
-        $ref = $value;
     }
     /**
      * ドット記法で配列の値が設定されているか確認

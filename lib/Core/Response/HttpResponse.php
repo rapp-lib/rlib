@@ -52,6 +52,7 @@ class HttpResponse implements Response
     }
     public function render ()
     {
+        report_buffer_end(true);
         $output = $this->output;
         report("Render Response",array(
             "route" => app()->router->getCurrentRoute(),
