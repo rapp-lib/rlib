@@ -21,4 +21,5 @@
     }
 <?=$pageset->getPageByType("detail")->getMethodDecSource()?>
     {
+        $this->vars["t"] = table("<?=$table->getName()?>")->selectById($this->request["id"]);
     }

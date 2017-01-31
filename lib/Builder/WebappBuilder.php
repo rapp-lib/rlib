@@ -86,8 +86,14 @@ class WebappBuilder extends SchemaElement implements Provider
         // テンプレートファイルの読み込み
         report_buffer_start();
         ob_start();
-        extract($vars,EXTR_REFS);
-        include($template_file);
+        try {
+            extract($vars,EXTR_REFS);
+            include($template_file);
+        } catch (R\Lib\Core\Exception\ResponseException $e) {
+            ob_end_clean();
+            report_buffer_end();
+            throw $e;
+        }
         $source = ob_get_clean();
         $source = str_replace(array('<!?','<#?'),'<?',$source);
         report_buffer_end();

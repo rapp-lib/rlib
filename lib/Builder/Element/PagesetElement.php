@@ -36,6 +36,10 @@ class PagesetElement extends Element_Base
                 return $page;
             }
         }
+        report_error("指定したTypeのPageがありません",array(
+            "type" => $type,
+            "pageset" => $this,
+        ));
         return null;
     }
     /**

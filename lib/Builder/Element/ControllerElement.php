@@ -11,13 +11,14 @@ class ControllerElement extends Element_Base
         $pagesets = array();
         // Pagesetの補完
         if ($this->getAttr("type") == "index") {
-            $pagesets[] = array("type"=>"blank");
+            $pagesets[] = array("type"=>"index");
         } elseif ($this->getAttr("type") == "login") {
             $pagesets[] = array("type"=>"login");
         } elseif ($this->getAttr("type") == "master") {
             if ($this->getAttr("usage") != "form") {
                 $pagesets[] = array("type"=>"show");
-            } elseif ($this->getAttr("usage") != "view") {
+            }
+            if ($this->getAttr("usage") != "view") {
                 $pagesets[] = array("type"=>"form");
             }
             if ($this->getAttr("use_csv")) {

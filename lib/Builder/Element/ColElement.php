@@ -20,7 +20,7 @@ class ColElement extends Element_Base
     /**
      * 表示HTMLソースの取得
      */
-    public function getShowSource ($var_name)
+    public function getShowSource ($var_name='$t')
     {
         return '{{'.$var_name.'.'.$this->getName().'}}';
     }
@@ -34,7 +34,7 @@ class ColElement extends Element_Base
     /**
      * $colsの定義行の取得
      */
-    public function getColDef ()
+    public function getColDefSource ()
     {
         $def = (array)$this->getAttr("def");
         $def["comment"] = $this->getAttr("label");
@@ -55,6 +55,6 @@ class ColElement extends Element_Base
             }
             $def[$k] = '"'.$k.'"=>'.$v;
         }
-        return '"'.$this->getName().'" => array('.implode(', ',$def).'),';
+        return '            "'.$this->getName().'" => array('.implode(', ',$def).'),'."\n";
     }
 }

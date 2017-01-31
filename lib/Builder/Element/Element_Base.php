@@ -7,13 +7,13 @@ namespace R\Lib\Builder\Element;
 class Element_Base
 {
     protected $name;
-    protected $attrs;
+    protected $attrs = array();
     protected $parent;
     protected $children = array();
     public function __construct ($name="", $attrs=array(), $parent=null)
     {
         $this->name = $name;
-        $this->attrs = $attrs;
+        array_add($this->attrs, (array)$attrs);
         $this->parent = $parent;
         $this->init();
     }
@@ -42,7 +42,7 @@ class Element_Base
     }
     public function getAttr ($key)
     {
-        return $this->attrs[$key];
+        return array_get($this->attrs, $key);
     }
     public function getParent ()
     {
@@ -67,5 +67,13 @@ class Element_Base
             $element_type = str_underscore($match[1]);
         }
         return $element_type;
+    }
+    public function __report ()
+    {
+        return array(
+            "name" => $this->name,
+            "attrs" => $this->attrs,
+            "children" => $this->children,
+        );
     }
 }
