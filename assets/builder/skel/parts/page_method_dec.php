@@ -1,5 +1,5 @@
     /**
      * @page
-     * @title <?=$page->getParent()->getLabel()?> <?=$page->getLabel()?>
+     * @title <?=$page->getTitle()?><?="\n"?>
      */
     public function act_<?=$page->getName()?> ()

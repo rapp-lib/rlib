@@ -3,6 +3,7 @@
     //-------------------------------------
     //
     function array_extract ( & $arr) {
+        report_warning("@deprecated array_extract");
 
         if (is_arraylike($arr)) {
 
@@ -23,6 +24,7 @@
     //-------------------------------------
     //
     function array_archive ( & $root, $node=null, $root_k=array()) {
+        report_warning("@deprecated array_archive");
 
         if ($node === null) {
 
@@ -48,6 +50,7 @@
     //-------------------------------------
     //
     function & ref_array ( & $arrx, $path) {
+        report_warning("@deprecated ref_array");
 
         if (is_arraylike($path)) {
 
@@ -101,6 +104,7 @@
     //-------------------------------------
     // Registryの中で配列を保持できるようにKeyをエスケープ
     function array_escape ($arr) {
+        report_warning("@deprecated array_escape");
 
         $arr_escaped =array();
 
@@ -122,6 +126,7 @@
     //-------------------------------------
     // 配列をregisry同様のストアとして利用する
     function & array_registry ( & $arr, $name=null ,$value=null, $options=array()) {
+        report_warning("@deprecated array_registry");
 
         // [Deprecated] $escapeとして指定を行っていた場合の処理
         if (is_bool($options)) {
@@ -251,6 +256,7 @@
     //-------------------------------------
     // 最初の要素を取得
     function array_first ($arr) {
+        report_warning("@deprecated array_first");
 
         if (is_arraylike($arr) && $arr) {
 
@@ -266,6 +272,7 @@
     //-------------------------------------
     // 最後の要素を取得
     function array_last ($arr) {
+        report_warning("@deprecated array_last");
 
         if (is_arraylike($arr) && $arr) {
 
@@ -281,6 +288,7 @@
     //-------------------------------------
     // 値を強制的に配列に変換する
     function to_array ($value) {
+        report_warning("@deprecated to_array");
 
         // 配列はそのまま返す
         if (is_arraylike($value)) {

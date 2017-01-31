@@ -3,6 +3,7 @@
     //-------------------------------------
     // DBIインスタンスのファクトリ
     function dbi ($name=null) {
+        report_warning("@deprecated dbi");
 
         if ( ! defined("DBI_LOADED")) {
             register_shutdown_webapp_function("dbi_rollback_all");
@@ -39,6 +40,7 @@
     //-------------------------------------
     // 全てのトランザクションのRollback
     function dbi_rollback_all () {
+        report_warning("@deprecated dbi_rollback_all");
 
         $instance =& ref_globals("loaded_dbi");
 
@@ -56,6 +58,7 @@
     //-------------------------------------
     // Modelインスタンスのファクトリ
     function model ($name=null, $accessor=null) {
+        report_warning("@deprecated model");
 
         $instance =& ref_globals("loaded_model");
 

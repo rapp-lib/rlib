@@ -3,6 +3,7 @@
     //-------------------------------------
     //
     function start_webapp () {
+        report_warning("@deprecated start_webapp");
 
         // Registryのデフォルト値の補完
         $registry_defaultset =array(
@@ -105,6 +106,7 @@
     //-------------------------------------
     // std_session_start
     function std_session_start () {
+        report_warning("@deprecated std_session_start");
 
         // セッションの開始
         $session_lifetime =registry("Config.session_lifetime");
@@ -128,6 +130,7 @@
     //-------------------------------------
     // ob_filter
     function mb_output_handler_impl ($html) {
+        report_warning("@deprecated mb_output_handler_impl");
 
         $html =mb_convert_encoding(
                 $html,
@@ -140,6 +143,7 @@
     //-------------------------------------
     // 出力と同時に終了
     function clean_output_shutdown ($output) {
+        report_warning("@deprecated clean_output_shutdown");
 
         // 出力処理を中断
         if ($_REQUEST["_no_output"]) {
@@ -240,6 +244,7 @@
     //-------------------------------------
     // clean_output_shutdown以降の出力をバッファに転送するob処理
     function send_to_clean_output_buffer ($output) {
+        report_warning("@deprecated send_to_clean_output_buffer");
 
         $clean_output_buffer =& ref_globals("clean_output_buffer");
 
@@ -251,6 +256,7 @@
     //-------------------------------------
     // ajaxrレスポンスへの出力変換を行うshutdown_webapp_function
     function shutdown_webapp_for_ajaxr ($cause, $options) {
+        report_warning("@deprecated shutdown_webapp_for_ajaxr");
 
         $res =array();
 
@@ -306,6 +312,7 @@
     // [Deprecated] SEO的に無差別にURLを書き換えることは問題が大きいため非推奨 151003
     // URL書き換え対象のパラメータ追加
     function output_rewrite_var ($name=null, $value=null) {
+        report_warning("@deprecated output_rewrite_var");
 
         $output_rewrite_var =& ref_globals("output_rewrite_var");
         $result =array_registry($output_rewrite_var,$name,$value);
@@ -324,6 +331,7 @@
     // [Deprecated] 使用されていないため削除予定 151003
     // 転送時に引き継ぐパラメータの設定
     function redirect_rewrite_var ($name=null, $value=null) {
+        report_warning("@deprecated redirect_rewrite_var");
 
         $rewrite_var =& ref_globals("redirect_rewrite_var");
         $result =array_registry($rewrite_var,$name,$value);
@@ -334,6 +342,7 @@
     //-------------------------------------
     // URL書き換え規則の追加
     function add_url_rewrite_rule ($patterns, $var_name, $value, $info=array()) {
+        report_warning("@deprecated add_url_rewrite_rule");
 
         $url_rewrite_rules =& ref_globals("url_rewrite_rules");
         $url_rewrite_rules[] =array($patterns, $var_name, $value, $info);
@@ -342,6 +351,7 @@
     //-------------------------------------
     // URL書き換え規則の適用
     function apply_url_rewrite_rules ($url) {
+        report_warning("@deprecated apply_url_rewrite_rules");
 
         $url_rewrite_rules =& ref_globals("url_rewrite_rules");
 
@@ -369,6 +379,7 @@
     //-------------------------------------
     // 処理を停止するexit相当の機能/異常終了を正しく通知できる
     function shutdown_webapp ($cause=null, $options=array()) {
+        report_warning("@deprecated shutdown_webapp");
 
         if (defined("WEBAPP_SHUTDOWN_CAUSE")) {
 
@@ -400,6 +411,7 @@
     //-------------------------------------
     // 全PHP処理終了時に呼び出す関数の設定
     function register_shutdown_webapp_function ($func) {
+        report_warning("@deprecated register_shutdown_webapp_function");
 
         $funcs =& ref_globals('shutdown_webapp_function');
         $funcs[] =$func;
@@ -408,6 +420,7 @@
     //-------------------------------------
     // 標準PHP終了ハンドラ
     function std_shutdown_handler () {
+        report_warning("@deprecated std_shutdown_handler");
 
         report_buffer_end(true);
 
@@ -443,6 +456,7 @@
     //-------------------------------------
     // 実行実時間の計測
     function elapse ($event=null,$stop=false) {
+        report_warning("@deprecated elapse");
 
         static $time =array();
 
@@ -467,6 +481,7 @@
     //-------------------------------------
     // HTTPレスポンスコードの設定
     function set_response_code ($response_code) {
+        report_warning("@deprecated set_response_code");
 
         $response_code_list =array(
 
@@ -608,6 +623,7 @@
     //-------------------------------------
     //
     function redirect_permanently ($url, $params=array(), $flush_message=null) {
+        report_warning("@deprecated redirect_permanently");
 
         set_response_code(301);
 
@@ -617,6 +633,7 @@
     //-------------------------------------
     // FlushMessageの設定/取得
     function flush_message ($flush_message=null) {
+        report_warning("@deprecated flush_message");
 
         $s_flush_message =& ref_session("flush_message");
 
@@ -635,6 +652,7 @@
     //-------------------------------------
     // 稼働状態の確認
     function get_webapp_dync ($flg="report") {
+        report_warning("@deprecated get_webapp_dync");
 
         // reportのみregistryによる強制ON設定を適用
         if ($flg=="report" && registry("Report.force_reporting")) {
@@ -648,46 +666,18 @@
     //-------------------------------------
     // CLI（コマンドライン）実行であるかどうかの確認
     function get_cli_mode () {
+        report_warning("@deprecated get_cli_mode");
 
         return php_sapi_name() == "cli";
     }
 
-    //-------------------------------------
-    // CLI（コマンドライン）実行時パラメータの取得
-    function get_cli_params () {
-
-        $argv =$_SERVER["argv"];
-        unset($argv[0]);
-
-        $params =array();
-
-        foreach ($argv as $a_argv) {
-
-            // --XXX=AAA , --XXX
-            if (preg_match('!^--([^=]+)(?:=(.+))?$!',$a_argv,$match)) {
-
-                $params[$match[1]] =$match[2];
-
-            // -X , -XAAA
-            } elseif (preg_match('!^-(.)(.+)?$!',$a_argv,$match)) {
-
-                $params[$match[1]] =$match[2];
-
-            // XXX
-            } else {
-
-                $params[] =$a_argv;
-            }
-        }
-
-        return $params;
-    }
 
 
 
     //-------------------------------------
     // ラベルを得る
     function label () {
+        report_warning("@deprecated label");
 
         $names =func_get_args();
         return (string)registry("Label.".implode(".",$names));
@@ -696,6 +686,7 @@
     //-------------------------------------
     // UserAgentの判定
     function check_user_agent ($detail=0, $user_agent_string=null) {
+        report_warning("@deprecated check_user_agent");
 
         /*
             [detail arg]:   0  / 1

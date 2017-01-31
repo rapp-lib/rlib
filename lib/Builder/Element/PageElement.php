@@ -3,9 +3,17 @@ namespace R\Lib\Builder\Element;
 
 class PageElement extends Element_Base
 {
+    public function getController ()
+    {
+        return $this->getParent()->getParent();
+    }
     public function getTemplateEntry ()
     {
         return "pageset.".$this->getParent()->getAttr("type").".pages.".$this->getAttr("type");
+    }
+    public function getTitle ()
+    {
+        return $this->getController()->getLabel();
     }
     public function getLabel ()
     {
@@ -13,7 +21,7 @@ class PageElement extends Element_Base
     }
     public function getPath ()
     {
-        $path = "/".str_replace('_','/',$this->getParent()->getParent()->getName())."/".$this->getName().".html";
+        $path = "/".str_replace('_','/',$this->getController()->getName())."/".$this->getName().".html";
         if (preg_match('!/index/index\.html$!',$path)) {
             $path = preg_match('!/index/index\.html$!','/index.html',$path);
         } elseif (preg_match('!/index/static\.html$!',$path)) {
@@ -23,7 +31,7 @@ class PageElement extends Element_Base
     }
     public function getFullPage ()
     {
-        return $this->getParent()->getParent()->getName().".".$this->getName();
+        return $this->getController()->getName().".".$this->getName();
     }
     public function getLocalPage ()
     {
@@ -38,12 +46,11 @@ class PageElement extends Element_Base
      */
     public function getInnerSource ()
     {
-        $pageset = $this->getParent();
-        $controller = $pageset->getParent();
+        $controller = $this->getController();
         $role = $controller->getRole();
         $table = $controller->getTable();
         return $this->getSchema()->fetch($this->getTemplateEntry(), array(
-            "page"=>$this, "pageset"=>$pageset,
+            "page"=>$this, "pageset"=>$this->getParent(),
             "controller"=>$controller, "role"=>$role, "table"=>$table));
     }
     /**

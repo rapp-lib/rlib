@@ -3,6 +3,7 @@
     //-------------------------------------
     // include_pathを追加する
     function add_include_path ($file_path) {
+        report_warning("@deprecated add_include_path");
 
         $include_pathes =explode(PATH_SEPARATOR,get_include_path());
 
@@ -16,6 +17,7 @@
     //-------------------------------------
     // ファイル探索
     function find_include_path ($file_name) {
+        report_warning("@deprecated find_include_path");
 
         if (file_exists($file_name)) {
 
@@ -40,6 +42,7 @@
     //-------------------------------------
     // モジュール読み込み
     function load_module ($module_group, $module_id, $force=false) {
+        report_warning("@deprecated load_module");
 
         // Closureかメソッドがわたっていればそのまま返す
         if (( ! is_string($module_id) && is_callable($module_id))
@@ -90,6 +93,7 @@
     //-------------------------------------
     // モジュール登録
     function register_module ($module_group, $module_id, $module) {
+        report_warning("@deprecated register_module");
 
         $modules =& ref_globals("registered_module");
         $modules[$module_group][$module_id] =$module;
@@ -98,6 +102,7 @@
     //-------------------------------------
     // 関数ローダ
     function load_function ($func_name, $dir="", $force=false) {
+        report_warning("@deprecated load_function");
 
         if (function_exists($func_name)) {
 
@@ -132,6 +137,7 @@
     //-------------------------------------
     // 標準クラスローダ
     function load_class ($class_name) {
+        report_warning("@deprecated load_class");
 
         $file_name =$class_name.".class.php";
 
@@ -170,6 +176,7 @@
     //-------------------------------------
     //
     function load_lib ($lib_name) {
+        report_warning("@deprecated load_lib");
 
         if (check_loaded("lib",$lib_name,null)) {
 
@@ -190,6 +197,7 @@
     //-------------------------------------
     //
     function check_loaded ($type, $path, $flg=null, $report_error=false) {
+        report_warning("@deprecated check_loaded");
 
         $check =& ref_globals("check_loaded");
 
@@ -219,6 +227,7 @@
     //-------------------------------------
     // 再利用可能なインスタンスの生成
     function obj ($class_name) {
+        report_warning("@deprecated obj");
 
         static $cache =array();
 

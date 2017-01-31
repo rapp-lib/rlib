@@ -3,6 +3,7 @@
     //-------------------------------------
     // ファイルの作成
     function touch_kindly ($filename, $file_chmod=0664) {
+        report_warning("@deprecated touch_kindly");
 
         if ( ! file_exists(dirname($filename))) {
 
@@ -15,6 +16,7 @@
     //-------------------------------------
     // ファイルを作成する
     function create_file ($filename, $mode=0644) {
+        report_warning("@deprecated create_file");
 
         if ( ! file_exists(dirname($filename))) {
 

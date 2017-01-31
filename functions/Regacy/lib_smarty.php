@@ -3,6 +3,7 @@
     //-------------------------------------
     // Listインスタンスのファクトリ
     function get_list ($name, $controller=null) {
+        report_warning("@deprecated get_list");
 
         $list_base =new List_App;
 
@@ -23,6 +24,7 @@
     //-------------------------------------
     // pageに対応するControllerのActionを実行
     function raise_action ($page, $options=array()) {
+        report_warning("@deprecated raise_action");
 
         list($controller_name, $action_name) =explode('.',$page,2);
         $controller_class_name =str_camelize($controller_name)."Controller";

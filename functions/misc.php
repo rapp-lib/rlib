@@ -1,0 +1,374 @@
+<?php
+    /**
+     * @deprecated
+     * ドット記法で配列の値を設定する
+     */
+    function array_set ( & $ref, $key, $value)
+    {
+        report_warning("@deprecated array_set");
+        $key_parts = explode(".",$key);
+        foreach ($key_parts as $key_part) {
+            if ( ! is_array($ref)) {
+                $ref = array();
+            }
+            $ref = & $ref[$key_part];
+        }
+        $ref = $value;
+    }
+    /**
+     * @deprecated
+     */
+    function builder ()
+    {
+        report_warning("@deprecated builder");
+        return app()->builder;
+    }
+    /**
+     * @deprecated
+     */
+    function auth ()
+    {
+        report_warning("@deprecated auth");
+        return app()->auth;
+    }
+    /**
+     * @deprecated
+     */
+    function form ()
+    {
+        report_warning("@deprecated form");
+        return app()->form;
+    }
+    /**
+     * @deprecated
+     */
+    function enum ($enum_set_name=false, $group=false)
+    {
+        report_warning("@deprecated enum");
+        return app()->enum($enum_set_name, $group);
+    }
+    /**
+     * @deprecated
+     */
+    function enum_select ($value, $enum_set_name=false, $group=false)
+    {
+        report_warning("@deprecated enum_select");
+        return app()->enum_select($value, $enum_set_name, $group);
+    }
+    /**
+     * @deprecated
+     */
+    function asset () {
+        report_warning("@deprecated asset");
+        return app()->asset;
+    }
+    /**
+     * @deprecated
+     */
+    function file_storage ()
+    {
+        report_warning("@deprecated file_storage");
+        return app()->file_storage;
+    }
+
+// -- 移行する
+
+    /**
+     * PageからURLを得る（主にRedirectやHREFに使用）
+     */
+    function page_to_url ($page, $full_url=false) {
+        return $full_url ? route($page)->getFullUrl() : route($page)->getUrl();
+    }
+    /**
+     *
+     */
+    function str_camelize ($str)
+    {
+        return str_replace(' ','',ucwords(str_replace('_', ' ', $str)));
+    }
+    /**
+     *
+     */
+    function str_underscore ($str) {
+        return strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $str));
+    }
+    /**
+     * ランダム文字列の生成
+     */
+    function rand_string (
+            $length=8,
+            $seed=null,
+            $charmap='0123456789abcdefghijklmnopqrstuvwxyz') {
+        $chars =str_split($charmap);
+        $string ="";
+        $seed === null
+                ? srand()
+                : srand(crc32((string)$seed));
+        for ($i=0; $i<$length; $i++) {
+            $string .=$chars[array_rand($chars)];
+        }
+        return $string;
+    }
+    /**
+     * データの難読化
+     */
+    function encrypt_string (
+            $target,
+            $key=7,
+            $chartable="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+        $map =str_split($chartable);
+        // 32bit compatible crc32
+        $crc =abs(crc32($target));
+        if ($crc & 0x80000000) {
+            $crc ^= 0xffffffff;
+            $crc += 1;
+        }
+        $crc =sprintf('%02d',$crc%100);
+        $target =$target.$crc;
+        $target =str_split($target);
+        srand($key);
+        foreach ($target as $i => $c) {
+            shuffle($map);
+            $target[$i] =$map[strpos($chartable,$c)];
+        }
+        $target =implode("",$target);
+        return $target;
+    }
+    /**
+     * データの難読復号化
+     */
+    function decrypt_string (
+            $target,
+            $key=7,
+            $chartable="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+        $map =str_split($chartable);
+        $target =str_split($target);
+        srand($key);
+        foreach ($target as $i => $c) {
+            shuffle($map);
+            $target[$i] =$chartable[strpos(implode("",$map),$c)];
+        }
+        $target =implode("",$target);
+        if (preg_match('!^(.*?)(..)$!',$target,$match)) {
+            $target =$match[1];
+            $crc_check =$match[2];
+            $crc =sprintf('%02d',abs(crc32($target))%100);
+            if ($crc_check == $crc) {
+                return $target;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * CLIに渡す文字列の構築
+     */
+    function cli_escape ($value) {
+        $escaped_value =null;
+        // 引数配列
+        if (is_array($value)) {
+            $escaped_value =array();
+            foreach ($value as $k => $v) {
+                if (is_string($k)) {
+                    $escaped_value[] =cli_escape($k.$v);
+                } else {
+                    $escaped_value[] =cli_escape($v);
+                }
+            }
+            $escaped_value =implode(" ",$escaped_value);
+        // 文字列
+        } elseif (is_string($value)) {
+            $escaped_value =escapeshellarg($value);
+        }
+        return $escaped_value;
+    }
+    /**
+     * URLの組み立て
+     */
+    function url ($base_url=null, $params=array(), $anchor=null)
+    {
+        if (is_object($base_url) && method_exists($base_url, "getUrl")) {
+            $base_url = $base_url->getUrl($params);
+            $params = array();
+        }
+        $url =$base_url;
+        // 文字列形式のURLパラメータを配列に変換
+        if (is_string($params)) {
+            parse_str($params,$tmp_params);
+            $params =$tmp_params;
+        }
+        // アンカーの退避
+        if (preg_match('!^(.*?)#(.*)$!',$url,$match)) {
+            list(,$url,$old_anchor) =$match;
+            if ($anchor === null) {
+                $anchor =$old_anchor;
+            }
+        }
+        // QSの退避
+        if (preg_match('!^([^\?]+)\?(.*)!',$url,$match)) {
+            list(,$url,$qs) =$match;
+            parse_str($qs,$qs_params);
+            $params =array_replace_recursive($qs_params, $params);
+        }
+        // URLパス内パラメータの置換
+        $ptn_url_param ='!\[([^\]]+)\]!';
+        if (preg_match($ptn_url_param,$url)) {
+            $tmp_url_params =& ref_globals("tmp_url_params");
+            $tmp_url_params =$params;
+            $url =preg_replace_callback($ptn_url_param,"url_param_replace",$url);
+            $params =$tmp_url_params;
+            // 置換漏れの確認
+            if (preg_match($ptn_url_param,$url)) {
+                /*
+                report_warning("URL params was-not resolved, remain",array(
+                    "url" =>$url,
+                    "base_url" =>$base_url,
+                    "params" =>$params,
+                ));
+                */
+            }
+        }
+        // QSの設定
+        if ($params) {
+            url_param_ksort_recursive($params);
+            $url .=strpos($url,'?')===false ? '?' : '&';
+            $url .=http_build_query($params,null,'&');
+        }
+        // アンカーの設定
+        if (strlen($anchor)) {
+            $url .='#'.$anchor;
+        }
+        return $url;
+    }
+    /**
+     * URL内パラメータの置換処理
+     */
+    function url_param_replace ($match)
+    {
+        $replaced =$match[0];
+        $tmp_url_params =& ref_globals("tmp_url_params");
+        if (isset($tmp_url_params[$match[1]])) {
+            $replaced =$tmp_url_params[$match[1]];
+            unset($tmp_url_params[$match[1]]);
+        }
+        return $replaced;
+    }
+    /**
+     * URL内パラメータの整列処理
+     */
+    function url_param_ksort_recursive ( & $params)
+    {
+        if ( ! is_array($params)) {
+            return;
+        }
+        ksort($params);
+        foreach ($params as & $v) {
+            url_param_ksort_recursive($v);
+        }
+    }
+    /**
+     * URL上でのパラメータ名の配列表現の正規化
+     */
+    function param_name ($param_name)
+    {
+        if (preg_match('!^([^\[]+\.[^\[]+)([\[].*?)?!',$param_name,$match)) {
+            $stack =explode(".",$match[1]);
+            $param_name =array_shift($stack)."[".implode("][",$stack)."]".$match[2];
+        }
+        return $param_name;
+    }
+    /**
+     * HTMLタグの組み立て
+     */
+    function tag ($name, $attrs=null, $content=null)
+    {
+        $html ='';
+        if ( ! is_string($name)) {
+            return htmlspecialchars($name);
+        }
+        $html .='<'.$name.' ';
+        if ($attrs === null) {
+        } elseif (is_string($attrs)) {
+            $html .=$attrs.' ';
+            report_warning("HTMLタグのattrsは配列で指定してください");
+        } elseif (is_array($attrs)) {
+            foreach ($attrs as $k => $v) {
+                if ($v !== null) {
+                    if (is_numeric($k)) {
+                        $html .=$v.' ';
+                    } else {
+                        if (($name == "input" || $name == "textarea"
+                                || $name == "select") && $k == "name") {
+                            $v =param_name($v);
+                        } elseif (is_array($v)) {
+                            if ($k == "style") {
+                                $style =array();
+                                foreach ($v as $style_name => $style_attr) {
+                                    if (is_numeric($style_name)) {
+                                        $style .=$style_attr;
+                                    } else {
+                                        $style .=$style_name.':'.$style_attr.';';
+                                    }
+                                }
+                                $v =$style;
+                            } elseif ($k == "class") {
+                                $v =implode(' ',$v);
+                            } else {
+                                $v =implode(',',$v);
+                            }
+                        }
+                        $v =str_replace(array("\r\n","\n",'"'),array(" "," ",'&quot;'),$v);
+                        $html .=param_name($k).'="'.$v.'" ';
+                    }
+                }
+            }
+        }
+        if ($content === null) {
+            $html .='/>';
+        } elseif ($content === true) {
+            $html .='>';
+        } elseif ($content === false) {
+            $html ='</'.$name.'>';
+        } elseif (is_array($content)) {
+            $html .='>';
+            foreach ($content as $k => $v) {
+                $html .=call_user_func_array("tag",(array)$v);
+            }
+            $html .='</'.$name.'>';
+        } elseif (is_string($content)) {
+            $html .='>';
+            $html .=$content;
+            $html .='</'.$name.'>';
+        }
+        return $html;
+    }
+    /**
+     * CLI（コマンドライン）実行時パラメータの取得
+     */
+    function get_cli_params ()
+    {
+        $argv =$_SERVER["argv"];
+        unset($argv[0]);
+        $params =array();
+        foreach ($argv as $a_argv) {
+            // --XXX=AAA , --XXX
+            if (preg_match('!^--([^=]+)(?:=(.+))?$!',$a_argv,$match)) {
+                $params[$match[1]] =$match[2];
+            // -X , -XAAA
+            } elseif (preg_match('!^-(.)(.+)?$!',$a_argv,$match)) {
+                $params[$match[1]] =$match[2];
+            // XXX
+            } else {
+                $params[] =$a_argv;
+            }
+        }
+        return $params;
+    }
+    /**
+     * @deprecated
+     */
+    function registry ($name)
+    {
+        //report_warning("@deprecated registry");
+        return app()->config($name);
+    }
