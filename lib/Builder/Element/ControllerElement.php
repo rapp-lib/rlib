@@ -27,7 +27,7 @@ class ControllerElement extends Element_Base
         // Pagesetの登録
         foreach ($pagesets as $pageset) {
             $pageset_name = $pageset["name"] ? $pageset["name"] : $pageset["type"];
-            $this->children[$pageset_name] = new PagesetElement($pageset_name, $pageset, $this);
+            $this->children["pageset"][$pageset_name] = new PagesetElement($pageset_name, $pageset, $this);
         }
     }
     /**
@@ -90,14 +90,23 @@ class ControllerElement extends Element_Base
         return $cols;
     }
     /**
-     * @getter Pagesets
+     * @getter Pageset
      */
     public function getPagesets ()
     {
-        return (array)$this->children["pagesets"];
+        return (array)$this->children["pageset"];
     }
-    public function getPageset ($name)
+    /**
+     * @getter Page
+     */
+    public function getIndexPage ()
     {
-        return $this->children["pagesets"][$name];
+        //TODO: 1番目のPageが取得されてしまうので、制御を加える
+        foreach ($this->getPagesets() as $pageset) {
+            foreach ($pageset->getPage() as $page) {
+                return $page;
+            }
+        }
+        return null;
     }
 }

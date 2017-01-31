@@ -7,19 +7,21 @@ class TableElement extends Element_Base
     {
         // Col登録
         $cols = (array)$this->getAttr("cols_all");
-        $enum_set_names = array();
+        $enum_sets = array();
         foreach ($cols as $col_name => $col_attrs) {
-            $this->children["cols"][$col_name] = new ColElement($col_name, $col_attrs, $this);
             if (in_array($col_attrs["type"],array("select","radioselect","checklist"))) {
-                $enum_set_names[] = $col_name;
+                $enum_set_name = $this->getName().".".$col_name;
+                $enum_sets[$enum_set_name] = array("col_name"=>$col_name);
+                $col_attrs["enum_set_name"] = $enum_set_name;
             }
+            $this->children["col"][$col_name] = new ColElement($col_name, $col_attrs, $this);
         }
         // Enum登録
-        if ($enum_set_names) {
+        if ($enum_sets) {
             $enum_attrs = array(
-                "set_names" => $enum_set_names,
+                "enum_sets" => $enum_sets,
             );
-            $this->children["enum"] = new EnumElement($this->getName(), $enum_attrs, $this);
+            $this->children["enum"][0] = new EnumElement($this->getName(), $enum_attrs, $this);
         }
     }
     public function getClassName ()
@@ -27,22 +29,30 @@ class TableElement extends Element_Base
         return str_camelize($this->getName())."Table";
     }
     /**
-     * @getter Cols
+     * IDのColを取得
      */
-    public function getCol ($name)
+    public function getIdCol ()
     {
-        return $this->children["cols"][$name];
-    }
-    public function getCols ()
-    {
-        return $this->children["cols"];
+        foreach ($this->getCols() as $col) {
+            if ($col->getAttr("def.id")) {
+                return $col;
+            }
+        }
+        return null;
     }
     /**
-     * @getter
+     * @getter children.col
+     */
+    public function getCols ()
+    {
+        return $this->children["col"];
+    }
+    /**
+     * @getter children.enum
      */
     public function getEnum ()
     {
-        return $this->children["enum"];
+        return $this->children["enum"][0];
     }
     /**
      * Tableクラスの定義があるかどうか

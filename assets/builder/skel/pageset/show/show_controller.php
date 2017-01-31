@@ -3,20 +3,14 @@
      */
     protected static $form_search = array(
         "search_page" => ".view_list",
-<? if ( ! $t["nodef"]): ?>
-        "search_table" => "<?=$t["name"]?>",
-<? endif; /* $t["nodef"]*/ ?>
+        "search_table" => "<?=$table->getName()?>",
         "fields" => array(
-            "freeword" => array("search"=>"word", "target_col"=>array(<? foreach ($this->filter_fields($t["fields"],"search") as $tc): ?>"<?=$tc['short_name']?>",<? endforeach; ?>)),
+            "freeword" => array("search"=>"word", "target_col"=>array(<?php foreach ($controller->getListCols() as $col): ?>"<?=$col->getName()?>",<?php endforeach; ?>)),
             "p" => array("search"=>"page", "volume"=>20),
-            "order" => array("search"=>"sort", "default"=>"<?=$t["name"]?>.<?=$t['pkey']?>@ASC"),
+            "order" => array("search"=>"sort", "default"=>"<?=$table->getIdCol()->getName()?>@ASC"),
         ),
     );
-    /**
-     * @page
-     * @title <?=$controller_label?> 一覧表示
-     */
-    public function act_view_list ()
+<?=$pageset->getPageByType("list")->getMethodDecSource()?>
     {
         if ($this->forms["search"]->receive()) {
             $this->forms["search"]->save();
@@ -24,4 +18,7 @@
             $this->forms["search"]->restore();
         }
         $this->vars["ts"] = $this->forms["search"]->search()->select();
+    }
+<?=$pageset->getPageByType("detail")->getMethodDecSource()?>
+    {
     }

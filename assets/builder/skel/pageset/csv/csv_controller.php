@@ -5,35 +5,24 @@
         "file_charset" => "SJIS-WIN",
         "data_charset" => "UTF-8",
         "rows" => array(
-            "<?=$t['pkey']?>" => "#ID",
-<? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
-            "<?=$tc['short_name']?>" => "<?=$tc['label']?>",
-<? endforeach; ?>
+            "<?=$table->getIdCol()->getName()?>" => "#ID",
+<?php foreach ($controller->getInputCols() as $col): ?>
+            "<?=$col->getName()?>" => "<?=$col->getLabel()?>",
+<?php endforeach; ?>
         ),
         "filters" => array(
             array("filter" => "sanitize"),
-<? foreach ($this->filter_fields($t["fields"],"save") as $tc): ?>
-<? if ($tc['enum']): ?>
-            array("target" => "<?=$tc['short_name']?>",
-                    "filter" => "list_select",
-<? if ($tc['type'] == "checklist"): ?>
-                    "delim" => "/",
-<? endif; /* $tc['type'] == "checklist" */ ?>
-                    "enum" => "<?=$tc['enum']?>"),
-<? endif; /* $tc['enum'] */ ?>
-<? if ($tc['type'] == "date"): ?>
-            array("target" => "<?=$tc['short_name']?>",
-                    "filter" => "date"),
-<? endif; /* $tc['type'] == "date" */ ?>
-<? endforeach; ?>
+<?php foreach ($controller->getInputCols() as $col): ?>
+<?php if ($col->getEnumSet()): ?>
+            array("target" => "<?=$col->getName?>", "filter" => "list_select",
+                "enum" => "<?=$col->getEnumSet()->getName()?>",
+            ),
+<? endif; ?>
+<?php endforeach; ?>
         ),
         "ignore_empty_line" => true,
     );
-    /**
-     * @page
-     * @title <?=$controller_label?> CSVダウンロード
-     */
-    public function act_view_csv ()
+<?=$pageset->getPageByType("export")->getMethodDecSource()?>
     {
         // 検索結果の取得
         $this->forms["search"]->restore();
@@ -65,34 +54,18 @@
             "csv_file",
         ),
     );
-    /**
-     * @page
-     * @title CSVインポートフォーム
-     */
-    public function act_entry_csv_form ()
+<?=$pageset->getPageByType("import")->getMethodDecSource()?>
     {
         if ($this->forms["entry_csv"]->receive()) {
             if ($this->forms["entry_csv"]->isValid()) {
                 $this->forms["entry_csv"]->save();
-                return redirect("page:.entry_csv_confirm");
+                return redirect("page:<?=$pageset->getPageByType("complete")->getLocalName()?>");
             }
         } elseif ( ! $this->request["back"]) {
             $this->forms["entry"]->clear();
         }
     }
-    /**
-     * @page
-     * @title CSVインポート確認
-     */
-    public function act_entry_csv_confirm ()
-    {
-        return redirect('page:.entry_csv_exec');
-    }
-    /**
-     * @page
-     * @title CSVインポート完了
-     */
-    public function act_entry_csv_exec ()
+<?=$pageset->getPageByType("complete")->getMethodDecSource()?>
     {
         if ( ! $this->forms["entry_csv"]->isEmpty()) {
             if ( ! $this->forms["entry_csv"]->isValid()) {
@@ -102,12 +75,12 @@
             $csv_file = file_storage()->get($this->forms["entry_csv"]["csv_file"]);
             $csv = util("CSVHandler", array($csv_file->getFile(),"r",$this->csv_setting));
             // DBへの登録処理
-            <?=$__table_instance?>->transactionBegin();
+            table("<?=$table->getName()?>")->transactionBegin();
             while ($t=$csv->read_line()) {
-                <?=$__table_instance?>->save($t);
+                table("<?=$table->getName()?>")->save($t);
             }
-            <?=$__table_instance?>->transactionCommit();
+            table("<?=$table->getName()?>")->transactionCommit();
             $this->forms["entry_csv"]->clear();
         }
-        return redirect("page:.view_list", array("back"=>"1"));
+        return redirect("page:<?=$controller->getIndexPage()->getLocalPage()?>", array("back"=>"1"));
     }

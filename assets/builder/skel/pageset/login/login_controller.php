@@ -11,29 +11,17 @@
         "rules" => array(
         ),
     );
-    /**
-     * @page
-     * @title <?=$controller_label?> TOP
-     */
-    public function act_index ()
-    {
-        return redirect("page:.login");
-    }
-    /**
-     * @page
-     * @title <?=$controller_label?> ログインフォーム
-     */
-    public function act_login ()
+<?=$pageset->getPageByType("login")->getMethodDecSource()?>
     {
         if ($this->forms["login"]->receive()) {
             if ($this->forms["login"]->isValid()) {
                 // ログイン処理
-                if (app()->auth->login("<?=$c["access_as"]?>", $this->forms["login"])) {
+                if (app()->auth->login(app()->auth->getAccount()->getRole(), $this->forms["login"])) {
                     // ログイン成功時の転送処理
                     if ($redirect = $this->forms["login"]["redirect"]) {
                         return redirect("url:".$redirect);
                     } else {
-                        return redirect("page:<?=builder()->getSchema()->getController($c["name"])->getRole()->getIndexController()->getName()?>.index");
+                        return redirect("page:<?=$controller->getRole()->getIndexController()->getName()->getIndexPage()->getFullPage()?>");
                     }
                 } else {
                     $this->vars["login_error"] = true;
@@ -44,14 +32,10 @@
             $this->forms["login"]["redirect"] = sanitize_decode($redirect);
         }
     }
-    /**
-     * @page
-     * @title <?=$controller_label?> ログアウト
-     */
-    public function act_logout ()
+<?=$pageset->getPageByType("logout")->getMethodDecSource()?>
     {
         // ログアウト処理
-        app()->auth->logout("<?=$c["access_as"]?>");
+        app()->auth->logout(app()->auth->getAccount()->getRole());
         // ログアウト後の転送処理
-        return redirect("page:.login");
+        return redirect("page:<?=$controller->getIndexPage()->getLocalPage()?>");
     }

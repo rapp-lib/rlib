@@ -8,6 +8,16 @@ class ColElement extends Element_Base
         return $this->getAttr("label");
     }
     /**
+     * @getter EnumSet
+     */
+    public function getEnumSet ()
+    {
+        if ($enum_set_name = $this->getAttr("enum_set_name")) {
+            return $this->getParent()->getEnum()->getEnumSetByName($enum_set_name);
+        }
+        return null;
+    }
+    /**
      * 表示HTMLソースの取得
      */
     public function getShowSource ($var_name)

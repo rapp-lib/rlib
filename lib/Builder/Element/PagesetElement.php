@@ -22,15 +22,27 @@ class PagesetElement extends Element_Base
         return $this->getParent()->getLabel();
     }
     /**
-     * @getter Pages
+     * @getter Page
      */
     public function getPages ()
     {
         return (array)$this->children["page"];
     }
-    public function getPage ($name)
+    public function getPageByType ($type)
     {
-        return $this->children["page"][$name];
+        foreach ($this->getPages() as $page) {
+            if ($page->getAttr("type")==$type) {
+                return $page;
+            }
+        }
+        return null;
+    }
+    /**
+     * @getter Controller
+     */
+    public function getController ()
+    {
+        return $this->getParent();
     }
     /**
      * ControllerClass中のPHPコードを取得

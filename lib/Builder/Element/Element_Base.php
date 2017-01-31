@@ -19,7 +19,22 @@ class Element_Base
     }
     protected function init ()
     {
-        //
+        // Overrideして処理を記述
+    }
+    protected function deply ($recursive=false)
+    {
+        $deploy_callbacks = (array)$this->getSchema()->getConfig("deploy.".$this->getElementType());
+        foreach ($deploy_callbacks as $deploy_callback) {
+            call_user_func($deploy_callback, $this);
+        }
+        // 再帰的に関係要素もdeploy実行
+        if ($recursive) {
+            foreach ($this->children as $type => $elements) {
+                foreach ($elements as $element) {
+                    $element->deploy($recursive);
+                }
+            }
+        }
     }
     public function getName ()
     {
@@ -40,5 +55,17 @@ class Element_Base
         } else {
             return $this->getParent()->getSchema();
         }
+    }
+    /**
+     * 要素のTypeを小文字で返す
+     */
+    public function getElementType ()
+    {
+        $element_type = null;
+        $class = get_class($this);
+        if (preg_match('!(\w+)Element$!', $class, $match)) {
+            $element_type = str_underscore($match[1]);
+        }
+        return $element_type;
     }
 }
