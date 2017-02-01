@@ -76,7 +76,7 @@ class Table_Base extends Table_Core
         if ($this->query->getType() == "update") {
             $id = $this->query->getCondition($this->getIdColName());
         } elseif ($this->query->getType() == "insert") {
-            $id = $this->getLastInsertId();
+            $id = $this->result->getLastInsertId();
         }
         if ( ! isset($id)) {
             report_warning("IDの特定できないUpdate/Insertに対してAssoc処理は実行できません",array(
@@ -89,7 +89,7 @@ class Table_Base extends Table_Core
             ->findBy($assoc_fkey, $id)
             ->deleteAll();
         // 登録対象のレコードを順次Insert
-        foreach ($values as $i => $record) {
+        foreach ((array)$values as $i => $record) {
             // value_col指定=1項目の値のみに絞り込む場合
             if (isset($assoc_value_col)) {
                 $record = array($assoc_fkey=>$id, $assoc_value_col=>$record);
