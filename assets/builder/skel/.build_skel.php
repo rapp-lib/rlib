@@ -15,11 +15,6 @@
                         $table->getSchema()->fetch("classes.table", array("table"=>$table),
                             "/app/Table/".$table->getClassName().".php");
                     }
-                    if ($table->getEnum()) {
-                        // Enumクラス
-                        $table->getSchema()->fetch("classes.enum", array("table"=>$table),
-                            "/app/Enum/".$table->getEnum()->getClassName().".php");
-                    }
                 },
             ),
             "col" => array(
@@ -28,6 +23,9 @@
             ),
             "enum" => array(
                 function ($enum) {
+                    // Enumクラス
+                    $enum->getSchema()->fetch("classes.enum", array("enum"=>$enum),
+                        "/app/Enum/".$enum->getClassName().".php");
                 },
             ),
             "enum_set" => array(
@@ -38,9 +36,9 @@
                 function ($role) {
                     // ヘッダー/フッターHTMLファイル
                     $role->getSchema()->fetch("include_html.header", array("role"=>$role),
-                        "/html/".$role->getHeaderPath());
+                        "/html".$role->getHeaderPath());
                     $role->getSchema()->fetch("include_html.footer", array("role"=>$role),
-                        "/html/".$role->getFooterPath());
+                        "/html".$role->getFooterPath());
                     // Roleクラス
                     $role->getSchema()->fetch("classes.role", array("role"=>$role),
                         "/app/Role/".$role->getClassName().".php");
@@ -65,7 +63,7 @@
                     if ($page->hasHtml()) {
                         // pageのHtmlファイル
                         $page->getSchema()->fetch("parts.page_frame", array("page"=>$page),
-                            "/html/".$page->getPath());
+                            "/html".$page->getPath());
                     }
                 },
             ),
@@ -78,10 +76,10 @@
                 "pages.static.template_file" => null,// $dir."/pageset/index/static.html",
             ),
             "login" => array(
-                "index_page" => "form",
+                "index_page" => "login",
                 "controller.template_file" => $dir."/pageset/login/login_controller.php",
-                "pages.form.template_file" => $dir."/pageset/login/form.html",
-                "pages.logout.template_file" => null,// $dir."/pageset/login/logout.html",
+                "pages.login.template_file" => $dir."/pageset/login/login.html",
+                "pages.exit.template_file" => null,// $dir."/pageset/login/exit.html",
             ),
             "show" => array(
                 "index_page" => "list",
@@ -102,10 +100,14 @@
                 "pages.delete.template_file" => null,// $dir."/pageset/delete/delete.html",
             ),
             "csv" => array(
-                "index_page" => "form",
+                "index_page" => "download",
                 "controller.template_file" => $dir."/pageset/csv/csv_controller.php",
-                "pages.form.template_file" => $dir."/pageset/csv/form.html",
-                "pages.confirm.template_file" => null,// $dir."/pageset/csv/confirm.html",
+                "pages.download.template_file" => null,// $dir."/pageset/csv/download.html",
+            ),
+            "import" => array(
+                "index_page" => "import",
+                "controller.template_file" => $dir."/pageset/import/import_controller.php",
+                "pages.import.template_file" => $dir."/pageset/import/import.html",
                 "pages.complete.template_file" => null,// $dir."/pageset/csv/complete.html",
             ),
         ),

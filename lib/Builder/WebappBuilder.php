@@ -12,8 +12,7 @@ class WebappBuilder extends SchemaElement implements Provider
         $skel_dir = constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
         $current_dir = constant("R_APP_ROOT_DIR");
         $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
-        //$deploy_dir = app()->config("builder.overwrite") ? $current_dir : $work_dir."/deploy";
-        $deploy_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/test-01";
+        $deploy_dir = app()->config("builder.overwrite") ? $current_dir : $work_dir."/deploy";
         $schema_csv_file = constant("R_APP_ROOT_DIR")."/config/schema.config.csv";
         array_add($this->config, array(
             "current_dir" => $current_dir,
@@ -86,8 +85,14 @@ class WebappBuilder extends SchemaElement implements Provider
         // テンプレートファイルの読み込み
         report_buffer_start();
         ob_start();
-        extract($vars,EXTR_REFS);
-        include($template_file);
+        try {
+            extract($vars,EXTR_REFS);
+            include($template_file);
+        } catch (R\Lib\Core\Exception\ResponseException $e) {
+            ob_end_clean();
+            report_buffer_end();
+            throw $e;
+        }
         $source = ob_get_clean();
         $source = str_replace(array('<!?','<#?'),'<?',$source);
         report_buffer_end();

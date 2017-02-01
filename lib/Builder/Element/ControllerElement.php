@@ -11,23 +11,33 @@ class ControllerElement extends Element_Base
         $pagesets = array();
         // Pagesetの補完
         if ($this->getAttr("type") == "index") {
-            $pagesets[] = array("type"=>"blank");
+            $pagesets[] = array("type"=>"index");
         } elseif ($this->getAttr("type") == "login") {
             $pagesets[] = array("type"=>"login");
-        } elseif ($this->getAttr("type") == "master") {
-            if ($this->getAttr("usage") != "form") {
-                $pagesets[] = array("type"=>"show");
-            } elseif ($this->getAttr("usage") != "view") {
-                $pagesets[] = array("type"=>"form");
+            if ($this->getAttr("use_reminder")) {
+                $pagesets[] = array("type"=>"reminder");
             }
+        } elseif ($this->getAttr("type") == "form") {
+            $pagesets[] = array("type"=>"form");
+            if ($this->getAttr("use_mailcheck")) {
+                $pagesets[] = array("type"=>"mailcheck");
+            }
+        } elseif ($this->getAttr("type") == "show") {
+            $pagesets[] = array("type"=>"show");
+        } elseif ($this->getAttr("type") == "master") {
+            $pagesets[] = array("type"=>"show");
+            $pagesets[] = array("type"=>"form");
             if ($this->getAttr("use_csv")) {
                 $pagesets[] = array("type"=>"csv");
             }
+            if ($this->getAttr("use_import")) {
+                $pagesets[] = array("type"=>"import");
+            }
         }
         // Pagesetの登録
-        foreach ($pagesets as $pageset) {
-            $pageset_name = $pageset["name"] ? $pageset["name"] : $pageset["type"];
-            $this->children["pageset"][$pageset_name] = new PagesetElement($pageset_name, $pageset, $this);
+        foreach ($pagesets as $pageset_attrs) {
+            $pageset_name = $pageset_attrs["name"] ? $pageset_attrs["name"] : $pageset_attrs["type"];
+            $this->children["pageset"][$pageset_name] = new PagesetElement($pageset_name, $pageset_attrs, $this);
         }
     }
     /**
@@ -96,6 +106,15 @@ class ControllerElement extends Element_Base
     {
         return (array)$this->children["pageset"];
     }
+    public function getPagesetByType ($type)
+    {
+        foreach ($this->getPagesets() as $pageset) {
+            if ($pageset->getAttr("type")==$type) {
+                return $pageset;
+            }
+        }
+        return null;
+    }
     /**
      * @getter Page
      */
@@ -103,9 +122,7 @@ class ControllerElement extends Element_Base
     {
         //TODO: 1番目のPageが取得されてしまうので、制御を加える
         foreach ($this->getPagesets() as $pageset) {
-            foreach ($pageset->getPages() as $page) {
-                return $page;
-            }
+            return $pageset->getIndexPage();
         }
         return null;
     }

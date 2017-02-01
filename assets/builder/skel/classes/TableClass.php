@@ -6,10 +6,10 @@ namespace R\App\Table;
  */
 class <?=$table->getClassName()?> extends Table_App
 {
-    protected static $table_name = ".$table->getName().";
+    protected static $table_name = "<?=$table->getName()?>";
     protected static $cols = array(
-<?php foreach ($table->getCol() as $col): ?>
-        <?=$col->getColDef()?><?="\n"?>
+<?php foreach ($table->getCols() as $col): ?>
+<?=$col->getColDefSource()?>
 <?php endforeach; ?>
     );
     protected static $def = array(

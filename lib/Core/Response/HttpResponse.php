@@ -48,6 +48,9 @@ class HttpResponse implements Response
     }
     public function raise ()
     {
+        report("Raise Response",array(
+            "response" => $this,
+        ));
         throw new ResponseException($this);
     }
     public function render ()

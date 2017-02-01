@@ -5,8 +5,10 @@ class EnumElement extends Element_Base
 {
     public function init ()
     {
-        foreach ((array)$this->getAttr("enum_sets") as $enum_set_name => $enum_set_attrs) {
-            $this->children["enum_set"] = new EnumSet($enum_set_name,$enum_set_attrs,null);
+        $enum_sets = (array)$this->getAttr("enum_sets");
+        unset($this->attrs["enum_sets"]);
+        foreach ($enum_sets as $enum_set_name => $enum_set_attrs) {
+            $this->children["enum_set"][$enum_set_name] = new EnumSetElement($enum_set_name,$enum_set_attrs,$this);
         }
     }
     public function getClassName ()

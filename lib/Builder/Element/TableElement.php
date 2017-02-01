@@ -6,13 +6,13 @@ class TableElement extends Element_Base
     protected function init ()
     {
         // Col登録
-        $cols = (array)$this->getAttr("cols_all");
+        $cols = (array)$this->getAttr("cols");
+        unset($this->attrs["cols"]);
         $enum_sets = array();
         foreach ($cols as $col_name => $col_attrs) {
             if (in_array($col_attrs["type"],array("select","radioselect","checklist"))) {
-                $enum_set_name = $this->getName().".".$col_name;
-                $enum_sets[$enum_set_name] = array("col_name"=>$col_name);
-                $col_attrs["enum_set_name"] = $enum_set_name;
+                $enum_sets[$col_name] = array("col_name"=>$col_name);
+                $col_attrs["enum_set_name"] = $this->getName().".".$col_name;
             }
             $this->children["col"][$col_name] = new ColElement($col_name, $col_attrs, $this);
         }
@@ -38,6 +38,9 @@ class TableElement extends Element_Base
                 return $col;
             }
         }
+        report_error("TableにIDカラムがありません",array(
+            "table" => $this,
+        ));
         return null;
     }
     /**

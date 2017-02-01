@@ -21,7 +21,7 @@
                     if ($redirect = $this->forms["login"]["redirect"]) {
                         return redirect("url:".$redirect);
                     } else {
-                        return redirect("page:<?=$controller->getRole()->getIndexController()->getName()->getIndexPage()->getFullPage()?>");
+                        return redirect("page:<?=$controller->getRole()->getIndexController()->getIndexPage()->getFullPage()?>");
                     }
                 } else {
                     $this->vars["login_error"] = true;
@@ -29,10 +29,10 @@
             }
         // 転送先の設定
         } elseif ($redirect = $this->request["redirect"]) {
-            $this->forms["login"]["redirect"] = sanitize_decode($redirect);
+            $this->forms["login"]["redirect"] = htmlspecialchars_decode($redirect);
         }
     }
-<?=$pageset->getPageByType("logout")->getMethodDecSource()?>
+<?=$pageset->getPageByType("exit")->getMethodDecSource()?>
     {
         // ログアウト処理
         app()->auth->logout(app()->auth->getAccount()->getRole());

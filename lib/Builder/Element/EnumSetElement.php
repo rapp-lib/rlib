@@ -1,6 +1,10 @@
 <?php
 namespace R\Lib\Builder\Element;
 
-class EnumValuesElement extends Element_Base
+class EnumSetElement extends Element_Base
 {
+    public function getFullName ()
+    {
+        return $this->getParent()->getName().".".$this->getName();
+    }
 }

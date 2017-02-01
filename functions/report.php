@@ -371,20 +371,19 @@
         if (app() && app()->hasProvider("debug") && app()->debug()) {
 
             $config =array();
-            $config["output_format"] = ! (php_sapi_name()=="cli") && ! registry("Report.output_to_file") ? "html" : "plain";
+            $config["output_format"] = ! (php_sapi_name()=="cli")/* && ! registry("Report.output_to_file")*/ ? "html" : "plain";
             $html =report_template($errstr,$params,$options,$backtraces,$config);
 
             // ファイル出力
-            if ($file_name =registry("Report.output_to_file")) {
+            if (false/*$file_name =registry("Report.output_to_file")*/) {
 
                 file_put_contents($file_name,$html,FILE_APPEND|LOCK_EX);
                 chmod($file_name,0777);
 
             // Report.buffer_enableによる出力抑止
-            } else if ($buffer_level =registry("Report.buffer_enable")) {
+            } elseif ($GLOBALS["__REPORT_BUFFER_LEVEL"]) {
 
-                $report_buffer =& ref_globals("report_buffer");
-                $report_buffer[$buffer_level] .=$html;
+                $GLOBALS["__REPORT_BUFFER"] .= $html;
 
             // 直接出力
             } else {
@@ -412,45 +411,23 @@
         }
     }
 
-    //-------------------------------------
-    //
-    function report_buffer_start () {
-
-        $buffer_level =registry("Report.buffer_enable");
-        registry("Report.buffer_enable",$buffer_level+1);
+    function report_buffer_start ()
+    {
+        $GLOBALS["__REPORT_BUFFER_LEVEL"] += 1;
     }
-
-    //-------------------------------------
-    //
-    function report_buffer_end ($all=false) {
-
-        $buffer_level =registry("Report.buffer_enable");
-
-        // 開始していなければ処理を行わない
-        if ( ! $buffer_level) {
-
-            return;
-        }
-
-        $report_buffer =& ref_globals("report_buffer");
-        $output =$report_buffer[$buffer_level];
-        unset($report_buffer[$buffer_level]);
-
-        registry("Report.buffer_enable",--$buffer_level);
-
-        if ($buffer_level > 0) {
-
-            $report_buffer[$buffer_level] .=$output;
-
-        } else {
-
-            print $output;
-        }
-
+    function report_buffer_end ($all=false)
+    {
         // 全件終了
         if ($all) {
-
-            report_buffer_end($all);
+            $GLOBALS["__REPORT_BUFFER_LEVEL"] = 1;
+        }
+        // 開始していなければ処理を行わない
+        if ($GLOBALS["__REPORT_BUFFER_LEVEL"] > 0) {
+            $GLOBALS["__REPORT_BUFFER_LEVEL"] -= 1;
+            if ($GLOBALS["__REPORT_BUFFER_LEVEL"] == 0) {
+                print $GLOBALS["__REPORT_BUFFER"];
+                $GLOBALS["__REPORT_BUFFER"] = "";
+            }
         }
     }
 

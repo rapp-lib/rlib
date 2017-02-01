@@ -42,24 +42,14 @@ class Session implements InvokableProvider
         return new Session($key);
     }
     /**
-     * 値を追加する
+     * 値を登録する
      */
-    public function add ($key, $value=null)
+    public function set ($key, $value)
     {
         if (strlen($this->base_key)) {
             $key = strlen($key) ? $this->base_key.".".$key : $this->base_key;
         }
         array_add($_SESSION, $key, $value);
-    }
-    /**
-     * 値を登録する
-     */
-    public function set ($key, $value=null)
-    {
-        if (strlen($this->base_key)) {
-            $key = strlen($key) ? $this->base_key.".".$key : $this->base_key;
-        }
-        array_set($_SESSION, $key, $value);
     }
     /**
      * 登録されている値を取得する

@@ -75,9 +75,9 @@
             // 数値添え字の場合上書きせず追加
             if (is_numeric($key)) {
                 if ( ! is_array($ref)) {
-                    $ref = array("a");
+                    $ref = array();
                 }
-                $key = count($ref)==0 ? 0 : (int)max(array_keys($ref));
+                $key = count($ref)==0 ? 0 : (int)max(array_keys($ref))+1;
             }
             // valueを配列で指定した場合
             if (is_array($value)) {

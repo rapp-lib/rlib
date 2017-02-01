@@ -23,9 +23,9 @@ class PageElement extends Element_Base
     {
         $path = "/".str_replace('_','/',$this->getController()->getName())."/".$this->getName().".html";
         if (preg_match('!/index/index\.html$!',$path)) {
-            $path = preg_match('!/index/index\.html$!','/index.html',$path);
+            $path = preg_replace('!/index/index\.html$!','/index.html',$path);
         } elseif (preg_match('!/index/static\.html$!',$path)) {
-            $path = preg_match('!/index/static\.html$!','/*',$path);
+            $path = preg_replace('!/index/static\.html$!','/*',$path);
         }
         return $path;
     }
