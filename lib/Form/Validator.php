@@ -61,6 +61,10 @@ class Validator
                             return;
                         }
                     }
+                } elseif (isset($rule["if_value_is"])) {
+                    if ($rule["if_value_is"]=="blank" && strlen($if_value)) {
+                        return;
+                    }
                 } else {
                     if ( ! strlen($if_value)) {
                         return;

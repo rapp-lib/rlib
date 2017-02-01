@@ -19,7 +19,6 @@ class <?=$role->getClassName()?> extends Role_App
         }
         return $result;
     }
-
     /**
      * @override
      */
@@ -31,7 +30,6 @@ class <?=$role->getClassName()?> extends Role_App
         ));
 <?php endif; ?>
     }
-
     /**
      * @override
      */
@@ -39,7 +37,6 @@ class <?=$role->getClassName()?> extends Role_App
     {
         session_regenerate_id(true);
     }
-
     /**
      * @override
      */
@@ -47,7 +44,6 @@ class <?=$role->getClassName()?> extends Role_App
     {
         session_destroy();
     }
-
     /**
      * @override
      */
