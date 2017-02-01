@@ -10,12 +10,12 @@
             "csv_file",
         ),
     );
-<?=$pageset->getPageByType("form")->getMethodDecSource()?>
+<?=$pageset->getPageByType("import")->getMethodDecSource()?>
     {
         if ($this->forms["entry_csv"]->receive()) {
             if ($this->forms["entry_csv"]->isValid()) {
                 $this->forms["entry_csv"]->save();
-                return redirect("page:<?=$pageset->getPageByType("complete")->getLocalName()?>");
+                return redirect("page:<?=$pageset->getPageByType("complete")->getLocalPage()?>");
             }
         } elseif ( ! $this->request["back"]) {
             $this->forms["entry"]->clear();

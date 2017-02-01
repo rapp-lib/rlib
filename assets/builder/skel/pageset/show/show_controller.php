@@ -5,7 +5,7 @@
         "search_page" => ".view_list",
         "search_table" => "<?=$table->getName()?>",
         "fields" => array(
-            "freeword" => array("search"=>"word", "target_col"=>array(<?php foreach ($controller->getListCols() as $col): ?>"<?=$col->getName()?>",<?php endforeach; ?>)),
+            "freeword" => array("search"=>"word", "target_col"=>array(<?php foreach ($controller->getListCols() as $col): ?><?php if ($col->getAttr("def.type")=="text"): ?>"<?=$col->getName()?>",<?php endif; ?><?php endforeach; ?>)),
             "p" => array("search"=>"page", "volume"=>20),
             "order" => array("search"=>"sort", "default"=>"<?=$table->getIdCol()->getName()?>@ASC"),
         ),

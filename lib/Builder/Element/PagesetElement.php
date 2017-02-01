@@ -8,8 +8,7 @@ class PagesetElement extends Element_Base
         // Page登録
         $page_configs = (array)$this->getSchema()->getConfig($this->getTemplateEntry().".pages");
         foreach ($page_configs as $page_type => $page_config) {
-            //TODO: typeをそのままnameにしてしまっている
-            $page_name = $page_type;
+            $page_name = $this->getName()==$page_type ? $page_type : $this->getName()."_".$page_type;
             $page_attrs = array("type"=>$page_type);
             $this->children["page"][$page_name] = new PageElement($page_name, $page_attrs, $this);
         }
@@ -40,6 +39,17 @@ class PagesetElement extends Element_Base
             "type" => $type,
             "pageset" => $this,
         ));
+        return null;
+    }
+    /**
+     * @getter Page
+     */
+    public function getIndexPage ()
+    {
+        //TODO: 1番目のPageが取得されてしまうので、制御を加える
+        foreach ($this->getPages() as $page) {
+            return $page;
+        }
         return null;
     }
     /**

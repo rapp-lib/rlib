@@ -713,16 +713,15 @@ class Table_Core
     private function getDBI ()
     {
         if ( ! defined("DBI_LOADED")) {
-            register_shutdown_webapp_function(function(){
-                $instance = & ref_globals("loaded_dbi");
+            register_shutdown_function(function(){
+                $instance = & $GLOBALS["loaded_dbi"];
                 foreach ((array)$instance as $dbi) {
                     $result =$dbi->rollback();
                 }
             });
             define("DBI_LOADED",true);
         }
-
-        $instance = & ref_globals("loaded_dbi");
+        $instance =& $GLOBALS["loaded_dbi"];
         $name =static::$ds_name;
 
         if ( ! $instance[$name]) {

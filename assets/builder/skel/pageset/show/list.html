@@ -12,9 +12,15 @@
 {{/form}}
 
 <div class="ad_btn clearfix">
-    <a href='{{".entry_form"|page_to_url}}' class="create">新規登録</a>
-    <a href='{{".view_csv"|page_to_url}}' class="export">CSV一括ダウンロード</a>
-    <a href='{{".entry_csv_form"|page_to_url}}' class="import">CSVインポート</a>
+<?php if ($pageset = $controller->getPagesetByType("form")): ?>
+    <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="create">新規登録</a>
+<?php endif; ?>
+<?php if ($pageset = $controller->getPagesetByType("csv")): ?>
+    <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="export">CSVダウンロード</a>
+<?php endif; ?>
+<?php if ($pageset = $controller->getPagesetByType("import")): ?>
+    <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="import">一括登録</a>
+<?php endif; ?>
 </div>
 
 {{if count($ts)>0}}
@@ -36,8 +42,12 @@
         <td><?=$col->getShowSource()?></td>
 <? endforeach; ?>
         <td>
-            <a href='{{".entry_form"|page_to_url|url:["id"=>$t.id]}}' class="edit">編集</a>
-            <a href='{{".delete"|page_to_url|url:["id"=>$t.id]}}' class="delete" onclick="return confirm('削除します');">削除</a>
+<?php if ($pageset = $controller->getPagesetByType("form")): ?>
+            <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="edit">編集</a>
+<?php endif; ?>
+<?php if ($pageset = $controller->getPagesetByType("delete")): ?>
+            <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="delete" onclick="return confirm('削除します');">削除</a>
+<?php endif; ?>
         </td>
     </tr>
     {{/foreach}}

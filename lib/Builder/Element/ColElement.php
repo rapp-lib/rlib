@@ -13,7 +13,7 @@ class ColElement extends Element_Base
     public function getEnumSet ()
     {
         if ($enum_set_name = $this->getAttr("enum_set_name")) {
-            return $this->getParent()->getEnum()->getEnumSetByName($enum_set_name);
+            return $this->getParent()->getEnum()->getEnumSetByName($this->getName());
         }
         return null;
     }
@@ -22,14 +22,26 @@ class ColElement extends Element_Base
      */
     public function getShowSource ($var_name='$t')
     {
-        return '{{'.$var_name.'.'.$this->getName().'}}';
+        $html = '{{'.$var_name.'.'.$this->getName();
+        if ($this->getAttr("type")=="date") {
+            $html .='|date:"Y/m/d"';
+        }
+        if ($enum_set = $this->getEnumSet()) {
+            $html .='|enum_value:"'.$enum_set->getFullName().'"';
+        }
+        $html .= '}}';
     }
     /**
      * 入力HTMLソースの取得
      */
     public function getInputSource ()
     {
-        return '{{input type="'.$this->getAttr("type").'" name="'.$this->getName().'"}}';
+        $html = '{{input name="'.$this->getName().'" type="'.$this->getAttr("type").'"';
+        if ($enum_set = $this->getEnumSet()) {
+            $html .=' enum="'.$enum_set->getFullName().'"';
+        }
+        $html .= '}}';
+        return $html;
     }
     /**
      * $colsの定義行の取得
@@ -38,7 +50,7 @@ class ColElement extends Element_Base
     {
         $def = (array)$this->getAttr("def");
         $def["comment"] = $this->getAttr("label");
-        if ($this->getAttr("type")=="checklist" && ! $def["format"]) {
+        if ($this->getAttr("type")=="checklist" && $def["type"]=="text" && ! $def["format"]) {
             $def["format"] = "json";
         }
         foreach ($def as $k => $v) {

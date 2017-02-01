@@ -30,13 +30,6 @@
     }
 
     //-------------------------------------
-    // PathからURLを得る（主にRedirectやHREFに使用）
-    function path_to_url ($path, $full_url=false) {
-        report_warning("@deprecated path_to_url");
-        return $full_url ? route($path)->getFullUrl() : route($path)->getUrl();
-    }
-
-    //-------------------------------------
     // URLからPathを得る
     function url_to_path ($url, $index_filename="index.html") {
         report_warning("@deprecated url_to_path");

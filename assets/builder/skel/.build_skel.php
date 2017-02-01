@@ -79,7 +79,7 @@
                 "index_page" => "login",
                 "controller.template_file" => $dir."/pageset/login/login_controller.php",
                 "pages.login.template_file" => $dir."/pageset/login/login.html",
-                "pages.logout.template_file" => null,// $dir."/pageset/login/logout.html",
+                "pages.exit.template_file" => null,// $dir."/pageset/login/exit.html",
             ),
             "show" => array(
                 "index_page" => "list",
@@ -105,9 +105,9 @@
                 "pages.download.template_file" => null,// $dir."/pageset/csv/download.html",
             ),
             "import" => array(
-                "index_page" => "form",
+                "index_page" => "import",
                 "controller.template_file" => $dir."/pageset/import/import_controller.php",
-                "pages.form.template_file" => $dir."/pageset/import/form.html",
+                "pages.import.template_file" => $dir."/pageset/import/import.html",
                 "pages.complete.template_file" => null,// $dir."/pageset/csv/complete.html",
             ),
         ),
