@@ -387,8 +387,8 @@ class Table_Core
         $this->execQuery("select");
         $record = $this->result->fetch();
         if ($this->result->fetch()) {
-            report_warnig("複数Record取得して最初の1件のみを結果とします",array(
-                "table" => $table,
+            report_warning("複数Record取得して最初の1件のみを結果とします",array(
+                "table" => $this,
             ));
         }
         return $record;

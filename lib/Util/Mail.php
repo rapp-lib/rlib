@@ -155,7 +155,17 @@ class Mail
     }
     public function send ()
     {
-        report($this->mailer);
-        return $this->mailer->send();
+        $result = $this->mailer->send();
+        if ($result) {
+            report("メール送信完了",array(
+                "mailer" => $this->mailer,
+            ));
+        } else {
+            report_warning("メール送信失敗",array(
+                "mailer" => $this->mailer,
+                "error" => $this->mailer->ErrorInfo,
+            ));
+        }
+        return $result;
     }
 }
