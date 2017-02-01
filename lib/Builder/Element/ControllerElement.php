@@ -6,46 +6,36 @@ namespace R\Lib\Builder\Element;
  */
 class ControllerElement extends Element_Base
 {
-    protected $actions = array();
-
     protected function init ()
     {
-        $list =array();
-
+        $pagesets = array();
+        // Pagesetの補完
         if ($this->getAttr("type") == "index") {
-            $list["index"] =array("label"=>"INDEX", "has_html"=>true);
-            $list["static"] =array("label"=>"STATIC", "has_html"=>false, "static"=>true);
-        }
-        if ($this->getAttr("type") == "login") {
-            $list["index"] =array("label"=>"TOP", "has_html"=>false);
-            $list["login"] =array("label"=>"ログイン", "has_html"=>true);
-            $list["logout"] =array("label"=>"ログアウト", "has_html"=>false);
-        }
-        if ($this->getAttr("type") == "master") {
-            $list["index"] =array("label"=>"TOP", "has_html"=>false);
+            $pagesets[] = array("type"=>"blank");
+        } elseif ($this->getAttr("type") == "login") {
+            $pagesets[] = array("type"=>"login");
+        } elseif ($this->getAttr("type") == "master") {
             if ($this->getAttr("usage") != "form") {
-                $list["view_list"] =array("label"=>"一覧", "has_html"=>true);
+                $pagesets[] = array("type"=>"show");
+            } elseif ($this->getAttr("usage") != "view") {
+                $pagesets[] = array("type"=>"form");
             }
-            if ($this->getAttr("usage") != "view") {
-                $list["entry_form"] =array("label"=>"入力", "has_html"=>true);
-                $list["entry_confirm"] =array("label"=>"入力確認", "has_html"=>true);
-                $list["entry_exec"] =array("label"=>"入力完了", "has_html"=>true);
-            }
-            if ($this->getAttr("usage") != "form" && $this->getAttr("usage") != "view") {
-                $list["delete"] =array("label"=>"削除", "has_html"=>false);
-            }
-            if ($this->getAttr("usage") != "form" && $this->getAttr("use_csv")) {
-                $list["view_csv"] =array("label"=>"CSVエクスポート", "has_html"=>false);
-            }
-            if ($this->getAttr("usage") != "view" && $this->getAttr("use_csv")) {
-                $list["entry_csv_form"] =array("label"=>"CSVインポート", "has_html"=>true);
-                $list["entry_csv_confirm"] =array("label"=>"CSVインポート 確認", "has_html"=>false);
-                $list["entry_csv_exec"] =array("label"=>"CSVインポート 完了", "has_html"=>false);
+            if ($this->getAttr("use_csv")) {
+                $pagesets[] = array("type"=>"csv");
             }
         }
-        foreach ($list as $action_name => $action_attrs) {
-            $this->actions[$action_name] = new ActionElement($action_name, $action_attrs, $this);
+        // Pagesetの登録
+        foreach ($pagesets as $pageset) {
+            $pageset_name = $pageset["name"] ? $pageset["name"] : $pageset["type"];
+            $this->children["pageset"][$pageset_name] = new PagesetElement($pageset_name, $pageset, $this);
         }
+    }
+    /**
+     * ラベルの取得
+     */
+    public function getLabel ()
+    {
+        return $this->getAttr("label");
     }
     /**
      * クラス名の取得
@@ -55,28 +45,68 @@ class ControllerElement extends Element_Base
         return str_camelize($this->getName())."Controller";
     }
     /**
-     * Actionの取得
+     * 認証必須設定
      */
-    public function getAction ($action_name=null)
+    public function getPrivRequired ()
     {
-        if ( ! $action_name) {
-            return $this->actions;
-        }
-        return $this->actions[$action_name];
+        return $this->getAttr("priv_required");
     }
     /**
-     * Roleの取得
+     * 関係するRoleの取得
      */
     public function getRole ()
     {
-        return $this->getSchema()->getRole($this->getAttr("access_as"));
+        $role_name = $this->getAttr("access_as");
+        return $this->getSchema()->getRoleByName($role_name);
     }
     /**
-     * Tableの取得
+     * 関係するTableの取得
      */
     public function getTable ()
     {
         $table_name = $this->getAttr("table");
-        return $table_name ? $this->getSchema()->getTable($table_name) : null;
+        return $this->getSchema()->getTableByName($table_name);
+    }
+    /**
+     * 入力画面に表示するColの取得
+     */
+    public function getInputCols ()
+    {
+        $cols = array();
+        foreach ($this->getTable()->getCols() as $col) {
+            if ($col->getAttr("type")) {
+                $cols[] = $col;
+            }
+        }
+        return $cols;
+    }
+    /**
+     * 一覧画面に表示するColの取得
+     */
+    public function getListCols ()
+    {
+        $cols = $this->getInputCols();
+        $cols = array_slice($cols,0,5);
+        return $cols;
+    }
+    /**
+     * @getter Pageset
+     */
+    public function getPagesets ()
+    {
+        return (array)$this->children["pageset"];
+    }
+    /**
+     * @getter Page
+     */
+    public function getIndexPage ()
+    {
+        //TODO: 1番目のPageが取得されてしまうので、制御を加える
+        foreach ($this->getPagesets() as $pageset) {
+            foreach ($pageset->getPages() as $page) {
+                return $page;
+            }
+        }
+        return null;
     }
 }

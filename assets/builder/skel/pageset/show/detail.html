@@ -1,0 +1,11 @@
+<table class="tbl_admin detail">
+<?php foreach ($controller->getInputCols() as $col): ?>
+    <tr>
+        <th><?=$col->getLabel()?></th>
+        <td><?=$col->getShowSource()?></td>
+    </tr>
+<? endforeach; ?>
+</table>
+<div class="ad_btn">
+    <a href='{{".index"|page_to_url}}' class="button rBtn">戻る</a>
+</div>

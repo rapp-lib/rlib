@@ -1,23 +1,23 @@
 <?php
 namespace R\Lib\Builder\Element;
 
-/**
- *
- */
 class RoleElement extends Element_Base
 {
-    /**
-     * @override
-     */
-    protected function init ()
-    {
-    }
-    /**
-     * クラス名を取得
-     */
     public function getClassName ()
     {
         return str_camelize($this->getName())."Role";
+    }
+    public function getRoleControllerClassName ()
+    {
+        return "Controller_".str_camelize($this->getName());
+    }
+    public function getHeaderPath ()
+    {
+        return "/include/".$this->getName()."_header.html";
+    }
+    public function getFooterPath ()
+    {
+        return "/include/".$this->getName()."_footer.html";
     }
     /**
      * ログイン後TOPとなるControllerの取得
@@ -49,8 +49,8 @@ class RoleElement extends Element_Base
     public function getAccessibleControllers ()
     {
         $controllers = array();
-        foreach ($this->getSchema()->getController() as $controller) {
-            if ($controller->getAttr("access_as") == $this->getName()) {
+        foreach ($this->getSchema()->getControllers() as $controller) {
+            if ($controller->getRole()->getName() == $this->getName()) {
                 $controllers[] = $controller;
             }
         }

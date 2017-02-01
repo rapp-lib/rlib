@@ -1,16 +1,35 @@
 <?php
 namespace R\Lib\Builder\Element;
 
-/**
- *
- */
 class ColElement extends Element_Base
 {
-    /**
-     * @override
-     */
-    protected function init ()
+    public function getLabel ()
     {
+        return $this->getAttr("label");
+    }
+    /**
+     * @getter EnumSet
+     */
+    public function getEnumSet ()
+    {
+        if ($enum_set_name = $this->getAttr("enum_set_name")) {
+            return $this->getParent()->getEnum()->getEnumSetByName($enum_set_name);
+        }
+        return null;
+    }
+    /**
+     * 表示HTMLソースの取得
+     */
+    public function getShowSource ($var_name)
+    {
+        return '{{'.$var_name.'.'.$this->getName().'}}';
+    }
+    /**
+     * 入力HTMLソースの取得
+     */
+    public function getInputSource ()
+    {
+        return '{{input type="'.$this->getAttr("type").'" name="'.$this->getName().'"}}';
     }
     /**
      * $colsの定義行の取得

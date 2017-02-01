@@ -1,29 +1,27 @@
 <?php
 namespace R\Lib\Builder\Element;
 
-/**
- *
- */
 class EnumElement extends Element_Base
 {
-    /**
-     * @override
-     */
-    protected function init ()
+    public function init ()
     {
+        foreach ((array)$this->getAttr("enum_sets") as $enum_set_name => $enum_set_attrs) {
+            $this->children["enum_set"] = new EnumSet($enum_set_name,$enum_set_attrs,null);
+        }
     }
-    /**
-     * クラス名の取得
-     */
     public function getClassName ()
     {
         return str_camelize($this->getName())."Enum";
     }
     /**
-     * EnumSet名の取得
+     * @getter EnumSet
      */
-    public function getSetNames ()
+    public function getEnumSets ()
     {
-        return (array)$this->getAttr("set_names");
+        return (array)$this->children["enum_set"];
+    }
+    public function getEnumSetByName ($name)
+    {
+        return $this->children["enum_set"][$name];
     }
 }

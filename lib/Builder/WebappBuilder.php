@@ -1,161 +1,106 @@
 <?php
 namespace R\Lib\Builder;
 
+use R\Lib\Core\Contract\Provider;
 use R\Lib\Builder\Element\SchemaElement;
 
-/**
- *
- */
-class WebappBuilder
+class WebappBuilder extends SchemaElement implements Provider
 {
-    private $config = array();
-    /**
-     *
-     */
-    public function start ()
+    protected $config = array();
+    public function __construct ()
     {
-        if ( ! ini_get("short_open_tag")) {
-            report_error("short_open_tag設定が無効です");
-        }
-        $schema_csv_file = $this->getConfig("schema_csv_file");
-        $create_schema = new \R\Lib\Builder\Regacy\CreateSchema;
-        $schema = $create_schema->load_schema_csv($schema_csv_file);
-        $deploy_files = new \R\Lib\Builder\Regacy\DeployFiles;
-        $deploy_files->deploy_files($schema);
+        $skel_dir = constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
+        $current_dir = constant("R_APP_ROOT_DIR");
+        $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
+        //$deploy_dir = app()->config("builder.overwrite") ? $current_dir : $work_dir."/deploy";
+        $deploy_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/test-01";
+        $schema_csv_file = constant("R_APP_ROOT_DIR")."/config/schema.config.csv";
+        array_add($this->config, array(
+            "current_dir" => $current_dir,
+            "work_dir" => $work_dir,
+            "deploy_dir" => $deploy_dir,
+            "schema_csv_file" => $schema_csv_file,
+            "dryrun" => false,
+            "show_source" => true,
+        ));
+        $this->addSkel($skel_dir);
     }
     /**
-     * SchemaRegistryからSchemaElementを構築する
-     */
-    public function initSchemaFromRegistry ()
-    {
-        $this->schema = new SchemaElement();
-        $controllers = (array)registry("Schema.controller");
-        $tables = (array)registry("Schema.tables");
-        $this->schema->loadFromSchema($controllers, $tables);
-    }
-    /**
-     * 全ファイルを展開する
-     */
-    public function deployAll ()
-    {
-        // Roleに関わるファイルの展開
-        foreach (builder()->getSchema()->getRole() as $role) {
-            // ヘッダーHTMLファイルの展開
-            $source = builder()->fetch("wrapper/default_header.html",array("role"=>$role));
-            builder()->deploy("/html/include/".$role->getName()."_header.html", $source);
-            // フッターHTMLファイルの展開
-            $source = builder()->fetch("wrapper/default_footer.html",array("role"=>$role));
-            builder()->deploy("/html/include/".$role->getName()."_footer.html", $source);
-            // Roleクラスの展開
-            $source = builder()->fetch("role/MemberRole.php",array("role"=>$role));
-            builder()->deploy("/app/Role/".$role->getClassName().".php", $source);
-        }
-        // Tableに関わるファイルの展開
-        foreach (builder()->getSchema()->getTable() as $table) {
-            if ($table->hasDef()) {
-                // Tableクラスの展開
-                $source = builder()->fetch("table/MemberTable.php",array("table"=>$table));
-                builder()->deploy("/app/Table/".$table->getClassName().".php", $source);
-            }
-        }
-        // Enumに関わるファイルの展開
-        foreach (builder()->getSchema()->getEnum() as $enum) {
-            // Enumクラスの展開
-            $source = builder()->fetch("table/MemberEnum.php",array("enum"=>$enum));
-            builder()->deploy("/app/Enum/".$enum->getClassName().".php", $source);
-        }
-        // routing.config.phpの構築
-        $source = builder()->fetch("config/routing.config.php",array("schema"=>builder()->getSchema()));
-        builder()->deploy("/config/routing.config.php", $source);
-        // Controllerに関わるファイルの展開
-        foreach (builder()->getSchema()->getController() as $controller) {
-            $table = $controller->getTable();
-            if ($table) {
-                $t = $table->getAttr();
-            }
-            $c = $controller->getAttr();
-            $source = builder()->fetch("controller/ProductMasterController.class.php",
-                array("controller"=>$controller, "c"=>$c, "t"=>$t));
-            builder()->deploy("/app/Controller/".$controller->getClassName().".php", $source);
-            // HTMLの構築
-            foreach ($controller->getAction() as $action) {
-                if ($action->getAttr("has_html")) {
-                    $a = $action->getAttr();
-                    $source = builder()->fetch("controller/".$action->getName().".html",
-                        array("action"=>$action, "c"=>$c, "t"=>$t, "a"=>$a));
-                    builder()->deploy("/html".$action->getPath(), $source);
-                }
-            }
-        }
-    }
-    /**
-     * @getter
-     */
-    public function getSchema ()
-    {
-        return $this->schema;
-    }
-    /**
-     * @setter
-     */
-    public function setConfig ($config)
-    {
-        foreach ($config as $key => $value) {
-            $this->config[$key] = $value;
-        }
-    }
-    /**
-     * @getter
+     * Configの取得
      */
     public function getConfig ($key)
     {
-        if ($key == "template_dir") {
-            return constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
-        } elseif ($key == "current_dir") {
-            return constant("R_APP_ROOT_DIR");
-        } elseif ($key == "work_dir") {
-            if ( ! $this->config["work_dir"]) {
-                $this->config["work_dir"] = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
-            }
-            return $this->config["work_dir"];
-        } elseif ($key == "deploy_dir") {
-            return app()->config("builder.overwrite")
-                ? $this->getConfig("current_dir")
-                : $this->getConfig("work_dir")."/deploy";
-        } elseif ($key == "schema_csv_file") {
-            return constant("R_APP_ROOT_DIR")."/config/schema.config.csv";
-        } elseif ($key == "dryrun") {
-            return false;
-        } elseif ($key == "show_source") {
-            return true;
-        }
-        if ( ! isset($this->config[$key])) {
+        if ( ! array_isset($this->config, $key)) {
             report_error("設定がありません",array(
                 "key" => $key,
-                "config" => $this->config,
             ));
         }
-        return $this->config[$key];
+        return array_get($this->config, $key);
+    }
+    /**
+     * Skel（Configセット）の配置ディレクトリを追加
+     */
+    public function addSkel ($skel_dir)
+    {
+        $config_file = $skel_dir."/.build_skel.php";
+        if ( ! file_exists($config_file)) {
+            report_error("設定ファイルがありません",array(
+                "config_file" => $config_file,
+            ));
+        }
+        $config = (array)include($config_file);
+        array_add($this->config, $config);
+    }
+    /**
+     * 所定のCSVを読み込んで記載されているSchema全体をdeploy
+     */
+    public function start ()
+    {
+        // CSV読み込み
+        $this->initFromSchemaCsv($this->getConfig("schema_csv_file"));
+        // Schema全体をdeploy
+        $this->deploy(true);
+    }
+    /**
+     * @override
+     */
+    public function getElementType ()
+    {
+        return "schema";
     }
     /**
      * テンプレートファイルの読み込み
      */
-    public function fetch ($template_name, $vars=array())
+    public function fetch ($config_entry, $vars=array(), $deploy=false)
     {
-        $template_file = $this->getConfig("template_dir")."/".$template_name;
+        if ( ! ini_get("short_open_tag")) {
+            report_error("short_open_tag=On設定が必須です");
+        }
+        $template_file = $this->getConfig($config_entry.".template_file");
+        if ( ! file_exists($template_file)) {
+            report_error("テンプレートファイルが読み込めません",array(
+                "template_file" => $template_file,
+                "config_entry" => $config_entry,
+            ));
+        }
+        // テンプレートファイルの読み込み
         report_buffer_start();
         ob_start();
         extract($vars,EXTR_REFS);
         include($template_file);
         $source = ob_get_clean();
-        report_buffer_end();
         $source = str_replace(array('<!?','<#?'),'<?',$source);
+        report_buffer_end();
+        // ファイルの配置
+        if ($deploy) {
+            $this->deploySource($deploy, $source);
+        }
         return $source;
     }
     /**
      * ファイルの展開
      */
-    public function deploy ($deploy_name, $source)
+    protected function deploySource ($deploy_name, $source)
     {
         $current_file = $this->getConfig("current_dir")."/".$deploy_name;
         $deploy_file = $this->getConfig("deploy_dir")."/".$deploy_name;
@@ -171,13 +116,5 @@ class WebappBuilder
         if ($status != "nochange" && $this->getConfig("show_source")) {
             print '<pre>'.htmlspecialchars($source)."</pre>";
         }
-    }
-    /**
-     * @deprecated
-     */
-    public function filter_fields ($fields, $type)
-    {
-        $deploy_files = new \R\Lib\Builder\Regacy\DeployFiles;
-        return $deploy_files->filter_fields($fields,$type);
     }
 }

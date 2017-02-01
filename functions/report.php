@@ -371,7 +371,7 @@
         if (app() && app()->hasProvider("debug") && app()->debug()) {
 
             $config =array();
-            $config["output_format"] = ! get_cli_mode() && ! registry("Report.output_to_file") ? "html" : "plain";
+            $config["output_format"] = ! (php_sapi_name()=="cli") && ! registry("Report.output_to_file") ? "html" : "plain";
             $html =report_template($errstr,$params,$options,$backtraces,$config);
 
             // ファイル出力

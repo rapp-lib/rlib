@@ -18,14 +18,6 @@
         return $GLOBALS["R_CONTAINER"];
     }
     /**
-     * @deprecated
-     */
-    function auth ()
-    {
-        report_warning("@deprecated");
-        return app()->auth;
-    }
-    /**
      * @alias
      */
     function table ($table_name)
@@ -38,52 +30,6 @@
     function route ($route_name)
     {
         return app()->route($route_name);
-    }
-    /**
-     * @deprecated
-     */
-    function form ()
-    {
-        report_warning("@deprecated");
-        return app()->form;
-    }
-    /**
-     * @deprecated
-     */
-    function enum ($enum_set_name=false, $group=false)
-    {
-        report_warning("@deprecated");
-        return app()->enum($enum_set_name, $group);
-    }
-    /**
-     * @deprecated
-     */
-    function enum_select ($value, $enum_set_name=false, $group=false)
-    {
-        report_warning("@deprecated");
-        return app()->enum_select($value, $enum_set_name, $group);
-    }
-    /**
-     * @deprecated
-     */
-    function asset () {
-        report_warning("@deprecated");
-        return app()->asset;
-    }
-    /**
-     * @deprecated
-     */
-    function file_storage ()
-    {
-        report_warning("@deprecated");
-        return app()->file_storage;
-    }
-    /**
-     * @alias
-     */
-    function builder ()
-    {
-        return app()->builder;
     }
     /**
      * @alias
@@ -116,46 +62,34 @@
         return is_array($arr) || $arr instanceof \ArrayAccess;
     }
     /**
-     * ドット記法で配列の値を設定する
-     */
-    function array_set ( & $ref, $key, $value)
-    {
-        $key_parts = explode(".",$key);
-        foreach ($key_parts as $key_part) {
-            if ( ! is_array($ref)) {
-                $ref = array();
-            }
-            $ref = & $ref[$key_part];
-        }
-        $ref = $value;
-    }
-    /**
      * ドット記法で配列の値を再帰的に追加する
      */
-    function array_add ( & $ref, $key, $value=null)
+    function array_add ( & $ref, $key, $value=array())
     {
         // keyを配列で指定した場合
         if (is_array($key)) {
             foreach ($key as $k => $v) {
-                array_set($ref, $k, $v);
+                array_add($ref, $k, $v);
             }
-            return;
-        // valueを配列で指定した場合
-        } elseif (is_array($value)) {
-            $ref_sub = & array_get_ref($ref, $key);
-            foreach ($value as $k => $v) {
-                array_set($ref_sub, $k, $v);
+        } else {
+            // 数値添え字の場合上書きせず追加
+            if (is_numeric($key)) {
+                if ( ! is_array($ref)) {
+                    $ref = array("a");
+                }
+                $key = count($ref)==0 ? 0 : (int)max(array_keys($ref));
             }
-            return;
+            // valueを配列で指定した場合
+            if (is_array($value)) {
+                $ref_sub = & array_get_ref($ref, $key);
+                foreach ($value as $k => $v) {
+                    array_add($ref_sub, $k, $v);
+                }
+            } else {
+                $ref_sub = & array_get_ref($ref, $key);
+                $ref_sub = $value;
+            }
         }
-        $key_parts = explode(".",$key);
-        foreach ($key_parts as $key_part) {
-            if ( ! is_array($ref)) {
-                $ref = array();
-            }
-            $ref = & $ref[$key_part];
-        }
-        $ref = $value;
     }
     /**
      * ドット記法で配列の値が設定されているか確認
@@ -170,7 +104,10 @@
             }
             $ref = & $ref[$key_part];
         }
-        return isset($ref[$key_last]);
+        if ( ! is_array($ref)) {
+            return false;
+        }
+        return array_key_exists($key_last, $ref);
     }
     /**
      * ドット記法で配列の値を取得する
@@ -254,195 +191,4 @@
             }
         }
         return $result;
-    }
-
-// -- 移行する
-
-    /**
-     *
-     */
-    function str_camelize ($str) {
-
-        return str_replace(' ','',ucwords(str_replace('_', ' ', $str)));
-    }
-
-    //-------------------------------------
-    // URLの組み立て
-    function url ($base_url=null, $params=array(), $anchor=null) {
-        if (is_object($base_url) && method_exists($base_url, "getUrl")) {
-            $base_url = $base_url->getUrl($params);
-            $params = array();
-        }
-        $url =$base_url;
-
-        // 文字列形式のURLパラメータを配列に変換
-        if (is_string($params)) {
-
-            parse_str($params,$tmp_params);
-            $params =$tmp_params;
-        }
-
-        // アンカーの退避
-        if (preg_match('!^(.*?)#(.*)$!',$url,$match)) {
-
-            list(,$url,$old_anchor) =$match;
-
-            if ($anchor === null) {
-
-                $anchor =$old_anchor;
-            }
-        }
-
-        // QSの退避
-        if (preg_match('!^([^\?]+)\?(.*)!',$url,$match)) {
-
-            list(,$url,$qs) =$match;
-            parse_str($qs,$qs_params);
-            $params =array_replace_recursive($qs_params, $params);
-        }
-
-        // URLパス内パラメータの置換
-        $ptn_url_param ='!\[([^\]]+)\]!';
-
-        if (preg_match($ptn_url_param,$url)) {
-
-            $tmp_url_params =& ref_globals("tmp_url_params");
-            $tmp_url_params =$params;
-            $url =preg_replace_callback($ptn_url_param,"url_param_replace",$url);
-            $params =$tmp_url_params;
-
-            // 置換漏れの確認
-            if (preg_match($ptn_url_param,$url)) {
-                /*
-                report_warning("URL params was-not resolved, remain",array(
-                    "url" =>$url,
-                    "base_url" =>$base_url,
-                    "params" =>$params,
-                ));
-                */
-            }
-        }
-
-        // QSの設定
-        if ($params) {
-
-            url_param_ksort_recursive($params);
-            $url .=strpos($url,'?')===false ? '?' : '&';
-            $url .=http_build_query($params,null,'&');
-        }
-
-        // アンカーの設定
-        if (strlen($anchor)) {
-
-            $url .='#'.$anchor;
-        }
-
-        return $url;
-    }
-
-    //-------------------------------------
-    // HTMLタグの組み立て
-    function tag ($name, $attrs=null, $content=null) {
-
-        $html ='';
-
-        if ( ! is_string($name)) {
-
-            return htmlspecialchars($name);
-        }
-
-        $html .='<'.$name.' ';
-
-        if ($attrs === null) {
-
-        } elseif (is_string($attrs)) {
-
-            $html .=$attrs.' ';
-            report_warning("HTMLタグのattrsは配列で指定してください");
-
-        } elseif (is_array($attrs)) {
-
-            foreach ($attrs as $k => $v) {
-
-                if ($v !== null) {
-
-                    if (is_numeric($k)) {
-
-                        $html .=$v.' ';
-
-                    } else {
-
-                        if (($name == "input" || $name == "textarea"
-                                || $name == "select") && $k == "name") {
-
-                            $v =param_name($v);
-
-                        } elseif (is_array($v)) {
-
-                            if ($k == "style") {
-
-                                $style =array();
-
-                                foreach ($v as $style_name => $style_attr) {
-
-                                    if (is_numeric($style_name)) {
-
-                                        $style .=$style_attr;
-
-                                    } else {
-
-                                        $style .=$style_name.':'.$style_attr.';';
-                                    }
-                                }
-
-                                $v =$style;
-
-                            } elseif ($k == "class") {
-
-                                $v =implode(' ',$v);
-
-                            } else {
-
-                                $v =implode(',',$v);
-                            }
-                        }
-
-                        $v =str_replace(array("\r\n","\n",'"'),array(" "," ",'&quot;'),$v);
-                        $html .=param_name($k).'="'.$v.'" ';
-                    }
-                }
-            }
-        }
-
-        if ($content === null) {
-
-            $html .='/>';
-
-        } elseif ($content === true) {
-
-            $html .='>';
-
-        } elseif ($content === false) {
-
-            $html ='</'.$name.'>';
-
-        } elseif (is_array($content)) {
-
-            $html .='>';
-
-            foreach ($content as $k => $v) {
-
-                $html .=call_user_func_array("tag",(array)$v);
-            }
-
-            $html .='</'.$name.'>';
-
-        } elseif (is_string($content)) {
-
-            $html .='>';
-            $html .=$content;
-            $html .='</'.$name.'>';
-        }
-
-        return $html;
     }
