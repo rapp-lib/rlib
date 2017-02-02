@@ -7,6 +7,6 @@
 <? endforeach; ?>
 </table>
 <div class="ad_btn">
-    <a href='{{".entry_form"|page_to_url|url:["back"=>1]}}' class="rBtn">戻る</a>
-    <a href='{{".entry_exec"|page_to_url}}' class="sBtn">登録</a>
+    <a href='{{"<?=$pageset->getPageByType("form")->getLocalPage()?>"|page_to_url|url:["back"=>1]}}' class="rBtn">戻る</a>
+    <a href='{{"<?=$pageset->getPageByType("complete")->getLocalPage()?>"|page_to_url}}' class="sBtn">登録</a>
 </div>

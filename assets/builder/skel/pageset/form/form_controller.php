@@ -3,7 +3,7 @@
      */
     protected static $form_entry = array(
         "auto_restore" => true,
-        "form_page" => ".entry_form",
+        "form_page" => "<?=$pageset->getPageByType("form")->getFullPage()?>",
 <?php if ($table->hasDef()): ?>
         "table" => "<?=$table->getName()?>",
 <?php endif; ?>
@@ -12,7 +12,7 @@
             "id",
 <?php endif; ?>
 <?php foreach ($controller->getInputCols() as $col): ?>
-            "<?=$col->getName()?>" => array("label"=>"<?=$col->getLabel()?>"),
+<?=$col->getEntryFormFieldDefSource()?>
 <?php endforeach; ?>
         ),
         "rules" => array(
@@ -49,5 +49,5 @@
             $this->forms["entry"]->getRecord()->save();
             $this->forms["entry"]->clear();
         }
-        return redirect("page:<?=$controller->getIndexPage()->getLocalPage()?>", array("back"=>"1"));
+        return redirect("page:<?=$pageset->getBackPage()->getFullPage($page)?>", array("back"=>"1"));
     }

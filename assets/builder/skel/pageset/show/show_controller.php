@@ -2,7 +2,8 @@
      * 検索フォーム
      */
     protected static $form_search = array(
-        "search_page" => ".view_list",
+        "receive_all" => true,
+        "search_page" => "<?=$pageset->getPageByType("list")->getFullPage()?>",
         "search_table" => "<?=$table->getName()?>",
         "fields" => array(
             "freeword" => array("search"=>"word", "target_col"=>array(<?php foreach ($controller->getListCols() as $col): ?><?php if ($col->getAttr("def.type")=="text"): ?>"<?=$col->getName()?>",<?php endif; ?><?php endforeach; ?>)),
@@ -12,10 +13,10 @@
     );
 <?=$pageset->getPageByType("list")->getMethodDecSource()?>
     {
-        if ($this->forms["search"]->receive()) {
-            $this->forms["search"]->save();
-        } elseif ($this->request["back"]) {
+        if ($this->request["back"]) {
             $this->forms["search"]->restore();
+        } elseif ($this->forms["search"]->receive()) {
+            $this->forms["search"]->save();
         }
         $this->vars["ts"] = $this->forms["search"]->search()->select();
     }

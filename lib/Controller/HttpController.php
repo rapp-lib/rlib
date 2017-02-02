@@ -72,8 +72,8 @@ class HttpController implements FormRepositry, Authenticator
      */
     public static function getFormDef ($class_name, $form_name=false)
     {
-        if ( ! isset(static::$defs)) {
-            static::$defs = array();
+        if ( ! isset(self::$defs[$class_name])) {
+            self::$defs[$class_name] = array();
             // 対象Class内の"static $form_xxx"に該当する変数を収集する
             $ref_class = new \ReflectionClass($class_name);
             foreach ($ref_class->getProperties() as $ref_property) {
@@ -81,7 +81,7 @@ class HttpController implements FormRepositry, Authenticator
                 $is_static = $ref_property->isStatic();
                 if ($is_static && preg_match('!^form_(.*)$!',$var_name,$match)) {
                     $found_form_name = $match[1];
-                    $def = static::$$var_name;
+                    $def = $class_name::$$var_name;
                     // form_nameの補完
                     $def["form_name"] = $found_form_name;
                     // tmp_storage_nameの補完
@@ -90,30 +90,28 @@ class HttpController implements FormRepositry, Authenticator
                         $dec_class = str_underscore($match[1]);
                     }
                     $def["tmp_storage_name"] = $dec_class.".".$found_form_name;
-                    static::$defs[$found_form_name] = $def;
+                    self::$defs[$class_name][$found_form_name] = $def;
                 }
             }
         }
         // 全件取得
         if ($form_name===false) {
-            return static::$defs;
+            return self::$defs[$class_name];
         }
         // form_nameを指定して取得
-        if (isset(static::$defs[$form_name])) {
-            return static::$defs[$form_name];
+        if (isset(self::$defs[$class_name][$form_name])) {
+            return self::$defs[$class_name][$form_name];
         }
         // 他のControllerを探索
         if (preg_match('!^(.*?)\.([^\.]+)$!', $form_name, $match)) {
             list(, $ext_controller_name, $ext_form_name) = $match;
             $ext_class_name = "R\\App\\Controller\\".str_camelize($ext_controller_name)."Controller";
             if (class_exists($ext_class_name)) {
-                if ($ext_forms = forms()->getRepositry($ext_class_name)) {
-                    return $ext_forms[$ext_form_name];
-                }
+                return self::getFormDef($ext_class_name, $ext_form_name);
             }
         }
         report_error("指定されたFormは定義されていません",array(
-            "class_name" => get_class($this),
+            "class_name" => $class_name,
             "form_name" => $form_name,
         ));
     }

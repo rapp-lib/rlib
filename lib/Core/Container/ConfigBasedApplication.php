@@ -25,6 +25,7 @@ class ConfigBasedApplication implements Container
                 "stored_file_service" => 'R\Lib\Core\Middleware\StoredFileService',
             ),
             "provider" => array(
+                "console" => 'R\Lib\Core\Provider\ConsoleDriver',
                 "router" => 'R\Lib\Route\RouteManager',
                 "route" => 'R\Lib\Route\RouteManager',
                 "config" => 'R\Lib\Core\Provider\Configure',

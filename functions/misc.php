@@ -98,29 +98,6 @@
         return null;
     }
     /**
-     * CLIに渡す文字列の構築
-     */
-    function cli_escape ($value)
-    {
-        $escaped_value =null;
-        // 引数配列
-        if (is_array($value)) {
-            $escaped_value =array();
-            foreach ($value as $k => $v) {
-                if (is_string($k)) {
-                    $escaped_value[] =cli_escape($k.$v);
-                } else {
-                    $escaped_value[] =cli_escape($v);
-                }
-            }
-            $escaped_value =implode(" ",$escaped_value);
-        // 文字列
-        } elseif (is_string($value)) {
-            $escaped_value =escapeshellarg($value);
-        }
-        return $escaped_value;
-    }
-    /**
      * URLの組み立て
      */
     function url ($base_url=null, $params=array(), $anchor=null)
@@ -281,28 +258,6 @@
             $html .='</'.$name.'>';
         }
         return $html;
-    }
-    /**
-     * CLI（コマンドライン）実行時パラメータの取得
-     */
-    function get_cli_params ()
-    {
-        $argv =$_SERVER["argv"];
-        unset($argv[0]);
-        $params =array();
-        foreach ($argv as $a_argv) {
-            // --XXX=AAA , --XXX
-            if (preg_match('!^--([^=]+)(?:=(.+))?$!',$a_argv,$match)) {
-                $params[$match[1]] =$match[2];
-            // -X , -XAAA
-            } elseif (preg_match('!^-(.)(.+)?$!',$a_argv,$match)) {
-                $params[$match[1]] =$match[2];
-            // XXX
-            } else {
-                $params[] =$a_argv;
-            }
-        }
-        return $params;
     }
 
 // -- 削除予定

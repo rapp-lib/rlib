@@ -23,10 +23,7 @@ class SmartyExtended extends SmartyBC
         // プラグイン読み込み設定
         $this->registerDefaultPluginHandler(array($this,"pluginHandler"));
         // 関数名と衝突するプラグインの事前登録
-        $this->registerPlugin("modifier","enum",extention("SmartyPlugin", "modifier.enum"));
         $this->registerPlugin("modifier","date",extention("SmartyPlugin", "modifier.date"));
-        // @deprecated app/include/以下の関数による定義の探索
-        $this->addPluginsDir("modules/smarty_plugin/");
         // キャッシュ/コンパイル済みデータ保存先設定
         $cache_dir = constant("R_APP_ROOT_DIR").'/tmp/smarty_cache/';
         $this->setCacheDir($cache_dir);

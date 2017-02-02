@@ -41,9 +41,6 @@ class PagesetElement extends Element_Base
         ));
         return null;
     }
-    /**
-     * @getter Page
-     */
     public function getIndexPage ()
     {
         //TODO: 1番目のPageが取得されてしまうので、制御を加える
@@ -51,6 +48,14 @@ class PagesetElement extends Element_Base
             return $page;
         }
         return null;
+    }
+    public function getBackPage ()
+    {
+        $parent_index_page = $this->getController()->getIndexPage();
+        if ($parent_index_page->getParent() != $this) {
+            return $parent_index_page;
+        }
+        return $this->getController()->getRole()->getIndexController()->getIndexPage();
     }
     /**
      * @getter Controller

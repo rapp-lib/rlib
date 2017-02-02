@@ -48,34 +48,41 @@ class HttpResponse implements Response
     }
     public function raise ()
     {
-        report("Raise Response",array(
-            "response" => $this,
-        ));
         throw new ResponseException($this);
     }
     public function render ()
     {
         report_buffer_end(true);
         $output = $this->output;
-        report("Render Response",array(
-            "route" => app()->router->getCurrentRoute(),
-            "request" => app()->request,
-            "response" => $this,
-        ));
+        if (php_sapi_name()==="cli") {
+            // report("Render Response",array(
+            //     "console" => app()->console,
+            // ));
+        } else {
+            report("Render Response",array(
+                "route" => app()->router->getCurrentRoute(),
+                "request" => app()->request,
+                "response" => $this,
+            ));
+        }
         // エラー応答
         if ($output["type"] == "error") {
-            $response_code = $output["response_code"];
-            if ( ! $response_code) {
-                $response_code = 500;
-            }
-            header("HTTP", true, $response_code);
-            $error_doc = constant("R_LIB_ROOT_DIR")."/assets/error/".$response_code.".php";
-            if (file_exists($error_doc)) {
-                include($error_doc);
+            if (php_sapi_name()==="cli") {
+                return true;
             } else {
-                print $response_code;
+                $response_code = $output["response_code"];
+                if ( ! $response_code) {
+                    $response_code = 500;
+                }
+                header("HTTP", true, $response_code);
+                $error_doc = constant("R_LIB_ROOT_DIR")."/assets/error/".$response_code.".php";
+                if (file_exists($error_doc)) {
+                    include($error_doc);
+                } else {
+                    print $response_code;
+                }
+                return true;
             }
-            return true;
         }
         // 転送応答
         if ($output["type"] == "redirect") {

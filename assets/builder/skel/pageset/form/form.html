@@ -23,7 +23,7 @@
 <?php endforeach; ?>
 </table>
 <div class="ad_btn">
-    <a href='{{".view_list"|page_to_url|url:["back"=>1]}}' class="rBtn">戻る</a>
+    <a href='{{"<?=$pageset->getBackPage()->getFullPage($page)?>"|page_to_url:["back"=>1]}}' class="rBtn">戻る</a>
     <a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" class="sBtn">確認</a>
 </div>
 {{/form}}

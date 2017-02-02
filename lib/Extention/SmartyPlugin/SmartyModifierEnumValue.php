@@ -12,6 +12,13 @@ class SmartyModifierEnum
     function callback ($key ,$enum_set_name, $parent_key=null)
     {
         $enum = app()->enum($enum_set_name, $parent_key);
-        return $enum[$key];
+        if (is_array($key)) {
+            $values = array();
+            foreach ($key as $i => $akey) {
+                $values[$i] = $enum[$akey];
+            }
+        } else {
+            return $enum[$key];
+        }
     }
 }

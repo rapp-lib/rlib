@@ -27,8 +27,8 @@ class FormFactory
             $class_name = get_class($class_name);
         }
         if ( ! $this->repositries[$class_name]) {
-            $this->current_repositry = new FormRepositryProxy($this, $class_name);
-            $this->repositries[$class_name] = $this->current_repositry;
+            $this->repositries[$class_name] = new FormRepositryProxy($this, $class_name);
+            $this->current_repositry = $this->repositries[$class_name];
         }
         return $this->current_repositry;
     }
@@ -40,6 +40,12 @@ class FormFactory
         if (is_object($class_name)) {
             $class_name = get_class($class_name);
         }
-        return isset($class_name) ? $this->repositries[$class_name] : $this->current_repositry;
+        if ( ! isset($class_name)) {
+            return $this->current_repositry;
+        }
+        if ( ! $this->repositries[$class_name]) {
+            $this->repositries[$class_name] = new FormRepositryProxy($this, $class_name);
+        }
+        return $this->repositries[$class_name];
     }
 }

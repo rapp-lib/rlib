@@ -49,16 +49,9 @@ class RouteManager implements InvokableProvider
      */
     public function execCurrentRoute ()
     {
-        $middleware_config = app()->config("router.middleware");
-        if ( ! is_array($middleware_config)) {
-            report_error("RouterのMiddleware設定が不正です",array(
-                "router.middleware" => $middleware_config,
-            ));
-        }
-        $callback = function () {
+        $callback = app()->middleware->apply(function () {
             return app()->router->getCurrentRoute()->getController()->execAct();
-        };
-        $callback = app()->middleware->apply($callback, $middleware_config);
+        }, (array)app()->config("router.middleware"));
         return call_user_func($callback);
     }
     /**
@@ -67,12 +60,12 @@ class RouteManager implements InvokableProvider
     public function getRouteController ($route)
     {
         $page = $route->getPage();
+        if ( ! $page) {
+            report_error("Routeに対応するPage設定がありません",array(
+                "route" => $route,
+            ));
+        }
         if ( ! isset($this->controllers[$page])) {
-            if ( ! $page) {
-                report_error("Routeに対応するPage設定がありません",array(
-                    "route" => $route,
-                ));
-            }
             list($controller_name, $action_name) = explode('.',$page,2);
             $controller_class = 'R\App\Controller\\'.str_camelize($controller_name).'Controller';
             if ( ! class_exists($controller_class)) {

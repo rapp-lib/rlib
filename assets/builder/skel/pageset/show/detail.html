@@ -7,5 +7,5 @@
 <? endforeach; ?>
 </table>
 <div class="ad_btn">
-    <a href='{{".index"|page_to_url}}' class="button rBtn">戻る</a>
+    <a href='{{"<?=$pageset->getBackPage()->getFullPage($page)?>"|page_to_url:["back"=>1]}}' class="button rBtn">戻る</a>
 </div>

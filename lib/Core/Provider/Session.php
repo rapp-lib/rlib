@@ -49,6 +49,7 @@ class Session implements InvokableProvider
         if (strlen($this->base_key)) {
             $key = strlen($key) ? $this->base_key.".".$key : $this->base_key;
         }
+        array_unset($_SESSION, $key);
         array_add($_SESSION, $key, $value);
     }
     /**

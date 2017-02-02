@@ -411,7 +411,7 @@ class FormContainer extends ArrayObject
                 }
             }
         }
-        return url(page_to_url($this->def["search_page"]), $params);
+        return page_to_url($this->def["search_page"], $params);
     }
 
     /**
