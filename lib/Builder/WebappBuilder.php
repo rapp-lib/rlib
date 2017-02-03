@@ -1,11 +1,15 @@
 <?php
 namespace R\Lib\Builder;
 
-use R\Lib\Core\Contract\Provider;
+use R\Lib\Core\Contract\InvokableProvider;
 use R\Lib\Builder\Element\SchemaElement;
 
-class WebappBuilder extends SchemaElement implements Provider
+class WebappBuilder extends SchemaElement implements InvokableProvider
 {
+    public function invoke ($config)
+    {
+        return new WebappBuilder($config);
+    }
     /**
      * 所定のCSVを読み込んで記載されているSchema全体をdeploy
      */
@@ -114,8 +118,8 @@ class WebappBuilder extends SchemaElement implements Provider
             $status = crc32($current_source)==crc32($source) ? "nochange" : "modify";
         }
         util("File")->write($deploy_file, $source);
-        report("Deploy ".$status." ".$deploy_name);
         if ($status != "nochange" && $this->getConfig("show_source")) {
+            report("Deploy ".$status." ".$deploy_name);
             print '<pre>'.htmlspecialchars($source)."</pre>";
         }
     }

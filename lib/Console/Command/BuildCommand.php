@@ -13,6 +13,7 @@ class BuildCommand extends Command
             "branch_d" => "develop",
             "branch_b1" => "build-latest",
             "branch_b2" => "build-working",
+            "build_log_id" => "build-".date("Ymd-His"),
         );
     }
     public function act_make ()
@@ -45,18 +46,6 @@ class BuildCommand extends Command
         if ( ! in_array($this->config["branch_b2"],$branches)) {
             $this->git->createBranch($this->config["branch_b2"], $this->config["branch_b1"]);
         }
-        //     if ! hasSameParent d b1
-        //        ! hasSameParent d b2
-        //         error
-        $d_commits = $this->git->getCommits($this->config["branch_d"]);
-        $b1_commits = $this->git->getCommits($this->config["branch_b1"]);
-        if (array_intersect($d_commits, $b1_commits)) {
-            report_error("b1ブランチがdと無関係です");
-        }
-        $b2_commits = $this->git->getCommits($this->config["branch_b2"]);
-        if (array_intersect($d_commits, $b2_commits)) {
-            report_error("b2ブランチがdと無関係です");
-        }
     }
     /**
      * 前回の自動生成結果の反映、または削除
@@ -67,7 +56,7 @@ class BuildCommand extends Command
         //     if isIncluded b2 d
         //         checkout b1
         //         merge b2
-        $b2_commits = $$this->git->getCommits($this->config["branch_b2"]);
+        $b2_commits = $this->git->getCommits($this->config["branch_b2"]);
         $b2_latest_commit = array_shift($b2_commits);
         $d_commits = $this->git->getCommits($this->config["branch_d"]);
         if (in_array($b2_latest_commit, $d_commits)) {
@@ -91,18 +80,35 @@ class BuildCommand extends Command
         $this->git->checkout($this->config["branch_b2"]);
         //     make
         try {
-            app()->builder->start();
+            $schema_csv_file = constant("R_APP_ROOT_DIR")."/config/schema.config.".$this->config["build_log_id"].".csv";
+            $skel_dir = constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
+            $deploy_dir = $current_dir = constant("R_APP_ROOT_DIR");
+            $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
+            // dブランチからCSVをコピーする
+            $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":config/schema.config.csv"));
+            util("File")->write($schema_csv_file,$csv_data);
+            // Builderを作成
+            $schema = app()->builder(array(
+                "current_dir" => $current_dir,
+                "deploy_dir" => $deploy_dir,
+                "work_dir" => $work_dir,
+                "show_source" => true,
+            ));
+            $schema->addSkel($skel_dir);
+            $schema->initFromSchemaCsv($schema_csv_file);
+            $schema->deploy(true);
+
         } catch (ResponseException $e) {
             report_warning("Builderの実行中にエラーがありました",array(
                 "exceptions" => $e,
             ));
         }
         //     addCommitAll msg
-        $this->addCommitAll("make");
+        $this->git->addCommitAll("build ".$this->config["build_log_id"]);
         //     checkout d
         $this->git->checkout($this->config["branch_d"]);
         //     merge b2 --no-commit
-        $this->git->merge($this->config["branch_b2"],array("--no-commit"));
+        $this->git->cmd(array("git","merge","--no-ff","--no-commit",$this->config["branch_b2"]));
     }
 }
 class GitRepositry
@@ -120,6 +126,7 @@ class GitRepositry
         $dir = getcwd();
         chdir($this->dir);
         $cmd = app()->console->cliEscape($cmd);
+        app()->console->output("> ".$cmd."\n");
         $result = shell_exec($cmd);
         chdir($dir);
         return $result;
@@ -135,15 +142,23 @@ class GitRepositry
         $changes = $this->cmd(array("git","status","-s"));
         return strlen($changes)===0 ? array() : explode("\n",$changes);
     }
+    /**
+     * 差分を取得
+     */
+    public function getDiff ($ref="HEAD")
+    {
+        $changes = $this->cmd(array("git","diff","--name-only",$ref));
+        return strlen($changes)===0 ? array() : explode("\n",$changes);
+    }
 
 // -- Log取得
 
     /**
      * CommitIDを新しい順で取得
      */
-    public function getCommits ()
+    public function getCommits ($branch)
     {
-        $result = $this->cmd(array("git","log","--format=%h"));
+        $result = $this->cmd(array("git","log","--format=%h",$branch));
         return explode("\n",$result);
     }
 
@@ -165,9 +180,9 @@ class GitRepositry
         $result = $this->cmd(array("git","for-each-ref","--format=%(refname)"));
         $branches = array();
         foreach (explode("\n",$result) as $branch) {
-            if (preg_match('!^refs/heads/([^/]+?)$!',$match)) {
+            if (preg_match('!^refs/heads/([^/]+?)$!',$branch,$match)) {
                 $branches[] = $match[1];
-            } elseif (preg_match('!^refs/remotes/(([^/]+?)/([^/]+?))$!',$match)) {
+            } elseif (preg_match('!^refs/remotes/(([^/]+?)/([^/]+?))$!',$branch,$match)) {
                 $branches[] = $match[1];
             }
         }
@@ -181,8 +196,15 @@ class GitRepositry
         $this->cmd(array("git","branch",$branch,$ref));
     }
 
-// -- 現在のBranchに対する操作
+// -- HEADに対する操作
 
+    /**
+     * HEADの差し先Branch変更
+     */
+    public function checkout ($branch)
+    {
+        $this->cmd(array("git","checkout",$branch));
+    }
     /**
      * Branchの差し先を強制的に変更
      */
@@ -196,5 +218,23 @@ class GitRepositry
     public function merge ($ref, $options=array())
     {
         $this->cmd(array("git","merge",$ref,$options));
+    }
+    /**
+     * BranchのMerge
+     */
+    public function mergeNoCommit ($ref)
+    {
+        $this->cmd(array("git","merge","--no-commit",$ref));
+    }
+
+// -- HEADに対する操作
+
+    /**
+     * 全差分を反映
+     */
+    public function addCommitAll ($message)
+    {
+        $this->cmd(array("git","add","-A"));
+        $this->cmd(array("git","commit","-m",$message));
     }
 }

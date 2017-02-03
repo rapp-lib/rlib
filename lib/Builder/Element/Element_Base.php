@@ -21,7 +21,7 @@ class Element_Base
     {
         // Overrideして処理を記述
     }
-    protected function deploy ($recursive=false)
+    public function deploy ($recursive=false)
     {
         $deploy_callbacks = (array)$this->getSchema()->getConfig("deploy.".$this->getElementType());
         foreach ($deploy_callbacks as $deploy_callback) {
