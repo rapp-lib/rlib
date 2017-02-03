@@ -10,7 +10,7 @@ class BuildCommand extends Command
     {
         $this->git = new GitRepositry(constant("R_APP_ROOT_DIR"));
         $this->config = array(
-            "branch_d" => "develop",
+            "branch_d" => "master",
             "branch_b1" => "build-latest",
             "branch_b2" => "build-working",
             "build_log_id" => "build-".date("Ymd-His"),
