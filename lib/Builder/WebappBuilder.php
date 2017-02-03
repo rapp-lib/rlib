@@ -6,23 +6,32 @@ use R\Lib\Builder\Element\SchemaElement;
 
 class WebappBuilder extends SchemaElement implements Provider
 {
-    protected $config = array();
-    public function __construct ()
+    /**
+     * 所定のCSVを読み込んで記載されているSchema全体をdeploy
+     */
+    public function start ()
     {
         $skel_dir = constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
-        $current_dir = constant("R_APP_ROOT_DIR");
-        $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
-        $deploy_dir = app()->config("builder.overwrite") ? $current_dir : $work_dir."/deploy";
         $schema_csv_file = constant("R_APP_ROOT_DIR")."/config/schema.config.csv";
-        array_add($this->config, array(
+        $deploy_dir = $current_dir = constant("R_APP_ROOT_DIR");
+        $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
+        $schema = new WebappBuilder(array(
             "current_dir" => $current_dir,
-            "work_dir" => $work_dir,
             "deploy_dir" => $deploy_dir,
-            "schema_csv_file" => $schema_csv_file,
-            "dryrun" => false,
+            "work_dir" => $work_dir,
             "show_source" => true,
         ));
-        $this->addSkel($skel_dir);
+        $schema->addSkel($skel_dir);
+        $schema->initFromSchemaCsv($schema_csv_file);
+        $schema->deploy(true);
+    }
+    protected $config = array();
+    /**
+     *
+     */
+    public function __construct ($config=null)
+    {
+        $this->config = $config;
     }
     /**
      * Configの取得
@@ -49,16 +58,6 @@ class WebappBuilder extends SchemaElement implements Provider
         }
         $config = (array)include($config_file);
         array_add($this->config, $config);
-    }
-    /**
-     * 所定のCSVを読み込んで記載されているSchema全体をdeploy
-     */
-    public function start ()
-    {
-        // CSV読み込み
-        $this->initFromSchemaCsv($this->getConfig("schema_csv_file"));
-        // Schema全体をdeploy
-        $this->deploy(true);
     }
     /**
      * @override
@@ -109,14 +108,12 @@ class WebappBuilder extends SchemaElement implements Provider
     {
         $current_file = $this->getConfig("current_dir")."/".$deploy_name;
         $deploy_file = $this->getConfig("deploy_dir")."/".$deploy_name;
-        $status = "new";
+        $status = "create";
         if (file_exists($current_file)) {
             $current_source = file_get_contents($current_file);
-            $status = crc32($current_source)==crc32($source) ? "nochange" : "overwrite";
+            $status = crc32($current_source)==crc32($source) ? "nochange" : "modify";
         }
-        if ( ! $this->getConfig("dryrun")) {
-            util("File")->write($deploy_file, $source);
-        }
+        util("File")->write($deploy_file, $source);
         report("Deploy ".$status." ".$deploy_name);
         if ($status != "nochange" && $this->getConfig("show_source")) {
             print '<pre>'.htmlspecialchars($source)."</pre>";

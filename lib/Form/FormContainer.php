@@ -145,6 +145,27 @@ class FormContainer extends ArrayObject
             }
         }
     }
+    /**
+     * 本登録URL押下時の処理（仮）
+     * 仮登録パラメータとの完全一致レコードを取得する
+     * 記述場所は正しい?
+     * 似たようなメソッドが既に有りそう
+     * +で仮メールアドレスの完全一致が必要??
+     */
+    public function findByCred($key,$val){
+         $record = table($this->def["table"])->selectByCred($key,$val);
+         if ($record) {
+              $this->setRecord($record);
+         }
+    }
+
+    public function findByMail($key,$val){
+         $record = table($this->def["table"])->selectByMail($key,$val);
+         if ($record) {
+              $this->setRecord($record);
+         }
+    }
+
 
 // -- save/restore関連処理
 

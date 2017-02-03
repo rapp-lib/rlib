@@ -4,7 +4,7 @@ namespace R\Lib\Extention\SmartyPlugin;
 /**
  *
  */
-class SmartyModifierEnum
+class SmartyModifierEnumValue
 {
     /**
      * @overload
@@ -17,6 +17,7 @@ class SmartyModifierEnum
             foreach ($key as $i => $akey) {
                 $values[$i] = $enum[$akey];
             }
+            return implode(" ",$values);
         } else {
             return $enum[$key];
         }

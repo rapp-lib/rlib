@@ -182,6 +182,21 @@ class Table_Base extends Table_Core
     {
         $this->query->where($this->getQueryTableName().".".$this->getIdColName("id"), $id);
     }
+    /**
+     * 本登録URL押下時の処理（仮）
+     * 仮登録パラメータとの完全一致レコードを取得する
+     * 記述場所は正しいか
+     * 拡張性を持たせるため共通でCredだが、
+     * +で仮メールアドレスの完全一致が必要??
+     */
+    public function chain_findByCred($key,$val){
+        $this->query->where($this->getQueryTableName().".".$key, $val);
+    }
+    
+    public function chain_findByMail($key,$val){
+           $this->query->where($this->getQueryTableName().".".$key,$val);
+    }
+
 
     /**
      * @hook chain

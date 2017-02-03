@@ -1,7 +1,9 @@
 <?php
-namespace R\Lib\Util;
+namespace R\Lib\Core\Provider;
+
+use R\Lib\Core\Contract\InvokableProvider;
 /*
-    util("Mail")
+    app()->mailer
         ->factory()
         ->import("register-thanks.php", array("form"=>$this->forms["entry"]))
         ->send();
@@ -21,13 +23,23 @@ namespace R\Lib\Util;
 /**
  *
  */
-class Mail
+class MailerFactory implements InvokableProvider
 {
-    protected $mailer;
-    public static function factory ()
+    public function invoke ()
+    {
+        return $this->factory();
+    }
+    public function factory ()
     {
         return new Mail;
     }
+}
+/**
+ *
+ */
+class Mail
+{
+    protected $mailer;
     public function __construct ()
     {
         $this->mailer = new \PHPMailer;
@@ -36,32 +48,19 @@ class Mail
     }
     public function getTemplateDir ()
     {
-        return app()->getAppRootDir()."/mail";
+        return constant("R_APP_ROOT_DIR")."/mail";
     }
 
 // -- impoort制御とvars管理
 
-    protected $vars = array();
-    public function getAssigned ($name)
-    {
-        return $this->vars[$name];
-    }
+    public $vars = array();
     public function assign ($name, $value=null)
     {
-        if (is_array($name)) {
-            foreach ($name as $k => $v) {
-                $this->assign($k,$v);
-            }
-        } else {
-            $this->vars[$name] = $value;
-        }
-        return $this;
+        array_add($this->vars, $name, $value);
     }
     public function import ($template_filename, $assign=array())
     {
-        if (isset($assign)) {
-            $this->assign($assign);
-        }
+        $this->assign($assign);
         $mail = $this;
         include($this->getTemplateDir()."/".$template_filename);
         if ($this->body_started) {

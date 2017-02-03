@@ -31,9 +31,7 @@ class ColElement extends Element_Base
                 $html .='|date:"Y/m/d"';
             }
             if ($enum_set = $this->getEnumSet()) {
-                if ($this->getAttr("type")=="checklist") {
-                    $html .='|enum_value_each:"'.$enum_set->getFullName().'"';
-                }
+                $html .='|enum_value:"'.$enum_set->getFullName().'"';
             }
             $html .= '}}';
         }
