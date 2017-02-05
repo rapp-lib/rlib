@@ -35,6 +35,14 @@ class BuildCommand extends Command
                 "changes" => $changes,
             ));
         }
+        $current_branch = $this->git->getCurrentBranch();
+        if ($current_branch != $this->config["branch_d"]) {
+            report_error("反映対象ブランチがCheckoutされていません",array(
+                "current_branch" => $current_branch,
+                "branch_d" => $this->config["branch_d"],
+            ));
+
+        }
         //     if ! exists b1
         //         createBranch b1 from d
         $branches = $this->git->getBranches();
@@ -128,7 +136,7 @@ class GitRepositry
         app()->console->output("> ".$cmd."\n");
         $result = shell_exec($cmd);
         chdir($dir);
-        return $result;
+        return rtrim($result);
     }
 
 // -- Status確認

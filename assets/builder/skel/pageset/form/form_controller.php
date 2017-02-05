@@ -34,7 +34,7 @@
 <?=$pageset->getPageByType("confirm")->getMethodDecSource()?>
     {
         $this->forms["entry"]->restore();
-<?php if ($pageset->attr("skip_confirm")): ?>
+<?php if ($pageset->getAttr("skip_confirm")): ?>
         return redirect("page:<?=$pageset->getPageByType("complete")->getLocalPage()?>");
 <?php elseif ($table->hasDef()): ?>
         $this->vars["t"] = $this->forms["entry"]->getRecord();
@@ -53,13 +53,13 @@
 <?php else: ?>
             $t = $this->forms["entry"]->getValues();
 <?php endif; ?>
-<?php if ($pageset->attr("use_mail")): ?>
+<?php if ($pageset->getAttr("use_mail")): ?>
             // メールの送信
             app()->mailer("<?=$controller->getName?>.php", array("t"=>$t)->send();
 <?php endif; ?>
             $this->forms["entry"]->clear();
         }
-<?php if ($pageset->attr("skip_complete")): ?>
+<?php if ($pageset->getAttr("skip_complete")): ?>
         return redirect("page:<?=$pageset->getBackPage()->getFullPage($page)?>", array("back"=>"1"));
 <?php endif; ?>
     }

@@ -39,8 +39,9 @@
         <dl>
 <?php foreach ($role->getSchema()->getRoles() as $role_others): ?>
 <?php if ($role_others->getName() != $role->getName()): ?>
-<?php $menu_controller = $role_others->getIndexController(); ?>
+<?php if ($menu_controller = $role_others->getLoginController()): ?>
             <dt class="toggle"><a href='{{"<?=$menu_controller->getIndexPage()->getFullPage()?>"|page_to_url}}' class="button"><?=$menu_controller->getLabel()?></a></dt>
+<?php endif; ?>
 <?php endif; ?>
 <?php endforeach; ?>
         </dl>
