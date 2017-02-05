@@ -18,7 +18,7 @@ class ControllerElement extends Element_Base
                 $pagesets[] = array("type"=>"reminder");
             }
         } elseif ($this->getAttr("type") == "form") {
-            $pagesets[] = array("type"=>"form");
+            $pagesets[] = array("type"=>"form", "use_mail"=>true);
             if ($this->getAttr("use_mailcheck")) {
                 $pagesets[] = array("type"=>"mailcheck");
             }
@@ -26,12 +26,13 @@ class ControllerElement extends Element_Base
             $pagesets[] = array("type"=>"show");
         } elseif ($this->getAttr("type") == "master") {
             $pagesets[] = array("type"=>"show");
-            $pagesets[] = array("type"=>"form");
+            $pagesets[] = array("type"=>"form", "skip_confirm"=>true, "skip_complete"=>true);
+            $pagesets[] = array("type"=>"delete");
             if ($this->getAttr("use_csv")) {
                 $pagesets[] = array("type"=>"csv");
-            }
-            if ($this->getAttr("use_import")) {
-                $pagesets[] = array("type"=>"import");
+                if ($this->getAttr("use_import")) {
+                    $pagesets[] = array("type"=>"import");
+                }
             }
         }
         // Pagesetの登録

@@ -80,14 +80,14 @@ class BuildCommand extends Command
         $this->git->checkout($this->config["branch_b2"]);
         //     make
         try {
-            $schema_csv_file = constant("R_APP_ROOT_DIR")."/config/schema.config.".$this->config["build_log_id"].".csv";
             $skel_dir = constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
             $deploy_dir = $current_dir = constant("R_APP_ROOT_DIR");
-            $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/work-".date("Ymd-his");
+            $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/log/".$this->config["build_log_id"];
             // dブランチからCSVをコピーする
+            $schema_csv_file = constant("R_APP_ROOT_DIR")."/config/schema.config.".$this->config["build_log_id"].".csv";
             $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":config/schema.config.csv"));
             util("File")->write($schema_csv_file,$csv_data);
-            // Builderを作成
+            // Builderを作成→全件生成
             $schema = app()->builder(array(
                 "current_dir" => $current_dir,
                 "deploy_dir" => $deploy_dir,
@@ -97,17 +97,16 @@ class BuildCommand extends Command
             $schema->addSkel($skel_dir);
             $schema->initFromSchemaCsv($schema_csv_file);
             $schema->deploy(true);
-
         } catch (ResponseException $e) {
             report_warning("Builderの実行中にエラーがありました",array(
                 "exceptions" => $e,
             ));
         }
-        //     addCommitAll msg
+        //     git add -A; git commit -m $build_log_id
         $this->git->addCommitAll("build ".$this->config["build_log_id"]);
-        //     checkout d
+        //     git checkout d
         $this->git->checkout($this->config["branch_d"]);
-        //     merge b2 --no-commit
+        //     git merge b2 --no-commit --no-ff # コミットしない指定
         $this->git->cmd(array("git","merge","--no-ff","--no-commit",$this->config["branch_b2"]));
     }
 }

@@ -92,6 +92,6 @@ class ColElement extends Element_Base
             }
             $def[$k] = '"'.$k.'"=>'.$v;
         }
-        return '            "'.$this->getName().'" => array('.implode(', ',$def).'),'."\n";
+        return '        "'.$this->getName().'" => array('.implode(', ',$def).'),'."\n";
     }
 }

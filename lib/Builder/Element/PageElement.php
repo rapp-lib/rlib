@@ -29,8 +29,11 @@ class PageElement extends Element_Base
         }
         return $path;
     }
-    public function getFullPage ()
+    public function getFullPage ($page=null)
     {
+        if (isset($page) && $page->getParent()==$this) {
+            return $this->getLocalPage();
+        }
         return $this->getController()->getName().".".$this->getName();
     }
     public function getLocalPage ()
