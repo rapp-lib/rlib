@@ -10,7 +10,7 @@ class BuildCommand extends Command
     {
         $this->git = new GitRepositry(constant("R_APP_ROOT_DIR"));
         $this->config = array(
-            "branch_d" => "master",
+            "branch_d" => "develop",
             "branch_b1" => "build-latest",
             "branch_b2" => "build-working",
             "build_log_id" => "build-".date("Ymd-His"),
@@ -37,7 +37,7 @@ class BuildCommand extends Command
         }
         $current_branch = $this->git->getCurrentBranch();
         if ($current_branch != $this->config["branch_d"]) {
-            report_error("反映対象ブランチがCheckoutされていません",array(
+            report_error($this->config["branch_d"]."ブランチがCheckoutされていません",array(
                 "current_branch" => $current_branch,
                 "branch_d" => $this->config["branch_d"],
             ));
@@ -92,7 +92,7 @@ class BuildCommand extends Command
             $deploy_dir = $current_dir = constant("R_APP_ROOT_DIR");
             $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/log/".$this->config["build_log_id"];
             // dブランチからCSVをコピーする
-            $schema_csv_file = constant("R_APP_ROOT_DIR")."/config/schema.config.".$this->config["build_log_id"].".csv";
+            $schema_csv_file = $work_dir."/schema.config.csv";
             $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":config/schema.config.csv"));
             util("File")->write($schema_csv_file,$csv_data);
             // Builderを作成→全件生成
