@@ -38,6 +38,9 @@ class HttpResponse implements Response
                 report_error("ダウンロードファイルの指定が不正です",array(
                     "file" => $output["file"],
                 ));
+                if ( ! $output["content_type"]) {
+                    $output["content_type"] = "application/octet-stream";
+                }
             } elseif (isset($output["stored_file"]) && ! $output["stored_file"] instanceof StoredFile) {
                 report_error("StoredFileの指定が不正です",array(
                     "stored_file" => $output["stored_file"],

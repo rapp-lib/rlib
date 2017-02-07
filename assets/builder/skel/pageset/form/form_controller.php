@@ -55,7 +55,7 @@
 <?php endif; ?>
 <?php if ($pageset->getAttr("use_mail")): ?>
             // メールの送信
-            app()->mailer("<?=$controller->getName?>.php", array("t"=>$t)->send();
+            app()->mailer("sample.php", array("t"=>$t))->send();
 <?php endif; ?>
             $this->forms["entry"]->clear();
         }

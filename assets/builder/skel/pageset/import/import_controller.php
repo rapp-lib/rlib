@@ -28,7 +28,7 @@
                 return redirect("page:.entry_csv_form", array("back"=>"1"));
             }
             // CSVファイルを開く
-            $csv_file = file_storage()->get($this->forms["entry_csv"]["csv_file"]);
+            $csv_file = app()->file_storage->get($this->forms["entry_csv"]["csv_file"]);
             $csv = util("CSVHandler", array($csv_file->getFile(),"r",$this->csv_setting));
             // DBへの登録処理
             table("<?=$table->getName()?>")->transactionBegin();

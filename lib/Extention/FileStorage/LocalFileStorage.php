@@ -28,7 +28,7 @@ abstract class LocalFileStorage implements FileStorage
      */
     protected function createFilename ($code)
     {
-        return registry("Path.tmp_dir")."/file_storage/".preg_replace('!^(\w+):!','$1',$code);
+        return constant("R_APP_ROOT_DIR")."/tmp/file_storage/".preg_replace('!^(\w+):!','$1',$code);
     }
     /**
      * @override FileStorage
@@ -146,10 +146,14 @@ abstract class LocalFileStorage implements FileStorage
         // Content-Typeヘッダ送信
         if (isset($meta["content_type"])) {
             header("Content-Type: ".$meta["content_type"]);
+        } else {
+            header("Content-Type: application/octet-stream");
         }
         // Content-Dispositionヘッダ送信
         if (isset($meta["original_filename"])) {
             header("Content-Disposition: attachment; filename=".basename($meta["original_filename"]));
+        } else {
+            header("Content-Disposition: attachment; filename=".basename($file));
         }
         // ファイルの内容の送信
         readfile($file);

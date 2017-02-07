@@ -1,7 +1,7 @@
 <?php
 namespace R\Lib\Extention;
 
-class CsvFilterLoader
+class CsvfilterLoader
 {
     public static function getCallback ($name)
     {
@@ -10,6 +10,7 @@ class CsvFilterLoader
         if (method_exists($class_name,$callback_method)) {
             return array($class_name,$callback_method);
         }
+        report($callback_method);
     }
     // CSVからの入力項目についてのサニタイズ処理
     public static function callbackSanitize ($values, $mode, $line, $filter, $csv)
@@ -78,7 +79,7 @@ class CsvFilterLoader
             $list_params =(array)$filter["list_params"];
         }
         if ($filter["enum"]) {
-            $enum = enum($filter["enum"],$list_params[0]);
+            $enum = app()->enum($filter["enum"],$list_params[0]);
             if ( ! isset($enum)) {
                 report_error("csv_filterのenum指定が不正です", $filter);
             }

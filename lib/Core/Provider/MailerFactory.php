@@ -25,9 +25,9 @@ use R\Lib\Core\Contract\InvokableProvider;
  */
 class MailerFactory implements InvokableProvider
 {
-    public function invoke ()
+    public function invoke ($template_filename, $assign=array())
     {
-        return $this->factory();
+        return $this->factory()->import($template_filename, $assign);
     }
     public function factory ()
     {

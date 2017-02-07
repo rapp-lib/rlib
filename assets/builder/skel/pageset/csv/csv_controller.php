@@ -14,8 +14,8 @@
             array("filter" => "sanitize"),
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?php if ($col->getEnumSet()): ?>
-            array("target" => "<?=$col->getName?>", "filter" => "list_select",
-                "enum" => "<?=$col->getEnumSet()->getName()?>",
+            array("target" => "<?=$col->getName()?>", "filter" => "list_select",
+                "enum" => "<?=$col->getEnumSet()->getFullName()?>",
             ),
 <? endif; ?>
 <?php endforeach; ?>
@@ -31,14 +31,13 @@
             ->removePagenation()
             ->selectNoFetch();
         // CSVファイルの書き込み
-        $csv_file = file_storage()->create("tmp");
+        $csv_file = app()->file_storage->create("tmp",null,array(
+            "original_filename" => "<?=$table->getName()?>-".date("Ymd-His").".csv",
+        ));
         $csv = util("CSVHandler",array($csv_file->getFile(),"w",$this->csv_setting));
         while ($t = $res->fetch()) {
             $csv->write_line($t);
         }
         // データ出力
-        response()->output(array(
-            "download" => "export-".date("Ymd-his").".csv",
-            "stored_file" => $csv_file,
-        ));
+        return app()->response->downloadStoredFile($csv_file);
     }
