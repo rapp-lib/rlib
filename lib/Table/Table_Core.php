@@ -43,6 +43,11 @@ class Table_Core
     private $result_res = null;
 
     /**
+     * Insert発行直後のLastInsertId
+     */
+    private $last_insert_id = null;
+
+    /**
      * buildQueryの結果作成されたSQL文
      */
     private $statemenet = false;
@@ -258,10 +263,13 @@ class Table_Core
      */
     public function result_getLastInsertId ($result)
     {
-        $ds = $this->getDBI()->get_datasource();
-        $id_col_name = $this->getIdColName();
-        $table_name = static::$table_name;
-        return $this->getDBI()->get_datasource()->lastInsertId($table_name,$id_col_name);
+        if ( ! isset($this->last_insert_id)) {
+            $ds = $this->getDBI()->get_datasource();
+            $id_col_name = $this->getIdColName();
+            $table_name = static::$table_name;
+            $this->last_insert_id = $this->getDBI()->get_datasource()->lastInsertId($table_name,$id_col_name);
+        }
+        return $this->last_insert_id;
     }
 
     /**
@@ -644,9 +652,12 @@ class Table_Core
         ));
         // Resultの組み立て
         $this->result = new Result($this);
-
+        // LastInsertIdの確保
+        if ($type=="insert") {
+            $this->result->getLastInsertId();
+        }
+        // on_afterWrite_*を呼び出す
         if ($type=="insert" || $type=="update") {
-            // on_afterWrite_*を呼び出す
             $this->callListenerMethod("afterWrite",array($record));
         }
 

@@ -11,6 +11,7 @@ class JsonResponseFallback implements Middleware
         if ($response) {
             return $response;
         }
+        $route = app()->router->getCurrentRoute();
         return app()->response->output(array(
             "type" => "json",
             "vars" => $route->getController()->getVars(),
