@@ -27,6 +27,8 @@
 
     // ckeditor
     $asset->registerJsUrl("ckeditor:4.6.0", "//cdn.ckeditor.com/4.6.0/standard/ckeditor.js");
+    $asset->registerJsUrl("ckeditor-autoload:4.6.0", $url."/ckeditor.autoload/ckeditor.autoload.js")
+        ->required("ckeditor:4.6.0");
 
     // rui.require
     $asset->registerJsUrl("rui.require", $url.'/rui.require/rui.js');

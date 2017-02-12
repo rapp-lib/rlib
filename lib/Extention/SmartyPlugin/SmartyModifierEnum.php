@@ -4,6 +4,6 @@ namespace R\Lib\Extention\SmartyPlugin;
 /**
  *
  */
-class SmartyModifierSelect extends SmartyModifierEnumValue
+class SmartyModifierEnum extends SmartyModifierEnumValue
 {
 }
