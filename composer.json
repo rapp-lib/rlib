@@ -17,8 +17,5 @@
         "files": [
             "functions/required.php"
         ]
-    },
-    "config": {
-        "bin-dir": "bin"
     }
 }

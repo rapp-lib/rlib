@@ -16,12 +16,12 @@
         if ($this->forms["login"]->receive()) {
             if ($this->forms["login"]->isValid()) {
                 // ログイン処理
-                if (app()->auth->login(app()->auth->getAccount()->getRole(), $this->forms["login"])) {
+                if (auth("<?=$controller->getRole()->getName()?>")->login($this->forms["login"])) {
                     // ログイン成功時の転送処理
                     if ($redirect = $this->forms["login"]["redirect"]) {
                         return redirect("url:".$redirect);
                     } else {
-                        return redirect("page:<?=$controller->getRole()->getIndexController()->getIndexPage()->getFullPage()?>");
+                        return redirect("page:<?=$controller->getRole()->getIndexController()->getIndexPage()->getFullPage($pageset->getPageByType("login"))?>");
                     }
                 } else {
                     $this->vars["login_error"] = true;
@@ -35,7 +35,7 @@
 <?=$pageset->getPageByType("exit")->getMethodDecSource()?>
     {
         // ログアウト処理
-        app()->auth->logout(app()->auth->getAccount()->getRole());
+        auth("<?=$controller->getRole()->getName()?>")->logout();
         // ログアウト後の転送処理
-        return redirect("page:<?=$controller->getIndexPage()->getLocalPage()?>");
+        return redirect("page:<?=$controller->getIndexPage()->getFullPage($pageset->getPageByType("exit"))?>");
     }
