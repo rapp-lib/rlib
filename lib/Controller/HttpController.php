@@ -2,9 +2,8 @@
 namespace R\Lib\Controller;
 
 use R\Lib\Form\FormRepositry;
-use R\Lib\Auth\Authenticator;
 
-class HttpController implements FormRepositry, Authenticator
+class HttpController implements FormRepositry
 {
     protected $controller_name;
     protected $action_name;
@@ -17,7 +16,7 @@ class HttpController implements FormRepositry, Authenticator
      */
     protected static $defs = null;
     /**
-     * Authenticator経由で読み込まれる認証設定
+     * 認証設定
      */
     protected static $access_as = null;
     protected static $priv_required = false;
@@ -128,5 +127,19 @@ class HttpController implements FormRepositry, Authenticator
             $authenticate["priv_required"] =static::$priv_required;
         }
         return $authenticate;
+    }
+    /**
+     *
+     */
+    public function getAccessRoleName ()
+    {
+        return static::$access_as;
+    }
+    /**
+     *
+     */
+    public function getPrivRequired ()
+    {
+        return static::$priv_required;
     }
 }

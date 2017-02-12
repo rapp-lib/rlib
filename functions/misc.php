@@ -301,14 +301,6 @@
     /**
      * @deprecated
      */
-    function auth ()
-    {
-        report_warning("@deprecated auth");
-        return app()->auth;
-    }
-    /**
-     * @deprecated
-     */
     function form ()
     {
         report_warning("@deprecated form");

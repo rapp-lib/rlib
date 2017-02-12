@@ -34,6 +34,13 @@
     /**
      * @alias
      */
+    function auth ($role_name=false)
+    {
+        return app()->auth($role_name);
+    }
+    /**
+     * @alias
+     */
     function util ($class_name, $constructor_args=false)
     {
         return app()->util($class_name, $constructor_args);

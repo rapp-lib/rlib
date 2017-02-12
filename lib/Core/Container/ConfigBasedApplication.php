@@ -19,10 +19,10 @@ class ConfigBasedApplication implements Container
     {
         $base_binds = array(
             "middleware" => array(
-                "auth" => 'R\Lib\Auth\Middleware\AuthCheck',
                 "view_response_fallback" => 'R\Lib\Core\Middleware\ViewResponseFallback',
                 "json_response_fallback" => 'R\Lib\Core\Middleware\JsonResponseFallback',
                 "stored_file_service" => 'R\Lib\Core\Middleware\StoredFileService',
+                "auth" => 'R\Lib\Auth\Middleware\RouteRequirePriv',
             ),
             "provider" => array(
                 "console" => 'R\Lib\Core\Provider\ConsoleDriver',
@@ -39,7 +39,6 @@ class ConfigBasedApplication implements Container
                 "util" => 'R\Lib\Core\Provider\UtilLoader',
                 "extention" => 'R\Lib\Core\Provider\ExtentionLoader',
                 "debug" => 'R\Lib\Core\Provider\DebugDriver',
-                "auth" => 'R\Lib\Auth\AccountManager',
                 "asset" => 'R\Lib\Asset\AssetManager',
                 "report" => 'R\Lib\Core\Provider\ReportDriver',
                 "response" => 'R\Lib\Core\Provider\ResponseFactory',
@@ -47,6 +46,7 @@ class ConfigBasedApplication implements Container
                 "session" => 'R\Lib\Core\Provider\Session',
                 "middleware" => 'R\Lib\Core\Provider\MiddlewareApplicator',
                 "mailer" => 'R\Lib\Core\Provider\MailerFactory',
+                "auth" => 'R\Lib\Auth\AccountManager',
             ),
             "contract" => array(
                 "provider" => array(
