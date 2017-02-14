@@ -63,7 +63,7 @@ class Query extends ArrayObject
             }
 
             // fieldsであれば、既存の値を削除して値を設定
-            if (($op=="add" || $op=="set" || $op=="remove") && $key=="fields") {
+            if (($op=="add" || $op=="set" || $op=="remove" || $op=="get") && $key=="fields") {
                 $fields = array();
                 // 引数の指定はFields / FieldName / Key(Alias),FieldNameの3パターン
                 if (is_array($args[0])) {
@@ -76,20 +76,32 @@ class Query extends ArrayObject
                 foreach ($fields as $k => $v) {
                     // 既存の値を削除
                     if ( ! is_numeric($k)) {
-                        unset($this[$key][$k]);
+                        if ($op=="get") {
+                            return $this[$key][$k];
+                        } else {
+                            unset($this[$key][$k]);
+                        }
                     // FieldName指定時の削除処理
                     } elseif (($i = array_search($v,(array)$this[$key]))!==false) {
-                        unset($this[$key][$i]);
+                        if ($op=="get") {
+                            return $this[$key][$i];
+                        } else {
+                            unset($this[$key][$i]);
+                        }
                     // 既存FieldNameはゆれを含めて削除
                     } else {
                         $field_name = preg_match('!\.!',$v)
                             ? preg_replace('!^'.$this->getTableName().'\.!','',$v)
                             : $this->getTableName().".".$v;
                         if (($i = array_search($field_name,(array)$this[$key]))!==false) {
-                            unset($this[$key][$i]);
+                            if ($op=="get") {
+                                return $this[$key][$i];
+                            } else {
+                                unset($this[$key][$i]);
+                            }
                         }
                     }
-                    if ($op=="remove") {
+                    if ($op=="remove" || $op=="get") {
                         continue;
                     }
                     // 指定された値を追加

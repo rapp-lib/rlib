@@ -18,6 +18,9 @@ abstract class Role_Base
     }
     public function __get ($name)
     {
+        if ($name==="role_name") {
+            return $this->getRoleName();
+        }
         return $this->getState($name);
     }
     /**
@@ -100,6 +103,19 @@ abstract class Role_Base
             return $this->getState($priv) !== null;
         }
     }
+    /**
+     * @getter
+     */
+    public function getRoleName ()
+    {
+        if (preg_match('!(\w+)Role$!',get_class($this),$match)) {
+            return str_underscore($match[1]);
+        } else {
+            report_error("Roleのクラス名が不正です",array(
+                "class" => get_class($this),
+            ));
+        }
+    }
 
 // -- 旧認証系実装
 
@@ -154,17 +170,6 @@ abstract class Role_Base
     {
         report_warning("@deprecated Role::getRoleName");
         return app()->auth;
-    }
-    /**
-     * @getter
-     */
-    public function getRoleName ()
-    {
-        report_warning("@deprecated Role::getRoleName");
-        if (preg_match('!(\w+)Role$!',get_class($this),$match)) {
-            return str_underscore($match[1]);
-        }
-        return null;
     }
     /**
      * 権限を持つかどうか確認
