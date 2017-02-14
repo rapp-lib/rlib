@@ -19,7 +19,7 @@
     // jquery.colorbox
     $asset->registerCssUrl("jquery.colorbox:1.6,4", '//cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/i18n/jquery.colorbox-ja.js');
 
-    // nicEdit
+    // nicEdit @deprecated
     $asset->registerJsUrl("nicEdit:0.9.24", '//cdn.jsdelivr.net/nicedit/0.9r24/nicEdit.js');
     $asset->registerJsUrl("nicEdit:0.9", $url.'/nicEdit.js')
         ->required("nicEdit-css");
@@ -38,8 +38,13 @@
         ->required("jquery");
 
     // rui.mi
+    $asset->registerJsUrl("rui.mi:3.0.0", $url.'/mi-3.0/jquery.mi.js')
+        ->required("jquery")
+        ->required("underscore")
+        ->required("InputPluginRegistry");
     $asset->registerJsUrl("rui.mi:2.0.0", $url.'/jquery.mi/jquery.mi.js')
-        ->required("jquery");
+        ->required("jquery")
+        ->required("underscore");
     $asset->registerJsUrl("rui.mi:1.0.0", $url.'/rui.mi/index.js')
         ->required("jquery");
 

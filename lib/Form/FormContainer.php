@@ -517,7 +517,7 @@ class FormContainer extends ArrayObject
                         if ($child_field_def["col"]===false) {
                             continue;
                         }
-                        $item_name = $field_def["item_name"];
+                        $item_name = $child_field_def["item_name"];
                         $child_col_name = $child_field_def["col"];
                         $child_table_name = $child_field_def["table"];
                         //TODO: テーブル定義の確認
