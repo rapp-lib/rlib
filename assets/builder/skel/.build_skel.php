@@ -81,6 +81,14 @@
                 "pages.login.template_file" => $dir."/pageset/login/login.html",
                 "pages.exit.template_file" => null,// $dir."/pageset/login/exit.html",
             ),
+            "reminder" => array(
+                "index_page" => "reminder",
+                "controller.template_file" => $dir."/pageset/reminder/reminder_controller.php",
+                "pages.reminder.template_file" => $dir."/pageset/reminder/reminder.html",
+                "pages.send.template_file" => $dir."/pageset/reminder/send.html",
+                "pages.reset.template_file" => $dir."/pageset/reminder/reset.html",
+                "pages.complete.template_file" => $dir."/pageset/reminder/complete.html",
+            ),
             "show" => array(
                 "index_page" => "list",
                 "controller.template_file" => $dir."/pageset/show/show_controller.php",
@@ -93,6 +101,12 @@
                 "pages.form.template_file" => $dir."/pageset/form/form.html",
                 "pages.confirm.template_file" => $dir."/pageset/form/confirm.html",
                 "pages.complete.template_file" => $dir."/pageset/form/complete.html",
+            ),
+            "mailcheck" => array(
+                "index_page" => "send",
+                "controller.template_file" => $dir."/pageset/mailcheck/mailcheck_controller.php",
+                "pages.send.template_file" => $dir."/pageset/mailcheck/send.html",
+                "pages.checked.template_file" => $dir."/pageset/mailcheck/checked.html",
             ),
             "delete" => array(
                 "index_page" => "delete",

@@ -31,7 +31,7 @@ class PageElement extends Element_Base
     }
     public function getFullPage ($page=null)
     {
-        if (isset($page) && $page->getParent()==$this) {
+        if (isset($page) && $page->getParent()==$this->getParent()) {
             return $this->getLocalPage();
         }
         return $this->getController()->getName().".".$this->getName();

@@ -25,7 +25,7 @@ class RoleElement extends Element_Base
     public function getIndexController ()
     {
         foreach ($this->getAccessibleControllers() as $controller) {
-            if ($controller->getAttr("type") == "index") {
+            if ($controller->getAttr("type") != "login") {
                 return $controller;
             }
         }
