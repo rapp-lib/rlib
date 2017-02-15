@@ -40,7 +40,7 @@ class SmartyBlockCode
             }
         }
         // Bufferへの登録
-        $resource = asset()->buffer($content, $type, $buffer);
+        $resource = app()->asset->buffer($content, $type, $buffer);
         // required指定
         if ($required = $params["required"]) {
             // 登録先のBufferを指定

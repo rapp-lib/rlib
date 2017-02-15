@@ -116,7 +116,6 @@ class Table_Base extends Table_Core
             $this->query->addField($col_name, $col_name_sub);
         }
     }
-
     /**
      * @hook chain
      * FROMに対するAS句の設定
@@ -125,7 +124,6 @@ class Table_Base extends Table_Core
     {
         $this->query->setAlias($alias);
     }
-
     /**
      * @hook chain
      * JOIN句の設定
@@ -134,7 +132,6 @@ class Table_Base extends Table_Core
     {
         $this->query->join($table, $on, $type);
     }
-
     /**
      * @hook chain
      * GROUP_BY句の設定
@@ -143,7 +140,6 @@ class Table_Base extends Table_Core
     {
         $this->query->addGroup($col_name);
     }
-
     /**
      * @hook chain
      * ORDER_BY句の設定
@@ -159,7 +155,6 @@ class Table_Base extends Table_Core
         }
         $this->query->addOrder($col_name.(strlen($order) ? " ".$order : ""));
     }
-
     /**
      * @hook chain
      * OFFSET/LIMIT句の設定
@@ -173,7 +168,6 @@ class Table_Base extends Table_Core
             $this->query->setLimit($limit);
         }
     }
-
     /**
      * @hook chain
      * IDを条件に指定する
@@ -183,22 +177,6 @@ class Table_Base extends Table_Core
         $this->query->where($this->getQueryTableName().".".$this->getIdColName("id"), $id);
     }
     /**
-     * 本登録URL押下時の処理（仮）
-     * 仮登録パラメータとの完全一致レコードを取得する
-     * 記述場所は正しいか
-     * 拡張性を持たせるため共通でCredだが、
-     * +で仮メールアドレスの完全一致が必要??
-     */
-    public function chain_findByCred($key,$val){
-        $this->query->where($this->getQueryTableName().".".$key, $val);
-    }
-    
-    public function chain_findByMail($key,$val){
-           $this->query->where($this->getQueryTableName().".".$key,$val);
-    }
-
-
-    /**
      * @hook chain
      * 絞り込み条件を指定する
      */
@@ -206,7 +184,6 @@ class Table_Base extends Table_Core
     {
         $this->query->where($col_name, $value);
     }
-
     /**
      * @hook chain
      * ログイン中のアカウントを条件に指定する
@@ -233,7 +210,6 @@ class Table_Base extends Table_Core
         }
         $this->query->where($owner_key_col_name, $account->getId());
     }
-
     /**
      * @hook chain
      * ログインID/PWを条件に指定する
@@ -250,7 +226,6 @@ class Table_Base extends Table_Core
         $this->query->where($this->getQueryTableName().".".$login_id_col_name, (string)$login_id);
         $this->query->where($this->getQueryTableName().".".$login_pw_col_name, md5($login_pw));
     }
-
     /**
      * @hook chain
      * 絞り込み結果を空にする
@@ -259,45 +234,33 @@ class Table_Base extends Table_Core
     {
         $this->query->addWhere("0=1");
     }
-
     /**
-     * @deprecated
-     * @hook chain
-     * 旧仕様のlist_settingによる絞り込み
-     */
-    public function chain_findBySearchForm ($list_setting, $input)
-    {
-        $query_array = $this->getModel()->get_list_query($list_setting, $input);
-        $this->query->merge($query_array);
-    }
-
-    /**
-     * @hook chain
      * 検索フォームによる絞り込み
      * search_typeXxx($form, $field_def, $value)メソッドを呼び出す
      */
-    public function chain_findBySearchFields ($form, $field_defs)
+    public function chain_findBySearchFields ($form, $search_fields)
     {
-        $values = $form->getValues();
-        foreach ((array)$field_defs as $field_name => $field_def) {
-            if (isset($field_def["search"])) {
-                $value = $values[$field_name];
-                // search_colの補完
-                if ( ! isset($field_def["target_col"])) {
-                    $field_def["target_col"] = $field_name;
-                }
-                // search_typeXxx($form, $field_def, $value)メソッドを呼び出す
-                $search_method_name = "search_type".str_camelize($field_def["search"]);
-                if ( ! method_exists($this, $search_method_name)) {
-                    report_error("検索メソッドが定義されていません",array(
-                        "search_method_name" => $search_method_name,
-                        "table" => $this,
-                    ));
-                }
-                call_user_func(array($this,$search_method_name), $form, $field_def, $value);
+        $applied = false;
+        foreach ($search_fields as $search_field) {
+            $search_type = $search_field["type"];
+            $field_def = $search_field["field_def"];
+            $value = $search_field["value"];
+            // search_typeXxx($form, $field_def, $value)メソッドを呼び出す
+            $search_method_name = "search_type".str_camelize($search_type);
+            if ( ! method_exists($this, $search_method_name)) {
+                report_error("検索メソッドが定義されていません",array(
+                    "search_method_name" => $search_method_name,
+                    "table" => $this,
+                ));
+            }
+            $result = call_user_func(array($this,$search_method_name), $form, $field_def, $value);
+            if ($result!==false) {
+                $applied = true;
             }
         }
+        return $applied;
     }
+
 
     /**
      * @hook chain
@@ -559,55 +522,75 @@ class Table_Base extends Table_Core
      */
     public function search_typeWhere ($form, $field_def, $value)
     {
-        if (isset($value)) {
-            // 対象カラムは複数指定に対応
-            $target_cols = $field_def["target_col"];
-            if ( ! is_array($target_cols)) {
-                $target_cols = array($target_cols);
-            }
-            $conditions_or = array();
-            foreach ($target_cols as $i => $target_col) {
-                $conditions_or[$i] = array($target_col => $value);
-            }
-            if (count($conditions_or)==1) {
-                $this->query->where(array_pop($conditions_or));
-            // 複数のカラムが有効であればはORで接続
-            } elseif (count($conditions_or)>1) {
-                $this->query->where(array("OR"=>$conditions_or));
-            }
+        if ( ! isset($value)) {
+            return false;
+        }
+        // 対象カラムは複数指定に対応
+        $target_cols = $field_def["target_col"];
+        if ( ! is_array($target_cols)) {
+            $target_cols = array($target_cols);
+        }
+        $conditions_or = array();
+        foreach ($target_cols as $i => $target_col) {
+            $conditions_or[$i] = array($target_col => $value);
+        }
+        if (count($conditions_or)==0) {
+            return false;
+        }
+        if (count($conditions_or)==1) {
+            $this->query->where(array_pop($conditions_or));
+        // 複数のカラムが有効であればはORで接続
+        } elseif (count($conditions_or)>1) {
+            $this->query->where(array("OR"=>$conditions_or));
         }
     }
-
     /**
      * @hook search word
      */
     public function search_typeWord ($form, $field_def, $value)
     {
-        if (isset($value)) {
-            // 対象カラムは複数指定に対応
-            $target_cols = $field_def["target_col"];
-            if ( ! is_array($target_cols)) {
-                $target_cols = array($target_cols);
-            }
-            // スペースで分割して複数キーワード指定
-            $conditions_or = array();
-            foreach ($target_cols as $i => $target_col) {
-                foreach (preg_split('![\s　]+!u',$value) as $keyword) {
-                    if (strlen(trim($keyword))) {
-                        $keyword = str_replace('%','\\%',trim($keyword));
-                        $conditions_or[$i][] = array($target_col." LIKE" =>"%".$keyword."%");
-                    }
+        if ( ! isset($value)) {
+            return false;
+        }
+        // 対象カラムは複数指定に対応
+        $target_cols = $field_def["target_col"];
+        if ( ! is_array($target_cols)) {
+            $target_cols = array($target_cols);
+        }
+        // スペースで分割して複数キーワード指定
+        $conditions_or = array();
+        foreach ($target_cols as $i => $target_col) {
+            foreach (preg_split('![\s　]+!u',$value) as $keyword) {
+                if (strlen(trim($keyword))) {
+                    $keyword = str_replace('%','\\%',trim($keyword));
+                    $conditions_or[$i][] = array($target_col." LIKE" =>"%".$keyword."%");
                 }
             }
-            if (count($conditions_or)==1) {
-                $this->query->where(array_pop($conditions_or));
-            // 複数のカラムが有効であればはORで接続
-            } elseif (count($conditions_or)>1) {
-                $this->query->where(array("OR"=>$conditions_or));
-            }
+        }
+        if (count($conditions_or)==0) {
+            return false;
+        }
+        if (count($conditions_or)==1) {
+            $this->query->where(array_pop($conditions_or));
+        // 複数のカラムが有効であればはORで接続
+        } elseif (count($conditions_or)>1) {
+            $this->query->where(array("OR"=>$conditions_or));
         }
     }
-
+    /**
+     * @hook search exists
+     * 別Tableをサブクエリとして条件指定する
+     */
+    public function search_typeExists ($form, $field_def, $value)
+    {
+        if ( ! isset($value)) {
+            return false;
+        }
+        $table = table($field_def["search_table"]);
+        $table->findBy($this->getQueryTableName().".".$this->getIdColName()."=".$table->getQueryTableName().".".$field_def["fkey"]);
+        $table->findBySearchFields($form, $field_def["search_fields"]);
+        $this->query->where("EXISTS(".$table->buildQuery("select").")");
+    }
     /**
      * @hook search sort
      */
@@ -620,9 +603,10 @@ class Table_Base extends Table_Core
             $col_name = $match[1];
             $col_name .= $match[2]=="DESC" ? " DESC" : "";
             $this->query->addOrder($col_name);
+        } else {
+            return false;
         }
     }
-
     /**
      * @hook search page
      */
