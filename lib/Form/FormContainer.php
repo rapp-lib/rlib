@@ -145,27 +145,6 @@ class FormContainer extends ArrayObject
             }
         }
     }
-    /**
-     * 本登録URL押下時の処理（仮）
-     * 仮登録パラメータとの完全一致レコードを取得する
-     * 記述場所は正しい?
-     * 似たようなメソッドが既に有りそう
-     * +で仮メールアドレスの完全一致が必要??
-     */
-    public function findByCred($key,$val){
-         $record = table($this->def["table"])->selectByCred($key,$val);
-         if ($record) {
-              $this->setRecord($record);
-         }
-    }
-
-    public function findByMail($key,$val){
-         $record = table($this->def["table"])->selectByMail($key,$val);
-         if ($record) {
-              $this->setRecord($record);
-         }
-    }
-
 
 // -- save/restore関連処理
 
@@ -391,12 +370,50 @@ class FormContainer extends ArrayObject
      */
     public function search ()
     {
+        $search_fields = array();
+        foreach ((array)$this->def["fields"] as $field_name => $field_def) {
+            $search_type = $field_def["search"];
+            if ( ! isset($search_type)) {
+                continue;
+            }
+            // 2階層の親要素
+            if ($field_def["type"]=="fields") {
+                $child_search_fields = array();
+                // 関係する別のTableに対して下層の検索条件を付与
+                foreach ((array)$field_def["child_field_names"] as $child_field_name) {
+                    $child_field_def = $this->def["fields"][$child_field_name];
+                    $child_search_type = $child_field_def["search"];
+                    if ( ! isset($child_search_type)) {
+                        continue;
+                    }
+                    $child_search_fields[] = array(
+                        "type" => $child_search_type,
+                        "field_def" => $child_field_def,
+                        "value" => $this[$field_name][$child_field_def["item_name"]],
+                    );
+                }
+                $field_def["search_fields"] = $child_search_fields;
+                $search_fields[] = array(
+                    "type" => $search_type,
+                    "field_def" => $field_def,
+                    "value" => $this[$field_name],
+                );
+            // 1階層の値
+            } elseif ($field_def["level"]==1) {
+                $search_fields[] = array(
+                    "type" => $search_type,
+                    "field_def" => $field_def,
+                    "value" => $this[$field_name],
+                );
+            }
+        }
         if ( ! $this->def["search_table"]) {
             report_error("Formにsearch_tableが関連づけられていません",array(
                 "form_def" => $this->def,
             ));
         }
-        return app()->table($this->def["search_table"])->findBySearchFields($this, $this->def["fields"]);
+        // 関係するTableに対して検索条件を付与
+        return table($this->def["search_table"])->findBySearchFields($this, $search_fields);
     }
 
     /**
@@ -517,7 +534,7 @@ class FormContainer extends ArrayObject
                         if ($child_field_def["col"]===false) {
                             continue;
                         }
-                        $item_name = $field_def["item_name"];
+                        $item_name = $child_field_def["item_name"];
                         $child_col_name = $child_field_def["col"];
                         $child_table_name = $child_field_def["table"];
                         //TODO: テーブル定義の確認
