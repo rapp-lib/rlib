@@ -34,12 +34,9 @@ class Route
                 }
             }
             $this->page = $controller_name.".".$action_name;
-        // "http(s)://"で始まる場合URLと判断する
-        } elseif (preg_match('!^(?:url:)?(https?://.*)$!',$route_name,$match)) {
-            $url = $match[1];
-        // "url:"で始まる場合URLと判断する
-        } elseif (preg_match('!^(?:url:)(.*)$!',$route_name,$match)) {
-            $url = $match[1];
+        // "url:"/"http(s)://"で始まる場合URLと判断する
+        } elseif (preg_match('!^(?:(?:url:)(.*)|(https?://.*))$!',$route_name,$match)) {
+            $url = strlen($match[1]) ? $match[1] : $match[2];
             list($this->path, $this->url_params, $path_matched) = $this->getWebroot()->parseUrl($url);
             // webroot外のURLであればそのままあつかう
             if ( ! isset($this->path)) {
