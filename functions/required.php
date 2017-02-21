@@ -2,8 +2,8 @@
     define("R_LIB_ROOT_DIR", realpath(__DIR__."/.."));
 
     require_once __DIR__."/functions.php";
+    require_once __DIR__."/array_functions.php";
     require_once __DIR__."/misc.php"; // checked
-    require_once __DIR__."/date.php"; // checked
     require_once __DIR__."/report.php"; // checked
 
     require_once __DIR__."/Regacy/array.php"; // @depreced
@@ -16,3 +16,5 @@
     require_once __DIR__."/Regacy/string.php"; // @depreced
     require_once __DIR__."/Regacy/file.php"; // @depreced
     require_once __DIR__."/Regacy/modules.php"; // @depreced
+    require_once __DIR__."/Regacy/date.php"; // @depreced
+    require_once __DIR__."/Regacy/misc_deprecated.php"; // @depreced

@@ -10,6 +10,10 @@ class SmartyModifierDate
      * @overload
      */
     function callback ($string ,$format="Y/m/d") {
-        return isset($string) ? longdate_format($string,$format) : "";
+        if ( ! strlen($string)) {
+            return "";
+        }
+        $date = new \DateTime($string);
+        return $date->format($format);
     }
 }

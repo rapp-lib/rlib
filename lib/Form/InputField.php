@@ -163,8 +163,9 @@ class InputField
         // type=dateであれば、入力値の形式を日付型に整形
         } elseif ($this->attrs["type"]=="date") {
             $attrs["value"] = isset($this->field_value) ? $this->field_value : $attrs["value"];
-            if ($date = longdate($attrs["value"])) {
-                $attrs["value"] = $date["Y"].'-'.$date["m"].'-'.$date["d"];
+            if (strlen($attrs["value"])) {
+                $date = new \DateTime($attrs["value"]);
+                $attrs["value"] = $date->format('Y-m-d');
             }
             $this->html = tag("input",$attrs);
         // その他のtypeは標準のタグ表示
