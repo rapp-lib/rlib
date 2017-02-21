@@ -119,6 +119,8 @@ class Query extends ArrayObject
                 // 引数の指定はValues/Value/Key,Valueの3パターン
                 if (is_array($args[0])) {
                     $values = $args[0];
+                } elseif (count($args)==1) {
+                    $values = array($args[0]);
                 } elseif (count($args)==2) {
                     $values = array($args[0] => $args[1]);
                 }
