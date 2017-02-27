@@ -23,12 +23,14 @@ class CsvfilterLoader
         }
         // CSV読み込み時
         if ($mode == "r") {
-            $values =sanitize($values);
+            $values = util("Func")->mapRecursive(function($value) {
+                return htmlspecialchars($value, ENT_QUOTES);
+            }, $values);
         // CSV書き込み時
         } elseif ($mode == "w") {
-            foreach ($values as $k => $v) {
-                $values[$k] =str_replace(array("&amp;","&lt;","&gt;"),array("&","<",">"),$v);
-            }
+            $values = util("Func")->mapRecursive(function($value) {
+                return htmlspecialchars_decode($value, ENT_QUOTES);
+            }, $values);
         }
         return $values;
     }
@@ -53,15 +55,19 @@ class CsvfilterLoader
                 return null;
             }
             if ($filter["format"]) {
-                $value =longdate_format($value,$filter["format"]);
+                //$value = longdate_format($value,$filter["format"]);
+                $date = new \DateTime($value);
+                $value = $date->format($filter["format"]);
             }
         // CSV書き込み時
         } elseif ($mode == "w") {
-            if ( ! longdate($value)) {
+            if ( ! strlen($value)) {
                 return "";
             }
             if ($filter["format"]) {
-                $value =longdate_format($value,$filter["format"]);
+                //$value =longdate_format($value,$filter["format"]);
+                $date = new \DateTime($value);
+                $value = $date->format($filter["format"]);
             }
         }
         return $value;

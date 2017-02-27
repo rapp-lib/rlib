@@ -4,6 +4,7 @@
      */
     function longdate ($date_string)
     {
+        report_warning("@deprecated longdate");
         $date_pattern ='!^((\d*)[-/](\d*)[-/](\d*))?\D*((\d+):(\d+)(:(\d+))?)?!';
         $longdate =array();
         if (strlen($date_string)
@@ -64,6 +65,7 @@
      * # SmartyModifierDateで使用中
      */
     function longdate_format ($date_string=null, $format="Y/m/d") {
+        report_warning("@deprecated longdate_format");
         if ($date_string == null) {
             $date_string =time();
         }
@@ -84,6 +86,7 @@
      * @access private
      */
     function get_date_m ($month) {
+        report_warning("@deprecated get_date_m");
         $month_list =array(
             "1" =>"Jan",
             "2" =>"Feb",
@@ -105,6 +108,7 @@
      * @access private
      */
     function get_weekday ($year, $month, $mday, $mode="w") {
+        report_warning("@deprecated get_weekday");
         if($month == 1 || $month == 2) {
             $year--;
             $month += 12;
@@ -122,6 +126,7 @@
      * @access private
      */
     function get_japanese_year ($y, $m=12, $d=31, $format="X") {
+        report_warning("@deprecated get_japanese_year");
         /*
             1868年09月07日以前は西暦表記とします
             1912年07月29日以前は「明治」- 1867

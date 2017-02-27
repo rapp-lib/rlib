@@ -8,8 +8,11 @@ class FileUpload
         if ($error = util("FileUpload")->getError($file)) {
             return array("error"=>$error);
         }
+        if (file_exists($file["tmp_name"])) {
+            chmod($file["tmp_name"], 0664);
+        }
         // アップロードファイルをFileStorageに転送
-        $stored_file = file_storage()->create($storage_name, $file["tmp_name"], array(
+        $stored_file = app()->file_storage->create($storage_name, $file["tmp_name"], array(
             "original_filename" => basename($file["name"]),
             "content_type" => $file["type"],
         ));
