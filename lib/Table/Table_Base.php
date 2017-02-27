@@ -223,8 +223,11 @@ class Table_Base extends Table_Core
                 "table" => $this,
             ));
         }
+        if (static::$cols[$login_pw_col_name]["hash_pw"]) {
+            $login_pw = md5($login_pw);
+        }
         $this->query->where($this->getQueryTableName().".".$login_id_col_name, (string)$login_id);
-        $this->query->where($this->getQueryTableName().".".$login_pw_col_name, md5($login_pw));
+        $this->query->where($this->getQueryTableName().".".$login_pw_col_name, (string)$login_pw);
     }
     /**
      * @hook chain
