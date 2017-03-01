@@ -97,6 +97,8 @@
         ->required("InputPluginRegistry");
     $asset->registerJsUrl("input_plugin.split_text", $url.'/input_plugin/split_text.js')
         ->required("InputPluginRegistry");
+    $asset->registerJsUrl("input_plugin.date_select", $url.'/input_plugin/date_select.js')
+        ->required("InputPluginRegistry");
     $asset->registerJsUrl("input_plugin.show_uploaded_file", $url.'/input_plugin/show_uploaded_file.js')
         ->required("InputPluginRegistry")
         ->required("config.current_webroot_url");
