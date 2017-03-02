@@ -105,9 +105,14 @@ class HttpResponse implements Response
                 ob_get_clean();
             }
         }
-        // Content-Typeヘッダの送信
+        // ヘッダの送信
         if (isset($output["content_type"])) {
-            header("Content-Type: ".$output["content_type"]);
+            $output["headers"]["Content-Type"] =$output["content_type"];
+        }
+        if (is_array($output["headers"])) {
+            foreach ($output["headers"] as $k=>$v) {
+                header($k.": ".$v);
+            }
         }
         // テンプレート/JSON
         if ($output["type"]=="view" || $output["type"]=="json") {
