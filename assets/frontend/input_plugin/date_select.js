@@ -32,15 +32,26 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
             day : 1
         };
         for (var i in bind_elms) {
+            // 選択解除された場合、全ての選択肢を選択解除させる
+            if ( ! $(this).val() && bind_elms[i].val()) {
+                bind_elms[i].val("");
+            }
+            // 有効な値が選択された場合、解除されている全ての選択肢を有効なものに置き換える
+            if ($(this).val() && ! bind_elms[i].val()) {
+                bind_elms[i].val(bind_elms[i].find("option").eq(1).attr("value"));
+            }
             values[i] = bind_elms[i].val();
         }
-        var date = new Date(values.year, values.month-1, values.day);
-        var yyyy = date.getFullYear();
-        var mm = ('0'+(date.getMonth()+1)).slice(-2);
-        var dd = ('0'+date.getDate()).slice(-2);
-        $elm.val(yyyy+"-"+mm+"-"+dd);
+        if (values.year && values.month && values.day) {
+            var date = new Date(values.year, values.month-1, values.day);
+            var yyyy = date.getFullYear();
+            var mm = ('0'+(date.getMonth()+1)).slice(-2);
+            var dd = ('0'+date.getDate()).slice(-2);
+            $elm.val(yyyy+"-"+mm+"-"+dd);
+        } else {
+            $elm.val("");
+        }
     };
-
     for (var i in bind_elms) {
         bind_elms[i].on("change",on_update_bind_input);
     }
