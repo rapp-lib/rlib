@@ -50,7 +50,7 @@ class ColElement extends Element_Base
             $html .=' plugins=["show_uploaded_file"=>[]]';
         }
         if ($this->getAttr("type")=="password") {
-            $html .=' autocomplete="off"';
+            $html .=' autocomplete="new-password"';
         }
         $html .= '}}';
         return $html;
