@@ -5,7 +5,11 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
     $elm.hide();
     // 既存要素の関連づけ
     if (params.bind) {
-        if (params.bind.ids) {
+        if (params.bind.finds) {
+            for (var i in params.bind.finds) {
+                bind_elms[i] = $elm.parent().find(params.bind.finds[i]);
+            }
+        } else if (params.bind.ids) {
             for (var i in params.bind.ids) {
                 bind_elms[i] = $("#"+params.bind.ids[i]);
             }
@@ -25,19 +29,20 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
         bind_elms[i].val(values[i]);
     }
     // 値の更新時の処理
-    var on_update_bind_input = function () {
+    var on_update_bind_input = function (e) {
         var values = {
             year : 1970,
             month : 1,
             day : 1
         };
+        var $update_val = e ? $(this).val() : "";
         for (var i in bind_elms) {
             // 選択解除された場合、全ての選択肢を選択解除させる
-            if ( ! $(this).val() && bind_elms[i].val()) {
+            if ( ! $update_val && bind_elms[i].val()) {
                 bind_elms[i].val("");
             }
             // 有効な値が選択された場合、解除されている全ての選択肢を有効なものに置き換える
-            if ($(this).val() && ! bind_elms[i].val()) {
+            if ($update_val && ! bind_elms[i].val()) {
                 bind_elms[i].val(bind_elms[i].find("option").eq(1).attr("value"));
             }
             values[i] = bind_elms[i].val();
