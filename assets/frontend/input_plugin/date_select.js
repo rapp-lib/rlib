@@ -35,15 +35,16 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
             month : 1,
             day : 1
         };
-        var $update_val = e ? $(this).val() : "";
         for (var i in bind_elms) {
-            // 選択解除された場合、全ての選択肢を選択解除させる
-            if ( ! $update_val && bind_elms[i].val()) {
-                bind_elms[i].val("");
-            }
-            // 有効な値が選択された場合、解除されている全ての選択肢を有効なものに置き換える
-            if ($update_val && ! bind_elms[i].val()) {
-                bind_elms[i].val(bind_elms[i].find("option").eq(1).attr("value"));
+            if (e) {
+                // 選択解除された場合、全ての選択肢を選択解除させる
+                if ( ! $(this).val() && bind_elms[i].val()) {
+                    bind_elms[i].val("");
+                }
+                // 有効な値が選択された場合、解除されている全ての選択肢を有効なものに置き換える
+                if ($(this).val() && ! bind_elms[i].val()) {
+                    bind_elms[i].val(bind_elms[i].find("option").eq(1).attr("value"));
+                }
             }
             values[i] = bind_elms[i].val();
         }
