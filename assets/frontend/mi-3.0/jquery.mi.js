@@ -91,12 +91,12 @@ window.MiHandler = function ($mi)
         // テンプレートHTMLにIDを設定して新しい要素を生成
         var $item = $(o.config.tmpl({ id : o.getNextId() }));
         o.initItem($item);
-        $mi.trigger("miChange",["append",$item,$anchorItem]);
         if ($anchorItem) {
             $anchorItem.after($item);
         } else {
             $(".mi-anchor",$mi).before($item);
         }
+        $mi.trigger("miChange",["append",$item,$anchorItem]);
         o.update();
         return $item;
     };
@@ -150,8 +150,9 @@ window.MiHandler = function ($mi)
         $item.remove();
         o.update();
     };
-    //-------------------------------------
-    // 要素を一つ上に移動
+    /*
+     * 要素を一つ上に移動
+     */
     o.swapUpItem = function($item){
         // 入れ替える前の要素がなければ拒否
         if ( ! $item.prev().hasClass("mi-item")) {

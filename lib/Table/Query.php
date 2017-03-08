@@ -79,14 +79,14 @@ class Query extends ArrayObject
                         if ($op=="get") {
                             return $this[$key][$k];
                         } else {
-                            unset($this[$key][$k]);
+                            $this->unsetItem($this[$key], $k);
                         }
                     // FieldName指定時の削除処理
                     } elseif (($i = array_search($v,(array)$this[$key]))!==false) {
                         if ($op=="get") {
                             return $this[$key][$i];
                         } else {
-                            unset($this[$key][$i]);
+                            $this->unsetItem($this[$key] ,$i);
                         }
                     // 既存FieldNameはゆれを含めて削除
                     } else {
@@ -97,7 +97,7 @@ class Query extends ArrayObject
                             if ($op=="get") {
                                 return $this[$key][$i];
                             } else {
-                                unset($this[$key][$i]);
+                                $this->unsetItem($this[$key], $i);
                             }
                         }
                     }
@@ -130,7 +130,7 @@ class Query extends ArrayObject
                         ? preg_replace('!^'.$this->getTableName().'\.!','',$k)
                         : $this->getTableName().".".$k;
                     if (isset($this[$key][$field_name])) {
-                        unset($this[$key][$field_name]);
+                        $this->unsetItem($this[$key], $field_name);
                     }
                     $this[$key][$k] = $v;
                 }
@@ -180,7 +180,7 @@ class Query extends ArrayObject
                     unset($this[$key]);
                     return;
                 } elseif (count($args)==1) {
-                    unset($this[$key][$args[0]]);
+                    $this->unsetItem($this[$key], $args[0]);
                     return;
                 }
             }
@@ -192,6 +192,15 @@ class Query extends ArrayObject
             "args_count" => count($args),
             "query" => $this,
         ));
+    }
+
+    /**
+     * @deprecated
+     * PHP5.3.3以前でArrayObjectでネストした配列のUnsetが無効になるバグに対応するUnset処理
+     */
+    private function unsetItem ( & $array, $key)
+    {
+        array_unset($array, $key);
     }
 
     /**
