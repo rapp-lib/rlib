@@ -128,7 +128,7 @@
         // URLパス内パラメータの置換
         $ptn_url_param ='!\[([^\]]+)\]!';
         if (preg_match($ptn_url_param,$url)) {
-            $tmp_url_params =& ref_globals("tmp_url_params");
+            $tmp_url_params =& $GLOBALS["__TMP_URL_PARAMS__"];
             $tmp_url_params =$params;
             $url =preg_replace_callback($ptn_url_param,"url_param_replace",$url);
             $params =$tmp_url_params;
@@ -161,7 +161,7 @@
     function url_param_replace ($match)
     {
         $replaced =$match[0];
-        $tmp_url_params =& ref_globals("tmp_url_params");
+        $tmp_url_params =& $GLOBALS["__TMP_URL_PARAMS__"];
         if (isset($tmp_url_params[$match[1]])) {
             $replaced =$tmp_url_params[$match[1]];
             unset($tmp_url_params[$match[1]]);

@@ -14,6 +14,14 @@ class ServerVars
      */
     public static function ipCheck ($accept, $remote_ip=null)
     {
+        // ,区切りでの複数指定であれば再帰処理
+        if (strpos($accept,",")) {
+            $result = false;
+            foreach (explode(",",$accept) as $accept_item) {
+                $result = $result || self::ipCheck($accept_item,$remote_ip);
+            }
+            return $result;
+        }
         if (is_null($remote_ip)) {
             $remote_ip = $_SERVER['REMOTE_ADDR'];
         }
