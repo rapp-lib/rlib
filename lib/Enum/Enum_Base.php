@@ -11,6 +11,10 @@ class Enum_Base extends ArrayObject
 {
     protected $set_name;
     protected $parent_key;
+    /**
+     * initValues()が呼び出しであるかどうか
+     */
+    protected $init_values_completed = false;
 
     /**
      *
@@ -43,6 +47,12 @@ class Enum_Base extends ArrayObject
      */
     public function initValues ($keys=false)
     {
+        if ($keys===false) {
+            if ($this->init_values_completed) {
+                return;
+            }
+            $this->init_values_completed = true;
+        }
         if ($this->parent_key!==false) {
             if (method_exists($this, $method_name = "layered_values_".$this->set_name)) {
                 $values = call_user_func(array($this, $method_name), $this->parent_key, $keys);

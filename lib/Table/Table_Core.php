@@ -448,7 +448,7 @@ class Table_Core
     public function selectNoFetch ($fields=array())
     {
         $this->query->addFields($fields);
-        $this->query->setNoMapping(true);report($this);
+        $this->query->setNoMapping(true);
         return $this->execQuery("select");
     }
 

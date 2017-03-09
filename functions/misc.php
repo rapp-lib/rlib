@@ -35,10 +35,9 @@
      */
     function rand_string ($length=8, $seed=null)
     {
-        report_warning("@deprecated rand_string");
-        $charmap='0123456789abcdefghijklmnopqrstuvwxyz';
-        $chars =str_split($charmap);
-        $string ="";
+        $charmap = '0123456789abcdefghijklmnopqrstuvwxyz';
+        $chars = str_split($charmap);
+        $string = "";
         $seed === null
                 ? srand()
                 : srand(crc32((string)$seed));
