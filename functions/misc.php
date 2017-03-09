@@ -127,7 +127,7 @@
         // URLパス内パラメータの置換
         $ptn_url_param ='!\[([^\]]+)\]!';
         if (preg_match($ptn_url_param,$url)) {
-            $tmp_url_params =& ref_globals("tmp_url_params");
+            $tmp_url_params =& $GLOBALS["__TMP_URL_PARAMS__"];
             $tmp_url_params =$params;
             $url =preg_replace_callback($ptn_url_param,"url_param_replace",$url);
             $params =$tmp_url_params;
@@ -160,7 +160,7 @@
     function url_param_replace ($match)
     {
         $replaced =$match[0];
-        $tmp_url_params =& ref_globals("tmp_url_params");
+        $tmp_url_params =& $GLOBALS["__TMP_URL_PARAMS__"];
         if (isset($tmp_url_params[$match[1]])) {
             $replaced =$tmp_url_params[$match[1]];
             unset($tmp_url_params[$match[1]]);
@@ -257,82 +257,4 @@
             $html .='</'.$name.'>';
         }
         return $html;
-    }
-
-// -- 削除予定
-
-    /**
-     * @deprecated
-     */
-    function registry ($name, $value=null)
-    {
-        if (isset($value)) {
-            report_warning("@deprecated registry assign");
-            app()->config(array($name=>$value));
-            return;
-        }
-        return app()->config($name);
-    }
-    /**
-     * @deprecated
-     * ドット記法で配列の値を設定する
-     */
-    function array_set ( & $ref, $key, $value)
-    {
-        report_warning("@deprecated array_set");
-        $key_parts = explode(".",$key);
-        foreach ($key_parts as $key_part) {
-            if ( ! is_array($ref)) {
-                $ref = array();
-            }
-            $ref = & $ref[$key_part];
-        }
-        $ref = $value;
-    }
-    /**
-     * @deprecated
-     */
-    function builder ()
-    {
-        report_warning("@deprecated builder");
-        return app()->builder;
-    }
-    /**
-     * @deprecated
-     */
-    function form ()
-    {
-        report_warning("@deprecated form");
-        return app()->form;
-    }
-    /**
-     * @deprecated
-     */
-    function enum ($enum_set_name=false, $group=false)
-    {
-        report_warning("@deprecated enum");
-        return app()->enum($enum_set_name, $group);
-    }
-    /**
-     * @deprecated
-     */
-    function enum_select ($value, $enum_set_name=false, $group=false)
-    {
-        report_warning("@deprecated enum_select");
-        return app()->enum_select($value, $enum_set_name, $group);
-    }
-    /**
-     * @deprecated
-     */
-    function asset () {
-        report_warning("@deprecated asset");
-        return app()->asset;
-    }
-    /**
-     * @deprecated
-     */
-    function file_storage ()
-    {
-        report_warning("@deprecated file_storage");
-        return app()->file_storage;
     }

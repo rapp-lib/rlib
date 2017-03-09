@@ -73,7 +73,7 @@ class HttpResponse implements Response
             if (php_sapi_name()==="cli") {
                 return true;
             } else {
-                $response_code = $output["response_code"];
+                $response_code = $output["code"];
                 if ( ! $response_code) {
                     $response_code = 500;
                 }
@@ -99,15 +99,28 @@ class HttpResponse implements Response
             }
             return true;
         }
-        // HTML表示以外の出力であればバッファを消去
-        if ( ! preg_match('!^text/html!i',$output["content_type"])) {
+        $buffer_clear = true;
+        // HTML表示であればバッファを消去しない
+        if (preg_match('!^text/html!i',$output["content_type"])) {
+            $buffer_clear = false;
+        }
+        // デバッグ中であればバッファを消去しない
+        if (app()->debug() && app()->request && app()->request["no_buffer_clear"]) {
+            $buffer_clear = false;
+        }
+        if ($buffer_clear) {
             while (ob_get_level()) {
                 ob_get_clean();
             }
         }
-        // Content-Typeヘッダの送信
+        // ヘッダの送信
         if (isset($output["content_type"])) {
-            header("Content-Type: ".$output["content_type"]);
+            $output["headers"]["Content-Type"] =$output["content_type"];
+        }
+        if (is_array($output["headers"])) {
+            foreach ($output["headers"] as $k=>$v) {
+                header($k.": ".$v);
+            }
         }
         // テンプレート/JSON
         if ($output["type"]=="view" || $output["type"]=="json") {

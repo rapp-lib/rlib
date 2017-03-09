@@ -7,7 +7,7 @@
         "table" => "<?=$table->getName()?>",
 <?php endif; ?>
         "fields" => array(
-<?php if ($table->hasDef()): ?>
+<?php if ($controller->getAttr("type")==="master"): ?>
             "id",
 <?php endif; ?>
 <?php foreach ($controller->getInputCols() as $col): ?>

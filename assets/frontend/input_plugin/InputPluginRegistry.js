@@ -6,16 +6,20 @@ window.InputPluginRegistry = {
     },
     registerElement : function (elementId, paramSet) {
         InputPluginRegistry.elements[elementId] = paramSet;
-        InputPluginRegistry.apply(elementId);
     },
-    apply : function (elementId, $block) {
-        $(function(){
-            $block = $block || $(document);
-            var $elm = $block.find('[data-plugin-elmid='+elementId+']');
+    applyAll : function () {
+        var $elms = $('*[data-plugin-elmid][data-plugin-applied!=yes]');
+        $elms.each(function(){
+            var $elm = $(this);
+            var elementId = $elm.attr("data-plugin-elmid");
             var paramSet = InputPluginRegistry.elements[elementId];
             for (var pluginId in paramSet) {
                 InputPluginRegistry.plugins[pluginId]($elm, paramSet[pluginId]);
             }
+            $elm.attr("data-plugin-applied","yes");
         });
     }
 };
+$(function(){
+    InputPluginRegistry.applyAll();
+});
