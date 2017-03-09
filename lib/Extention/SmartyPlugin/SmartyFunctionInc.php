@@ -23,10 +23,12 @@ class SmartyFunctionInc
         $page = $route->getPage();
         $vars = array();
         // Routeに対応する処理の実行
-        if ($page && $controller = app()->router()->invokeIncludePage($page)) {
+        if ($page) {
             report("IncludeAction実行",array(
                 "page" => $page,
             ));
+            $controller = $route->getController();
+            $controller->execInc();
             $vars = $controller->getVars();
         }
         $request_file = $route->getFile();
