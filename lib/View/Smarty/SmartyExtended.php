@@ -6,10 +6,9 @@ use SmartyBC;
 class SmartyExtended extends SmartyBC
 {
     /**
-     * Form領域の状態スタック
+     * Blockタグの状態スタック
      */
-    protected $form_stack_top = null;
-    protected $form_stack = array();
+    protected $block_tag_stack = array();
 
     public function __construct ()
     {
@@ -45,28 +44,43 @@ class SmartyExtended extends SmartyBC
         }
         return false;
     }
+
+// --
+
+    /**
+     * Blockの状態を管理するStackを取得する
+     */
+    public function getBlockTagStack ($stack_name)
+    {
+        if ( ! isset($this->block_tag_stack[$stack_name])) {
+            $this->block_tag_stack[$stack_name] = new BlockTagStack();
+        }
+        return $this->block_tag_stack[$stack_name];
+    }
     /**
      * 現在のForm領域を取得
      */
     public function getCurrentForm ()
     {
-        return $this->form_stack_top;
+        return $this->getBlockTagStack("form")->top();
     }
     /**
      * Form領域を設定する
      */
     public function setCurrentForm ($form)
     {
-        $this->form_stack[] = $this->form_stack_top;
-        $this->form_stack_top = $form;
+        $this->getBlockTagStack("form")->push($form);
     }
     /**
      * Form領域を解除する
      */
     public function removeCurrentForm ()
     {
-        $this->form_stack_top = array_pop($this->form_stack);
+        return $this->getBlockTagStack("form")->pop();
     }
+
+// --
+
     /**
      * @override Smarty_Internal_TemplateBase
      */
@@ -81,5 +95,34 @@ class SmartyExtended extends SmartyBC
         }
         report_buffer_end();
         return $result;
+    }
+}
+
+class BlockTagStack
+{
+    private $top = null;
+    private $stack = array();
+    /**
+     *
+     */
+    public function top ()
+    {
+        return $this->top;
+    }
+    /**
+     *
+     */
+    public function push ($item)
+    {
+        array_push($this->stack, $item);
+        $this->top = $item;
+    }
+    /**
+     *
+     */
+    public function pop ()
+    {
+        $this->top = array_pop($this->stack);
+        return $this->top;
     }
 }

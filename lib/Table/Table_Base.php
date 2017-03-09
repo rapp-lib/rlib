@@ -422,6 +422,37 @@ class Table_Base extends Table_Core
         }
     }
 
+    /**
+     * @hook on_write
+     * 認証が必要な領域でのテーブル操作について、認証中のアカウントのIDを上書きする
+     */
+    protected function on_write_forOwner ()
+    {
+        if ($col_name = $this->getColNameByAttr("owner_role")) {
+            $owner_role = static::$cols[$col_name]["owner_role"];
+            if (app()->auth->check($owner_role,true)) {
+                $this->query->setValue($col_name, auth($owner_role)->id);
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * @hook on_read
+     * 認証が必要な領域でのテーブル操作について、認証中のアカウントのIDを上書きする
+     */
+    protected function on_read_forOwner ()
+    {
+        if ($col_name = $this->getColNameByAttr("owner_role")) {
+            $owner_role = static::$cols[$col_name]["owner_role"];
+            if (app()->auth->check($owner_role,true)) {
+                $this->query->where($this->getQueryTableName().".".$col_name, auth($owner_role)->id);
+                return true;
+            }
+        }
+        return false;
+    }
+
 // -- assoc hookを呼び出すためのon hookの定義
 
     /**

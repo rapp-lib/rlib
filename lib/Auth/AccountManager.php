@@ -13,9 +13,10 @@ class AccountManager implements InvokableProvider
         return $role_name===false ? $this->getAccessRole() : $this->getAccountRole($role_name);
     }
     /**
-     * Containerの初期化時に決定される利用者に求めるRoleの名前
+     * Containerの初期化時に決定される利用者に求める規定のRoleの名前と権限
      */
     protected $access_role_name;
+    protected $priv_required;
     /**
      * RoleのSingletonインスタンス
      */
@@ -27,17 +28,27 @@ class AccountManager implements InvokableProvider
     {
         // AccessRoleの決定
         $this->access_role_name = app()->router->getCurrentRoute()->getController()->getAccessRoleName();
+        $this->priv_required = app()->router->getCurrentRoute()->getController()->getPrivRequired();
     }
     /**
-     * AccessRoleの認可確認
+     * AccessRoleに規定されている権限についての認可確認
      */
     public function check ($role_name, $priv_required=false)
     {
-        if ($this->access_role_name !== $role_name) {
+        if ($this->getAccessRole()->role_name !== $role_name) {
             return false;
         }
-        if ($required !== false && ! $this->getAccessAccount()->hasPriv($priv_required)) {
-            return false;
+        if ($required !== false) {
+            // 必要な権限がAccessRoleに規定されているかどうかを確認
+            if ($priv_required === true) {
+                return !! $this->priv_required;
+            } else {
+                return !! in_array($priv_required, $this->priv_required);
+            }
+            // 規定されている権限は認可確認済みであるはずだが、念の為確認
+            if ( ! $this->getAccessRole($role_name)->hasPriv($priv_required)) {
+                return false;
+            }
         }
         return true;
     }

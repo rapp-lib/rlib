@@ -167,7 +167,7 @@ class Table_Core
     protected function getColNameByAttr ($attr, $value=true)
     {
         foreach (static::$cols as $col_name => $col) {
-            if ($col[$attr]===$value) {
+            if (($value===true && $col[$attr]) || $col[$attr]===$value) {
                 return $col_name;
             }
         }

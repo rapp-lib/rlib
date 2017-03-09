@@ -73,7 +73,7 @@ class HttpResponse implements Response
             if (php_sapi_name()==="cli") {
                 return true;
             } else {
-                $response_code = $output["response_code"];
+                $response_code = $output["code"];
                 if ( ! $response_code) {
                     $response_code = 500;
                 }
