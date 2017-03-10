@@ -583,7 +583,7 @@ class Table_Core
         }
         foreach ((array)$query["fields"] as $k => $v) {
             // Fieldsのサブクエリ展開
-            if (is_a($v,"R\\Lib\\Table\\Table_Base")) {
+            if (is_object($v) && method_exists($v,"buildQuery")) {
                 $query["fields"][$k] = $v = "(".$v->buildQuery("select").")";
             }
             // FieldsのAlias展開
@@ -593,8 +593,16 @@ class Table_Core
         }
         foreach ((array)$query["joins"] as $k => $v) {
             // Joinsのサブクエリ展開
-            if (method_exists($v["table"],"buildQuery")) {
-                $query["joins"][$k]["table"] = $v["table"] = "(".$v["table"]->buildQuery("select").")";
+            if (is_object($v["table"]) && method_exists($v["table"],"buildQuery")) {
+                $v["table"]->modifyQuery(function($sub_query) use (&$query, $k){
+                    $sub_query_statement = $query["joins"][$k]["table"]->buildQuery("select");
+                    if ($sub_query->getGroup()) {
+                        $query["joins"][$k]["table"] = "(".$sub_query_statement.")";
+                    } else {
+                        $query["joins"][$k]["table"] = $sub_query->getTableName();
+                        $query["joins"][$k]["conditions"][] = $sub_query["conditions"];
+                    }
+                });
             }
         }
         // Updateを物理削除に切り替え

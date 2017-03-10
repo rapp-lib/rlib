@@ -279,13 +279,9 @@ class Table_Base extends Table_Core
      * @hook chain
      * Queryを操作する関数を指定する
      */
-    public function chain_query ($query)
+    public function chain_modifyQuery ($query)
     {
-        if (is_callable($func)) {
-            call_user_func($query, $this->query);
-        } elseif (is_arraylike($query)) {
-            $this->query->merge($query);
-        }
+        call_user_func($query, $this->query);
     }
 
 // -- on_*_*処理の定義
