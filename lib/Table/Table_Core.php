@@ -67,6 +67,7 @@ class Table_Core
 
         // テーブル名を関連づける
         if (static::$table_name) {
+            $this->query->setDbname($this->getDbname());
             $this->query->setTable(static::$table_name);
         }
     }
@@ -597,9 +598,15 @@ class Table_Core
                 $v["table"]->modifyQuery(function($sub_query) use (&$query, $k){
                     $sub_query_statement = $query["joins"][$k]["table"]->buildQuery("select");
                     if ($sub_query->getGroup()) {
+                        //TODO: GroupBy付きのJOINでも異なるDB間でJOINできるようにする
                         $query["joins"][$k]["table"] = "(".$sub_query_statement.")";
                     } else {
-                        $query["joins"][$k]["table"] = $sub_query->getTableName();
+                        $table_name = $sub_query->getTableName();
+                        // 異なるDB間でのJOIN時にはDBNAME付きのTable名とする
+                        if ($query["dbname"]!==$sub_query["dbname"]) {
+                            $table_name = $sub_query["dbname"].".".$table_name;
+                        }
+                        $query["joins"][$k]["table"] = $table_name;
                         $query["joins"][$k]["conditions"][] = $sub_query["conditions"];
                     }
                 });
@@ -713,6 +720,15 @@ class Table_Core
         }
         //TODO: extentionの探索
         return false;
+    }
+
+    /**
+     * @deprecated
+     * DB名を取得する
+     */
+    protected function getDbname ()
+    {
+        return $this->getDBI()->get_dbname();
     }
 
 // -- その他のprivateメソッド

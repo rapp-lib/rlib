@@ -6,6 +6,8 @@ use ArrayObject;
 class Query extends ArrayObject
 {
     static $keys = array(
+        // DB名
+        "dbname" => null,
         // FROM/INTO句に指定される実テーブル名
         "table" => array(),
         // AS句で指定されるテーブルの別名、Hydrate時にも参照される
@@ -53,9 +55,11 @@ class Query extends ArrayObject
             if ($key=="assoc_field") { $key = "assoc_fields"; }
             if ($key=="assoc_value") { $key = "assoc_values"; }
 
-            if ( ! isset(static::$keys[$key])) {
+            if ( ! array_key_exists($key, static::$keys)) {
                 report_error("メソッドの定義がありません",array(
                     "class" => get_class($this),
+                    "op" => $op,
+                    "key" => $key,
                     "method_name" => $method_name,
                     "args_count" => count($args),
                     "query" => $this,
@@ -189,6 +193,7 @@ class Query extends ArrayObject
         report_error("メソッドの定義がありません",array(
             "class" => get_class($this),
             "method_name" => $method_name,
+            "op" => $op,
             "args_count" => count($args),
             "query" => $this,
         ));

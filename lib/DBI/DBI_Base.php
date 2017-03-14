@@ -14,6 +14,7 @@ class DBI_Base {
     protected $ds =null;
     protected $transaction_stack =array();
     private $desc_cache =array();
+    private $dbname = "";
 
     protected $result_listener = null;
 
@@ -46,6 +47,7 @@ class DBI_Base {
         ConnectionManager::create($this->name, $connect_info);
         $this->ds =ConnectionManager::getDataSource($this->name);
         $this->driver_name = $connect_info["driver"];
+        $this->dbname = $connect_info["database"];
     }
 
     //-------------------------------------
@@ -53,6 +55,13 @@ class DBI_Base {
     public function get_datasource () {
 
         return $this->ds;
+    }
+
+    //-------------------------------------
+    // DB名の取得
+    public function get_dbname () {
+
+        return $this->dbname;
     }
 
     //-------------------------------------
