@@ -70,6 +70,7 @@ class AccountManager implements InvokableProvider
         if ( ! isset($this->account_roles[$role_name])) {
             $class = 'R\App\Role\\'.str_camelize($role_name).'Role';
             $this->account_roles[$role_name] = new $class($this, $role_name);
+            $this->account_roles[$role_name]->init();
         }
         return $this->account_roles[$role_name];
     }
