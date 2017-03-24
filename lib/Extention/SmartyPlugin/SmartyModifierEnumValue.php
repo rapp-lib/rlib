@@ -9,7 +9,7 @@ class SmartyModifierEnumValue
     /**
      * @overload
      */
-    function callback ($key ,$enum_set_name, $parent_key=null)
+    function callback ($key ,$enum_set_name, $parent_key=false)
     {
         $enum = app()->enum($enum_set_name, $parent_key);
         if (is_array($key)) {
