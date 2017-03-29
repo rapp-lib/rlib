@@ -307,6 +307,14 @@ class FormContainer extends ArrayObject
         return new InputField($this, $this->def["fields"][$field_name], $field_value, $attrs);
     }
 
+    /**
+     * Fieldの論理名を取得
+     */
+    public function getFieldLabel ($field_name)
+    {
+        return (string)$this->def["fields"][$field_name]["label"];
+    }
+
 // -- Validate/ValidValues関連
 
     /**

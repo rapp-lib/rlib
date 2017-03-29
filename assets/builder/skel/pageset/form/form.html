@@ -1,5 +1,10 @@
 {{if $forms.entry->getErrors()}}
     <div class="errmsg">※入力エラーがあります</div>
+    {{*
+    {{foreach $forms.entry->getErrors() as $error}}
+        <p class="errmsg">{{$forms.entry->getFieldLabel($error["field_name"])}} : {{$error["message"]}}</p>
+    {{/foreach}}
+    *}}
     {{code type="js" required=["jquery:*","app.show-errors"]}}
         $(function(){
             showErrors({
