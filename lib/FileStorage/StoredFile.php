@@ -14,6 +14,12 @@ final class StoredFile
         $this->storage_manager = $storage_manager;
         $this->storage = $this->storage_manager->getStorage($code);
         $this->code = $code;
+        if ( ! $this->storage) {
+            report_error("Storageが解決できませんでした",array(
+                "code" => $this->code,
+                "storage" => $this->storage,
+            ));
+        }
     }
     public function isValid ()
     {

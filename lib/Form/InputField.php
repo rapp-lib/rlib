@@ -43,7 +43,8 @@ class InputField
         $values = is_array($this->field_value) ? $this->field_value : array($this->field_value);
         $options = array();
         if ($enum_name = $this->attrs["enum"]) {
-            foreach (app()->enum($enum_name) as $k=>$v) {
+            $parent_key = $group ? $group : false;
+            foreach (app()->enum($enum_name,$parent_key) as $k=>$v) {
                 $selected = in_array($k,$values);
                 $options[] = array(
                     "selected" => $selected,
@@ -90,7 +91,7 @@ class InputField
         if ($this->attrs["type"]=="select") {
             $option_html = array();
             $option_html[] = tag("option");
-            foreach ($this->getOptions() as $option) {
+            foreach ($this->getOptions($this->attrs["parent_key"]) as $option) {
                 $option_attrs = array("value"=>$option["value"]);
                 if ($option["selected"]) {
                     $option_attrs["selected"] = "selected";
@@ -102,7 +103,7 @@ class InputField
         // type=checklistであれば選択肢構築
         } elseif ($this->attrs["type"]=="checklist") {
             $option_html = array();
-            foreach ($this->getOptions() as $option) {
+            foreach ($this->getOptions($this->attrs["parent_key"]) as $option) {
                 $option_attrs = $attrs;
                 $option_attrs["name"] = $option_attrs["name"]."[]";
                 $option_attrs["type"] = "checkbox";
@@ -117,7 +118,7 @@ class InputField
         // type=radioselectであれば選択肢構築
         } elseif ($this->attrs["type"]=="radioselect") {
             $option_html = array();
-            foreach ($this->getOptions() as $option) {
+            foreach ($this->getOptions($this->attrs["parent_key"]) as $option) {
                 $option_attrs = $attrs;
                 $option_attrs["name"] = $option_attrs["name"];
                 $option_attrs["type"] = "radio";
@@ -163,8 +164,9 @@ class InputField
         // type=dateであれば、入力値の形式を日付型に整形
         } elseif ($this->attrs["type"]=="date") {
             $attrs["value"] = isset($this->field_value) ? $this->field_value : $attrs["value"];
-            if ($date = longdate($attrs["value"])) {
-                $attrs["value"] = $date["Y"].'-'.$date["m"].'-'.$date["d"];
+            if (strlen($attrs["value"])) {
+                $date = new \DateTime($attrs["value"]);
+                $attrs["value"] = $date->format('Y-m-d');
             }
             $this->html = tag("input",$attrs);
         // その他のtypeは標準のタグ表示

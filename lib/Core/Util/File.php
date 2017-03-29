@@ -12,7 +12,7 @@ class File
     public static function createDir ($dir)
     {
         if ( ! is_dir($dir)) {
-            mkdir($dir, 0777, true);
+            mkdir($dir, 0775, true);
         }
     }
     /**
@@ -23,7 +23,7 @@ class File
         self::createDir(dirname($file));
         if ( ! file_exists($file)) {
             touch($file);
-            chmod($file, 0777);
+            chmod($file, 0664);
         }
     }
     /**

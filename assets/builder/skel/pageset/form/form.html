@@ -16,7 +16,7 @@
 {{/if}}
 
 {{form action='.'|page_to_url enctype="multipart/form-data" method="post" form=$forms.entry class="form-entry"}}
-<?php if ($table->hasDef()): ?>
+<?php if ($controller->getAttr("type")==="master"): ?>
 {{input name="id" type="hidden"}}
 <?php endif; ?>
 <table class="tbl_admin detail">

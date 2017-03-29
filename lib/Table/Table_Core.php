@@ -67,6 +67,7 @@ class Table_Core
 
         // テーブル名を関連づける
         if (static::$table_name) {
+            $this->query->setDbname($this->getDbname());
             $this->query->setTable(static::$table_name);
         }
     }
@@ -167,7 +168,7 @@ class Table_Core
     protected function getColNameByAttr ($attr, $value=true)
     {
         foreach (static::$cols as $col_name => $col) {
-            if ($col[$attr]===$value) {
+            if (($value===true && $col[$attr]) || $col[$attr]===$value) {
                 return $col_name;
             }
         }
@@ -448,7 +449,7 @@ class Table_Core
     public function selectNoFetch ($fields=array())
     {
         $this->query->addFields($fields);
-        $this->query->setNoMapping(true);report($this);
+        $this->query->setNoMapping(true);
         return $this->execQuery("select");
     }
 
@@ -583,7 +584,7 @@ class Table_Core
         }
         foreach ((array)$query["fields"] as $k => $v) {
             // Fieldsのサブクエリ展開
-            if (is_a($v,"R\\Lib\\Table\\Table_Base")) {
+            if (is_object($v) && method_exists($v,"buildQuery")) {
                 $query["fields"][$k] = $v = "(".$v->buildQuery("select").")";
             }
             // FieldsのAlias展開
@@ -593,8 +594,22 @@ class Table_Core
         }
         foreach ((array)$query["joins"] as $k => $v) {
             // Joinsのサブクエリ展開
-            if (method_exists($v["table"],"buildQuery")) {
-                $query["joins"][$k]["table"] = $v["table"] = "(".$v["table"]->buildQuery("select").")";
+            if (is_object($v["table"]) && method_exists($v["table"],"buildQuery")) {
+                $v["table"]->modifyQuery(function($sub_query) use (&$query, $k){
+                    $sub_query_statement = $query["joins"][$k]["table"]->buildQuery("select");
+                    if ($sub_query->getGroup()) {
+                        //TODO: GroupBy付きのJOINでも異なるDB間でJOINできるようにする
+                        $query["joins"][$k]["table"] = "(".$sub_query_statement.")";
+                    } else {
+                        $table_name = $sub_query->getTableName();
+                        // 異なるDB間でのJOIN時にはDBNAME付きのTable名とする
+                        if ($query["dbname"]!==$sub_query["dbname"]) {
+                            $table_name = $sub_query["dbname"].".".$table_name;
+                        }
+                        $query["joins"][$k]["table"] = $table_name;
+                        $query["joins"][$k]["conditions"][] = $sub_query["conditions"];
+                    }
+                });
             }
         }
         // Updateを物理削除に切り替え
@@ -705,6 +720,15 @@ class Table_Core
         }
         //TODO: extentionの探索
         return false;
+    }
+
+    /**
+     * @deprecated
+     * DB名を取得する
+     */
+    protected function getDbname ()
+    {
+        return $this->getDBI()->get_dbname();
     }
 
 // -- その他のprivateメソッド

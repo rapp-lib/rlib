@@ -19,10 +19,34 @@ class Env implements InvokableProvider
     }
     public function get ($key, $default_value=null)
     {
-        return array_isset($_ENV, $key) ? array_get($_ENV, $key) : $default_value;
+        if (array_isset($_ENV, $key)) {
+            return $this->looseCastValue(array_get($_ENV, $key));
+        } else {
+            return $default_value;
+        }
     }
+    private function looseCastValue ($value)
+    {
+        if ($value==="true") {
+            return true;
+        } elseif ($value==="false") {
+            return false;
+        } elseif ($value==="null") {
+            return null;
+        } elseif (ctype_digit($value)) {
+            return (int)$value;
+        } elseif (is_numeric($value)) {
+            return (double)$value;
+        } else {
+            return $value;
+        }
+    }
+    /**
+     * @deprecated
+     */
     public function getAll ()
     {
+        report_error("@deprecated Env::getAll");
         return $_ENV;
     }
 }

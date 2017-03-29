@@ -151,7 +151,7 @@ class ConfigBasedApplication implements Container
             return null;
         }
         $ref = new \ReflectionClass($class);
-        return $ref->newInstanceArgs($constructor_args);
+        return $constructor_args ? $ref->newInstanceArgs($constructor_args) : $ref->newInstance();
     }
     /**
      * Contractを持つかどうか確認

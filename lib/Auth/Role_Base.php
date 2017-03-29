@@ -5,7 +5,17 @@ abstract class Role_Base
 {
     protected $session;
     protected $login_state = array();
-    public function __construct ()
+    public function __get ($name)
+    {
+        if ($name==="role_name") {
+            return $this->getRoleName();
+        }
+        return $this->getState($name);
+    }
+    /**
+     * 認証状態の復帰処理
+     */
+    public function init ()
     {
         // Session領域の確保
         $this->session = app()->session(get_class($this));
@@ -15,13 +25,6 @@ abstract class Role_Base
             $this->login_state = $login_state;
         }
         $this->onAccess();
-    }
-    public function __get ($name)
-    {
-        if ($name==="role_name") {
-            return $this->getRoleName();
-        }
-        return $this->getState($name);
     }
     /**
      * 認証処理

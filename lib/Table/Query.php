@@ -6,6 +6,8 @@ use ArrayObject;
 class Query extends ArrayObject
 {
     static $keys = array(
+        // DB名
+        "dbname" => null,
         // FROM/INTO句に指定される実テーブル名
         "table" => array(),
         // AS句で指定されるテーブルの別名、Hydrate時にも参照される
@@ -53,9 +55,11 @@ class Query extends ArrayObject
             if ($key=="assoc_field") { $key = "assoc_fields"; }
             if ($key=="assoc_value") { $key = "assoc_values"; }
 
-            if ( ! isset(static::$keys[$key])) {
+            if ( ! array_key_exists($key, static::$keys)) {
                 report_error("メソッドの定義がありません",array(
                     "class" => get_class($this),
+                    "op" => $op,
+                    "key" => $key,
                     "method_name" => $method_name,
                     "args_count" => count($args),
                     "query" => $this,
@@ -79,14 +83,14 @@ class Query extends ArrayObject
                         if ($op=="get") {
                             return $this[$key][$k];
                         } else {
-                            unset($this[$key][$k]);
+                            $this->unsetItem($this[$key], $k);
                         }
                     // FieldName指定時の削除処理
                     } elseif (($i = array_search($v,(array)$this[$key]))!==false) {
                         if ($op=="get") {
                             return $this[$key][$i];
                         } else {
-                            unset($this[$key][$i]);
+                            $this->unsetItem($this[$key] ,$i);
                         }
                     // 既存FieldNameはゆれを含めて削除
                     } else {
@@ -97,7 +101,7 @@ class Query extends ArrayObject
                             if ($op=="get") {
                                 return $this[$key][$i];
                             } else {
-                                unset($this[$key][$i]);
+                                $this->unsetItem($this[$key], $i);
                             }
                         }
                     }
@@ -130,7 +134,7 @@ class Query extends ArrayObject
                         ? preg_replace('!^'.$this->getTableName().'\.!','',$k)
                         : $this->getTableName().".".$k;
                     if (isset($this[$key][$field_name])) {
-                        unset($this[$key][$field_name]);
+                        $this->unsetItem($this[$key], $field_name);
                     }
                     $this[$key][$k] = $v;
                 }
@@ -180,7 +184,7 @@ class Query extends ArrayObject
                     unset($this[$key]);
                     return;
                 } elseif (count($args)==1) {
-                    unset($this[$key][$args[0]]);
+                    $this->unsetItem($this[$key], $args[0]);
                     return;
                 }
             }
@@ -189,9 +193,19 @@ class Query extends ArrayObject
         report_error("メソッドの定義がありません",array(
             "class" => get_class($this),
             "method_name" => $method_name,
+            "op" => $op,
             "args_count" => count($args),
             "query" => $this,
         ));
+    }
+
+    /**
+     * @deprecated
+     * PHP5.3.3以前でArrayObjectでネストした配列のUnsetが無効になるバグに対応するUnset処理
+     */
+    private function unsetItem ( & $array, $key)
+    {
+        array_unset($array, $key);
     }
 
     /**
