@@ -46,8 +46,15 @@ class ValidateRuleLoader
      */
     public static function callbackRequired ($validator, $value, $rule)
     {
-        if (strlen($value)) {
+        if (is_array($value)) {
+            if (count($value) > 0) {
+                return false;
+            }
             return false;
+        } else {
+            if (strlen($value)) {
+                return false;
+            }
         }
         return array("message"=>"必ず入力して下さい");
     }

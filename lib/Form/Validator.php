@@ -61,6 +61,14 @@ class Validator
                             return;
                         }
                     }
+                } elseif (isset($rule["if_value_contains"])) {
+                    if (is_array($if_value)) {
+                        if (array_search($rule["if_value_contains"], $if_value)===false) {
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
                 } elseif (isset($rule["if_value_is"])) {
                     if ($rule["if_value_is"]=="blank" && strlen($if_value)) {
                         return;
