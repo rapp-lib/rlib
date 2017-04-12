@@ -9,7 +9,8 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
             for (var i in params.bind.finds) {
                 bind_elms[i] = $elm.parent().find(params.bind.finds[i]);
             }
-        } else if (params.bind.ids) {
+        }
+        if (params.bind.ids) {
             for (var i in params.bind.ids) {
                 bind_elms[i] = $("#"+params.bind.ids[i]);
             }
@@ -23,20 +24,19 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
     var values = {
         year : date.getFullYear(),
         month : date.getMonth() + 1,
-        day : date.getDate()
+        day : date.getDate(),
+        hour : date.getHours(),
+        min : date.getMinutes(),
+        sec : date.getSeconds()
     };
     for (var i in bind_elms) {
         bind_elms[i].val(values[i]);
     }
     // 値の更新時の処理
     var on_update_bind_input = function (e) {
-        var values = {
-            year : 1970,
-            month : 1,
-            day : 1
-        };
-        for (var i in bind_elms) {
-            if (e) {
+        // 選択操作時のみ選択肢を正規化
+        if (e) {
+            for (var i in bind_elms) {
                 // 選択解除された場合、全ての選択肢を選択解除させる
                 if ( ! $(this).val() && bind_elms[i].val()) {
                     bind_elms[i].val("");
@@ -46,14 +46,27 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
                     bind_elms[i].val(bind_elms[i].find("option").eq(1).attr("value"));
                 }
             }
+        }
+        var values = {
+            year : 1970,
+            month : 1,
+            day : 1,
+            hour : 0,
+            min : 0,
+            sec : 0
+        };
+        for (var i in bind_elms) {
             values[i] = bind_elms[i].val();
         }
         if (values.year && values.month && values.day) {
-            var date = new Date(values.year, values.month-1, values.day);
+            var date = new Date(values.year, values.month-1, values.day, values.hour, values.min, values.sec);
             var yyyy = date.getFullYear();
             var mm = ('0'+(date.getMonth()+1)).slice(-2);
             var dd = ('0'+date.getDate()).slice(-2);
-            $elm.val(yyyy+"-"+mm+"-"+dd);
+            var hh = ('0'+date.getHours()).slice(-2);
+            var ii = ('0'+date.getMinutes()).slice(-2);
+            var ss = ('0'+date.getSeconds()).slice(-2);
+            $elm.val(yyyy+"-"+mm+"-"+dd+" "+hh+":"+ii+":"+ss);
         } else {
             $elm.val("");
         }
