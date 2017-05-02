@@ -28,6 +28,7 @@ class Table_Base extends Table_Core
         $assoc_table_name = static::$cols[$col_name]["assoc"]["table"];
         $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
         $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
+        $assoc_join = static::$cols[$col_name]["assoc"]["join"];
         if ( ! $assoc_table_name || ! $assoc_fkey) {
             report_error("パラメータの指定が不足しています",array(
                 "col_name" => $col_name,
@@ -40,8 +41,13 @@ class Table_Base extends Table_Core
         $pkey = $this->getIdColName();
         $ids = $this->result->getHashedBy($pkey);
         // 関連テーブルをFkeyでSELECT
-        $assoc_result_set = table($assoc_table_name)
-            ->findBy($assoc_fkey, $ids)
+        $table = table($assoc_table_name)
+            ->findBy($assoc_fkey, $ids);
+        // joinの指定があればJOINを接続
+        if ($assoc_join) {
+            $table->join($assoc_join[0], $assoc_join[1]);
+        }
+        $assoc_result_set = $table
             ->select()
             ->getGroupedBy($assoc_fkey);
         // 主テーブルのResultに関連づける

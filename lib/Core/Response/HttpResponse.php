@@ -19,7 +19,9 @@ class HttpResponse implements Response
         }
         // JSONデータ応答
         if ($output["type"] == "json") {
+            unset($output["vars"]["forms"]);
             $output["data"] = json_encode($output["vars"]);
+            $output["headers"]["Access-Control-Allow-Origin"] = "*";
             if ( ! $output["content_type"]) {
                 $output["content_type"] = "application/json; charset=utf-8";
             }
@@ -77,7 +79,7 @@ class HttpResponse implements Response
                 if ( ! $response_code) {
                     $response_code = 500;
                 }
-                header("HTTP", true, $response_code);
+                header("HTTP/1.1 ".$response_code, true, $response_code);
                 $error_doc = constant("R_LIB_ROOT_DIR")."/assets/error/".$response_code.".php";
                 if (file_exists($error_doc)) {
                     include($error_doc);
@@ -99,13 +101,13 @@ class HttpResponse implements Response
             }
             return true;
         }
+        // デバッグ中であればHTMLとして扱いバッファを消去しない
+        if (app()->debug() && app()->request && app()->request["no_buffer_clear"]) {
+            $output["content_type"] = "text/html; charset=utf-8";
+        }
         $buffer_clear = true;
         // HTML表示であればバッファを消去しない
         if (preg_match('!^text/html!i',$output["content_type"])) {
-            $buffer_clear = false;
-        }
-        // デバッグ中であればバッファを消去しない
-        if (app()->debug() && app()->request && app()->request["no_buffer_clear"]) {
             $buffer_clear = false;
         }
         if ($buffer_clear) {

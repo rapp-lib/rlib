@@ -307,9 +307,9 @@ class Table_Core
 
         // マッピング
         $no_mapping = $this->query->getNoMapping();
-        if ( ! $no_mapping) {
+        $id_col_name = $this->getColNameByAttr("id");
+        if ($id_col_name && ! $no_mapping) {
             // ID列を取得していればIDでマッピング
-            $id_col_name = $this->getIdColName();
             if (isset($record[$id_col_name])) {
                 $result[$record[$id_col_name]] = $record;
             // 指定が無ければ連番でマッピング
