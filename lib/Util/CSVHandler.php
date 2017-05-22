@@ -18,6 +18,7 @@ class CSVHandler
     protected $return_code;
     protected $map;
     protected $labels;
+    protected $map_dot_array;
     protected $filters;
     protected $ignore_empty_line;
     //-------------------------------------
@@ -45,6 +46,7 @@ class CSVHandler
                 ? $options["data_charset"]
                 : "UTF-8";
         $this->all_escape =(boolean)$options["all_escape"];
+        $this->map_dot_array =(boolean)$options["map_dot_array"];
         $this->map =isset($options["map"])
                 ? $options["map"]
                 : null;
@@ -53,7 +55,13 @@ class CSVHandler
                 : null;
         if ($options["rows"]) {
             $this->map =array_keys($options["rows"]);
-            $this->labels =$options["rows"];
+            if ($this->map_dot_array) {
+                foreach ($options["rows"] as $k=>$v) {
+                    array_set($this->labels, $k, $v);
+                }
+            } else {
+                $this->labels =$options["rows"];
+            }
         }
         $this->filters =isset($options["filters"])
                 ? $options["filters"]
@@ -142,7 +150,11 @@ class CSVHandler
         if (is_array($this->map)) {
             $csv_data_tmp =array();
             foreach ($this->map as $k => $v) {
-                $csv_data_tmp[$v] =$csv_data[$k];
+                if ($this->map_dot_array) {
+                    array_set($csv_data_tmp, $v, $csv_data[$k]);
+                } else {
+                    $csv_data_tmp[$v] =$csv_data[$k];
+                }
             }
             $csv_data =$csv_data_tmp;
         }
@@ -242,7 +254,11 @@ class CSVHandler
         if (is_array($this->map)) {
             $csv_data_tmp =array();
             foreach ($this->map as $k => $v) {
-                $csv_data_tmp[$k] =$csv_data[$v];
+                if ($this->map_dot_array) {
+                    $csv_data_tmp[$k] = array_get($csv_data, $v);
+                } else {
+                    $csv_data_tmp[$k] =$csv_data[$v];
+                }
             }
             $csv_data =$csv_data_tmp;
             ksort($csv_data);
