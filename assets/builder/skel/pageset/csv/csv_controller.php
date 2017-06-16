@@ -17,7 +17,7 @@
             array("target" => "<?=$col->getName()?>", "filter" => "list_select",
                 "enum" => "<?=$col->getEnumSet()->getFullName()?>",
             ),
-<? endif; ?>
+<?php endif; ?>
 <?php endforeach; ?>
         ),
         "ignore_empty_line" => true,

@@ -4,7 +4,7 @@
         <th><?=$col->getLabel()?></th>
         <td><?=$col->getShowSource()?></td>
     </tr>
-<? endforeach; ?>
+<?php endforeach; ?>
 </table>
 <div class="ad_btn">
     <a href='{{"<?=$pageset->getPageByType("form")->getLocalPage()?>"|page_to_url|url:["back"=>1]}}' class="rBtn">戻る</a>

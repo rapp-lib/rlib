@@ -9,8 +9,10 @@ class ConfigBasedApplication implements Container
     {
         $this->applyBindConfig($init_params);
         $this->applyConfigValues($init_params);
-        install_report();
-        install_debug();
+        if ($this->hasProvider("debug") && $this->debug()) {
+            $this->log->registerReportHandler();
+        }
+        $this->log->registerErrorHandler();
     }
 
 // -- init_config配列の読み込み
@@ -25,6 +27,7 @@ class ConfigBasedApplication implements Container
                 "auth" => 'R\Lib\Auth\Middleware\RouteRequirePriv',
             ),
             "provider" => array(
+                "log" => 'R\Lib\Logger\ReportLogger',
                 "console" => 'R\Lib\Core\Provider\ConsoleDriver',
                 "router" => 'R\Lib\Route\RouteManager',
                 "route" => 'R\Lib\Route\RouteManager',

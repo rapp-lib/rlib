@@ -33,14 +33,14 @@
     <tr>
 <?php foreach ($controller->getListCols() as $col): ?>
         <th><?=$col->getLabel()?></th>
-<? endforeach; ?>
+<?php endforeach; ?>
         <th>&nbsp;</th>
     </tr>
     {{foreach $ts as $t}}
     <tr>
 <?php foreach ($controller->getListCols() as $col): ?>
         <td><?=$col->getShowSource()?></td>
-<? endforeach; ?>
+<?php endforeach; ?>
         <td>
 <?php if ($pageset = $controller->getPagesetByType("form")): ?>
             <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="edit">編集</a>

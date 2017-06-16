@@ -75,9 +75,9 @@ class WebappBuilder extends SchemaElement implements InvokableProvider
      */
     public function fetch ($config_entry, $vars=array(), $deploy=false)
     {
-        if ( ! ini_get("short_open_tag")) {
-            report_error("short_open_tag=On設定が必須です");
-        }
+        // if ( ! ini_get("short_open_tag")) {
+        //     report_error("short_open_tag=On設定が必須です");
+        // }
         $template_file = $this->getConfig($config_entry.".template_file");
         if ( ! file_exists($template_file)) {
             report_error("テンプレートファイルが読み込めません",array(

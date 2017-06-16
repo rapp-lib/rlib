@@ -77,7 +77,7 @@ class HttpResponse implements Response
                 if ( ! $response_code) {
                     $response_code = 500;
                 }
-                header("HTTP", true, $response_code);
+                header("X-Status-Code:".$response_code, true, $response_code);
                 $error_doc = constant("R_LIB_ROOT_DIR")."/assets/error/".$response_code.".php";
                 if (file_exists($error_doc)) {
                     include($error_doc);
