@@ -307,9 +307,9 @@ class Table_Core
 
         // マッピング
         $no_mapping = $this->query->getNoMapping();
-        if ( ! $no_mapping) {
+        $id_col_name = $this->getColNameByAttr("id");
+        if ($id_col_name && ! $no_mapping) {
             // ID列を取得していればIDでマッピング
-            $id_col_name = $this->getIdColName();
             if (isset($record[$id_col_name])) {
                 $result[$record[$id_col_name]] = $record;
             // 指定が無ければ連番でマッピング
@@ -728,7 +728,7 @@ class Table_Core
      */
     protected function getDbname ()
     {
-        return $this->getDBI()->get_dbname();
+        return app()->config("db.connection.".static::$ds_name.'.database');
     }
 
 // -- その他のprivateメソッド

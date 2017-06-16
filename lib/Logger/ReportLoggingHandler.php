@@ -23,13 +23,14 @@ class ReportLoggingHandler extends AbstractProcessingHandler
             $options["errno"] = E_USER_NOTICE;
         }
         if ($params["exception"] && $options["level"]===Logger::CRITICAL) {
+            $e = $params["exception"];
             $options["errstr"] =$e->getMessage();
             $options["errfile"] =$e->getFile();
             $options["errline"] =$e->getLine();
             $options["code"] =$e->getCode();
             $options["backtraces"] =$e->getTrace();
         }
-        $backtraces =$params["backtraces"] ? $params["backtraces"] : debug_backtrace();
+        $backtraces =$options["backtraces"] ? $options["backtraces"] : debug_backtrace();
 
         $config =array();
         $config["output_format"] = ! (php_sapi_name()=="cli") ? "html" : "plain";
@@ -244,10 +245,10 @@ class ReportLoggingHandler extends AbstractProcessingHandler
             if ( ! method_exists($func[0], $func[1])) {
                 return array();
             }
-            $ref =new ReflectionMethod($func[0], $func[1]);
+            $ref =new \ReflectionMethod($func[0], $func[1]);
             $class_name =$ref->getDeclaringClass()->getName();
         } else {
-            $ref =new ReflectionFunction($func);
+            $ref =new \ReflectionFunction($func);
         }
         $info["name"] =$ref->getName();
         $info["file"] =$ref->getFileName();

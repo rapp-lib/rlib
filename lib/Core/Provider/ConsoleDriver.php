@@ -49,10 +49,10 @@ class ConsoleDriver extends ArrayObject implements Provider
         foreach ($argv as $a_argv) {
             // --XXX=AAA , --XXX
             if (preg_match('!^--([^=]+)(?:=(.+))?$!',$a_argv,$match)) {
-                $params[$match[1]] = $match[2];
+                $params[$match[1]] = strlen($match[2]) ? $match[2] : true;
             // -X , -XAAA
             } elseif (preg_match('!^-(.)(.+)?$!',$a_argv,$match)) {
-                $params[$match[1]] = $match[2];
+                $params[$match[1]] = strlen($match[2]) ? $match[2] : true;
             // XXX
             } else {
                 $params[] = $a_argv;

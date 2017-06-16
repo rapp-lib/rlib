@@ -9,6 +9,7 @@ class SchemaCommand extends Command
 {
     public function act_diff ()
     {
+        $apply_mode = isset($this->console["apply"]);
         $ds_name = $this->console["ds"];
         if ( ! $ds_name) {
             $ds_name = "default";
@@ -31,6 +32,12 @@ class SchemaCommand extends Command
         // SQL出力
         foreach ($queries as $statement) {
             $this->console->output($statement.";\n\n");
+            if ($apply_mode) {
+                $db->executeUpdate($statement);
+            }
+        }
+        if ($apply_mode) {
+            $this->console->output("-- executed --\n\n");
         }
     }
     /**
@@ -38,6 +45,7 @@ class SchemaCommand extends Command
      */
     private function getConnection ($ds_name)
     {
+
         $db_config = app()->config("db.connection.".$ds_name);
         if ($db_config["driver"]) {
             $db_config["driver"] = "pdo_".$db_config["driver"];
