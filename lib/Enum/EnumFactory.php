@@ -1,14 +1,27 @@
 <?php
 namespace R\Lib\Enum;
 
+use ArrayObject;
+
 /**
  * Enumインスタンスの生成/取得を行う
  */
-class EnumFactory
+class EnumFactory extends ArrayObject
 {
     public function invoke ($enum_set_name=false, $group=false)
     {
         return $this->getEnum($enum_set_name, $group);
+    }
+    /**
+     * @override ArrayObject
+     */
+    public function offsetGet ($offset)
+    {
+        if (preg_match('!^([^\.]+\.[^\.]+)\.([^\.]+)$!', $offset, $match)) {
+            return $this->getEnum($match[1], $match[2]);
+        } else {
+            return $this->getEnum($offset);
+        }
     }
     private $enums = array();
     /**

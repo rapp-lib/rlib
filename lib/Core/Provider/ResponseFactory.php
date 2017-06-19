@@ -37,7 +37,6 @@ class ResponseFactory implements Provider
     public function view ($file, $vars=array(), $output=array())
     {
         $output["type"] = "view";
-        $output["file"] = $vars;
         $output["vars"] = $vars;
         return $this->output($output);
     }
