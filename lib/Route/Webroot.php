@@ -35,6 +35,13 @@ class Webroot
     /**
      * @getter
      */
+    public function getWebrootName ()
+    {
+        return $this->webroot_name;
+    }
+    /**
+     * @getter
+     */
     public function getRouteManager ()
     {
         return $this->route_manager;

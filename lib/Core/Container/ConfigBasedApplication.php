@@ -5,96 +5,49 @@ use R\Lib\Core\Contract\Container;
 
 class ConfigBasedApplication implements Container
 {
-    public function init ($init_params)
-    {
-        $this->applyBindConfig($init_params);
-        $this->applyConfigValues($init_params);
-        if ($this->hasProvider("debug") && $this->debug()) {
-            $this->log->registerReportHandler();
-        }
-        $this->log->registerErrorHandler();
-    }
-
-// -- init_config配列の読み込み
-
-    private function applyBindConfig ($params)
-    {
-        $base_binds = array(
-            "middleware" => array(
-                "view_response_fallback" => 'R\Lib\Core\Middleware\ViewResponseFallback',
-                "json_response_fallback" => 'R\Lib\Core\Middleware\JsonResponseFallback',
-                "stored_file_service" => 'R\Lib\Core\Middleware\StoredFileService',
-                "auth" => 'R\Lib\Auth\Middleware\RouteRequirePriv',
-            ),
+    protected $bind_config = array(
+        "middleware" => array(
+            "view_response_fallback" => 'R\Lib\Core\Middleware\ViewResponseFallback',
+            "json_response_fallback" => 'R\Lib\Core\Middleware\JsonResponseFallback',
+            "stored_file_service" => 'R\Lib\Core\Middleware\StoredFileService',
+            "auth" => 'R\Lib\Auth\Middleware\RouteRequirePriv',
+        ),
+        "provider" => array(
+            "log" => 'R\Lib\Logger\ReportLogger',
+            "console" => 'R\Lib\Core\Provider\ConsoleDriver',
+            "router" => 'R\Lib\Route\RouteManager',
+            "route" => 'R\Lib\Route\RouteManager',
+            "config" => 'R\Lib\Core\Provider\Configure',
+            "env" => 'R\Lib\Core\Provider\Env',
+            "view" => 'R\Lib\View\SmartyViewFactory',
+            "table" => 'R\Lib\Table\TableFactory',
+            "form" => 'R\Lib\Form\FormFactory',
+            "enum" => 'R\Lib\Enum\EnumFactory',
+            "file_storage" => 'R\Lib\FileStorage\FileStorageManager',
+            "builder" => 'R\Lib\Builder\WebappBuilder',
+            "util" => 'R\Lib\Core\Provider\UtilLoader',
+            "extention" => 'R\Lib\Core\Provider\ExtentionLoader',
+            "debug" => 'R\Lib\Core\Provider\DebugDriver',
+            "asset" => 'R\Lib\Asset\AssetManager',
+            "report" => 'R\Lib\Core\Provider\ReportDriver',
+            "response" => 'R\Lib\Core\Provider\ResponseFactory',
+            "request" => 'R\Lib\Core\Provider\Request',
+            "session" => 'R\Lib\Core\Provider\Session',
+            "mailer" => 'R\Lib\Core\Provider\MailerFactory',
+            "auth" => 'R\Lib\Auth\AccountManager',
+        ),
+        "contract" => array(
             "provider" => array(
-                "log" => 'R\Lib\Logger\ReportLogger',
-                "console" => 'R\Lib\Core\Provider\ConsoleDriver',
                 "router" => 'R\Lib\Route\RouteManager',
-                "route" => 'R\Lib\Route\RouteManager',
-                "config" => 'R\Lib\Core\Provider\Configure',
-                "env" => 'R\Lib\Core\Provider\Env',
-                "view" => 'R\Lib\View\SmartyViewFactory',
-                "table" => 'R\Lib\Table\TableFactory',
-                "form" => 'R\Lib\Form\FormFactory',
-                "enum" => 'R\Lib\Enum\EnumFactory',
-                "file_storage" => 'R\Lib\FileStorage\FileStorageManager',
-                "builder" => 'R\Lib\Builder\WebappBuilder',
-                "util" => 'R\Lib\Core\Provider\UtilLoader',
-                "extention" => 'R\Lib\Core\Provider\ExtentionLoader',
-                "debug" => 'R\Lib\Core\Provider\DebugDriver',
-                "asset" => 'R\Lib\Asset\AssetManager',
-                "report" => 'R\Lib\Core\Provider\ReportDriver',
-                "response" => 'R\Lib\Core\Provider\ResponseFactory',
-                "request" => 'R\Lib\Core\Provider\Request',
-                "session" => 'R\Lib\Core\Provider\Session',
-                "middleware" => 'R\Lib\Core\Provider\MiddlewareApplicator',
-                "mailer" => 'R\Lib\Core\Provider\MailerFactory',
-                "auth" => 'R\Lib\Auth\AccountManager',
             ),
-            "contract" => array(
-                "provider" => array(
-                    "router" => 'R\Lib\Route\RouteManager',
-                ),
-            ),
-        );
-        $base_binds = array_dot($base_binds);
-        $config = $this->filterConfig($params["config"], $params["tags"], "bind");
-        foreach ($config as $binds) {
-            $binds = array_dot($binds);
-            foreach ($binds as $name => $class) {
-                $base_binds[$name] = $class;
-            }
-        }
-        foreach ($base_binds as $name => $class) {
+        ),
+    );
+    public function __construct ($bind_config=array())
+    {
+        $bind_config = array_merge(array_dot($this->bind_config), array_dot($bind_config));
+        foreach ($bind_config as $name => $class) {
             $this->bind($name, $class);
         }
-    }
-    private function applyConfigValues ($params)
-    {
-        $config = $this->filterConfig($params["config"], $params["tags"], "config");
-        $result = array();
-        foreach ($config as $config_list) {
-            foreach ($config_list as $config_values) {
-                if (is_callable($config_values)) {
-                    $config_values = call_user_func($config_values);
-                }
-                app()->config($config_values);
-            }
-        }
-    }
-    private function filterConfig ($init_config, $search_tags, $search_key)
-    {
-        $result_config = array();
-        foreach ($init_config as $k=>$v) {
-            if ($k!==$search_key) {
-                $k_parts = explode(":", $k);
-                if ( ! ($search_key===$k_parts[0] && in_array($k_parts[1], (array)$search_tags))) {
-                    continue;
-                }
-            }
-            $result_config[$k] = $v;
-        }
-        return $result_config;
     }
 
 // -- インスタンス管理機能の構成
@@ -102,7 +55,7 @@ class ConfigBasedApplication implements Container
     protected $aliases = array();
     protected $singleton_instances = array();
     /**
-     * Singletonインスタンスの取得
+     *
      */
     public function bind ($name, $class)
     {

@@ -5,10 +5,9 @@
     /**
      *
      */
-    function app_init ($container_class, $init_params)
+    function app_set ($container)
     {
-        $GLOBALS["R_CONTAINER"] = new $container_class();
-        $GLOBALS["R_CONTAINER"]->init($init_params);
+        $GLOBALS["R_CONTAINER"] = $container;
     }
     /**
      *

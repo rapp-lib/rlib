@@ -6,10 +6,16 @@ use ArrayObject;
 
 class ConsoleDriver extends ArrayObject implements Provider
 {
-    public function __construct ()
+    /**
+     * アクセスされたパラメータによりCommandのactionを実行
+     */
+    public function execCurrentCommand ($console_name)
     {
-        $this->commands = (array)app()->config("console.command");
+        $this->commands = (array)app()->config("console.".$console_name.".command");
         $this->exchangeArray($this->getCliParams());
+        $params = app()->console->getCliParams();
+        $command = app()->console->getCommand($params[0], $params[1]);
+        return $command->execAct($params);
     }
     /**
      * Commandインスタンスを取得
@@ -25,18 +31,6 @@ class ConsoleDriver extends ArrayObject implements Provider
         }
         $command = new $command_class($command_name, $action_name);
         return $command;
-    }
-    /**
-     * アクセスされたパラメータによりCommandのactionを実行
-     */
-    public function execCurrentCommand ()
-    {
-        $callback = app()->middleware->apply(function () {
-            $params = app()->console->getCliParams();
-            $command = app()->console->getCommand($params[0], $params[1]);
-            return $command->execAct($params);
-        }, (array)app()->config("console.middleware"));
-        return call_user_func($callback);
     }
     /**
      * CLI（コマンドライン）実行時パラメータの取得

@@ -8,7 +8,8 @@
         "doctrine/dbal": "v2.*@stable",
         "monolog/monolog": "v1.*@stable",
         "vlucas/phpdotenv": "v2.*@stable",
-        "phpmailer/phpmailer": "v5.*@stable"
+        "phpmailer/phpmailer": "v5.*@stable",
+        "asika/http": "~1.0"
     },
     "autoload": {
         "psr-4": {

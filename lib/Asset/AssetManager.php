@@ -24,9 +24,6 @@ class AssetManager
 
     public function __construct ()
     {
-        foreach ((array)app()->config("asset.catalogs") as $catalog_path) {
-            $this->loadAssetCatalog(app()->route($catalog_path));
-        }
     }
 
 // -- アセット管理
