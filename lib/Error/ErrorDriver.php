@@ -7,7 +7,14 @@ class ErrorDriver implements InvokableProvider
 {
     public function invoke($message, $params=array(), $error_options=array())
     {
-        throw new \R\Lib\Error\HandlableError($message, $params, $error_options);
+        $this->raise($message, $params, $error_options);
+    }
+    /**
+     * HandlableErrorの発行
+     */
+    public function raise($message, $params=array(), $error_options=array())
+    {
+        throw new HandlableError($message, $params, $error_options);
     }
     protected $error_handlers = array();
     /**
@@ -69,16 +76,20 @@ class ErrorDriver implements InvokableProvider
      */
     public function splExceptionHandler($e)
     {
-        $message = "[PHP Uncaught ".get_class($e)."] ".$e->getMessage();
-        $params = array("uncaught_exception"=>array(
-            'exception' => get_class($e),
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            "backtraces" => $e->getTrace(),
-        ));
-        $error = new HandlableError($message, $params, array("uncaught_exception"=>true));
-        $this->handleError($error);
+        if ($e instanceof HandlableError) {
+            $this->handleError($e);
+        } else {
+            $message = "[PHP Uncaught ".get_class($e)."] ".$e->getMessage();
+            $params = array("uncaught_exception"=>array(
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                "backtraces" => $e->getTrace(),
+            ));
+            $error = new HandlableError($message, $params, array("uncaught_exception"=>true));
+            $this->handleError($error);
+        }
         if (is_callable($this->prev_set_exception_handler)) {
             call_user_func($this->prev_set_exception_handler, $e);
         }
