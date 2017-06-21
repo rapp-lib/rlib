@@ -12,6 +12,9 @@ class ViewResponseFallback implements Middleware
             return $response;
         }
         $route = app()->router->getCurrentRoute();
+        if ( ! is_file($route->getFile())) {
+            return app()->response->error("", 404);
+        }
         return app()->response->output(array(
             "type" => "view",
             "file" => $route->getFile(),
