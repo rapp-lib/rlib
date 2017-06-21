@@ -22,9 +22,20 @@
 
     function report_buffer_start ()
     {
-        app()->log->report_buffer_start();
+        $GLOBALS["__REPORT_BUFFER_LEVEL"] += 1;
     }
     function report_buffer_end ($all=false)
     {
-        app()->log->report_buffer_end($all);
+        // 全件終了
+        if ($all) {
+            $GLOBALS["__REPORT_BUFFER_LEVEL"] = 1;
+        }
+        // 開始していなければ処理を行わない
+        if ($GLOBALS["__REPORT_BUFFER_LEVEL"] > 0) {
+            $GLOBALS["__REPORT_BUFFER_LEVEL"] -= 1;
+            if ($GLOBALS["__REPORT_BUFFER_LEVEL"] == 0) {
+                print $GLOBALS["__REPORT_BUFFER"];
+                $GLOBALS["__REPORT_BUFFER"] = "";
+            }
+        }
     }

@@ -22,13 +22,19 @@ class ReportLoggingHandler extends AbstractProcessingHandler
         } else {
             $options["errno"] = E_USER_NOTICE;
         }
-        if ($params["exception"] && $options["level"]===Logger::CRITICAL) {
-            $e = $params["exception"];
-            $options["errstr"] =$e->getMessage();
-            $options["errfile"] =$e->getFile();
-            $options["errline"] =$e->getLine();
-            $options["code"] =$e->getCode();
-            $options["backtraces"] =$e->getTrace();
+        if ($params["php_error"]) {
+            $last_error = $params["php_error"];
+            $options["errfile"] = $last_error["file"];
+            $options["errline"] = $last_error["line"];
+            $options["errstr"] = $last_error["message"];
+            $options["backtraces"] = $last_error["backtraces"];
+        }
+        if ($params["uncaught_exception"]) {
+            $last_error = $params["uncaught_exception"];
+            $options["errfile"] = $last_error["file"];
+            $options["errline"] = $last_error["line"];
+            $options["errstr"] = $last_error["message"];
+            $options["backtraces"] = $last_error["backtraces"];
         }
         $backtraces =$options["backtraces"] ? $options["backtraces"] : debug_backtrace();
 
@@ -120,9 +126,9 @@ class ReportLoggingHandler extends AbstractProcessingHandler
             if ($params!==null) {
                 $message .=' :'.$this->decorate_value($params,true);
             }
-            if (registry("Report.report_backtraces")) {
-                $message .='<br/> [BACKTRACES] :'.$this->decorate_value($backtraces,true);
-            }
+            // if (registry("Report.report_backtraces")) {
+            //     $message .='<br/> [BACKTRACES] :'.$this->decorate_value($backtraces,true);
+            // }
             $report_html .='<div class="ruiReport '.$elm_class.'" id="'.$elm_id.'" '
                     .'onclick="var e=document.getElementById(\''.$elm_id.'\');'
                     .'e.style.height =\'auto\'; e.style.cursor =\'auto\';" '

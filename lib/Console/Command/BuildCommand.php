@@ -1,8 +1,7 @@
 <?php
 namespace R\Lib\Console\Command;
-
 use R\Lib\Console\Command;
-use R\Lib\Core\Exception\ResponseException;
+use R\Lib\Error\HandlableError;
 
 class BuildCommand extends Command
 {
@@ -105,7 +104,7 @@ class BuildCommand extends Command
             $schema->addSkel($skel_dir);
             $schema->initFromSchemaCsv($schema_csv_file);
             $schema->deploy(true);
-        } catch (ResponseException $e) {
+        } catch (HandlableError $e) {
             report_warning("Builderの実行中にエラーがありました",array(
                 "exceptions" => $e,
             ));

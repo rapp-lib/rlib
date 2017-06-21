@@ -91,7 +91,7 @@ class WebappBuilder extends SchemaElement implements InvokableProvider
         try {
             extract($vars,EXTR_REFS);
             include($template_file);
-        } catch (R\Lib\Core\Exception\ResponseException $e) {
+        } catch (\Exception $e) {
             ob_end_clean();
             report_buffer_end();
             throw $e;

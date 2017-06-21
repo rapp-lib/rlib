@@ -16,7 +16,6 @@ class ReportLogger extends Logger implements InvokableProvider
     }
     /**
      * Report出力するHandler登録
-     * ※
      */
     public function registerReportHandler ()
     {
@@ -24,43 +23,66 @@ class ReportLogger extends Logger implements InvokableProvider
         $this->pushHandler($logging_handler);
     }
     /**
-     * Fatal/Uncaught/エラー/警告を処理するHandler登録
+     * 停止を伴わないSPL警告などにLogging処理を登録
      */
-    public function registerErrorHandler ()
+    public function listenPhpError ()
     {
-        // エラー/Fatalでの停止処理は最後に実行されるように登録（pushHandlerの逆）
-        $logging_handler = new ErrorLoggingHandler(Logger::ERROR);
-        array_push($this->handlers, $logging_handler);
-        // 各ErrorHandlerのregister処理
-        $error_handler = new ErrorHandler($this);
-        $error_handler->registerExceptionHandler(Logger::CRITICAL);
-        $error_handler->registerFatalHandler(Logger::CRITICAL);
-        $error_handler->registerErrorHandler(array(), true, E_ERROR|E_WARNING);
+        class_exists('\Psr\Log\LogLevel', true);
+        // 停止を伴わないSPL警告などにLogging処理を登録
+        $this->prev_spl_error_handler = set_error_handler(array($this, 'splErrorHandler'), error_reporting());
+        // 致命的なエラー時の処理はErrorDriverが実装
+        app()->error->onError(array($this, "errorHandler"));
     }
     /**
-     * SmartyやMailerなどの出力処理中のReport出力抑制/バッファ制御
-     * @deprecated
+     * @private
      */
-    public function report_buffer_start ()
+    public function errorHandler($message, $params, $error_options)
     {
-        $GLOBALS["__REPORT_BUFFER_LEVEL"] += 1;
+        if ($error_options["php_error"]) {
+            $level = $this->getPhpErrorCodeLevel($params["php_error"]["type"]);
+            app()->log->log($level, $message, $params);
+        } else {
+            app()->log->error($message, $params);
+        }
     }
     /**
-     * @deprecated
+     * @private
      */
-    public function report_buffer_end ($all=false)
+    public function splErrorHandler($code, $message, $file = '', $line = 0, $context = array())
     {
-        // 全件終了
-        if ($all) {
-            $GLOBALS["__REPORT_BUFFER_LEVEL"] = 1;
+        if ( ! ($code & app()->error->getHandlablePhpErrorType())) {
+            $e = app()->error->convertPhpErrorToHandlableError(array(
+                "code" => $code,
+                "message" => $message,
+                "file" => $file,
+                "line" => $line,
+                "context" => $context,
+            ));
+            $this->errorHandler($e->getMessage(), $e->getParams(), $e->getErrorOptions());
         }
-        // 開始していなければ処理を行わない
-        if ($GLOBALS["__REPORT_BUFFER_LEVEL"] > 0) {
-            $GLOBALS["__REPORT_BUFFER_LEVEL"] -= 1;
-            if ($GLOBALS["__REPORT_BUFFER_LEVEL"] == 0) {
-                print $GLOBALS["__REPORT_BUFFER"];
-                $GLOBALS["__REPORT_BUFFER"] = "";
-            }
+        if (is_callable($this->prev_spl_error_handler)) {
+            return call_user_func($this->prev_spl_error_handler, $code, $message, $file, $line, $context);
         }
+    }
+    private function getPhpErrorCodeLevel($code)
+    {
+        $map = array(
+            E_ERROR             => LogLevel::ERROR,
+            E_WARNING           => LogLevel::WARNING,
+            E_PARSE             => LogLevel::CRITICAL,
+            E_NOTICE            => LogLevel::NOTICE,
+            E_CORE_ERROR        => LogLevel::CRITICAL,
+            E_CORE_WARNING      => LogLevel::CRITICAL,
+            E_COMPILE_ERROR     => LogLevel::CRITICAL,
+            E_COMPILE_WARNING   => LogLevel::CRITICAL,
+            E_USER_ERROR        => LogLevel::ERROR,
+            E_USER_WARNING      => LogLevel::WARNING,
+            E_USER_NOTICE       => LogLevel::NOTICE,
+            E_STRICT            => LogLevel::NOTICE,
+            E_RECOVERABLE_ERROR => LogLevel::ERROR,
+            E_DEPRECATED        => LogLevel::NOTICE,
+            E_USER_DEPRECATED   => LogLevel::NOTICE,
+        );
+        return isset($map[$code]) ? $map[$code] : LogLevel::CRITICAL;
     }
 }

@@ -60,9 +60,8 @@ abstract class Role_Base
     public function requirePriv ($priv_required)
     {
         if ( ! $this->hasPriv($priv_required)) {
-            // 認可否認時の応答をResponseException経由で発行
             $response = $this->onLoginRequired($required);
-            $response->raise();
+            return $response;
         }
     }
 

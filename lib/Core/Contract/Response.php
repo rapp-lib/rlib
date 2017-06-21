@@ -5,5 +5,4 @@ interface Response
 {
     public function __construct ($output);
     public function render ();
-    public function raise ();
 }

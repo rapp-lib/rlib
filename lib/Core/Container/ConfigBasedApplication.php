@@ -13,6 +13,7 @@ class ConfigBasedApplication implements Container
             "auth" => 'R\Lib\Auth\Middleware\RouteRequirePriv',
         ),
         "provider" => array(
+            "error" => 'R\Lib\Error\ErrorDriver',
             "log" => 'R\Lib\Logger\ReportLogger',
             "console" => 'R\Lib\Core\Provider\ConsoleDriver',
             "router" => 'R\Lib\Route\RouteManager',

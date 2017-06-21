@@ -8,10 +8,9 @@ class RouteRequirePriv implements Middleware
     public function handler ($next)
     {
         $priv_required = app()->router->getCurrentRoute()->getController()->getPrivRequired();
-        try {
-            app()->auth()->requirePriv($priv_required);
-        } catch (R\Lib\Core\Exception\ResponseException $e) {
-            return $e->getResponse();
+        $response = app()->auth()->requirePriv($priv_required);
+        if ($response) {
+            return $response;
         }
         return $next();
     }

@@ -2,7 +2,6 @@
 namespace R\Lib\Core\Response;
 
 use R\Lib\Core\Contract\Response;
-use R\Lib\Core\Exception\ResponseException;
 use R\Lib\FileStorage\StoredFile;
 
 class HttpResponse implements Response
@@ -54,10 +53,6 @@ class HttpResponse implements Response
     public function modify ($modifier)
     {
         $this->output = call_user_func($modifier, $this->output);
-    }
-    public function raise ()
-    {
-        throw new ResponseException($this);
     }
     public function render ()
     {
