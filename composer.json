@@ -22,11 +22,5 @@
         "files": [
             "functions/required.php"
         ]
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "master-3.2",
-            "dev-develop": "master-4.0"
-        }
     }
 }
