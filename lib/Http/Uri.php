@@ -5,7 +5,8 @@ use Psr\Http\Message\UriInterface;
 class Uri extends \Zend\Diactoros\Uri
 {
     protected $webroot;
-    public function __construct ($webroot, $uri, $query_params=false, $fragment=false)
+    protected $parsed;
+    public function __construct ($uri, $query_params=array(), $fragment="", $webroot=null)
     {
         // Webrootの設定
         $this->webroot = $webroot;
@@ -20,12 +21,13 @@ class Uri extends \Zend\Diactoros\Uri
             parent::__construct($uri);
         // 一般的なUriInterfaceをもとに初期化
         } elseif ($uri instanceof UriInterface) {
-            $uri = \Zend\Diactoros\Uri::createUriString($uri->getScheme(),
-                $uri->getAuthority(), $uri->getPath(), $uri->getQuery(), $uri->getFragment());
-            parent::__construct($uri);
+            parent::__construct("".$uri);
         } else {
-            report_error("不正な引数");
+            report_error("不正な引数", array(
+                "uri" => $uri,
+            ));
         }
+        $this->parsed = $this->webroot ? $this->webroot->getRouter()->parseUri($this) : array();
     }
     public function getWebroot()
     {
@@ -33,10 +35,18 @@ class Uri extends \Zend\Diactoros\Uri
     }
     public function getPageId()
     {
-        return $this->page_id;
+        return $this->parsed["page_id"];
+    }
+    public function getEmbedParams()
+    {
+        return $this->parsed["embed_params"];
     }
     public function getPagePath()
     {
-        return $this->page_path;
+        return $this->parsed["page_path"];
+    }
+    public function getPageAction()
+    {
+        return $this->parsed["page_action"];
     }
 }

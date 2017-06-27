@@ -9,9 +9,9 @@ class Webroot
     {
         $this->config = $webroot_config;
     }
-    public function getMiddlewareDispatcher ()
+    public function getMiddlewareStack ()
     {
-        return new \mindplay\middleman\Dispatcher($this->config["middlewares"]);
+        return (array)$this->config["middlewares"];
     }
     public function getRouter ()
     {
@@ -20,7 +20,8 @@ class Webroot
         }
         return $this->router;
     }
-    public function runController ($uri)
+    public function uri ($uri, $query_params=array(), $fragment="")
     {
+        return new Uri($uri, $query_params, $fragment, $this);
     }
 }

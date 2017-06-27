@@ -42,8 +42,11 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
             report_error("不正な引数");
         }
         // Request値配列の構築
-        $this->request_values = array_merge($this->getQueryParams(),
-            $this->getParsedBody(), $this->getUri()->getEmbedParams());
+        $this->request_values = array_merge(
+            (array)$this->getQueryParams(),
+            (array)$this->getParsedBody(),
+            (array)$this->getUri()->getEmbedParams()
+        );
         $this->sanitizeRecursive($this->request_values);
     }
     public function __call ($func, $args)
@@ -54,9 +57,12 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
     {
         return $this->webroot;
     }
-    public function dispatch ($root_deligate)
+    public function dispatch ($deligate)
     {
-        $response = $this->getWebroot()->getMiddlewareDispatcher()->dispatch($this, $root_deligate);
+        $stack = $this->webroot->getMiddlewareStack();
+        $stack[] = $deligate;
+        $dispatcher = new \mindplay\middleman\Dispatcher($stack);
+        $response = $dispatcher->dispatch($this);
         return $response;
     }
 

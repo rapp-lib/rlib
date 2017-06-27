@@ -20,10 +20,6 @@ class HttpDriver implements Provider
         $this->setServedRequest($served_request);
         return $served_request;
     }
-    public function setServedRequest ($request)
-    {
-        $this->served_request = $request;
-    }
     public function emit ($response)
     {
         $emitter = new \Zend\Diactoros\Response\SapiEmitter();
@@ -37,6 +33,9 @@ class HttpDriver implements Provider
     {
         //@todo: 外部へのRequestの組み立て
     }
+
+// -- 非常用機能
+
     public function webroot ($webroot_name, $webroot_config=false)
     {
         if ( ! isset($this->webroots[$webroot_name])) {
@@ -48,5 +47,13 @@ class HttpDriver implements Provider
             report_error("Webrootは初期化済みです");
         }
         return $this->webroots[$webroot_name];
+    }
+    public function setServedRequest ($request)
+    {
+        $this->served_request = $request;
+    }
+    public function getServedRequest ()
+    {
+        return $this->served_request;
     }
 }

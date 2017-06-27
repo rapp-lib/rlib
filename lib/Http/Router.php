@@ -4,31 +4,34 @@ namespace R\Lib\Http;
 class Router
 {
     private $config;
-    private $route_collector;
     private $route_dispatcher;
     public function __construct (array $webroot_config)
     {
         $this->config = $webroot_config;
-        // FastRoute
-        $this->route_collector = new \FastRoute\RouteCollector();
-        foreach ($this->config["routes"] as $route) {
+        $route_collector = new \FastRoute\RouteCollector(
+            new \FastRoute\RouteParser\Std,
+            new \FastRoute\DataGenerator\GroupCountBased
+        );
+        foreach ((array)$this->config["routes"] as $route) {
             $method = $route["method"] ?: array("GET","POST");
             $pattern = $this->config["base_uri"].$route[1];
             $page_id = $route[0];
-            $this->route_collector->addRoute($method, $pattern, $page_id);
+            $route_collector->addRoute($method, $pattern, $page_id);
         }
-        $this->route_dispatcher = \FastRoute\simpleDispatcher($this->route_collector);
+        $route_data = $route_collector->getData();
+        $this->route_dispatcher = new \FastRoute\Dispatcher\GroupCountBased($route_data);
     }
     public function parseUri($uri)
     {
         $parsed = array();
-        if (strlen($uri->getHost())) {
-            return array();
+        $parsed["page_action"] = new PageAction($uri);
+        if (strlen($uri->getHost()) && $uri->getHost() !== app()->http->getServedRequest()->getUri()->getHost()) {
+            return $parsed;
         }
         if (preg_match('!^'.preg_quote($this->config["base_uri"], '!').'(.*?)$!', $uri->getPath(), $match)) {
             $parsed["page_path"] = $match[1];
         } else {
-            return array();
+            return $parsed;
         }
         $routed = $this->route_dispatcher->dispatch($method, $uri);
         if ($routed[0] === \FastRoute\Dispatcher::FOUND) {
@@ -53,14 +56,6 @@ class Router
         }
         return $parsed;
     }
-    public function getUriByPageId ($page_id, $embed_params=array())
-    {
-        $route = $this->getRouteByPageId($page_id);
-        if ($route) {
-            $route_collector->getData();
-            todo;
-        }
-    }
     public function getRouteByPageId ($page_id)
     {
         foreach ($this->config["routes"] as $route_info) {
@@ -72,5 +67,13 @@ class Router
             }
         }
         return array();
+    }
+    public function getUriByPageId ($page_id, $embed_params=array())
+    {
+        $route = $this->getRouteByPageId($page_id);
+        if ($route) {
+            $route_data = $route_collector->getData();
+            report($route_data);
+        }
     }
 }
