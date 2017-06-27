@@ -13,7 +13,7 @@ class Router
         // RouteDispatcherの構築
         $route_collector = new \FastRoute\RouteCollector(
             new \FastRoute\RouteParser\Std,
-            new \FastRoute\DataGenerator\MarkBased
+            new \FastRoute\DataGenerator\GroupCountBased
         );
         foreach ((array)$this->routes as $route) {
             $pattern = $this->webroot->getBaseUri()->getPath().$route[1];
@@ -38,7 +38,7 @@ class Router
         } else {
             return array();
         }
-        $routed = $this->route_dispatcher->dispatch("ROUTE", "".$uri);
+        $routed = $this->route_dispatcher->dispatch("ROUTE", $uri->getPath());
         if ($routed[0] === \FastRoute\Dispatcher::FOUND) {
             $parsed["page_id"] = $routed[1];
             $parsed["embed_params"] = $routed[2];
@@ -52,7 +52,7 @@ class Router
             $parsed["src_file"] = $parsed["page_path"];
         }
         if ($parsed["src_file"]) {
-            $parsed["src_file"] = $this->config["src_dir"].$parsed["src_file"];
+            $parsed["src_file"] = $this->webroot->getBaseDir().$parsed["src_file"];
             if (preg_match('!/$!', $parsed["src_file"])) {
                 $parsed["src_file"] .= 'index.html';
             } elseif ( ! preg_match('!\.\w+$!', $parsed["src_file"])) {
@@ -63,12 +63,11 @@ class Router
     }
     public function getRouteByPageId ($page_id)
     {
-        foreach ($this->config["routes"] as $route_info) {
-            if ($route_info[0] === $page_id) {
-                $route = $route_info[2] ?: array();
-                $route["page_id"] = $route_info[0];
-                $route["pattern"] = $route_info[1];
-                return $route;
+        foreach ($this->routes as $route) {
+            if ($route[0] === $page_id) {
+                $route_info = $route[2] ?: array();
+                $route_info["pattern"] = $route[1];
+                return $route_info;
             }
         }
         return array();

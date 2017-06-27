@@ -58,4 +58,11 @@ class Uri extends \Zend\Diactoros\Uri
             $this->parsed = $this->webroot->getRouter()->parseUri($this);
         }
     }
+
+// --
+
+    public function __report()
+    {
+        return array("uri_string"=>"".$this, "parsed"=>$this->parsed);
+    }
 }

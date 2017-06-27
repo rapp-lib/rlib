@@ -21,7 +21,8 @@
     }
     function report_error ($message, $vars=array(), $options=array())
     {
-        app()->error->raise($message, $vars, $options);
+        $vars = array_merge($vars, $options);
+        app()->error->raise($message, $vars);
     }
 
 // -- レポートバッファ制御

@@ -10,13 +10,13 @@ class PageAction
     }
     public function run ($request)
     {
-        $this->getController()->execAct($request);
+        return $this->getController()->execAct($request);
     }
     public function runInternal ($request)
     {
-        $this->getController()->execInc($request);
+        return $this->getController()->execInc($request);
     }
-    public function getController ()
+    private function getController ()
     {
         $page_id = $this->uri->getPageId();
         list($controller_name, $action_name) = explode('.', $page_id, 2);
@@ -24,7 +24,8 @@ class PageAction
         if ( ! class_exists($controller_class)) {
             report_error("Pageに対応するControllerクラスの定義がありません",array(
                 "page_id" => $page_id,
-                "uri" => "".$this->uri,
+                "controller_class" => $controller_class,
+                "uri" => $this->uri,
             ));
         }
         return new $controller_class($controller_name, $action_name);
