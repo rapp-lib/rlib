@@ -6,8 +6,6 @@ use Psr\Http\Message\ServerRequestInterface;
 class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAccess
 {
     protected $webroot;
-    protected $parsed_request_uri;
-    protected $request_values;
     public function __construct ($webroot, $request)
     {
         // Webrootの設定
@@ -39,6 +37,7 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
         } else {
             report_error("不正な引数");
         }
+        $this->webroot->updateByRequest($this, parent::getUri());
     }
     public function __call ($func, $args)
     {
@@ -66,6 +65,7 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
 
 // -- ArrayAccessの実装
 
+    protected $request_values;
     public function offsetExists ($offset)
     {
         $this->initValue();

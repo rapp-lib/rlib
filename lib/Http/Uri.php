@@ -52,7 +52,7 @@ class Uri extends \Zend\Diactoros\Uri
         $this->initParsed();
         return $this->parsed["page_action"];
     }
-    public function initParsed()
+    private function initParsed()
     {
         if ( ! isset($this->parsed)) {
             $this->parsed = $this->webroot->getRouter()->parseUri($this);

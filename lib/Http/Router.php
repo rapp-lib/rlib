@@ -3,18 +3,21 @@ namespace R\Lib\Http;
 
 class Router
 {
-    private $config;
+    private $webroot;
+    private $base_uri;
     private $route_dispatcher;
-    public function __construct (array $webroot_config)
+    public function __construct ($webroot, array $routes)
     {
-        $this->config = $webroot_config;
+        $this->webroot = $webroot;
+        $this->routes = $routes;
+        // RouteDispatcherの構築
         $route_collector = new \FastRoute\RouteCollector(
             new \FastRoute\RouteParser\Std,
             new \FastRoute\DataGenerator\GroupCountBased
         );
-        foreach ((array)$this->config["routes"] as $route) {
+        foreach ((array)$this->routes as $route) {
             $method = $route["method"] ?: array("GET","POST");
-            $pattern = $this->config["base_uri"].$route[1];
+            $pattern = $this->webroot->getBaseUri()->getPath().$route[1];
             $page_id = $route[0];
             $route_collector->addRoute($method, $pattern, $page_id);
         }
@@ -23,11 +26,14 @@ class Router
     }
     public function parseUri($uri)
     {
+        // 相対解決用BaseUri
+        $request_uri = $this->webroot->getBaseUri();
         $parsed = array();
-        if (strlen($uri->getHost()) && $uri->getHost() !== app()->http->getServedRequest()->getUri()->getHost()) {
-            return array();
+        $parsed["page_action"] = new PageAction($uri);
+        if (strlen($uri->getHost()) && $uri->getHost() !== $request_uri->getHost()) {
+            return $parsed;
         }
-        if (preg_match('!^'.preg_quote($this->config["base_uri"], '!').'(.*?)$!', $uri->getPath(), $match)) {
+        if (preg_match('!^'.preg_quote($request_uri->getPath(), '!').'(.*?)$!', $uri->getPath(), $match)) {
             $parsed["page_path"] = $match[1];
         } else {
             return array();
@@ -52,8 +58,7 @@ class Router
             } elseif ( ! preg_match('!\.\w+$!', $parsed["src_file"])) {
                 $parsed["src_file"] .= '/index.html';
             }
-        }
-        $parsed["page_action"] = new PageAction($uri);
+        }report("",$parsed);
         return $parsed;
     }
     public function getRouteByPageId ($page_id)
