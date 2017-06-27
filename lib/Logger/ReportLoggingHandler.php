@@ -244,7 +244,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
     private function report_profile_function ($func) {
         $info =array();
         $ref =null;
-        if (is_string($func) || ! is_callable($func)) {
+        if (is_string($func) || is_object($func) || ! is_callable($func)) {
             return array();
         }
         if (is_array($func)) {

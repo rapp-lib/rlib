@@ -6,13 +6,8 @@ use R\Lib\Core\Contract\Container;
 class ConfigBasedApplication implements Container
 {
     protected $bind_config = array(
-        "middleware" => array(
-            "view_response_fallback" => 'R\Lib\Core\Middleware\ViewResponseFallback',
-            "json_response_fallback" => 'R\Lib\Core\Middleware\JsonResponseFallback',
-            "stored_file_service" => 'R\Lib\Core\Middleware\StoredFileService',
-            "auth" => 'R\Lib\Auth\Middleware\RouteRequirePriv',
-        ),
         "provider" => array(
+            "http" => 'R\Lib\Http\HttpDriver',
             "error" => 'R\Lib\Error\ErrorDriver',
             "log" => 'R\Lib\Logger\ReportLogger',
             "console" => 'R\Lib\Core\Provider\ConsoleDriver',
@@ -41,6 +36,12 @@ class ConfigBasedApplication implements Container
             "provider" => array(
                 "router" => 'R\Lib\Route\RouteManager',
             ),
+        ),
+        "middleware" => array(
+            "view_response_fallback" => 'R\Lib\Core\Middleware\ViewResponseFallback',
+            "json_response_fallback" => 'R\Lib\Core\Middleware\JsonResponseFallback',
+            "stored_file_service" => 'R\Lib\Core\Middleware\StoredFileService',
+            "auth" => 'R\Lib\Auth\Middleware\RouteRequirePriv',
         ),
     );
     public function __construct ($bind_config=array())

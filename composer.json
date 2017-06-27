@@ -8,12 +8,10 @@
         "doctrine/dbal": "v2.*@stable",
         "monolog/monolog": "v1.*@stable",
         "vlucas/phpdotenv": "v2.*@stable",
-        "phpmailer/phpmailer": "v5.*@stable"
-    },
-    "suggest": {
-        "zendframework/zend-diactoros": "4.0 @PHP5.4 support",
-        "nikic/fast-route": "4.0 @PHP5.4 support",
-        "mindplay/middleman": "4.0 @PHP5.4 support"
+        "phpmailer/phpmailer": "v5.*@stable",
+        "deepfreeze/zend-diactoros": "^1.1",
+        "danbruce/fast-route": "^0.6.0",
+        "rapp-lib/middleman": "dev-master"
     },
     "autoload": {
         "psr-4": {

@@ -5,6 +5,73 @@ use R\Lib\Core\Contract\InvokableProvider;
 
 class RouteManager implements InvokableProvider
 {
+
+// -- HttpDriver実装へのMigration
+
+    private $server_request;
+    private function migSetCurrentRoute ($webroot_name)
+    {
+        // config:router.webroot -> http.webrootへの置き換え
+        if ( ! app()->config("http.webroot")) {
+            $mw_map = array(
+                "auth" => '',
+                "stored_file_service" => '',
+                "json_response_fallback" => '',
+                "view_response_fallback" => '',
+            );
+            foreach (app()->config("router.webroot") as $webroot_name => $raw_config) {
+                $webroot_config = array();
+                $webroot_config["uri"] = $raw_config["config"]["webroot_url"];
+                $webroot_config["asset_catalogs"] = $raw_config["asset"]["catalogs"];
+                foreach ($raw_config["routing"] as $page_id => $pattern) {
+                    if ($pattern) {
+                        $pattern = preg_replace('!/\*$!', '/{__path:.+}', $pattern);
+                    }
+                    $webroot["routes"][] = array($page_id, $page_path);
+                }
+                foreach ($raw_config["middleware"] as $mw_name => $mw_check_callback) {
+                    $webroot["middlewares"][] = $mw_map[$mw_name];
+                }
+                app()->config("http.webroot.".$webroot_name, $webroot_config);
+            }
+        }
+        // ServerRequestの初期化
+        $this->server_request = app()->http->serve($webroot_name);
+    }
+    private function migExecCurrentRoute ()
+    {
+        $app = app();
+        $request = $this->server_request;
+        $response = $app->http->dispatch($request, function($request){
+            $controller = $request->getWebroot()->getController($request->getUri());
+            $response = $controller->execAct();
+            if ($response) {
+                return $response;
+            }
+            return $request->response("blank", 404);
+        });
+
+        return $response;
+    }
+    public function migGetServerRequest ()
+    {
+        return $this->server_request;
+    }
+    public function migMakeResponse ($type, $param=null)
+    {
+        return $this->server_request->response("blank", 404);
+    }
+    private function migGetController ($uri)
+    {
+        return $this->server_request->getWebroot()->getController($uri);
+    }
+    public function migRenderResponse ($response)
+    {
+        app()->http->emit($response);
+    }
+
+// -- 本体実装
+
     /**
      * @override InvokableProvider
      * Routeインスタンスを取得
