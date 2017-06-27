@@ -14,6 +14,9 @@ class ErrorDriver implements InvokableProvider
      */
     public function raise($message, $params=array(), $error_options=array())
     {
+        if ( ! $params["__"]["backtraces"]) {
+            $params["__"]["backtraces"] = debug_backtrace();
+        }
         throw new HandlableError($message, $params, $error_options);
     }
     protected $error_handlers = array();
@@ -33,7 +36,6 @@ class ErrorDriver implements InvokableProvider
             call_user_func_array($handler,array(
                 $handlable_error->getMessage(),
                 $handlable_error->getParams(),
-                $handlable_error->getErrorOptions(),
             ));
         }
     }
@@ -66,7 +68,7 @@ class ErrorDriver implements InvokableProvider
         $this->reserved_memory = null;
         $last_error = error_get_last();
         if ($last_error && $last_error['type'] & $this->getHandlablePhpErrorType()) {
-            $last_error['code'] = $last_error['type'];
+            $last_error['php_error_code'] = $last_error['type'];
             $error = $this->convertPhpErrorToHandlableError($last_error);
             $this->handleError($error);
         }
@@ -80,14 +82,13 @@ class ErrorDriver implements InvokableProvider
             $this->handleError($e);
         } else {
             $message = "[PHP Uncaught ".get_class($e)."] ".$e->getMessage();
-            $params = array("uncaught_exception"=>array(
-                'exception' => get_class($e),
-                'message' => $e->getMessage(),
+            $params = array("__"=>array(
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 "backtraces" => $e->getTrace(),
+                'uncaught_exception' => $e,
             ));
-            $error = new HandlableError($message, $params, array("uncaught_exception"=>true));
+            $error = new HandlableError($message, $params);
             $this->handleError($error);
         }
         if (is_callable($this->prev_set_exception_handler)) {
@@ -99,11 +100,13 @@ class ErrorDriver implements InvokableProvider
      */
     public function convertPhpErrorToHandlableError($last_error)
     {
-        $message = '[PHP '.$this->getPhpErrorCodeText($last_error['code']).'] '.$last_error['message'];
-        $params = array("php_error"=>$last_error);
-        return new HandlableError($message, $params, array("php_error"=>true));
+        $message = '[PHP '.$this->getPhpErrorCodeText($last_error['php_error_code']).'] '.$last_error['message'];
+        if ( ! isset($last_error["backtraces"])) {
+            $last_error["backtraces"] = debug_backtrace();
+        }
+        return new HandlableError($message, array("__"=>$last_error));
     }
-    private function getPhpErrorCodeText($code)
+    private function getPhpErrorCodeText($php_error_code)
     {
         $map = array(
             E_ERROR             => "E_ERROR",
@@ -122,6 +125,6 @@ class ErrorDriver implements InvokableProvider
             E_DEPRECATED        => "E_DEPRECATED",
             E_USER_DEPRECATED   => "E_USER_DEPRECATED",
         );
-        return isset($map[$code]) ? $map[$code] : "UNKNOWN";
+        return isset($map[$php_error_code]) ? $map[$php_error_code] : "UNKNOWN";
     }
 }

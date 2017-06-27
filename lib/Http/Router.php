@@ -13,15 +13,15 @@ class Router
         // RouteDispatcherの構築
         $route_collector = new \FastRoute\RouteCollector(
             new \FastRoute\RouteParser\Std,
-            new \FastRoute\DataGenerator\GroupCountBased
+            new \FastRoute\DataGenerator\MarkBased
         );
         foreach ((array)$this->routes as $route) {
-            $method = $route["method"] ?: array("GET","POST");
             $pattern = $this->webroot->getBaseUri()->getPath().$route[1];
             $page_id = $route[0];
-            $route_collector->addRoute($method, $pattern, $page_id);
+            $route_collector->addRoute("ROUTE", $pattern, $page_id);
         }
         $route_data = $route_collector->getData();
+        report($route_data);
         $this->route_dispatcher = new \FastRoute\Dispatcher\GroupCountBased($route_data);
     }
     public function parseUri($uri)
@@ -38,7 +38,7 @@ class Router
         } else {
             return array();
         }
-        $routed = $this->route_dispatcher->dispatch($method, $uri);
+        $routed = $this->route_dispatcher->dispatch("ROUTE", "".$uri);
         if ($routed[0] === \FastRoute\Dispatcher::FOUND) {
             $parsed["page_id"] = $routed[1];
             $parsed["embed_params"] = $routed[2];
@@ -58,7 +58,7 @@ class Router
             } elseif ( ! preg_match('!\.\w+$!', $parsed["src_file"])) {
                 $parsed["src_file"] .= '/index.html';
             }
-        }report("",$parsed);
+        }
         return $parsed;
     }
     public function getRouteByPageId ($page_id)
@@ -78,7 +78,6 @@ class Router
         $route = $this->getRouteByPageId($page_id);
         if ($route) {
             $route_data = $route_collector->getData();
-            report($route_data);
         }
     }
 }

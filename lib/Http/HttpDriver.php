@@ -25,9 +25,9 @@ class HttpDriver implements Provider
         $emitter = new \Zend\Diactoros\Response\SapiEmitter();
         return $emitter->emit($response);
     }
-    public function response ($type, $response=array())
+    public function response ($type, $data=null, $params=array())
     {
-        //@todo: Responseの組み立て
+        return ResponseFactory::factory($type, $data, $params);
     }
     public function request ($uri, $request=array())
     {

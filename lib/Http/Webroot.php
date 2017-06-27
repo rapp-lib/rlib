@@ -23,7 +23,7 @@ class Webroot
     }
     public function getBaseUri ()
     {
-        if ( ! isset($this->base_uri)) {report("", $this->config);
+        if ( ! isset($this->base_uri)) {
             $this->base_uri = $this->uri($this->config["base_uri"] ?: "");
         }
         return $this->base_uri;

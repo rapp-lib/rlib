@@ -9,7 +9,7 @@ class ConfigBasedApplication implements Container
         "provider" => array(
             "http" => 'R\Lib\Http\HttpDriver',
             "error" => 'R\Lib\Error\ErrorDriver',
-            "log" => 'R\Lib\Logger\ReportLogger',
+            "log" => 'R\Lib\Logger\LoggerDriver',
             "console" => 'R\Lib\Core\Provider\ConsoleDriver',
             "router" => 'R\Lib\Route\RouteManager',
             "route" => 'R\Lib\Route\RouteManager',

@@ -5,7 +5,8 @@ class HandlableError extends \Exception
 {
     protected $params;
     protected $error_options;
-    public function __construct ($message, $params, $error_options)
+    protected $backtraces;
+    public function __construct ($message, $params=array(), $error_options=array())
     {
         parent::__construct($message);
         $this->params = $params;

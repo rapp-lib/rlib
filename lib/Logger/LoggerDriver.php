@@ -4,7 +4,7 @@ use R\Lib\Core\Contract\InvokableProvider;
 use Monolog\Logger;
 use Monolog\ErrorHandler;
 
-class ReportLogger extends Logger implements InvokableProvider
+class LoggerDriver extends Logger implements InvokableProvider
 {
     public function invoke ($msg, $vars=array())
     {
@@ -36,10 +36,10 @@ class ReportLogger extends Logger implements InvokableProvider
     /**
      * @private
      */
-    public function errorHandler($message, $params, $error_options)
+    public function errorHandler($message, $params)
     {
-        if ($error_options["php_error"]) {
-            $level = $this->getPhpErrorCodeLevel($params["php_error"]["type"]);
+        if ($params["__"]["php_error_code"]) {
+            $level = $this->getPhpErrorCodeLevel($params["__"]["php_error_code"]);
             app()->log->log($level, $message, $params);
         } else {
             app()->log->error($message, $params);
@@ -52,7 +52,7 @@ class ReportLogger extends Logger implements InvokableProvider
     {
         if ( ! ($code & app()->error->getHandlablePhpErrorType())) {
             $e = app()->error->convertPhpErrorToHandlableError(array(
-                "code" => $code,
+                "php_error_code" => $code,
                 "message" => $message,
                 "file" => $file,
                 "line" => $line,
@@ -67,22 +67,22 @@ class ReportLogger extends Logger implements InvokableProvider
     private function getPhpErrorCodeLevel($code)
     {
         $map = array(
-            E_ERROR             => LogLevel::ERROR,
-            E_WARNING           => LogLevel::WARNING,
-            E_PARSE             => LogLevel::CRITICAL,
-            E_NOTICE            => LogLevel::NOTICE,
-            E_CORE_ERROR        => LogLevel::CRITICAL,
-            E_CORE_WARNING      => LogLevel::CRITICAL,
-            E_COMPILE_ERROR     => LogLevel::CRITICAL,
-            E_COMPILE_WARNING   => LogLevel::CRITICAL,
-            E_USER_ERROR        => LogLevel::ERROR,
-            E_USER_WARNING      => LogLevel::WARNING,
-            E_USER_NOTICE       => LogLevel::NOTICE,
-            E_STRICT            => LogLevel::NOTICE,
-            E_RECOVERABLE_ERROR => LogLevel::ERROR,
-            E_DEPRECATED        => LogLevel::NOTICE,
-            E_USER_DEPRECATED   => LogLevel::NOTICE,
+            E_ERROR             => self::ERROR,
+            E_WARNING           => self::WARNING,
+            E_PARSE             => self::CRITICAL,
+            E_NOTICE            => self::NOTICE,
+            E_CORE_ERROR        => self::CRITICAL,
+            E_CORE_WARNING      => self::CRITICAL,
+            E_COMPILE_ERROR     => self::CRITICAL,
+            E_COMPILE_WARNING   => self::CRITICAL,
+            E_USER_ERROR        => self::ERROR,
+            E_USER_WARNING      => self::WARNING,
+            E_USER_NOTICE       => self::NOTICE,
+            E_STRICT            => self::NOTICE,
+            E_RECOVERABLE_ERROR => self::ERROR,
+            E_DEPRECATED        => self::NOTICE,
+            E_USER_DEPRECATED   => self::NOTICE,
         );
-        return isset($map[$code]) ? $map[$code] : LogLevel::CRITICAL;
+        return isset($map[$code]) ? $map[$code] : self::CRITICAL;
     }
 }

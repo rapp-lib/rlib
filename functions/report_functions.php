@@ -4,6 +4,13 @@
 
     function report ($message, $vars=array(), $options=array())
     {
+        if ( ! is_array($vars)) {
+            $vars = array("value" => $vars);
+        }
+        if ( ! is_string($message)) {
+            $vars["message"] = $message;
+            $message = "DEBUG";
+        }
         $vars = array_merge($vars, $options);
         app()->log->info($message, $vars);
     }

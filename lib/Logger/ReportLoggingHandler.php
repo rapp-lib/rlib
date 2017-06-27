@@ -22,21 +22,15 @@ class ReportLoggingHandler extends AbstractProcessingHandler
         } else {
             $options["errno"] = E_USER_NOTICE;
         }
-        if ($params["php_error"]) {
-            $last_error = $params["php_error"];
+        if ( ! $options["errfile"] && $params["__"]["file"]) {
             $options["errfile"] = $last_error["file"];
             $options["errline"] = $last_error["line"];
-            $options["errstr"] = $last_error["message"];
-            $options["backtraces"] = $last_error["backtraces"];
         }
-        if ($params["uncaught_exception"]) {
-            $last_error = $params["uncaught_exception"];
-            $options["errfile"] = $last_error["file"];
-            $options["errline"] = $last_error["line"];
-            $options["errstr"] = $last_error["message"];
-            $options["backtraces"] = $last_error["backtraces"];
+        if ( ! $options["backtraces"] && $params["__"]["backtraces"]) {
+            $options["backtraces"] = $params["__"]["backtraces"];
+            $params["__"]["backtraces"] = "*";
         }
-        $backtraces =$options["backtraces"] ? $options["backtraces"] : debug_backtrace();
+        $backtraces = $options["backtraces"] ?: debug_backtrace();
 
         $config =array();
         $config["output_format"] = ! (php_sapi_name()=="cli") ? "html" : "plain";
