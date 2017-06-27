@@ -6,7 +6,7 @@ class Uri extends \Zend\Diactoros\Uri
 {
     protected $webroot;
     protected $parsed;
-    public function __construct ($uri, $query_params=array(), $fragment="", $webroot=null)
+    public function __construct ($webroot, $uri, $query_params=array(), $fragment="")
     {
         // Webrootの設定
         $this->webroot = $webroot;
@@ -27,7 +27,6 @@ class Uri extends \Zend\Diactoros\Uri
                 "uri" => $uri,
             ));
         }
-        $this->parsed = $this->webroot ? $this->webroot->getRouter()->parseUri($this) : array();
     }
     public function getWebroot()
     {
@@ -35,18 +34,28 @@ class Uri extends \Zend\Diactoros\Uri
     }
     public function getPageId()
     {
+        $this->initParsed();
         return $this->parsed["page_id"];
     }
     public function getEmbedParams()
     {
+        $this->initParsed();
         return $this->parsed["embed_params"];
     }
     public function getPagePath()
     {
+        $this->initParsed();
         return $this->parsed["page_path"];
     }
     public function getPageAction()
     {
+        $this->initParsed();
         return $this->parsed["page_action"];
+    }
+    public function initParsed()
+    {
+        if ( ! isset($this->parsed)) {
+            $this->parsed = $this->webroot->getRouter()->parseUri($this);
+        }
     }
 }

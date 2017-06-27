@@ -22,6 +22,6 @@ class Webroot
     }
     public function uri ($uri, $query_params=array(), $fragment="")
     {
-        return new Uri($uri, $query_params, $fragment, $this);
+        return new Uri($this, $uri, $query_params, $fragment);
     }
 }

@@ -22,7 +22,6 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
             $cookies = $request["cookies"] ?: $_COOKIE;
             $query_params = $request["query"] ?: $_GET;
             $parsed_body = $request["body"] ?: $_POST;
-            $uri = $this->webroot->uri($uri);
             parent::__construct($server, $files, $uri, $method,
                 'php://input', $headers, $cookies, $query_params, $parsed_body);
         // 一般的なServerRequestInterfaceをもとに初期化
@@ -35,19 +34,11 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
             $cookies = $request->getCookieParams();
             $query_params = $request->getQueryParams();
             $parsed_body = $request->getParsedBody();
-            $uri = $this->webroot->uri($uri);
             parent::__construct($server, $files, $uri, $method,
                 'php://input',$headers, $cookies, $query_params, $parsed_body);
         } else {
             report_error("不正な引数");
         }
-        // Request値配列の構築
-        $this->request_values = array_merge(
-            (array)$this->getQueryParams(),
-            (array)$this->getParsedBody(),
-            (array)$this->getUri()->getEmbedParams()
-        );
-        $this->sanitizeRecursive($this->request_values);
     }
     public function __call ($func, $args)
     {
@@ -65,15 +56,24 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
         $response = $dispatcher->dispatch($this);
         return $response;
     }
+    public function getUri()
+    {
+        if ( ! isset($this->uri)) {
+            $this->uri = $this->webroot->uri(parent::getUri());
+        }
+        return $this->uri;
+    }
 
 // -- ArrayAccessの実装
 
     public function offsetExists ($offset)
     {
+        $this->initValue();
         return isset($this->request_values[$offset]);
     }
     public function offsetGet ($offset)
     {
+        $this->initValue();
         return $this->request_values[$offset];
     }
     public function offsetSet ($offset, $value)
@@ -84,9 +84,18 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
     {
         return;
     }
-
-// -- @private
-
+    private function initValue ()
+    {
+        if ( ! isset($this->request_values)) {
+            // Request値配列の構築
+            $this->request_values = array_merge(
+                (array)$this->getQueryParams(),
+                (array)$this->getParsedBody(),
+                (array)$this->getUri()->getEmbedParams()
+            );
+            $this->sanitizeRecursive($this->request_values);
+        }
+    }
     private function sanitizeRecursive ( & $arr)
     {
         foreach ($arr as $key => $val) {

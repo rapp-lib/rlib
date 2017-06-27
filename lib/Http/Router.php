@@ -24,14 +24,13 @@ class Router
     public function parseUri($uri)
     {
         $parsed = array();
-        $parsed["page_action"] = new PageAction($uri);
         if (strlen($uri->getHost()) && $uri->getHost() !== app()->http->getServedRequest()->getUri()->getHost()) {
-            return $parsed;
+            return array();
         }
         if (preg_match('!^'.preg_quote($this->config["base_uri"], '!').'(.*?)$!', $uri->getPath(), $match)) {
             $parsed["page_path"] = $match[1];
         } else {
-            return $parsed;
+            return array();
         }
         $routed = $this->route_dispatcher->dispatch($method, $uri);
         if ($routed[0] === \FastRoute\Dispatcher::FOUND) {
@@ -54,6 +53,7 @@ class Router
                 $parsed["src_file"] .= '/index.html';
             }
         }
+        $parsed["page_action"] = new PageAction($uri);
         return $parsed;
     }
     public function getRouteByPageId ($page_id)

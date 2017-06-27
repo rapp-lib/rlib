@@ -50,6 +50,7 @@ class HttpDriver implements Provider
     }
     public function setServedRequest ($request)
     {
+        report($this->served_request);
         $this->served_request = $request;
     }
     public function getServedRequest ()
