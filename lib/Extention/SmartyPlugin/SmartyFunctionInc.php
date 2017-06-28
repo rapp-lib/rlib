@@ -12,30 +12,32 @@ class SmartyFunctionInc
      */
     public static function callback ($params, $smarty)
     {
-        $route_name = $params["route"];
-        if ( ! $route_name && $params["path"]) {
-            $route_name = $params["path"];
+        $uri = $params["uri"];
+        if ( ! $uri && $params["route"]) {
+            $uri = "path://".$params["route"];
         }
-        if ( ! $route_name && $params["page"]) {
-            $route_name = $params["page"];
+        if ( ! $uri && $params["path"]) {
+            $uri = "path://".$params["path"];
         }
-        $route = route($route_name);
-        $page = $route->getPage();
+        if ( ! $uri && $params["page"]) {
+            $uri = "id://".$params["page"];
+        }
+        $request = app()->http->getServedRequest();
+        $uri = $request->getWebroot()->uri($uri);
+        $page = $uri->getPageId();
         $vars = array();
         // Routeに対応する処理の実行
         if ($page) {
             report("IncludeAction実行",array(
                 "page" => $page,
             ));
-            $controller = $route->getController();
-            $controller->execInc();
-            $vars = $controller->getVars();
+            $vars = $uri->getPageAction()->getController($request)->runInternal();
         }
-        $request_file = $route->getFile();
+        $request_file = $uri->getPageFile();
         if ( ! file_exists($request_file)) {
             report_warning("incタグの対象となるテンプレートファイルがありません",array(
                 "request_file" => $request_file,
-                "route" => $route,
+                "uri" => $uri,
             ));
             return;
         }

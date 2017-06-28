@@ -171,20 +171,21 @@ class HttpController implements FormRepositry
         if ($response) {
             return $response;
         }
-        $file = $this->request->getUri()->getSrcFile();
+        $file = $this->request->getUri()->getPageFile();
         if (preg_match('!(\.html|/)$!',$file)) {
             if ( ! is_file($file)) {
                 return app()->http->response("notfound");
             }
-            $html = app()->view($file, $controller->getVars());
+            $html = app()->view($file, $this->getVars());
             return app()->http->response("html", $html);
         } elseif (preg_match('!(\.json|/)$!',$file)) {
-            $data = $controller->getVars();
+            $data = $this->getVars();
             unset($data["form"]);
             return app()->http->response("json", $data);
         }
         report_error("処理を行いましたが応答を構築できません",array(
             "file" => $file,
+            "uri" => $uri,
         ));
     }
     /**
@@ -193,6 +194,7 @@ class HttpController implements FormRepositry
      */
     public function execInc2 ()
     {
-        //@todo:
+        $this->execInc();
+        return $this->getVars();
     }
 }

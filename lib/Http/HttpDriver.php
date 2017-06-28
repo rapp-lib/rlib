@@ -40,7 +40,12 @@ class HttpDriver implements Provider
     {
         if ( ! isset($this->webroots[$webroot_name])) {
             if ($webroot_config === false) {
-                $webroot_config = app()->config("http.webroot.".$webroot_name);
+                $webroot_config = app()->config("http.webroots.".$webroot_name);
+            }
+            if ( ! is_array($webroot_config)) {
+                report_error("Webrootの構成が不正です",array(
+                    "webroot_name" => $webroot_name,
+                ));
             }
             $this->webroots[$webroot_name] = new Webroot($webroot_config);
         } elseif ($webroot_config !== false) {

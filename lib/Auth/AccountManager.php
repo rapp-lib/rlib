@@ -27,8 +27,9 @@ class AccountManager implements InvokableProvider
     public function __construct ()
     {
         // AccessRoleの決定
-        $this->access_role_name = app()->router->getCurrentRoute()->getController()->getAccessRoleName();
-        $this->priv_required = app()->router->getCurrentRoute()->getController()->getPrivRequired();
+        $controller = app()->http->getServedRequest()->getUri()->getPageAction()->getController();
+        $this->access_role_name = $controller->getAccessRoleName();
+        $this->priv_required = $controller->getPrivRequired();
     }
     /**
      * AccessRoleに規定されている権限についての認可確認

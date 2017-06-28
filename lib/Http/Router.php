@@ -20,9 +20,7 @@ class Router
             $page_id = $route[0];
             $route_collector->addRoute("ROUTE", $pattern, $page_id);
         }
-        $route_data = $route_collector->getData();
-        report($route_data);
-        $this->route_dispatcher = new \FastRoute\Dispatcher\GroupCountBased($route_data);
+        $this->route_dispatcher = new \FastRoute\Dispatcher\GroupCountBased($route_collector->getData());
     }
     public function parseUri($uri)
     {
@@ -45,18 +43,18 @@ class Router
             $parsed["route"] = $this->getRouteByPageId($parsed["page_id"]);
             if ($parsed["embed_params"]) {
                 $pattern = str_replace(array('[',']'),'',$parsed["route"]["pattern"]);
-                $parsed["src_file"] = preg_replace('!\{([^:]+):\}!', '[$1]', $pattern);
+                $parsed["page_file"] = preg_replace('!\{([^:]+):\}!', '[$1]', $pattern);
             }
         }
-        if ($parsed["page_path"] && ! $parsed["src_file"]) {
-            $parsed["src_file"] = $parsed["page_path"];
+        if ($parsed["page_path"] && ! $parsed["page_file"]) {
+            $parsed["page_file"] = $parsed["page_path"];
         }
-        if ($parsed["src_file"]) {
-            $parsed["src_file"] = $this->webroot->getBaseDir().$parsed["src_file"];
-            if (preg_match('!/$!', $parsed["src_file"])) {
-                $parsed["src_file"] .= 'index.html';
-            } elseif ( ! preg_match('!\.\w+$!', $parsed["src_file"])) {
-                $parsed["src_file"] .= '/index.html';
+        if ($parsed["page_file"]) {
+            $parsed["page_file"] = $this->webroot->getBaseDir().$parsed["page_file"];
+            if (preg_match('!/$!', $parsed["page_file"])) {
+                $parsed["page_file"] .= 'index.html';
+            } elseif ( ! preg_match('!\.\w+$!', $parsed["page_file"])) {
+                $parsed["page_file"] .= '/index.html';
             }
         }
         return $parsed;

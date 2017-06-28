@@ -96,6 +96,13 @@ class SmartyExtended extends SmartyBC
         report_buffer_end();
         return $result;
     }
+
+// --
+
+    public function __report ()
+    {
+        return;
+    }
 }
 
 class BlockTagStack

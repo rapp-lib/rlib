@@ -23,8 +23,8 @@ class ReportLoggingHandler extends AbstractProcessingHandler
             $options["errno"] = E_USER_NOTICE;
         }
         if ( ! $options["errfile"] && $params["__"]["file"]) {
-            $options["errfile"] = $last_error["file"];
-            $options["errline"] = $last_error["line"];
+            $options["errfile"] = $params["__"]["file"];
+            $options["errline"] = $params["__"]["line"];
         }
         if ( ! $options["backtraces"] && $params["__"]["backtraces"]) {
             $options["backtraces"] = $params["__"]["backtraces"];
@@ -52,7 +52,8 @@ class ReportLoggingHandler extends AbstractProcessingHandler
         $libpath = realpath(dirname(__FILE__)."/../..");
         $vendor_path = realpath($libpath."/../..");
         $report_filepaths = array(
-            $libpath."/Logger/ReportLogger.php",
+            $libpath."/lib/Logger/LoggerDriver.php",
+            $libpath."/lib/Error/ErrorDriver.php",
             $libpath."/functions/report_functions.php",
         );
         $errdetail =array();
@@ -71,7 +72,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
         for ($i=0; $i < count($backtraces); $i++) {
             $backtrace =$backtraces[$i];
             $backtrace['file'] =realpath($backtrace['file']);
-            if ($backtrace['file'] == $report_filepaths[0] || $backtrace['file'] == $report_filepaths[1]) {
+            if (in_array($backtrace['file'],$report_filepaths)) {
                 $errdetail = array();
             }
             $errdetail[$i] ='';

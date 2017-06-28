@@ -16,9 +16,9 @@ class PageAction
     {
         return $this->getController($request)->execInc2();
     }
-    private function getController ($request=null)
+    public function getController ($request=null)
     {
         $page_id = $this->uri->getPageId();
-        return R\Lib\Controller\HttpController::getControllerAction($page_id, $request);
+        return \R\Lib\Controller\HttpController::getControllerAction($page_id, $request);
     }
 }
