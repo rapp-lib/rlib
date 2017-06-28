@@ -7,12 +7,17 @@ class ConfigBasedApplication implements Container
 {
     protected $bind_config = array(
         "provider" => array(
+            "p7" => 'R\Lib\Router\Psr7Migrate',
+            "response" => 'R\Lib\Core\Provider\ResponseFactory',
+            "request" => 'R\Lib\Core\Provider\Request',
+            "router" => 'R\Lib\Route\RouteManager',
+            "route" => 'R\Lib\Route\RouteManager',
+
             "http" => 'R\Lib\Http\HttpDriver',
             "error" => 'R\Lib\Error\ErrorDriver',
             "log" => 'R\Lib\Logger\LoggerDriver',
+
             "console" => 'R\Lib\Core\Provider\ConsoleDriver',
-            "router" => 'R\Lib\Route\RouteManager',
-            "route" => 'R\Lib\Route\RouteManager',
             "config" => 'R\Lib\Core\Provider\Configure',
             "env" => 'R\Lib\Core\Provider\Env',
             "view" => 'R\Lib\View\SmartyViewFactory',
@@ -25,9 +30,6 @@ class ConfigBasedApplication implements Container
             "extention" => 'R\Lib\Core\Provider\ExtentionLoader',
             "debug" => 'R\Lib\Core\Provider\DebugDriver',
             "asset" => 'R\Lib\Asset\AssetManager',
-            "report" => 'R\Lib\Core\Provider\ReportDriver',
-            "response" => 'R\Lib\Core\Provider\ResponseFactory',
-            "request" => 'R\Lib\Core\Provider\Request',
             "session" => 'R\Lib\Core\Provider\Session',
             "mailer" => 'R\Lib\Core\Provider\MailerFactory',
             "auth" => 'R\Lib\Auth\AccountManager',

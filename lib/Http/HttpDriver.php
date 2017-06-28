@@ -15,7 +15,7 @@ class HttpDriver implements Provider
     }
     public function serve ($webroot_config, $request=array())
     {
-        $webroot = new Webroot($webroot_config);
+        $webroot = is_string($webroot_config) ? $this->webroot($webroot_config) : new Webroot($webroot_config);
         $served_request = new ServerRequest($webroot, $request);
         $this->setServedRequest($served_request);
         return $served_request;
@@ -40,7 +40,7 @@ class HttpDriver implements Provider
     {
         if ( ! isset($this->webroots[$webroot_name])) {
             if ($webroot_config === false) {
-                $webroot_config = app()->config("webroot.".$webroot_name);
+                $webroot_config = app()->config("http.webroot.".$webroot_name);
             }
             $this->webroots[$webroot_name] = new Webroot($webroot_config);
         } elseif ($webroot_config !== false) {

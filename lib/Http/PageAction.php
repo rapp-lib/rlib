@@ -10,24 +10,15 @@ class PageAction
     }
     public function run ($request)
     {
-        return $this->getController()->execAct($request);
+        return $this->getController($request)->execAct2();
     }
     public function runInternal ($request)
     {
-        return $this->getController()->execInc($request);
+        return $this->getController($request)->execInc2();
     }
-    private function getController ()
+    private function getController ($request=null)
     {
         $page_id = $this->uri->getPageId();
-        list($controller_name, $action_name) = explode('.', $page_id, 2);
-        $controller_class = 'R\App\Controller\\'.str_camelize($controller_name).'Controller';
-        if ( ! class_exists($controller_class)) {
-            report_error("Pageに対応するControllerクラスの定義がありません",array(
-                "page_id" => $page_id,
-                "controller_class" => $controller_class,
-                "uri" => $this->uri,
-            ));
-        }
-        return new $controller_class($controller_name, $action_name);
+        return R\Lib\Controller\HttpController::getControllerAction($page_id, $request);
     }
 }

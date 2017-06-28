@@ -15,7 +15,7 @@
     {
         if ($this->request["back"]) {
             $this->forms["search"]->restore();
-        } elseif ($this->forms["search"]->receive()) {
+        } elseif ($this->forms["search"]->receive($this->request)) {
             $this->forms["search"]->save();
         }
         $this->vars["ts"] = $this->forms["search"]->search()->select();

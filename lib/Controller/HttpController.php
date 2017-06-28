@@ -23,12 +23,12 @@ class HttpController implements FormRepositry
     /**
      * 初期化
      */
-    public function __construct ($controller_name, $action_name)
+    public function __construct ($controller_name, $action_name, $request=null)
     {
         $this->controller_name = $controller_name;
         $this->action_name = $action_name;
         $this->vars = array();
-        $this->request = app()->request;
+        $this->request = $request;
         $this->response = app()->response;
         $this->forms = app()->form->addRepositry($this);
         $this->vars["forms"] = $this->forms;
@@ -141,5 +141,58 @@ class HttpController implements FormRepositry
     public function getPrivRequired ()
     {
         return static::$priv_required;
+    }
+
+// -- Http系実装
+
+    /**
+     * act_*の実行
+     * @deprecated
+     */
+    public static function getControllerAction ($page_id, $request)
+    {
+        list($controller_name, $action_name) = explode('.', $page_id, 2);
+        $controller_class = 'R\App\Controller\\'.str_camelize($controller_name).'Controller';
+        if ( ! class_exists($controller_class)) {
+            report_error("Pageに対応するControllerクラスの定義がありません",array(
+                "page_id" => $page_id,
+                "controller_class" => $controller_class,
+            ));
+        }
+        return new $controller_class($controller_name, $action_name, $request);
+    }
+    /**
+     * act_*の実行
+     * @deprecated
+     */
+    public function execAct2 ()
+    {
+        $response = $this->execAct();
+        if ($response) {
+            return $response;
+        }
+        $file = $this->request->getUri()->getSrcFile();
+        if (preg_match('!(\.html|/)$!',$file)) {
+            if ( ! is_file($file)) {
+                return app()->http->response("notfound");
+            }
+            $html = app()->view($file, $controller->getVars());
+            return app()->http->response("html", $html);
+        } elseif (preg_match('!(\.json|/)$!',$file)) {
+            $data = $controller->getVars();
+            unset($data["form"]);
+            return app()->http->response("json", $data);
+        }
+        report_error("処理を行いましたが応答を構築できません",array(
+            "file" => $file,
+        ));
+    }
+    /**
+     * inc_*の実行
+     * @deprecated
+     */
+    public function execInc2 ()
+    {
+        //@todo:
     }
 }

@@ -13,7 +13,7 @@
     );
 <?=$pageset->getPageByType("login")->getMethodDecSource()?>
     {
-        if ($this->forms["login"]->receive()) {
+        if ($this->forms["login"]->receive($this->request)) {
             if ($this->forms["login"]->isValid()) {
                 // ログイン処理
                 if (auth("<?=$controller->getRole()->getName()?>")->login($this->forms["login"])) {

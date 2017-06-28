@@ -20,7 +20,7 @@
 <?=$pageset->getPageByType("form")->getMethodDecSource()?>
     {
         $this->forms["entry"]->restore();
-        if ($this->forms["entry"]->receive()) {
+        if ($this->forms["entry"]->receive($this->request)) {
             if ($this->forms["entry"]->isValid()) {
                 $this->forms["entry"]->save();
                 return redirect("page:<?=$pageset->getPageByType("confirm")->getLocalPage()?>");

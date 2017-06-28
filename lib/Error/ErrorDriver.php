@@ -13,7 +13,7 @@ class ErrorDriver implements InvokableProvider
      * HandlableErrorの発行
      */
     public function raise($message, $params=array(), $error_options=array())
-    {
+    {report("#");
         if ( ! $params["__"]["backtraces"]) {
             $params["__"]["backtraces"] = debug_backtrace();
         }
@@ -30,12 +30,12 @@ class ErrorDriver implements InvokableProvider
     /**
      * エラー時の処理を実行
      */
-    public function handleError ($handlable_error)
+    public function handleError ($e)
     {
         foreach ($this->error_handlers as $handler) {
             call_user_func_array($handler,array(
-                $handlable_error->getMessage(),
-                $handlable_error->getParams(),
+                $e->getMessage(),
+                $e->getParams(),
             ));
         }
     }
