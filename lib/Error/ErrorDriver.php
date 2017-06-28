@@ -81,15 +81,7 @@ class ErrorDriver implements InvokableProvider
         if ($e instanceof HandlableError) {
             $this->handleError($e);
         } else {
-            $message = "[PHP Uncaught ".get_class($e)."] ".$e->getMessage();
-            $params = array("__"=>array(
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                "backtraces" => $e->getTrace(),
-                'uncaught_exception' => $e,
-            ));
-            $error = new HandlableError($message, $params);
-            $this->handleError($error);
+            $this->handleError($this->convertExceptionToHandlableError($e));
         }
         if (is_callable($this->prev_set_exception_handler)) {
             call_user_func($this->prev_set_exception_handler, $e);
@@ -100,10 +92,10 @@ class ErrorDriver implements InvokableProvider
      */
     public function convertPhpErrorToHandlableError($last_error)
     {
-        $message = '[PHP '.$this->getPhpErrorCodeText($last_error['php_error_code']).'] '.$last_error['message'];
         if ( ! isset($last_error["backtraces"])) {
             $last_error["backtraces"] = debug_backtrace();
         }
+        // contextの簡素化
         if (is_array($last_error["context"])) {
             foreach ($last_error["context"] as $k=>$v) {
                 if (is_array($v)) {
@@ -113,7 +105,31 @@ class ErrorDriver implements InvokableProvider
                 }
             }
         }
+        $message = '[PHP '.$this->getPhpErrorCodeText($last_error['php_error_code']).'] '.$last_error['message'];
         return new HandlableError($message, array("__"=>$last_error));
+    }
+    public function convertExceptionToHandlableError($e)
+    {
+        // backtracesの簡素化
+        $backtraces = $e->getTrace();
+        foreach ($backtraces as $k1=>$v1) {
+            foreach ((array)$v1["args"] as $k2=>$v2) {
+                if (is_array($v2)) {
+                    $backtraces[$k1]["args"][$k2] = "array(".count($v2).")";
+                } elseif (is_object($v2)) {
+                    $backtraces[$k1]["args"][$k2] = "object(".get_class($v2).")";
+                }
+            }
+        }
+        // handleError実行
+        $message = "[PHP Uncaught ".get_class($e)."] ".$e->getMessage();
+        $params = array("__"=>array(
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'uncaught_exception' => get_class($e),
+            "backtraces" => $backtraces,
+        ));
+        return new HandlableError($message, $params);
     }
     private function getPhpErrorCodeText($php_error_code)
     {

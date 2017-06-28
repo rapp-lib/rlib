@@ -7,7 +7,7 @@ class Uri extends \Zend\Diactoros\Uri
     protected $webroot;
     protected $parsed;
     public function __construct ($webroot, $uri, $query_params=array(), $fragment="")
-    {
+    {parent::__construct("".$uri);
         // Webrootの設定
         $this->webroot = $webroot;
         // URL文字列を元に初期化
