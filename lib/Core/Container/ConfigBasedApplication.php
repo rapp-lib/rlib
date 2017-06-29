@@ -7,11 +7,10 @@ class ConfigBasedApplication implements Container
 {
     protected $bind_config = array(
         "provider" => array(
-            "p7" => 'R\Lib\Router\Psr7Migrate',
-            "response" => 'R\Lib\Core\Provider\ResponseFactory',
-            "request" => 'R\Lib\Core\Provider\Request',
-            "router" => 'R\Lib\Route\RouteManager',
-            "route" => 'R\Lib\Route\RouteManager',
+            //"response" => 'R\Lib\Core\Provider\ResponseFactory',
+            //"request" => 'R\Lib\Core\Provider\Request',
+            //"router" => 'R\Lib\Route\RouteManager',
+            //"route" => 'R\Lib\Route\RouteManager',
 
             "http" => 'R\Lib\Http\HttpDriver',
             "error" => 'R\Lib\Error\ErrorDriver',
@@ -36,14 +35,10 @@ class ConfigBasedApplication implements Container
         ),
         "contract" => array(
             "provider" => array(
-                "router" => 'R\Lib\Route\RouteManager',
+                //"router" => 'R\Lib\Route\RouteManager',
             ),
         ),
         "middleware" => array(
-            "view_response_fallback" => 'R\Lib\Core\Middleware\ViewResponseFallback',
-            "json_response_fallback" => 'R\Lib\Core\Middleware\JsonResponseFallback',
-            "stored_file_service" => 'R\Lib\Core\Middleware\StoredFileService',
-            "auth" => 'R\Lib\Auth\Middleware\RouteRequirePriv',
         ),
     );
     public function __construct ($bind_config=array())

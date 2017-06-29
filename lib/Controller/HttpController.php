@@ -29,7 +29,6 @@ class HttpController implements FormRepositry
         $this->action_name = $action_name;
         $this->vars = array();
         $this->request = $request;
-        $this->response = app()->response;
         $this->forms = app()->form->addRepositry($this);
         $this->vars["forms"] = $this->forms;
     }

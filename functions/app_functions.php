@@ -58,3 +58,10 @@
         $uri = app()->http->getServedRequest()->getWebroot()->uri($url, $params, $anchor);
         return app()->http->response("redirect", "".$uri);
     }
+    /**
+     * URLの組み立て
+     */
+    function url ($base_url=null, $params=array(), $anchor=null)
+    {
+        return app()->http->getServedRequest()->getWebroot()->uri($base_url, $params, $anchor);
+    }
