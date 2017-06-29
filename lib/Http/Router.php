@@ -59,7 +59,7 @@ class Router
         }
         return $parsed;
     }
-    public function getRouteByPageId ($page_id)
+    private function getRouteByPageId ($page_id)
     {
         foreach ($this->routes as $route) {
             if ($route[0] === $page_id) {
@@ -70,11 +70,29 @@ class Router
         }
         return array();
     }
-    public function getUriByPageId ($page_id, $embed_params=array())
+    public function buildUriStringByPageId ($page_id, $embed_params=array())
     {
+        // RouteからPatternを取得
         $route = $this->getRouteByPageId($page_id);
-        if ($route) {
-            $route_data = $route_collector->getData();
+        // embed_paramsを置き換える
+        $page_path = $route["pattern"];
+        $page_path = preg_replace_callback('!\{([^:]+)(?::([^\}]+))?\}!', function($match)use($embed_params){
+            return isset($embed_params[$match[1]]) ? $embed_params[$match[1]] : "@@EMBED@@";
+        }, $page_path);
+        // [...]で囲まれた範囲で不完全な部分を排除
+        while (preg_match('!\[[^\[\]]*?@@EMBED@@[^\[\]]*?\]!', $page_path)) {
+            $page_path = preg_replace('!\[[^\[\]]*?@@EMBED@@[^\[\]]*?\]!', '', $page_path);
         }
+        // [...]内が完全であればそのまま残す
+        $page_path = preg_replace('!\[\[\]]!', '', $page_path);
+        // [...]外の置き換え漏れは''で置き換える
+        $page_path = preg_replace('!@@EMBED@@!', '', $page_path);
+        // base_uriをつける
+        return $this->buildUriStringByPagePath($page_path);
+    }
+    public function buildUriStringByPagePath ($page_path)
+    {
+        // base_uriをつけてUriにする
+        return $this->webroot->getBaseUri().$page_path;
     }
 }

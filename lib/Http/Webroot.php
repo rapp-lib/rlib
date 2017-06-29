@@ -52,8 +52,12 @@ class Webroot
      */
     public function updateByRequest ($request, $request_uri)
     {
-        if ( ! $this->getBaseUri()->getHost()) {
-            $this->base_uri = $this->base_uri->withHost($request_uri->getHost());
+        if ( ! $this->getBaseUri()->getAuthority()) {
+            $this->base_uri = $this->base_uri
+                ->withHost($request_uri->getHost())
+                ->withPort($request_uri->getPort() ?: 80)
+                ->withScheme($request_uri->getScheme())
+                ->withUserInfo($request_uri->getUserInfo());
         }
         if ( ! $this->config["base_dir"]) {
             $server = $request->getServerParams();
