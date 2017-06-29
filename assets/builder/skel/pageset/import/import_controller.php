@@ -15,7 +15,7 @@
         if ($this->forms["entry_csv"]->receive($this->request)) {
             if ($this->forms["entry_csv"]->isValid()) {
                 $this->forms["entry_csv"]->save();
-                return redirect("page:<?=$pageset->getPageByType("complete")->getLocalPage()?>");
+                return redirect("id://<?=$pageset->getPageByType("complete")->getLocalPage()?>");
             }
         } elseif ( ! $this->request["back"]) {
             $this->forms["entry"]->clear();
@@ -25,7 +25,7 @@
     {
         if ( ! $this->forms["entry_csv"]->isEmpty()) {
             if ( ! $this->forms["entry_csv"]->isValid()) {
-                return redirect("page:.entry_csv_form", array("back"=>"1"));
+                return redirect("id://.entry_csv_form", array("back"=>"1"));
             }
             // CSVファイルを開く
             $csv_file = app()->file_storage->get($this->forms["entry_csv"]["csv_file"]);
@@ -38,5 +38,5 @@
             table("<?=$table->getName()?>")->transactionCommit();
             $this->forms["entry_csv"]->clear();
         }
-        return redirect("page:<?=$controller->getIndexPage()->getLocalPage()?>", array("back"=>"1"));
+        return redirect("id://<?=$controller->getIndexPage()->getLocalPage()?>", array("back"=>"1"));
     }

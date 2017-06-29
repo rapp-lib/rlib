@@ -23,7 +23,7 @@
         if ($this->forms["entry"]->receive($this->request)) {
             if ($this->forms["entry"]->isValid()) {
                 $this->forms["entry"]->save();
-                return redirect("page:<?=$pageset->getPageByType("confirm")->getLocalPage()?>");
+                return redirect("id://<?=$pageset->getPageByType("confirm")->getLocalPage()?>");
             }
         } elseif ($id = $this->request["id"]) {
             $this->forms["entry"]->init($id);
@@ -35,7 +35,7 @@
     {
         $this->forms["entry"]->restore();
 <?php if ($pageset->getAttr("skip_confirm")): ?>
-        return redirect("page:<?=$pageset->getPageByType("complete")->getLocalPage()?>");
+        return redirect("id://<?=$pageset->getPageByType("complete")->getLocalPage()?>");
 <?php elseif ($table->hasDef()): ?>
         $this->vars["t"] = $this->forms["entry"]->getRecord();
 <?php else: ?>
@@ -60,6 +60,6 @@
             $this->forms["entry"]->clear();
         }
 <?php if ($pageset->getAttr("skip_complete")): ?>
-        return redirect("page:<?=$pageset->getBackPage()->getFullPage($page)?>", array("back"=>"1"));
+        return redirect("id://<?=$pageset->getBackPage()->getFullPage($page)?>", array("back"=>"1"));
 <?php endif; ?>
     }

@@ -3,5 +3,5 @@
         if ($id = $this->request["id"]) {
             table("<?=$table->getName()?>")->deleteById($id);
         }
-        return redirect("page:<?=$controller->getIndexPage()->getLocalPage()?>", array("back"=>"1"));
+        return redirect("id://<?=$controller->getIndexPage()->getLocalPage()?>", array("back"=>"1"));
     }

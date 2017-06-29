@@ -21,7 +21,7 @@
                     if ($redirect = $this->forms["login"]["redirect"]) {
                         return redirect("url:".$redirect);
                     } else {
-                        return redirect("page:<?=$controller->getRole()->getIndexController()->getIndexPage()->getFullPage($pageset->getPageByType("login"))?>");
+                        return redirect("id://<?=$controller->getRole()->getIndexController()->getIndexPage()->getFullPage($pageset->getPageByType("login"))?>");
                     }
                 } else {
                     $this->vars["login_error"] = true;

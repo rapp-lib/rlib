@@ -55,5 +55,6 @@
      * @alias
      */
     function redirect ($url, $params=array(), $anchor=null) {
-        return app()->response->redirect($url, $params, $anchor);
+        $uri = app()->http->getServedRequest()->getWebroot()->uri($url, $params, $anchor);
+        return app()->http->response("redirect", "".$uri);
     }

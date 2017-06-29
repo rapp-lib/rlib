@@ -187,7 +187,7 @@ class FormContainer extends ArrayObject
      */
     public function receive ($request=false)
     {
-        $request ?: app()->http->getServedRequest();
+        $request = $request ?: app()->http->getServedRequest();
         if ( ! isset($this->received)) {
             $form_param_name = "_f";
             $form_name = $this->getFormName();
@@ -266,12 +266,12 @@ class FormContainer extends ArrayObject
         // form_page/search_pageでactionのURLを補完
         if ( ! isset($attrs["action"])) {
             if (isset($this->def["form_page"])) {
-                $attrs["action"] = route($this->def["form_page"])->getUrl();
+                $attrs["action"] = $this->def["form_page"];
             } elseif (isset($this->def["search_page"])) {
-                $attrs["action"] = route($this->def["search_page"])->getUrl();
+                $attrs["action"] = $this->def["search_page"];
             }
         }
-        $attrs["action"] = url($attrs["action"]);
+        $attrs["action"] = app()->http->getServedRequest()->getWebroot()->uri($this->def["form_page"]);
         return tag("form",$attrs,$content);
     }
 

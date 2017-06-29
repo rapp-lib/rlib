@@ -25,8 +25,8 @@ class <?=$role->getClassName()?> extends Role_App
     public function onLoginRequired ($required)
     {
 <?php if ($role->getLoginController()): ?>
-        return redirect("page:<?=$role->getLoginController()->getName()?>.login",array(
-            "redirect" => $this->isLogin() ? "" : app()->router->getCurrentRoute()->getUrl(),
+        return redirect("id://<?=$role->getLoginController()->getName()?>.login",array(
+            "redirect" => $this->isLogin() ? "" : "".app()->http->getServedRequest()->getUri(),
         ));
 <?php endif; ?>
     }

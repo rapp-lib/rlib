@@ -3,7 +3,7 @@ namespace R\Lib\Http;
 use Zend\Diactoros\ServerRequestFactory;
 use Psr\Http\Message\ServerRequestInterface;
 
-class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAccess
+class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAccess , \IteratorAggregate
 {
     protected $webroot;
     public function __construct ($webroot, $request)
@@ -17,11 +17,10 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
             $headers = ServerRequestFactory::marshalHeaders($server);
             $uri     = ServerRequestFactory::marshalUriFromServer($server, $headers);
             $method  = ServerRequestFactory::get('REQUEST_METHOD', $server, 'GET');
-            $cookies = $request["cookies"] ?: $_COOKIE;
-            $query_params = $request["query"] ?: $_GET;
-            $parsed_body = $request["body"] ?: $_POST;
-            parent::__construct($server, $files, $uri, $method,
-                'php://input', $headers, $cookies, $query_params, $parsed_body);
+            parent::__construct($server, $files, $uri, $method, 'php://input', $headers);
+            $this->_cookieParams = $request["cookies"] ?: $_COOKIE;
+            $this->_queryParams = $request["query"] ?: $_GET;
+            $this->_parsedBody = $request["body"] ?: $_POST;
         // 一般的なServerRequestInterfaceをもとに初期化
         } elseif ($request instanceof ServerRequestInterface) {
             $server  = $request->getServerparams();
@@ -29,14 +28,13 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
             $headers = $request->getHeaders();
             $uri     = $request->getUri();
             $method  = $request->getMethod();
-            $cookies = $request->getCookieParams();
-            $query_params = $request->getQueryParams();
-            $parsed_body = $request->getParsedBody();
-            parent::__construct($server, $files, $uri, $method,
-                'php://input',$headers, $cookies, $query_params, $parsed_body);
+            parent::__construct($server, $files, $uri, $method, 'php://input', $headers);
+            $this->_cookieParams = $request->getCookieParams();
+            $this->_queryParams = $request->getQueryParams();
+            $this->_parsedBody = $request->getParsedBody();;
         } else {
             report_error("不正な引数");
-        }
+        }report($this->parsedBody);
         $this->webroot->updateByRequest($this, parent::getUri());
     }
     public function __call ($func, $args)
@@ -63,7 +61,7 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
         return $this->uri;
     }
 
-// -- ArrayAccessの実装
+// -- ArrayAccess,IteratorAggregateの実装
 
     protected $request_values;
     public function offsetExists ($offset)
@@ -83,6 +81,11 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
     public function offsetUnset ($offset)
     {
         return;
+    }
+    public function getIterator ()
+    {
+        $this->initValue();
+        return new \ArrayIterator($this->request_values);
     }
     private function initValue ()
     {
@@ -105,5 +108,52 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
                 $arr[$key] = htmlspecialchars($val, ENT_QUOTES);
             }
         }
+    }
+
+// -- parentでPrivateで設定できない値
+
+    private $_cookieParams = array();
+    private $_parsedBody;
+    private $_queryParams = array();
+    public function getCookieParams()
+    {
+        return $this->_cookieParams;
+    }
+    public function withCookieParams(array $cookies)
+    {
+        $new = clone $this;
+        $new->_cookieParams = $cookies;
+        return $new;
+    }
+    public function getQueryParams()
+    {
+        return $this->_queryParams;
+    }
+    public function withQueryParams(array $query)
+    {
+        $new = clone $this;
+        $new->_queryParams = $query;
+        return $new;
+    }
+    public function getParsedBody()
+    {
+        return $this->_parsedBody;
+    }
+    public function withParsedBody($data)
+    {
+        $new = clone $this;
+        $new->_parsedBody = $data;
+        return $new;
+    }
+
+// --
+
+    public function __report ()
+    {
+        $this->initValue();
+        return array(
+            "uri" => $this->getUri(),
+            "values" => $this->request_values,
+        );
     }
 }
