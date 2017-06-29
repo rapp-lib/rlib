@@ -27,6 +27,14 @@ class HttpDriver implements Provider
     }
     public function response ($type, $data=null, $params=array())
     {
+        if ($type=="error" && $error_html = $this->getErrorHtml(500)) {
+            $type = "html";
+            $data = $error_html;
+        }
+        if ($type=="notfound" && $error_html = $this->getErrorHtml(404)) {
+            $type = "html";
+            $data = $error_html;
+        }
         return ResponseFactory::factory($type, $data, $params);
     }
     public function request ($uri, $request=array())
@@ -60,5 +68,9 @@ class HttpDriver implements Provider
     public function getServedRequest ()
     {
         return $this->served_request;
+    }
+    public function getErrorHtml ($code=500)
+    {
+        return "error ".$code;
     }
 }
