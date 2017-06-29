@@ -23,11 +23,12 @@ class SmartyFunctionAsset
      */
     public static function callback ($params, $smarty_template)
     {
+        $assets = app()->http->getServedRequest()->getWebroot()->getAssets();
         $html = "";
 
         // state指定
         if ($state = $params["state"]) {
-            app()->asset->setState($state);
+            $assets->setState($state);
         }
         // required指定
         if ($required = $params["required"]) {
@@ -41,7 +42,7 @@ class SmartyFunctionAsset
                 $required = array($required);
             }
             foreach ($required as $required_item) {
-                app()->asset->required($required_item, $buffer_name);
+                $assets->required($required_item, $buffer_name);
             }
         }
         // loaded指定
@@ -51,7 +52,7 @@ class SmartyFunctionAsset
                 $loaded = array($loaded);
             }
             foreach ($loaded as $loaded_item) {
-                app()->asset->loaded($loaded_item);
+                $assets->loaded($loaded_item);
             }
         }
         // flush指定
@@ -64,7 +65,7 @@ class SmartyFunctionAsset
                 if ($buffer_name === true) {
                     $buffer_name = "default";
                 }
-                $html .= app()->asset->flush($buffer_name);
+                $html .= $assets->flush($buffer_name);
             }
         }
 

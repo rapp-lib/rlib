@@ -40,7 +40,7 @@
         // 開始していなければ処理を行わない
         if ($GLOBALS["__REPORT_BUFFER_LEVEL"] > 0) {
             $GLOBALS["__REPORT_BUFFER_LEVEL"] -= 1;
-            if ($GLOBALS["__REPORT_BUFFER_LEVEL"] == 0) {
+            if ($GLOBALS["__REPORT_BUFFER_LEVEL"] == 0 && isset($GLOBALS["__REPORT_BUFFER"])) {
                 print $GLOBALS["__REPORT_BUFFER"];
                 $GLOBALS["__REPORT_BUFFER"] = "";
             }

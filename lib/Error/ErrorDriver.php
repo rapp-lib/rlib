@@ -17,6 +17,7 @@ class ErrorDriver implements InvokableProvider
         if ( ! $params["__"]["backtraces"]) {
             $params["__"]["backtraces"] = debug_backtrace();
         }
+        $params["__"]["backtraces"] = $this->compactBacktrace($params["__"]["backtraces"]);
         throw new HandlableError($message, $params, $error_options);
     }
     protected $error_handlers = array();
@@ -66,6 +67,7 @@ class ErrorDriver implements InvokableProvider
     public function splShutdownHandler()
     {
         $this->reserved_memory = null;
+        report_buffer_end(true);
         $last_error = error_get_last();
         if ($last_error && $last_error['type'] & $this->getHandlablePhpErrorType()) {
             $last_error['php_error_code'] = $last_error['type'];
@@ -95,6 +97,7 @@ class ErrorDriver implements InvokableProvider
         if ( ! isset($last_error["backtraces"])) {
             $last_error["backtraces"] = debug_backtrace();
         }
+        $last_error["backtraces"] = $this->compactBacktrace($last_error["backtraces"]);
         // contextの簡素化
         if (is_array($last_error["context"])) {
             foreach ($last_error["context"] as $k=>$v) {
@@ -111,16 +114,7 @@ class ErrorDriver implements InvokableProvider
     public function convertExceptionToHandlableError($e)
     {
         // backtracesの簡素化
-        $backtraces = $e->getTrace();
-        foreach ($backtraces as $k1=>$v1) {
-            foreach ((array)$v1["args"] as $k2=>$v2) {
-                if (is_array($v2)) {
-                    $backtraces[$k1]["args"][$k2] = "array(".count($v2).")";
-                } elseif (is_object($v2)) {
-                    $backtraces[$k1]["args"][$k2] = "object(".get_class($v2).")";
-                }
-            }
-        }
+        $backtraces = $this->compactBacktrace($e->getTrace());
         // handleError実行
         $message = "[PHP Uncaught ".get_class($e)."] ".$e->getMessage();
         $params = array("__"=>array(
@@ -151,5 +145,19 @@ class ErrorDriver implements InvokableProvider
             E_USER_DEPRECATED   => "E_USER_DEPRECATED",
         );
         return isset($map[$php_error_code]) ? $map[$php_error_code] : "UNKNOWN";
+    }
+    private function compactBacktrace($backtrace)
+    {
+        foreach ($backtrace as $k1=>$v1) {
+            foreach ((array)$v1["args"] as $k2=>$v2) {
+                if (is_array($v2)) {
+                    $backtrace[$k1]["args"][$k2] = "array(".count($v2).")";
+                } elseif (is_object($v2)) {
+                    $backtrace[$k1]["args"][$k2] = "object(".get_class($v2).")";
+                }
+            }
+            unset($backtrace[$k1]["object"]);
+        }
+        return $backtrace;
     }
 }

@@ -19,6 +19,7 @@ class SmartyBlockCode
      */
     public static function callback ($params, $content, $smarty_template, $repeat)
     {
+        $assets = app()->http->getServedRequest()->getWebroot()->getAssets();
         $html = "";
         // 開始タグの場合処理を行わない
         if ($repeat) {
@@ -40,7 +41,7 @@ class SmartyBlockCode
             }
         }
         // Bufferへの登録
-        $resource = app()->asset->buffer($content, $type, $buffer);
+        $resource = $assets->buffer($content, $type, $buffer);
         // required指定
         if ($required = $params["required"]) {
             // 登録先のBufferを指定

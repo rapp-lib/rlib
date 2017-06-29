@@ -7,14 +7,14 @@
      */
     function page_to_url ($page, $url_params=array(), $anchor=null)
     {
-        return app()->route("page:".$page)->getUrl($url_params,$anchor);
+        return app()->http->getWebroot()->uri("id://".$page, $url_params, $anchor);
     }
     /**
      * PathからURLを得る（主にRedirectやHREFに使用）
      */
     function path_to_url ($path, $url_params=array(), $anchor=null)
     {
-        return app()->route("path:".$path)->getUrl($url_params,$anchor);
+        return app()->http->getWebroot()->uri("path://".$path, $url_params, $anchor);
     }
     /**
      *

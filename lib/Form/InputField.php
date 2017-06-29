@@ -80,10 +80,11 @@ class InputField
         $attrs = $this->attrs;
         // pluginに対応するJS呼び出し
         if ($plugins = $attrs["plugins"]) {
+            $assets = app()->http->getServedRequest()->getWebroot()->getAssets();
             $attrs["data-plugin-elmid"] = mt_rand(1000000,9999999);
-            $asset = app()->asset->bufferJsCode('InputPluginRegistry.registerElement("'.$attrs["data-plugin-elmid"].'",'.json_encode($plugins).');')->required('InputPluginRegistry');
+            $asset = $assets->bufferJsCode('InputPluginRegistry.registerElement("'.$attrs["data-plugin-elmid"].'",'.json_encode($plugins).');')->required('InputPluginRegistry');
             foreach ($plugins as $plugin_name => $plugin_params) {
-                $asset->required('input_plugin.'.$plugin_name);
+                $assets->required('input_plugin.'.$plugin_name);
             }
             unset($attrs["plugins"]);
         }

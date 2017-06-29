@@ -34,7 +34,10 @@ class AssetManager
      */
     public function loadAssetCatalog ($catalog_config)
     {
-        if (is_array($catalog_config)) {
+        if ($catalog_config instanceof \R\Lib\Http\Uri) {
+            $catalog_php = $catalog_config->getPageFile();
+            $url = dirname("".$catalog_config);
+        } elseif (is_array($catalog_config)) {
             $catalog_php = $catalog_config["catalog_php"];
             $url = $catalog_config["url"];
         } elseif (is_a($catalog_config,'R\Lib\Route\Route')) {
