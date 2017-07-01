@@ -1,53 +1,39 @@
 <?php
 namespace R\Lib\Http;
 use R\Lib\Core\Contract\Provider;
+use Psr\Http\Message\ServerRequestInterface;
 
 class HttpDriver implements Provider
 {
     protected $served_request = null;
-    protected $webroots = array();
-    public function __call ($func, $args)
+    public function serve ($webroot_config, $deligate, $request=array())
     {
-        if ( ! $this->served_request) {
-            report_error("事前にRequestをserveする必要があります");
-        }
-        return call_user_func_array(array($this->served_request, $func), $args);
-    }
-    public function serve ($webroot_config, $request=array())
-    {
+        // Webroot作成
         $webroot = is_string($webroot_config) ? $this->webroot($webroot_config) : new Webroot($webroot_config);
-        $served_request = new ServerRequest($webroot, $request);
-        $this->setServedRequest($served_request);
-        report("Http Served Request",array("request"=>$served_request));
-        return $served_request;
-    }
-    public function emit ($response)
-    {
-        if ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
-            app()->report->beforeRedirect($response);
+        // ServedRequest作成
+        if (is_array($request)) {
+            $served_request = ServerRequestFactory::fromGlobals($webroot, $request);
+        } elseif ($request instanceof ServerRequestInterface) {
+            $served_request = ServerRequestFactory::fromServerRequestInterface($webroot, $request);
         }
-        $emitter = new \Zend\Diactoros\Response\SapiEmitter();
-        return $emitter->emit($response);
-    }
-    public function response ($type, $data=null, $params=array())
-    {
-        if ($type=="error" && $error_html = $this->getErrorHtml(500)) {
-            $type = "html";
-            $data = $error_html;
+        report("Served Request", array("served_request"=>$served_request));
+        if ($this->served_request) {
+            report_error("serve処理中です", array("request"=>$served_request));
         }
-        if ($type=="notfound" && $error_html = $this->getErrorHtml(404)) {
-            $type = "html";
-            $data = $error_html;
-        }
-        return ResponseFactory::factory($type, $data, $params);
+        // Dispatch処理
+        $this->served_request = $served_request;
+        $response = $webroot->dispatch($served_request, $deligate);
+        $this->served_request = null;
+        return $response;
     }
-    public function request ($uri, $request=array())
+    public function getServedRequest ()
     {
-        //@todo: 外部へのRequestの組み立て
+        return $this->served_request;
     }
 
-// -- 非常用機能
+// -- Webroot
 
+    protected $webroots = array();
     public function webroot ($webroot_name, $webroot_config=false)
     {
         if ( ! isset($this->webroots[$webroot_name])) {
@@ -65,15 +51,30 @@ class HttpDriver implements Provider
         }
         return $this->webroots[$webroot_name];
     }
-    public function setServedRequest ($request)
+
+// -- Response
+
+    public function response ($type, $data=null, $params=array())
     {
-        $this->served_request = $request;
+        if ($type=="error" && $error_html = $this->getErrorHtml(500)) {
+            $type = "html";
+            $data = $error_html;
+        }
+        if ($type=="notfound" && $error_html = $this->getErrorHtml(404)) {
+            $type = "html";
+            $data = $error_html;
+        }
+        return ResponseFactory::factory($type, $data, $params);
     }
-    public function getServedRequest ()
+    public function emit ($response)
     {
-        return $this->served_request;
+        if ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
+            $response = app()->report->beforeRedirect($response);
+        }
+        $emitter = new \Zend\Diactoros\Response\SapiEmitter();
+        return $emitter->emit($response);
     }
-    public function getErrorHtml ($code=500)
+    private function getErrorHtml ($code=500)
     {
         $error_file = constant("R_LIB_ROOT_DIR")."/assets/error".$code.".php";
         return file_exists($error_file) ? include($error_file) : "HTTP Error ".$code;

@@ -5,9 +5,32 @@ use Monolog\Handler\AbstractProcessingHandler;
 
 class ReportLoggingHandler extends AbstractProcessingHandler
 {
+    private $buffer_level = 0;
+    private $buffer_content = "";
     protected function write(array $record)
     {
-        $this->report($record['message'], $record["context"], $record);
+        if (app()->debug->getDebugLevel()) {
+            $this->report($record['message'], $record["context"], $record);
+        }
+    }
+    public function bufferStart()
+    {
+        $this->buffer_level += 1;
+    }
+    public function bufferEnd($all=false)
+    {
+        if ($all) {
+            $this->buffer_level = 1;
+        }
+        if ($this->buffer_level > 0) {
+            $this->buffer_level -= 1;
+            if ($this->buffer_level == 0 && strlen($this->buffer_content)) {
+                if (app()->debug->getDebugLevel()) {
+                    print $this->buffer_content;
+                }
+                $this->buffer_content = "";
+            }
+        }
     }
     /**
      * レポートドライバ
@@ -37,8 +60,8 @@ class ReportLoggingHandler extends AbstractProcessingHandler
         $html = $this->report_template($errstr,$params,$options,$backtraces,$config);
 
         // Report.buffer_enableによる出力抑止
-        if ($GLOBALS["__REPORT_BUFFER_LEVEL"]) {
-            $GLOBALS["__REPORT_BUFFER"] .= $html;
+        if ($this->buffer_level > 0) {
+            $this->buffer_content .= $html;
         // CLIエラー出力
         } else if (php_sapi_name()==="cli") {
             app()->console->outputError($html);

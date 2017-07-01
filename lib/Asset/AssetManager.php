@@ -183,12 +183,13 @@ class AssetManager
         if (isset($loaded_version)) {
             // 適合しないバージョンが読み込まれていればエラー
             if ( ! $this->checkVersion($loaded_version, $required_version)) {
-                report_error("読み込み済みモジュールが適合しません",array(
+                report_warning("Asset:読み込み済みモジュールが適合しません",array(
                     "module_name" => $module_name,
                     "loaded_version" => $loaded_version,
                     "required_version" => $required_version,
                     "loaded_modules" => $this->loaded_modules,
                 ));
+                return '<script src="/asset-error/'.$module_name.':'.$required_version.'"></script>';
             }
             return "";
         }
@@ -196,11 +197,12 @@ class AssetManager
         $asset = $this->getRegisteredModule($required_module_version);
         // 読み込めない場合はエラー
         if ( ! $asset) {
-            report_error("依存モジュールが読み込めませんでした",array(
+            report_warning("Asset:依存モジュールが読み込めませんでした",array(
                 "module_name" => $module_name,
                 "required_version" => $required_version,
                 "modules" => $this->modules,
             ));
+            return '<script src="/asset-error/'.$module_name.':'.$required_version.'"></script>';
         }
         // ロード済みとして記録してHTMLを返す
         $this->loaded_modules[$module_name] = $asset->getVersion();

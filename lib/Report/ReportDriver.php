@@ -5,7 +5,7 @@ use Monolog\Logger;
 class ReportDriver
 {
     private $logger = null;
-    private $debug_handler = null;
+    private $logging_handler = null;
     /**
      * LoggerInterfaceの取得
      */
@@ -13,8 +13,16 @@ class ReportDriver
     {
         if ( ! isset($this->logger)) {
             $this->logger = new Logger("rapp");
+            $this->logger->pushHandler($this->getLoggingHandler());
         }
         return $this->logger;
+    }
+    public function getLoggingHandler()
+    {
+        if ( ! isset($this->logging_handler)) {
+            $this->logging_handler = new ReportLoggingHandler(Logger::DEBUG);
+        }
+        return $this->logging_handler;
     }
     /**
      * HandlableError例外の発行
@@ -27,40 +35,22 @@ class ReportDriver
         throw new HandlableError($message, $params, $error_options);
     }
     /**
-     * Report出力するHandler登録
-     */
-    public function enableDebugReport()
-    {
-        $this->debug_handler = new ReportLoggingHandler(Logger::DEBUG);
-        $this->getLogger()->pushHandler($this->debug_handler);
-    }
-    /**
      * 転送前の処理
      */
     public function beforeRedirect($response)
     {
+        return $response;
     }
 
 // -- 出力抑止Buffer制御
 
     public function bufferStart()
     {
-        $GLOBALS["__REPORT_BUFFER_LEVEL"] += 1;
+        $this->getLoggingHandler()->bufferStart();
     }
     public function bufferEnd($all=false)
     {
-        // 全件終了
-        if ($all) {
-            $GLOBALS["__REPORT_BUFFER_LEVEL"] = 1;
-        }
-        // 開始していなければ処理を行わない
-        if ($GLOBALS["__REPORT_BUFFER_LEVEL"] > 0) {
-            $GLOBALS["__REPORT_BUFFER_LEVEL"] -= 1;
-            if ($GLOBALS["__REPORT_BUFFER_LEVEL"] == 0 && isset($GLOBALS["__REPORT_BUFFER"])) {
-                print $GLOBALS["__REPORT_BUFFER"];
-                $GLOBALS["__REPORT_BUFFER"] = "";
-            }
-        }
+        $this->getLoggingHandler()->bufferStart($all);
     }
 
 // -- Error処理系
@@ -82,10 +72,13 @@ class ReportDriver
         register_shutdown_function(array($this, 'splShutdownHandler'));
     }
     /**
-     * @private
+     * 例外のロギング
      */
-    public function handleError($e)
+    public function logException(\Exception $e)
     {
+        if ( ! $e instanceof HandlableError) {
+            $e = $this->convertExceptionToHandlableError($e);
+        }
         $message = $e->getMessage();
         $params = $e->getParams();
         $level = Logger::ERROR;
@@ -105,7 +98,7 @@ class ReportDriver
         if ($last_error && $this->isFatalPhpErrorCode($last_error['type'])) {
             $last_error['php_error_code'] = $last_error['type'];
             $error = $this->convertPhpErrorToHandlableError($last_error);
-            $this->handleError($error);
+            $this->logException($error);
         }
     }
     /**
@@ -113,11 +106,7 @@ class ReportDriver
      */
     public function splExceptionHandler($e)
     {
-        if ($e instanceof HandlableError) {
-            $this->handleError($e);
-        } else {
-            $this->handleError($this->convertExceptionToHandlableError($e));
-        }
+        $this->logException($e);
         if (is_callable($this->prev_spl_exception_handler)) {
             call_user_func($this->prev_spl_exception_handler, $e);
         }
@@ -135,7 +124,7 @@ class ReportDriver
                 "line" => $line,
                 "context" => $context,
             ));
-            $this->handleError($e);
+            $this->logException($e);
         }
         if (is_callable($this->prev_spl_error_handler)) {
             return call_user_func($this->prev_spl_error_handler, $code, $message, $file, $line, $context);
@@ -167,7 +156,6 @@ class ReportDriver
     {
         // backtracesの簡素化
         $backtraces = $this->compactBacktrace($e->getTrace());
-        // handleError実行
         $message = "[PHP Uncaught ".get_class($e)."] ".$e->getMessage();
         $params = array("__"=>array(
             'file' => $e->getFile(),

@@ -51,30 +51,29 @@ class Webroot
 
 // -- パッケージ内でのみ利用
 
-    /**
-     * ServerRequest::dispatch内で設定を引き出すために使う
-     * @private
-     */
-    public function getMiddlewareStack ()
+    public function dispatch ($request, $deligate)
     {
-        return (array)$this->config["middlewares"];
+        $stack = (array)$this->config["middlewares"];
+        $stack[] = $deligate;
+        $dispatcher = new \mindplay\middleman\Dispatcher($stack);
+        $response = $dispatcher->dispatch($request);
+        return $response;
     }
     /**
      * ServerRequest::__construct内で設定を反映するために使う
      * @private
      */
-    public function updateByRequest ($request, $request_uri)
+    public function updateByRequest ($docroot_dir, $request_uri)
     {
-        if ( ! $this->getBaseUri()->getAuthority()) {
+        if ( ! $this->getBaseUri()->getAuthority() && $request_uri) {
             $this->base_uri = $this->base_uri
                 ->withHost($request_uri->getHost())
                 ->withPort($request_uri->getPort() ?: 80)
                 ->withScheme($request_uri->getScheme())
                 ->withUserInfo($request_uri->getUserInfo());
         }
-        if ( ! $this->config["base_dir"]) {
-            $server = $request->getServerParams();
-            $this->config["base_dir"] = $server["DOCUMENT_ROOT"].$this->base_uri->getPath();
+        if ( ! $this->config["base_dir"] && $docroot_dir) {
+            $this->config["base_dir"] = $docroot_dir.$this->base_uri->getPath();
         }
     }
 }
