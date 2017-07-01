@@ -2,7 +2,7 @@
 
 // -- レポートドライバ
 
-    function report ($message, $vars=array(), $options=array())
+    function report ($message, $vars=array())
     {
         if ( ! is_array($vars)) {
             $vars = array("value" => $vars);
@@ -11,38 +11,21 @@
             $vars["message"] = $message;
             $message = "DEBUG";
         }
-        $vars = array_merge($vars, $options);
-        app()->log->info($message, $vars);
+        app()->report->getLogger()->info($message, $vars);
     }
     function report_warning ($message, $vars=array(), $options=array())
     {
-        $vars = array_merge($vars, $options);
-        app()->log->warn($message, $vars);
+        app()->report->getLogger()->warn($message, $vars);
     }
-    function report_error ($message, $vars=array(), $options=array())
+    function report_error ($message, $vars=array())
     {
-        $vars = array_merge($vars, $options);
-        app()->error->raise($message, $vars);
+        app()->report->raiseError($message, $vars);
     }
-
-// -- レポートバッファ制御
-
     function report_buffer_start ()
     {
-        $GLOBALS["__REPORT_BUFFER_LEVEL"] += 1;
+        app()->report->bufferStart();
     }
     function report_buffer_end ($all=false)
     {
-        // 全件終了
-        if ($all) {
-            $GLOBALS["__REPORT_BUFFER_LEVEL"] = 1;
-        }
-        // 開始していなければ処理を行わない
-        if ($GLOBALS["__REPORT_BUFFER_LEVEL"] > 0) {
-            $GLOBALS["__REPORT_BUFFER_LEVEL"] -= 1;
-            if ($GLOBALS["__REPORT_BUFFER_LEVEL"] == 0 && isset($GLOBALS["__REPORT_BUFFER"])) {
-                print $GLOBALS["__REPORT_BUFFER"];
-                $GLOBALS["__REPORT_BUFFER"] = "";
-            }
-        }
+        app()->report->bufferEnd($all);
     }

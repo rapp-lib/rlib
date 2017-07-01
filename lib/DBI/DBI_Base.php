@@ -10,6 +10,7 @@ use Model;
 class DBI_Base {
 
     protected $name ="";
+    protected $config =array();
     protected $driver_name ="";
     protected $ds =null;
     protected $transaction_stack =array();
@@ -48,6 +49,14 @@ class DBI_Base {
         $this->ds =ConnectionManager::getDataSource($this->name);
         $this->driver_name = $connect_info["driver"];
         $this->dbname = $connect_info["database"];
+
+        $this->config = $connect_info;
+        if ( ! isset($this->config["fetch_col_name_include_table"])) {
+            $this->config["fetch_col_name_include_table"] = false;
+        }
+        if ( ! isset($this->config["statement_default_join_type"])) {
+            $this->config["statement_default_join_type"] = "LEFT";
+        }
     }
 
     //-------------------------------------
@@ -168,17 +177,15 @@ class DBI_Base {
         }
 
         if ($this->ds->error) {
+            // トランザクション起動中であればRollbackする
+            if ($this->transaction_stack) {
+                $this->rollback();
+            }
 
             report_error('SQL Error',array(
                 "Statement" =>$st,
                 "Error" =>$this->ds->error,
             ));
-
-            // トランザクション起動中であれば例外発行
-            if ($this->transaction_stack) {
-
-                throw new DBIException($this->ds->error);
-            }
         }
 
         return $result;
@@ -210,7 +217,7 @@ class DBI_Base {
         // 階層構造の変更（ $a[Alias][Key] => $a[Key]）
 
         // [Deprecated] $a[Alias][Key] => $a[Alias.Key]
-        $deprecated_flg =registry("DBI.fetch_col_name_include_table");
+        $deprecated_flg =$this->config["fetch_col_name_include_table"];
 
         foreach ((array)$result as $k1 => $v1) {
 
@@ -269,7 +276,7 @@ class DBI_Base {
 
         if ( ! $this->transaction_stack) {
 
-            report("Transaction has rollbacked, not commit");
+            report_warning("Transaction has rollbacked, not commit");
         }
 
         $target_transaction_id =array_pop($this->transaction_stack);
@@ -521,9 +528,9 @@ class DBI_Base {
 
                     // 標準JOIN方式をINNERからLEFTに変更
                     if ( ! isset($joins[$k]["type"])
-                            && registry("DBI.statement.default_join_type")) {
+                            && $this->config["statement_default_join_type"]) {
 
-                        $joins[$k]["type"] =registry("DBI.statement.default_join_type");
+                        $joins[$k]["type"] =$this->config["statement_default_join_type"];
                     }
 
                     $joins[$k] =$this->ds->buildJoinStatement($joins[$k]);
@@ -1287,9 +1294,9 @@ class DBI_Base {
 
     //-------------------------------------
     // プレースホルダーへの値の設定
-    public function bind ($name=null, $value=null) {
+    public function bind_DELETE ($name=null, $value=null) {
 
-        return array_registry($this->ds->bounds,$name,$value);
+        //return array_registry($this->ds->bounds,$name,$value);
     }
 
     //-------------------------------------

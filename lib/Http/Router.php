@@ -43,7 +43,7 @@ class Router
             $parsed["route"] = $this->getRouteByPageId($parsed["page_id"]);
             if ($parsed["embed_params"]) {
                 $pattern = str_replace(array('[',']'),'',$parsed["route"]["pattern"]);
-                $parsed["page_file"] = preg_replace('!\{([^:]+):\}!', '[$1]', $pattern);
+                $parsed["page_file"] = preg_replace('!\{([^:]+):\}!', '\{$1\}', $pattern);
             }
         }
         if ($parsed["page_path"] && ! $parsed["page_file"]) {

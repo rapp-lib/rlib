@@ -63,7 +63,7 @@
                     if ($page->hasHtml()) {
                         // pageのHtmlファイル
                         $page->getSchema()->fetch("parts.page_frame", array("page"=>$page),
-                            "/html".$page->getPath());
+                            "/html".$page->getPathFile());
                     }
                 },
             ),

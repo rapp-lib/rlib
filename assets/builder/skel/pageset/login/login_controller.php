@@ -19,9 +19,9 @@
                 if (auth("<?=$controller->getRole()->getName()?>")->login($this->forms["login"])) {
                     // ログイン成功時の転送処理
                     if ($redirect = $this->forms["login"]["redirect"]) {
-                        return redirect("url:".$redirect);
+                        return $this->redirect($redirect);
                     } else {
-                        return redirect("id://<?=$controller->getRole()->getIndexController()->getIndexPage()->getFullPage($pageset->getPageByType("login"))?>");
+                        return $this->redirect("id://<?=$controller->getRole()->getIndexController()->getIndexPage()->getFullPage($pageset->getPageByType("login"))?>");
                     }
                 } else {
                     $this->vars["login_error"] = true;
@@ -37,5 +37,5 @@
         // ログアウト処理
         auth("<?=$controller->getRole()->getName()?>")->logout();
         // ログアウト後の転送処理
-        return redirect("page:<?=$controller->getIndexPage()->getFullPage($pageset->getPageByType("exit"))?>");
+        return $this->redirect("id://<?=$controller->getIndexPage()->getFullPage($pageset->getPageByType("exit"))?>");
     }

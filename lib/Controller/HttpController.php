@@ -9,7 +9,6 @@ class HttpController implements FormRepositry
     protected $action_name;
     protected $vars;
     protected $request;
-    protected $response;
     protected $forms;
     /**
      * FormRepositry経由で読み込まれるフォームの定義
@@ -39,6 +38,14 @@ class HttpController implements FormRepositry
     public function getVars ()
     {
         return $this->vars;
+    }
+    /**
+     * @getter
+     * 設定された変数の取得
+     */
+    public function redirect ($uri, $query_params=array(), $fragment=null) {
+        $uri = $this->request->getWebroot()->uri($uri, $query_params, $fragment);
+        return app()->http->response("redirect", $uri);
     }
     /**
      * act_*の実行

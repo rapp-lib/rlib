@@ -7,14 +7,8 @@ class ConfigBasedApplication implements Container
 {
     protected $bind_config = array(
         "provider" => array(
-            //"response" => 'R\Lib\Core\Provider\ResponseFactory',
-            //"request" => 'R\Lib\Core\Provider\Request',
-            //"router" => 'R\Lib\Route\RouteManager',
-            //"route" => 'R\Lib\Route\RouteManager',
-
             "http" => 'R\Lib\Http\HttpDriver',
-            "error" => 'R\Lib\Error\ErrorDriver',
-            "log" => 'R\Lib\Logger\LoggerDriver',
+            "report" => 'R\Lib\Report\ReportDriver',
 
             "console" => 'R\Lib\Core\Provider\ConsoleDriver',
             "config" => 'R\Lib\Core\Provider\Configure',

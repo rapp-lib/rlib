@@ -18,10 +18,14 @@ class HttpDriver implements Provider
         $webroot = is_string($webroot_config) ? $this->webroot($webroot_config) : new Webroot($webroot_config);
         $served_request = new ServerRequest($webroot, $request);
         $this->setServedRequest($served_request);
+        report("Http Served Request",array("request"=>$served_request));
         return $served_request;
     }
     public function emit ($response)
     {
+        if ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
+            app()->report->beforeRedirect($response);
+        }
         $emitter = new \Zend\Diactoros\Response\SapiEmitter();
         return $emitter->emit($response);
     }
@@ -71,6 +75,7 @@ class HttpDriver implements Provider
     }
     public function getErrorHtml ($code=500)
     {
-        return "error ".$code;
+        $error_file = constant("R_LIB_ROOT_DIR")."/assets/error".$code.".php";
+        return file_exists($error_file) ? include($error_file) : "HTTP Error ".$code;
     }
 }

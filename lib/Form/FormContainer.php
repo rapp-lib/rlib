@@ -266,12 +266,12 @@ class FormContainer extends ArrayObject
         // form_page/search_pageでactionのURLを補完
         if ( ! isset($attrs["action"])) {
             if (isset($this->def["form_page"])) {
-                $attrs["action"] = $this->def["form_page"];
+                $attrs["action"] = "id://".$this->def["form_page"];
             } elseif (isset($this->def["search_page"])) {
-                $attrs["action"] = $this->def["search_page"];
+                $attrs["action"] = "id://".$this->def["search_page"];
             }
         }
-        $attrs["action"] = app()->http->getServedRequest()->getWebroot()->uri($this->def["form_page"]);
+        $attrs["action"] = app()->http->getServedRequest()->getWebroot()->uri($attrs["action"])->getAbsUriString();
         return tag("form",$attrs,$content);
     }
 
@@ -458,7 +458,8 @@ class FormContainer extends ArrayObject
                 }
             }
         }
-        return page_to_url($this->def["search_page"], $params);
+        $uri = app()->http->getServedRequest()->getWebroot()->uri("id://".$this->def["search_page"], $params);
+        return $uri;
     }
 
     /**

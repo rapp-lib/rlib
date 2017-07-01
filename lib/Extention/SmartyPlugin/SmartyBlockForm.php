@@ -14,9 +14,8 @@ class SmartyBlockForm
     {
         // @depreaced form未対応のフォームの作成
         if ( ! $attrs["form"]) {
-            return SmartyBlockA::linkageBlock("form", $attrs, $content, $template, $repeat);
+            report_error("formの指定は必須です");
         }
-
         $form = $attrs["form"];
         unset($attrs["form"]);
         // 開タグ

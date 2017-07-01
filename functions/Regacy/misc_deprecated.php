@@ -1,7 +1,81 @@
 <?php
 
+// -- 削除
+
+    /**
+     * PageからURLを得る（主にRedirectやHREFに使用）
+     */
+    function page_to_url_DELETE ($page, $url_params=array(), $anchor=null)
+    {
+        if (preg_match('!^\.(.*)$!', $page, $match)) {
+            $request_page_id = app()->http->getServedRequest()->getUri()->getPageId();
+            $part = explode(".", $request_page_id, 2);
+            $page = $part[0].".".($match[1] ?: $part[1]);
+        }
+        $uri = app()->http->getWebroot()->uri("id://".$page, $url_params, $anchor)->getAbsUriString();
+        return "".$uri;
+    }
+    /**
+     * PathからURLを得る（主にRedirectやHREFに使用）
+     */
+    function path_to_url_DELETE ($path, $url_params=array(), $anchor=null)
+    {
+        $uri = app()->http->getWebroot()->uri("path://".$path, $url_params, $anchor)->getAbsUriString();
+        return "".$uri;
+    }
+
 // -- 削除予定
 
+    /**
+     * データの難読化
+     */
+    function encrypt_string ($target, $key=7)
+    {
+        report_warning("@deprecated encrypt_string");
+        $chartable="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        $map =str_split($chartable);
+        // 32bit compatible crc32
+        $crc =abs(crc32($target));
+        if ($crc & 0x80000000) {
+            $crc ^= 0xffffffff;
+            $crc += 1;
+        }
+        $crc =sprintf('%02d',$crc%100);
+        $target =$target.$crc;
+        $target =str_split($target);
+        srand($key);
+        foreach ($target as $i => $c) {
+            shuffle($map);
+            $target[$i] =$map[strpos($chartable,$c)];
+        }
+        $target =implode("",$target);
+        return $target;
+    }
+    /**
+     * データの難読復号化
+     */
+    function decrypt_string ($target, $key=7)
+    {
+        report_warning("@deprecated decrypt_string");
+        $chartable="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        $map =str_split($chartable);
+        $target =str_split($target);
+        srand($key);
+        foreach ($target as $i => $c) {
+            shuffle($map);
+            $target[$i] =$chartable[strpos(implode("",$map),$c)];
+        }
+        $target =implode("",$target);
+        if (preg_match('!^(.*?)(..)$!',$target,$match)) {
+            $target =$match[1];
+            $crc_check =$match[2];
+            $crc =sprintf('%02d',abs(crc32($target))%100);
+            if ($crc_check == $crc) {
+                return $target;
+            }
+        }
+        return null;
+    }
     /**
      * @deprecated
      */

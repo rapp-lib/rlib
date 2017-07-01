@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Logger;
+namespace R\Lib\Report;
 use Monolog\Logger;
 use Monolog\Handler\AbstractProcessingHandler;
 

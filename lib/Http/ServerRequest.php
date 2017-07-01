@@ -34,7 +34,7 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
             $this->_parsedBody = $request->getParsedBody();;
         } else {
             report_error("不正な引数");
-        }report($this->parsedBody);
+        }
         $this->webroot->updateByRequest($this, parent::getUri());
     }
     public function __call ($func, $args)

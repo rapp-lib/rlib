@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Error;
+namespace R\Lib\Report;
 
 class HandlableError extends \Exception
 {

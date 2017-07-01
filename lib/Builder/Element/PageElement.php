@@ -23,10 +23,25 @@ class PageElement extends Element_Base
     {
         $path = "/".str_replace('_','/',$this->getController()->getName())."/".$this->getName().".html";
         if (preg_match('!/index/index\.html$!',$path)) {
-            $path = preg_replace('!/index/index\.html$!','/index.html',$path);
-        } elseif (preg_match('!/index/static\.html$!',$path)) {
-            $path = preg_replace('!/index/static\.html$!','/{__file:.+}',$path);
+            $path = preg_replace('!/index/index\.html$!','/',$path);
+        } elseif (preg_match('!/index\.html$!',$path)) {
+            $path = preg_replace('!/index\.html$!','/',$path);
+        } elseif (preg_match('!/index/index_static\.html$!',$path)) {
+            $path = preg_replace('!/index/index_static\.html$!','/{__file:.+}',$path);
         }
+        return $path;
+    }
+    public function getPathFile ()
+    {
+        $path = $this->getPath();
+        $path = preg_replace('!/$!', '/index.html', $path);
+        $path = str_replace(array('[',']'),'',$path);
+        $path = preg_replace('!\{([^:]+):\}!', '\{$1\}', $path);
+        return $path;
+    }
+    public function getPathPattern ()
+    {
+        $path = $this->getPath();
         return $path;
     }
     public function getFullPage ($page=null)
