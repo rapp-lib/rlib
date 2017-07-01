@@ -12,6 +12,15 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest implements \ArrayAcces
         $this->webroot = $webroot;
         // スーパーグローバル変数をもとに初期化（parent::__construct）
         if (is_array($request)) {
+            if ( ! $request["server"]) {
+                // $_SERVER["DOCUMENT_ROOT"]の正規化
+                $request["server"] = $_SERVER;
+                $script_name = $request["server"]['SCRIPT_NAME'];
+                $script_file_name = $request["server"]['SCRIPT_FILE_NAME'];
+                if (substr($script_file_name, -strlen($script_name)) === $script_name) {
+                    $request["server"]["DOCUMENT_ROOT"] = substr($script_file_name, 0, -strlen($script_name));
+                }
+            }
             $server  = ServerRequestFactory::normalizeServer($request["server"] ?: $_SERVER);
             $files   = ServerRequestFactory::normalizeFiles($request["files"] ?: $_FILES);
             $headers = ServerRequestFactory::marshalHeaders($server);

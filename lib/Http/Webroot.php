@@ -31,8 +31,10 @@ class Webroot
     }
     public function getBaseDir ()
     {
-        if ( ! $this->config["base_dir"]) {
-            report_error("base_dirが未設定");
+        if ( ! isset($this->config["base_dir"])) {
+            report_error("base_dirが未設定",array(
+                "config" => $this->config,
+            ));
         }
         return $this->config["base_dir"];
     }
