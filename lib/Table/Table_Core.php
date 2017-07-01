@@ -1,8 +1,6 @@
 <?php
 namespace R\Lib\Table;
-
-use R\Lib\DBI\Model_Base;
-use R\Lib\DBI\DBI_Base;
+use R\Lib\DBAL\Regacy\DBI_Base;
 
 /**
  * Tableクラスのコア機能セット
@@ -744,20 +742,6 @@ class Table_Core
             "query" => $this->query,
             "history" => (array)$this->hook_history,
         );
-    }
-
-    /**
-     * @deprecated
-     * Modelオブジェクトの取得
-     */
-    protected function getModel ()
-    {
-        $instance =& ref_globals("loaded_model");
-
-        if ( ! $instance) {
-            $instance = new Model_Base;
-        }
-        return $instance;
     }
 
     /**

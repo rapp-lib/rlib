@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\DBI;
+namespace R\Lib\DBAL\Regacy;
 
 use ConnectionManager;
 use Model;
