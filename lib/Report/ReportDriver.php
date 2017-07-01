@@ -50,7 +50,7 @@ class ReportDriver
     }
     public function bufferEnd($all=false)
     {
-        $this->getLoggingHandler()->bufferStart($all);
+        $this->getLoggingHandler()->bufferEnd($all);
     }
 
 // -- Error処理系
@@ -93,13 +93,13 @@ class ReportDriver
     public function splShutdownHandler()
     {
         $this->reserved_memory = null;
-        report_buffer_end(true);
         $last_error = error_get_last();
         if ($last_error && $this->isFatalPhpErrorCode($last_error['type'])) {
             $last_error['php_error_code'] = $last_error['type'];
             $error = $this->convertPhpErrorToHandlableError($last_error);
             $this->logException($error);
         }
+        report_buffer_end(true);
     }
     /**
      * @private

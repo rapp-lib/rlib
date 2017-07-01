@@ -69,10 +69,11 @@ class AssetManager
     public function setState ($state_id)
     {
         if ( ! isset(self::$state_ids[$state_id])) {
-            report_error("ステートの指定が不正です",array(
+            report_warning("ステートの指定が不正です",array(
                 "state_id" => $state_id,
                 "state_ids" => self::$state_ids,
             ));
+            return;
         }
         $this->state = self::$state_ids[$state_id];
     }
@@ -83,11 +84,12 @@ class AssetManager
     public function checkState ($state_id_start, $state_id_end)
     {
         if ( ! isset(self::$state_ids[$state_id_start]) ||  ! isset(self::$state_ids[$state_id_end])) {
-            report_error("ステートの指定が不正です",array(
+            report_warning("ステートの指定が不正です",array(
                 "state_id_start" => $state_id_start,
                 "state_id_end" => $state_id_end,
                 "state_ids" => self::$state_ids,
             ));
+            return false;
         }
         return $this->state >= $state_id_start && $this->state <= $state_id_end;
     }

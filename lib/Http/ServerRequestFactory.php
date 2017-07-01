@@ -15,7 +15,7 @@ class ServerRequestFactory
             // $_SERVER["DOCUMENT_ROOT"]の正規化
             $server = $_SERVER;
             $script_name = $server['SCRIPT_NAME'];
-            $script_file_name = $server['SCRIPT_FILE_NAME'];
+            $script_file_name = $server['SCRIPT_FILENAME'];
             if (substr($script_file_name, -strlen($script_name)) === $script_name) {
                 $server["DOCUMENT_ROOT"] = substr($script_file_name, 0, -strlen($script_name));
             }
@@ -60,14 +60,6 @@ class ServerRequestFactory
         $webroot->updateByRequest($attrs["server"]["DOCUMENT_ROOT"], $attrs["uri"]);
         // Uriの構築
         $attrs["uri"] = $webroot->uri($attrs["uri"]);
-        // Valuesの構築
-        $values = array_merge(
-            (array)$attrs["query_params"],
-            (array)$attrs["parsed_body"],
-            (array)$attrs["uri"]->getEmbedParams()
-        );
-        self::sanitizeRecursive($values);
-        $values = new \ArrayObject($values);
         // ServerRequestの構築
         $server_request = new ServerRequest($attrs["server"], $attrs["files"],
             $attrs["uri"], $attrs["method"], $attrs["body"], $attrs["headers"]);
@@ -75,9 +67,24 @@ class ServerRequestFactory
         return $server_request
             ->withCookieParams($attrs["cookie_params"])
             ->withQueryParams($attrs["query_params"])
-            ->withParsedBody($attrs["parsed_body"])
-            ->withAttribute("webroot", $webroot)
-            ->withAttribute("values", $values);
+            ->withParsedBody($attrs["parsed_body"]);
+    }
+
+// -- 入力値の取り出し
+
+    /**
+     * ServerRequestから入力値の取り出し
+     */
+    public static function extractInputValues ($server_request)
+    {
+        // Valuesの構築
+        $values = array_merge(
+            (array)$server_request->getQueryParams(),
+            (array)$server_request->getParsedBody(),
+            (array)$server_request->getUri()->getEmbedParams()
+        );
+        self::sanitizeRecursive($values);
+        return $values;
     }
     private static function sanitizeRecursive ( & $arr)
     {

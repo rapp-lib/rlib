@@ -16,7 +16,7 @@ class SmartyModifierPageToUrl
             $part = explode(".", $request_page_id, 2);
             $page = $part[0].".".($match[1] ?: $part[1]);
         }
-        $uri = app()->http->getWebroot()->uri("id://".$page, $url_params, $anchor)->getAbsUriString();
+        $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri("id://".$page, $url_params, $anchor)->getAbsUriString();
         return "".$uri;
     }
 }

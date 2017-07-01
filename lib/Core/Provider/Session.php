@@ -93,6 +93,12 @@ class Session implements InvokableProvider
     /**
      *
      */
+    public function end ()
+    {
+    }
+    /**
+     *
+     */
     public function isStarted ()
     {
         return $this->is_started;

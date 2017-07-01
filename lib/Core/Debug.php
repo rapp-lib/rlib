@@ -10,18 +10,17 @@ class Debug
     private $debug_level = false;
     public function getDebugLevel ()
     {
-        $this->sessionCheck();
+        $this->checkClient();
         return $this->debug_level;
     }
     public function setDebugLevel ($debug_level)
     {
-        $this->session_checked = true;
         $this->debug_level = $debug_level;
     }
-    private $session_checked = false;
-    private function sessionCheck ()
+    private $client_checked = false;
+    private function checkClient ()
     {
-        if ($this->session_checked || ! isset($_SESSION)) {
+        if ($this->client_checked || ! isset($_SESSION)) {
             return;
         }
         if (app()->util("ServerVars")->ipCheck(app()->config("debug.dev_cidr") ?: "0.0.0.0/0")) {
@@ -35,10 +34,10 @@ class Debug
                     }
                 }
             }
-            if (isset($_SESSION["__debug"])) {
-                $this->debug_level = $_SESSION["__debug"];
-            }
         }
-        $this->session_checked = true;
+        if (isset($_SESSION["__debug"])) {
+            $this->setDebugLevel($_SESSION["__debug"]);
+        }
+        $this->client_checked = true;
     }
 }

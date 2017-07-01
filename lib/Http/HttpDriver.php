@@ -16,14 +16,20 @@ class HttpDriver implements Provider
         } elseif ($request instanceof ServerRequestInterface) {
             $served_request = ServerRequestFactory::fromServerRequestInterface($webroot, $request);
         }
-        report("Served Request", array("served_request"=>$served_request));
         if ($this->served_request) {
-            report_error("serve処理中です", array("request"=>$served_request));
+            report_error("既にRequestのserve処理中です", array(
+                "request_uri"=>$served_request->getUri(),
+            ));
         }
         // Dispatch処理
         $this->served_request = $served_request;
         $response = $webroot->dispatch($served_request, $deligate);
         $this->served_request = null;
+        report("Served Request", array(
+            "request_uri"=>$served_request->getUri(),
+            "request"=>$served_request,
+            "response"=>$response,
+        ));
         return $response;
     }
     public function getServedRequest ()

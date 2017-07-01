@@ -11,7 +11,7 @@ class SmartyModifierPathToUrl
      */
     public function callback ($page, $url_params=array(), $anchor=null)
     {
-        $uri = app()->http->getWebroot()->uri("path://".$path, $url_params, $anchor)->getAbsUriString();
+        $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri("path://".$path, $url_params, $anchor)->getAbsUriString();
         return "".$uri;
     }
 }
