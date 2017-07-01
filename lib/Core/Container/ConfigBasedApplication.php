@@ -7,12 +7,14 @@ class ConfigBasedApplication implements Container
 {
     protected $bind_config = array(
         "provider" => array(
+            // 4.x
             "http" => 'R\Lib\Http\HttpDriver',
             "report" => 'R\Lib\Report\ReportDriver',
-
+            "config" => 'R\Lib\Core\Config',
+            "env" => 'R\Lib\Core\Env',
+            "debug" => 'R\Lib\Core\Debug',
+            // 3.x
             "console" => 'R\Lib\Core\Provider\ConsoleDriver',
-            "config" => 'R\Lib\Core\Provider\Configure',
-            "env" => 'R\Lib\Core\Provider\Env',
             "view" => 'R\Lib\View\SmartyViewFactory',
             "table" => 'R\Lib\Table\TableFactory',
             "form" => 'R\Lib\Form\FormFactory',
@@ -21,18 +23,12 @@ class ConfigBasedApplication implements Container
             "builder" => 'R\Lib\Builder\WebappBuilder',
             "util" => 'R\Lib\Core\Provider\UtilLoader',
             "extention" => 'R\Lib\Core\Provider\ExtentionLoader',
-            "debug" => 'R\Lib\Core\Provider\DebugDriver',
             "asset" => 'R\Lib\Asset\AssetManager',
             "session" => 'R\Lib\Core\Provider\Session',
             "mailer" => 'R\Lib\Core\Provider\MailerFactory',
             "auth" => 'R\Lib\Auth\AccountManager',
         ),
         "contract" => array(
-            "provider" => array(
-                //"router" => 'R\Lib\Route\RouteManager',
-            ),
-        ),
-        "middleware" => array(
         ),
     );
     public function __construct ($bind_config=array())
@@ -145,13 +141,17 @@ class ConfigBasedApplication implements Container
     public function __call ($provider_name, $args)
     {
         $provider = $this->getProvider($provider_name);
-        if ( ! method_exists($provider,"invoke")) {
-            report_error("Provider::invokeの定義がありません",array(
+        $invoke_method_name = "__invoke";
+        if ( ! method_exists($provider,$invoke_method_name)) {
+            $invoke_method_name = "invoke";
+        }
+        if ( ! method_exists($provider,$invoke_method_name)) {
+            report_error("Provider::__invokeの定義がありません",array(
                 "provider_name" => $provider_name,
                 "class" => get_class($provider),
             ));
         }
-        return call_user_func_array(array($provider,"invoke"),$args);
+        return call_user_func_array(array($provider,$invoke_method_name),$args);
     }
     /**
      * Providerの取得

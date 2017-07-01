@@ -1,18 +1,16 @@
 <?php
-namespace R\Lib\Core\Provider;
+namespace R\Lib\Core;
 
-use R\Lib\Core\Contract\InvokableProvider;
-
-class Configure implements InvokableProvider
+class Config
 {
-    public function invoke ($key)
+    public function __invoke ($key)
     {
         return $this->config($key);
     }
     private $vars;
     public function __construct ()
     {
-        $this->vars = & $GLOBALS["__REGISTRY__"];
+        $this->vars = array();
     }
     public function get ($name)
     {

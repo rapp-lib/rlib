@@ -1,26 +1,32 @@
 <?php
-namespace R\Lib\Core\Provider;
-
-use R\Lib\Core\Contract\InvokableProvider;
+namespace R\Lib\Core;
 use Dotenv\Dotenv;
 
-class Env implements InvokableProvider
+class Env
 {
-    public function invoke ($key, $default_value=null)
+    public function __invoke ($key)
     {
-        return $this->get($key,$default_value);
+        return $this->get($key);
     }
+    private $env = array();
     public function __construct ()
     {
-        if (file_exists(constant("R_APP_ROOT_DIR").'/.env')) {
-            $env = new Dotenv(constant("R_APP_ROOT_DIR"), '.env');
-            $env->load();
+        if (file_exists(constant("R_APP_ROOT_DIR")."/.env")) {
+            $this->load(constant("R_APP_ROOT_DIR"));
         }
+    }
+    public function load ($app_root_dir)
+    {
+        $old = $_ENV;
+        $env_loader = new Dotenv($app_root_dir);
+        $env_loader->load();
+        $this->env = $_ENV;
+        $_ENV = $old;
     }
     public function get ($key, $default_value=null)
     {
-        if (array_isset($_ENV, $key)) {
-            return $this->looseCastValue(array_get($_ENV, $key));
+        if (array_isset($this->env, $key)) {
+            return $this->looseCastValue(array_get($this->env, $key));
         } else {
             return $default_value;
         }
@@ -40,13 +46,5 @@ class Env implements InvokableProvider
         } else {
             return $value;
         }
-    }
-    /**
-     * @deprecated
-     */
-    public function getAll ()
-    {
-        report_error("@deprecated Env::getAll");
-        return $_ENV;
     }
 }

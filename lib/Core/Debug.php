@@ -1,14 +1,9 @@
 <?php
-namespace R\Lib\Core\Provider;
+namespace R\Lib\Core;
 
-use R\Lib\Core\Contract\InvokableProvider;
-
-class DebugDriver implements InvokableProvider
+class Debug
 {
-    /**
-     * @override InvokableProvider
-     */
-    public function invoke ()
+    public function __invoke ()
     {
         return $this->getDebugLevel();
     }
