@@ -12,12 +12,12 @@
     );
 <?=$pageset->getPageByType("import")->getMethodDecSource()?>
     {
-        if ($this->forms["entry_csv"]->receive($this->request)) {
+        if ($this->forms["entry_csv"]->receive($this->input)) {
             if ($this->forms["entry_csv"]->isValid()) {
                 $this->forms["entry_csv"]->save();
                 return $this->redirect("id://<?=$pageset->getPageByType("complete")->getLocalPage()?>");
             }
-        } elseif ( ! $this->request["back"]) {
+        } elseif ( ! $this->input["back"]) {
             $this->forms["entry"]->clear();
         }
     }

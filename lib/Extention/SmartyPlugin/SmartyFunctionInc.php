@@ -23,7 +23,7 @@ class SmartyFunctionInc
             $uri = "id://".$params["page"];
         }
         $request = app()->http->getServedRequest();
-        $uri = $request->getWebroot()->uri($uri);
+        $uri = $request->getUri()->getWebroot()->uri($uri);
         $page = $uri->getPageId();
         $vars = array();
         // Routeに対応する処理の実行

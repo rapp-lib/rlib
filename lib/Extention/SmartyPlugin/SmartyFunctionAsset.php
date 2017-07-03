@@ -23,7 +23,7 @@ class SmartyFunctionAsset
      */
     public static function callback ($params, $smarty_template)
     {
-        $assets = app()->http->getServedRequest()->getWebroot()->getAssets();
+        $assets = app()->http->getServedRequest()->getUri()->getWebroot()->getAssets();
         $html = "";
 
         // state指定

@@ -19,7 +19,7 @@ class SmartyBlockCode
      */
     public static function callback ($params, $content, $smarty_template, $repeat)
     {
-        $assets = app()->http->getServedRequest()->getWebroot()->getAssets();
+        $assets = app()->http->getServedRequest()->getUri()->getWebroot()->getAssets();
         $html = "";
         // 開始タグの場合処理を行わない
         if ($repeat) {

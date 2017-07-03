@@ -133,6 +133,10 @@ class Uri extends \Zend\Diactoros\Uri
 
     public function __report()
     {
-        return array("uri_string"=>"".$this, "parsed"=>$this->parsed);
+        return array(
+            "uri_string"=>"".$this,
+            "parsed"=>$this->parsed,
+            "webroot"=>$this->webroot,
+        );
     }
 }

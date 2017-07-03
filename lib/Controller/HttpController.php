@@ -1,14 +1,16 @@
 <?php
 namespace R\Lib\Controller;
-
 use R\Lib\Form\FormRepositry;
+use R\Lib\Http\InputValues;
 
 class HttpController implements FormRepositry
 {
     protected $controller_name;
     protected $action_name;
     protected $vars;
+
     protected $request;
+    protected $input;
     protected $forms;
     /**
      * FormRepositry経由で読み込まれるフォームの定義
@@ -28,6 +30,7 @@ class HttpController implements FormRepositry
         $this->action_name = $action_name;
         $this->vars = array();
         $this->request = $request;
+        $this->input = $request ? $request->getAttribute(InputValues::ATTRIBUTE_INDEX) : array();
         $this->forms = app()->form->addRepositry($this);
         $this->vars["forms"] = $this->forms;
     }
@@ -44,7 +47,7 @@ class HttpController implements FormRepositry
      * 設定された変数の取得
      */
     public function redirect ($uri, $query_params=array(), $fragment=null) {
-        $uri = $this->request->getWebroot()->uri($uri, $query_params, $fragment);
+        $uri = $this->request->getUri()->getWebroot()->uri($uri, $query_params, $fragment);
         return app()->http->response("redirect", $uri);
     }
     /**
@@ -153,7 +156,6 @@ class HttpController implements FormRepositry
 
     /**
      * act_*の実行
-     * @deprecated
      */
     public static function getControllerAction ($page_id, $request)
     {
@@ -169,7 +171,6 @@ class HttpController implements FormRepositry
     }
     /**
      * act_*の実行
-     * @deprecated
      */
     public function execAct2 ()
     {
@@ -196,7 +197,6 @@ class HttpController implements FormRepositry
     }
     /**
      * inc_*の実行
-     * @deprecated
      */
     public function execInc2 ()
     {

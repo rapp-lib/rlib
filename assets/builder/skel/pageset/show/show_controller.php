@@ -13,14 +13,14 @@
     );
 <?=$pageset->getPageByType("list")->getMethodDecSource()?>
     {
-        if ($this->request["back"]) {
+        if ($this->input["back"]) {
             $this->forms["search"]->restore();
-        } elseif ($this->forms["search"]->receive($this->request)) {
+        } elseif ($this->forms["search"]->receive($this->input)) {
             $this->forms["search"]->save();
         }
         $this->vars["ts"] = $this->forms["search"]->search()->select();
     }
 <?=$pageset->getPageByType("detail")->getMethodDecSource()?>
     {
-        $this->vars["t"] = table("<?=$table->getName()?>")->selectById($this->request["id"]);
+        $this->vars["t"] = table("<?=$table->getName()?>")->selectById($this->input["id"]);
     }

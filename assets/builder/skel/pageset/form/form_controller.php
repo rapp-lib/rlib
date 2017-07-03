@@ -20,14 +20,14 @@
 <?=$pageset->getPageByType("form")->getMethodDecSource()?>
     {
         $this->forms["entry"]->restore();
-        if ($this->forms["entry"]->receive($this->request)) {
+        if ($this->forms["entry"]->receive($this->input)) {
             if ($this->forms["entry"]->isValid()) {
                 $this->forms["entry"]->save();
                 return $this->redirect("id://<?=$pageset->getPageByType("confirm")->getLocalPage()?>");
             }
-        } elseif ($id = $this->request["id"]) {
+        } elseif ($id = $this->input["id"]) {
             $this->forms["entry"]->init($id);
-        } elseif ( ! $this->request["back"]) {
+        } elseif ( ! $this->input["back"]) {
             $this->forms["entry"]->clear();
         }
     }

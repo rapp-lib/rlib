@@ -13,7 +13,7 @@
     );
 <?=$pageset->getPageByType("login")->getMethodDecSource()?>
     {
-        if ($this->forms["login"]->receive($this->request)) {
+        if ($this->forms["login"]->receive($this->input)) {
             if ($this->forms["login"]->isValid()) {
                 // ログイン処理
                 if (auth("<?=$controller->getRole()->getName()?>")->login($this->forms["login"])) {
@@ -28,7 +28,7 @@
                 }
             }
         // 転送先の設定
-        } elseif ($redirect = $this->request["redirect"]) {
+        } elseif ($redirect = $this->input["redirect"]) {
             $this->forms["login"]["redirect"] = htmlspecialchars_decode($redirect);
         }
     }

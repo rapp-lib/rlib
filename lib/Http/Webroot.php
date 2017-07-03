@@ -76,4 +76,13 @@ class Webroot
             $this->config["base_dir"] = $docroot_dir.$this->base_uri->getPath();
         }
     }
+
+// --
+
+    public function __report()
+    {
+        return array(
+            "base_uri"=>"".$this->getBaseUri(),
+        );
+    }
 }

@@ -64,36 +64,12 @@ class ServerRequestFactory
         $server_request = new ServerRequest($attrs["server"], $attrs["files"],
             $attrs["uri"], $attrs["method"], $attrs["body"], $attrs["headers"]);
         // ServerRequestの更新
-        return $server_request
+        $server_request = $server_request
             ->withCookieParams($attrs["cookie_params"])
             ->withQueryParams($attrs["query_params"])
             ->withParsedBody($attrs["parsed_body"]);
-    }
-
-// -- 入力値の取り出し
-
-    /**
-     * ServerRequestから入力値の取り出し
-     */
-    public static function extractInputValues ($server_request)
-    {
-        // Valuesの構築
-        $values = array_merge(
-            (array)$server_request->getQueryParams(),
-            (array)$server_request->getParsedBody(),
-            (array)$server_request->getUri()->getEmbedParams()
-        );
-        self::sanitizeRecursive($values);
-        return $values;
-    }
-    private static function sanitizeRecursive ( & $arr)
-    {
-        foreach ($arr as $key => $val) {
-            if (is_array($val)) {
-                self::sanitizeRecursive($arr[$key]);
-            } else {
-                $arr[$key] = htmlspecialchars($val, ENT_QUOTES);
-            }
-        }
+        $server_request = $server_request
+            ->withAttribute(InputValues::ATTRIBUTE_INDEX, new InputValues($server_request));
+        return $server_request;
     }
 }

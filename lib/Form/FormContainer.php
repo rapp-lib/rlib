@@ -182,21 +182,20 @@ class FormContainer extends ArrayObject
 // -- Request/HTML関連処理
 
     /**
-     * Requestを確認して値の受け取り状態を確認する
-     * 受け取り状態であればRequestから値を取り込む
+     * 入力値配列を確認して値の受け取り状態を確認する
+     * 受け取り状態であれば値を取り込んでtrueを返す
      */
-    public function receive ($request=false)
+    public function receive ($input)
     {
-        $request = $request ?: app()->http->getServedRequest();
         if ( ! isset($this->received)) {
             $form_param_name = "_f";
             $form_name = $this->getFormName();
             // csrf_checkの指定があればCSRF対策キーを確認する
-            if ($this->def["csrf_check"] && $request["_csrf_token"]!=md5(session_id())) {
+            if ($this->def["csrf_check"] && $input["_csrf_token"]!=md5(session_id())) {
                 $this->received = false;
             // form_param_nameに自分のform_nameが設定されていれば受け取り状態
-            } elseif ($this->def["receive_all"] || ($form_name && $request[$form_param_name]==$form_name)) {
-                foreach ($request as $k => $v) {
+            } elseif ($this->def["receive_all"] || ($form_name && $input[$form_param_name]==$form_name)) {
+                foreach ($input as $k => $v) {
                     if ($k==$form_param_name || $k=="_csrf_token") {
                         continue;
                     }
@@ -271,7 +270,7 @@ class FormContainer extends ArrayObject
                 $attrs["action"] = "id://".$this->def["search_page"];
             }
         }
-        $attrs["action"] = app()->http->getServedRequest()->getWebroot()->uri($attrs["action"])->getAbsUriString();
+        $attrs["action"] = app()->http->getServedRequest()->getUri()->getWebroot()->uri($attrs["action"])->getAbsUriString();
         return tag("form",$attrs,$content);
     }
 
@@ -458,7 +457,7 @@ class FormContainer extends ArrayObject
                 }
             }
         }
-        $uri = app()->http->getServedRequest()->getWebroot()->uri("id://".$this->def["search_page"], $params);
+        $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri("id://".$this->def["search_page"], $params);
         return $uri;
     }
 

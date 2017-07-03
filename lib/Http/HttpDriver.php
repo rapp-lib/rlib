@@ -25,9 +25,9 @@ class HttpDriver implements Provider
         $this->served_request = $served_request;
         $response = $webroot->dispatch($served_request, $deligate);
         $this->served_request = null;
-        report("Served Request", array(
+        report("Http Served", array(
             "request_uri"=>$served_request->getUri(),
-            "request"=>$served_request,
+            "input_values"=>$served_request->getAttribute(InputValues::ATTRIBUTE_INDEX),
             "response"=>$response,
         ));
         return $response;
@@ -69,6 +69,15 @@ class HttpDriver implements Provider
         if ($type=="notfound" && $error_html = $this->getErrorHtml(404)) {
             $type = "html";
             $data = $error_html;
+        }
+        if ($type=="redirect") {
+            report("Redirect", array("uri"=>$data));
+            if (app()->debug->getDebugLevel()) {
+                $type = "html";
+                $data = '<a href="'.$data.'"><div style="padding:20px;'
+                    .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
+                    .'Redirect ... '.$data.'</div></a>';
+            }
         }
         return ResponseFactory::factory($type, $data, $params);
     }
