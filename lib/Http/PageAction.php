@@ -1,5 +1,6 @@
 <?php
 namespace R\Lib\Http;
+use \R\Lib\Controller\HttpController;
 
 class PageAction
 {
@@ -19,6 +20,18 @@ class PageAction
     public function getController ()
     {
         $page_id = $this->uri->getPageId();
-        return \R\Lib\Controller\HttpController::getControllerAction($page_id);
+        $route = $this->uri->getWebroot()->getRouter()->getRouteByPageId($page_id);
+        if ( ! $route["page_id"]) {
+            report_error("URLに対応するPageIDがありません",array(
+                "uri" => $this->uri,
+            ));
+        }
+        $controller = HttpController::getControllerAction($page_id);
+        if ( ! $controller) {
+            report_error("PageIDに対応するControllerがありません",array(
+                "page_id" => $page_id,
+            ));
+        }
+        return $controller;
     }
 }

@@ -27,7 +27,7 @@ class PageElement extends Element_Base
         } elseif (preg_match('!/index\.html$!',$path)) {
             $path = preg_replace('!/index\.html$!','/',$path);
         } elseif (preg_match('!/index/index_static\.html$!',$path)) {
-            $path = preg_replace('!/index/index_static\.html$!','/{__file:.+}',$path);
+            $path = preg_replace('!/index/index_static\.html$!','/{FILE:.+}',$path);
         }
         return $path;
     }

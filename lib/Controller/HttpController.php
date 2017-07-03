@@ -166,10 +166,7 @@ class HttpController implements FormRepositry
         list($controller_name, $action_name) = explode('.', $page_id, 2);
         $controller_class = 'R\App\Controller\\'.str_camelize($controller_name).'Controller';
         if ( ! class_exists($controller_class)) {
-            report_error("Pageに対応するControllerクラスの定義がありません",array(
-                "page_id" => $page_id,
-                "controller_class" => $controller_class,
-            ));
+            return null;
         }
         return new $controller_class($controller_name, $action_name);
     }

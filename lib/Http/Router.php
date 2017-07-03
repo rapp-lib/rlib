@@ -17,7 +17,7 @@ class Router
         );
         foreach ($this->routes as $route) {
             $route_collector->addRoute("ROUTE", $route["pattern"], $route["page_id"]);
-        }
+        }report($route_collector->getData());
         $this->route_dispatcher = new \FastRoute\Dispatcher\GroupCountBased($route_collector->getData());
     }
     public function parseUri($uri)
@@ -34,7 +34,8 @@ class Router
         } else {
             return array();
         }
-        $routed = $this->route_dispatcher->dispatch("ROUTE", $uri->getPath());
+        $request_path = preg_replace('!/index\.\w+$!', '/', $uri->getPath());
+        $routed = $this->route_dispatcher->dispatch("ROUTE", $request_path);
         if ($routed[0] === \FastRoute\Dispatcher::FOUND) {
             $parsed["page_id"] = $routed[1];
             $parsed["embed_params"] = $routed[2];
