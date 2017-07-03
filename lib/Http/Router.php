@@ -6,19 +6,17 @@ class Router
     private $webroot;
     private $base_uri;
     private $route_dispatcher;
-    public function __construct ($webroot, array $routes)
+    public function __construct ($webroot, array $routes_config)
     {
         $this->webroot = $webroot;
-        $this->routes = $routes;
+        $this->routes = self::normalizeRoutesConfig($routes_config, $webroot->getBaseUri()->getPath(), array());
         // RouteDispatcherの構築
         $route_collector = new \FastRoute\RouteCollector(
             new \FastRoute\RouteParser\Std,
             new \FastRoute\DataGenerator\GroupCountBased
         );
-        foreach ((array)$this->routes as $route) {
-            $pattern = $this->webroot->getBaseUri()->getPath().$route[1];
-            $page_id = $route[0];
-            $route_collector->addRoute("ROUTE", $pattern, $page_id);
+        foreach ($this->routes as $route) {
+            $route_collector->addRoute("ROUTE", $route["pattern"], $route["page_id"]);
         }
         $this->route_dispatcher = new \FastRoute\Dispatcher\GroupCountBased($route_collector->getData());
     }
@@ -62,10 +60,8 @@ class Router
     public function getRouteByPageId ($page_id)
     {
         foreach ($this->routes as $route) {
-            if ($route[0] === $page_id) {
-                $route_info = $route[2] ?: array();
-                $route_info["pattern"] = $route[1];
-                return $route_info;
+            if ($route["page_id"] === $page_id) {
+                return $route;
             }
         }
         return array();
@@ -94,5 +90,25 @@ class Router
     {
         // base_uriをつけてUriにする
         return $this->webroot->getBaseUri().$page_path;
+    }
+
+// --
+
+    private static function normalizeRoutesConfig ($grouped, $base_path="", $route_config=array())
+    {
+        $routes = array();
+        foreach ($grouped as $row) {
+            if (is_string($row[0])) {
+                $route = array_merge((array)$route_config, (array)$row[2]);
+                $route["page_id"] = $row[0];
+                $route["pattern"] = $base_path.$row[1];
+                $routes[] = $route;
+            } elseif (is_array($row[0])) {
+                foreach ((array)self::normalizeRoutesConfig($row[0], $row[1], $row[2]) as $append_route) {
+                    $routes[] = $append_route;
+                }
+            }
+        }
+        return $routes;
     }
 }
