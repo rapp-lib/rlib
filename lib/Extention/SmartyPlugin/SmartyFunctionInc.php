@@ -24,15 +24,8 @@ class SmartyFunctionInc
         }
         $request = app()->http->getServedRequest();
         $uri = $request->getUri()->getWebroot()->uri($uri);
-        $page = $uri->getPageId();
-        $vars = array();
         // Routeに対応する処理の実行
-        if ($page) {
-            report("IncludeAction実行",array(
-                "page" => $page,
-            ));
-            $vars = $uri->getPageAction()->getController($request)->runInternal();
-        }
+        $vars = $uri->getPageAction()->runInternal($request);
         $request_file = $uri->getPageFile();
         if ( ! file_exists($request_file)) {
             report_warning("incタグの対象となるテンプレートファイルがありません",array(

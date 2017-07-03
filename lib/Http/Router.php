@@ -17,7 +17,7 @@ class Router
         );
         foreach ($this->routes as $route) {
             $route_collector->addRoute("ROUTE", $route["pattern"], $route["page_id"]);
-        }report($route_collector->getData());
+        }
         $this->route_dispatcher = new \FastRoute\Dispatcher\GroupCountBased($route_collector->getData());
     }
     public function parseUri($uri)
@@ -40,9 +40,9 @@ class Router
             $parsed["page_id"] = $routed[1];
             $parsed["embed_params"] = $routed[2];
             $parsed["route"] = $this->getRouteByPageId($parsed["page_id"]);
-            if ($parsed["embed_params"]) {
+            if ($parsed["embed_params"] && ! $parsed["route"]["static_route"]) {
                 $pattern = str_replace(array('[',']'),'',$parsed["route"]["pattern"]);
-                $parsed["page_file"] = preg_replace('!\{([^:]+):\}!', '\{$1\}', $pattern);
+                $parsed["page_file"] = preg_replace('!\{([^:]+):[^\}]+\}!', '{$1}', $pattern);
             }
         }
         if ($parsed["page_path"] && ! $parsed["page_file"]) {
