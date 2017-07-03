@@ -10,15 +10,15 @@ class PageAction
     }
     public function run ($request)
     {
-        return $this->getController($request)->execAct2();
+        return $this->getController()->execAct2($request);
     }
     public function runInternal ($request)
     {
-        return $this->getController($request)->execInc2();
+        return $this->getController()->execInc2($request);
     }
-    public function getController ($request=null)
+    public function getController ()
     {
         $page_id = $this->uri->getPageId();
-        return \R\Lib\Controller\HttpController::getControllerAction($page_id, $request);
+        return \R\Lib\Controller\HttpController::getControllerAction($page_id);
     }
 }

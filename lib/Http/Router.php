@@ -59,7 +59,7 @@ class Router
         }
         return $parsed;
     }
-    private function getRouteByPageId ($page_id)
+    public function getRouteByPageId ($page_id)
     {
         foreach ($this->routes as $route) {
             if ($route[0] === $page_id) {

@@ -7,11 +7,11 @@ class HttpController implements FormRepositry
 {
     protected $controller_name;
     protected $action_name;
-    protected $vars;
-
-    protected $request;
-    protected $input;
+    protected $webroot;
     protected $forms;
+    protected $vars = array();
+    protected $request = null;
+    protected $input = array();
     /**
      * FormRepositry経由で読み込まれるフォームの定義
      */
@@ -24,15 +24,13 @@ class HttpController implements FormRepositry
     /**
      * 初期化
      */
-    public function __construct ($controller_name, $action_name, $request=null)
+    public function __construct ($controller_name, $action_name)
     {
         $this->controller_name = $controller_name;
         $this->action_name = $action_name;
-        $this->vars = array();
-        $this->request = $request;
-        $this->input = $request ? $request->getAttribute(InputValues::ATTRIBUTE_INDEX) : array();
+        $this->webroot = app()->http->getWebrootByPageId($controller_name.".".$action_name);
+        // Formを収集して展開
         $this->forms = app()->form->addRepositry($this);
-        $this->vars["forms"] = $this->forms;
     }
     /**
      * @getter
@@ -42,13 +40,19 @@ class HttpController implements FormRepositry
     {
         return $this->vars;
     }
-    /**
-     * @getter
-     * 設定された変数の取得
-     */
-    public function redirect ($uri, $query_params=array(), $fragment=null) {
-        $uri = $this->request->getUri()->getWebroot()->uri($uri, $query_params, $fragment);
-        return app()->http->response("redirect", $uri);
+    public function redirect ($uri, $query_params=array(), $fragment=null)
+    {
+        return app()->http->response("redirect", $this->uri($uri));
+    }
+    public function uri ($uri, $query_params=array(), $fragment=null)
+    {
+        // 相対page_idの解決
+        if (is_string($uri) && preg_match('!^id://\.([^\?]+)?(\?.*)?$!', $uri, $match)) {
+            $page_id = $match[1];
+            $embed_params = $match[2] ? parse_str($match[2]) : array();
+            $uri = "id://".$this->controller_name.".".($match[1] ?: $this->action_name).$match[2];
+        }
+        return $this->webroot->uri($uri, $query_params, $fragment);
     }
     /**
      * act_*の実行
@@ -157,7 +161,7 @@ class HttpController implements FormRepositry
     /**
      * act_*の実行
      */
-    public static function getControllerAction ($page_id, $request)
+    public static function getControllerAction ($page_id)
     {
         list($controller_name, $action_name) = explode('.', $page_id, 2);
         $controller_class = 'R\App\Controller\\'.str_camelize($controller_name).'Controller';
@@ -167,27 +171,32 @@ class HttpController implements FormRepositry
                 "controller_class" => $controller_class,
             ));
         }
-        return new $controller_class($controller_name, $action_name, $request);
+        return new $controller_class($controller_name, $action_name);
     }
     /**
      * act_*の実行
      */
-    public function execAct2 ()
+    public function execAct2 ($request)
     {
+        // 入力
+        $this->request = $request;
+        $this->input = $request->getAttribute(InputValues::ATTRIBUTE_INDEX);
+        // 処理呼び出し
         $response = $this->execAct();
         if ($response) {
             return $response;
         }
-        $file = $this->request->getUri()->getPageFile();
+        $file = $request->getUri()->getPageFile();
         if (preg_match('!(\.html|/)$!',$file)) {
             if ( ! is_file($file)) {
                 return app()->http->response("notfound");
             }
-            $html = app()->view($file, $this->getVars());
+            $vars = $this->getVars();
+            $vars["forms"] = $this->forms;
+            $html = app()->view($file, $vars);
             return app()->http->response("html", $html);
         } elseif (preg_match('!(\.json|/)$!',$file)) {
             $data = $this->getVars();
-            unset($data["form"]);
             return app()->http->response("json", $data);
         }
         report_error("処理を行いましたが応答を構築できません",array(
@@ -198,8 +207,11 @@ class HttpController implements FormRepositry
     /**
      * inc_*の実行
      */
-    public function execInc2 ()
+    public function execInc2 ($request)
     {
+        // 入力
+        $this->request = $request;
+        $this->input = $request->getAttribute(InputValues::ATTRIBUTE_INDEX);
         $this->execInc();
         return $this->getVars();
     }

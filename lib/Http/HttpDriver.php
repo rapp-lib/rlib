@@ -6,10 +6,10 @@ use Psr\Http\Message\ServerRequestInterface;
 class HttpDriver implements Provider
 {
     protected $served_request = null;
-    public function serve ($webroot_config, $deligate, $request=array())
+    public function serve ($webroot_name, $deligate, $request=array())
     {
         // Webroot作成
-        $webroot = is_string($webroot_config) ? $this->webroot($webroot_config) : new Webroot($webroot_config);
+        $webroot = $this->webroot($webroot_name);
         // ServedRequest作成
         if (is_array($request)) {
             $served_request = ServerRequestFactory::fromGlobals($webroot, $request);
@@ -57,6 +57,26 @@ class HttpDriver implements Provider
         }
         return $this->webroots[$webroot_name];
     }
+    public function getWebroots ()
+    {
+        $webroots = array();
+        // 設定から未構成分を補完
+        foreach ((array)app()->config("http.webroots") as $webroot_name => $webroot_config) {
+            if ( ! $this->webroots[$webroot_name]) {
+                $this->webroot($webroot_name, $webroot_config);
+            }
+        }
+        return $this->webroots;
+    }
+    public function getWebrootByPageId ($page_id)
+    {
+        foreach ($this->getWebroots() as $webroot_name => $webroot) {
+            if ($webroot->getRouter()->getRouteByPageId($page_id)) {
+                return $webroot;
+            }
+        }
+        return null;
+    }
 
 // -- Response
 
@@ -76,7 +96,7 @@ class HttpDriver implements Provider
                 $type = "html";
                 $data = '<a href="'.$data.'"><div style="padding:20px;'
                     .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
-                    .'Redirect ... '.$data.'</div></a>';
+                    .'Location: '.$data.'</div></a>';
             }
         }
         return ResponseFactory::factory($type, $data, $params);
