@@ -15,7 +15,7 @@ class PageAction
     }
     public function runInternal ($request)
     {
-        return $this->getController()->execInc2($request);
+        return $this->uri->getPageId() ? $this->getController()->execInc2($request) : null;
     }
     public function getController ()
     {

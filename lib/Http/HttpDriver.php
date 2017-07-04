@@ -103,7 +103,12 @@ class HttpDriver implements Provider
     }
     private function getErrorHtml ($code=500)
     {
-        $error_file = constant("R_LIB_ROOT_DIR")."/assets/error".$code.".php";
-        return file_exists($error_file) ? include($error_file) : "HTTP Error ".$code;
+        $error_file = constant("R_LIB_ROOT_DIR")."/assets/error/".$code.".php";
+        if (file_exists($error_file)) {
+            ob_start();
+            include($error_file);
+            return ob_get_clean();
+        }
+        return "HTTP Error ".$code;
     }
 }
