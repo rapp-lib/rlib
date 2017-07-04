@@ -24,7 +24,13 @@ class ConsoleDriver extends ArrayObject implements Provider
     {
         $command_class = $this->commands[$command_name];
         if ( ! isset($command_class) || ! class_exists($command_class)) {
-            report_error("Commandの設定が不正です",array(
+            $command_class = 'R\Lib\Console\Command\\'.str_camelize($command_name).'Command';
+        }
+        if ( ! isset($command_class) || ! class_exists($command_class)) {
+            $command_class = 'R\App\Command\\'.str_camelize($command_name).'Command';
+        }
+        if ( ! isset($command_class) || ! class_exists($command_class)) {
+            report_error("Commandの定義がありません", array(
                 "command_name" => $command_name,
                 "command_class" => $command_class,
             ));
