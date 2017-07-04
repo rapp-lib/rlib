@@ -8,11 +8,13 @@ class ConfigBasedApplication implements Container
     protected $bind_config = array(
         "provider" => array(
             // 4.x
-            "http" => 'R\Lib\Http\HttpDriver',
-            "report" => 'R\Lib\Report\ReportDriver',
             "config" => 'R\Lib\Core\Config',
             "env" => 'R\Lib\Core\Env',
             "debug" => 'R\Lib\Core\Debug',
+            "report" => 'R\Lib\Report\ReportDriver',
+            "http" => 'R\Lib\Http\HttpDriver',
+            "cache" => 'R\Lib\Cache\CacheDriver',
+            "session" => 'R\Lib\Session\SessionDriver',
             // 3.x
             "console" => 'R\Lib\Core\Provider\ConsoleDriver',
             "view" => 'R\Lib\View\SmartyViewFactory',
@@ -24,7 +26,7 @@ class ConfigBasedApplication implements Container
             "util" => 'R\Lib\Core\Provider\UtilLoader',
             "extention" => 'R\Lib\Core\Provider\ExtentionLoader',
             "asset" => 'R\Lib\Asset\AssetManager',
-            "session" => 'R\Lib\Core\Provider\Session',
+            //"session" => 'R\Lib\Core\Provider\Session',
             "mailer" => 'R\Lib\Core\Provider\MailerFactory',
             "auth" => 'R\Lib\Auth\AccountManager',
         ),

@@ -3,7 +3,7 @@ namespace R\Lib\Auth;
 
 abstract class Role_Base
 {
-    protected $session;
+    protected $session_ns;
     protected $login_state = array();
     public function __get ($name)
     {
@@ -18,9 +18,9 @@ abstract class Role_Base
     public function init ()
     {
         // Session領域の確保
-        $this->session = app()->session(get_class($this));
+        $this->session_ns = "Auth_".get_class($this);
         // 記憶されている認証情報の復帰
-        $login_state = $this->session->get("login_state");
+        $login_state = app()->session($this->session_ns)->login_state;
         if ($login_state) {
             $this->login_state = $login_state;
         }
@@ -32,12 +32,12 @@ abstract class Role_Base
     public function login ($params)
     {
         $this->login_state = array();
-        $this->session->delete("login_state");
+        app()->session($this->session_ns)->login_state = null;
         $login_state = $this->loginTrial($params);
         // 認証成功時の認証情報の記憶
         if ($login_state) {
             $this->login_state = $login_state;
-            $this->session->set("login_state", $login_state);
+            app()->session($this->session_ns)->login_state = $login_state;
             $this->onLogin();
             return true;
         } else {
@@ -51,7 +51,7 @@ abstract class Role_Base
     {
         $this->onLogout();
         $this->login_state = array();
-        $this->session->delete("login_state");
+        app()->session($this->session_ns)->login_state = null;
     }
     /**
      * 強制的な認可処理

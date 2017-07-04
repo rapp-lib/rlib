@@ -125,7 +125,7 @@ class FormContainer extends ArrayObject
         $this->clearValues();
         // 一時保存領域が有効である場合、消去する
         if (isset($this->tmp_storage)) {
-            $this->getTmpStorage()->delete();
+            $this->getTmpStorage()->values = array();
         }
     }
 
@@ -154,7 +154,7 @@ class FormContainer extends ArrayObject
     public function save ()
     {
         $values = $this->getValues();
-        $this->getTmpStorage()->set("values", $values);
+        $this->getTmpStorage()->values = $values;
     }
 
     /**
@@ -162,7 +162,7 @@ class FormContainer extends ArrayObject
      */
     public function restore ()
     {
-        $values = $this->getTmpStorage()->get("values");
+        $values = $this->getTmpStorage()->values;
         $this->setValues($values);
     }
 
@@ -172,9 +172,7 @@ class FormContainer extends ArrayObject
     private function getTmpStorage ()
     {
         if ( ! isset($this->tmp_storage)) {
-            $this->tmp_storage = app()->session(__CLASS__)
-                ->session("tmp_storage")
-                ->session($this->getTmpStorageName());
+            $this->tmp_storage = app()->session("Form_FormContainer_".$this->getTmpStorageName());
         }
         return $this->tmp_storage;
     }

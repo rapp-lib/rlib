@@ -143,7 +143,7 @@ class AccountManager implements InvokableProvider
     {
         report_error("@deprecated AccountManager::checkAuthenticated");
         $this->getAccount($role_name)->initState($state);
-        app()->session(__CLASS__)->session("roles")->session($role_name)->set("account_state",$state);
+        app()->session("Auth_AuthManager")->roles[$role_name]["account_state"] = $state;
     }
     /**
      * アカウントの状態の反映
@@ -151,7 +151,7 @@ class AccountManager implements InvokableProvider
     private function restoreAccountState ($role_name)
     {
         report_error("@deprecated AccountManager::checkAuthenticated");
-        $state = app()->session(__CLASS__)->session("roles")->session($role_name)->get("account_state");
+        $state = app()->session("Auth_AuthManager")->roles[$role_name]["account_state"];
         $this->getAccount($role_name)->initState($state);
     }
     /**

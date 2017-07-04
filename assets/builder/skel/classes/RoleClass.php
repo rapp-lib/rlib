@@ -35,14 +35,14 @@ class <?=$role->getClassName()?> extends Role_App
      */
     public function onLogin ()
     {
-        session_regenerate_id(true);
+        app()->session->regenerateId(true);
     }
     /**
      * @override
      */
     public function onLogout ()
     {
-        session_destroy();
+        app()->session->destroy();
     }
     /**
      * @override

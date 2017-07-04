@@ -15,7 +15,7 @@ class TmpFileStorage extends LocalFileStorage
      */
     public function create ($src_file=null, $meta=array())
     {
-        $meta["session_id"] = session_id();
+        $meta["session_id"] = app()->session->getId();
         return parent::create($src_file, $meta);
     }
     /**
