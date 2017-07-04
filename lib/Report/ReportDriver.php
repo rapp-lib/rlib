@@ -34,15 +34,50 @@ class ReportDriver
         }
         throw new HandlableError($message, $params, $error_options);
     }
+
+// reportのHttp出力バッファ制御
+
+    private $flushable = false;
     /**
-     * 転送前の処理
+     * 応答前の処理
      */
-    public function beforeRedirect($response)
+    public function beforeEmitResponse($response)
     {
+        if (app()->debug->getDebugLevel()) {
+            if (preg_match('!^text/html!', $response->getHeaderLine('content-type'))) {
+                $this->flushable = true;
+                if ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
+                    $location = $response->getHeaderLine("location");
+                    return app()->response("html", '<a href="'.$location.'"><div style="padding:20px;'
+                        .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
+                        .'Location: '.$location.'</div></a>');
+                } else {
+                    $this->beforeShutdown();
+                }
+            }
+        }
         return $response;
     }
+    /**
+     * 未応答終了前の処理
+     */
+    public function beforeShutdown()
+    {
+        if (app()->debug->getDebugLevel() && $this->flushable) {
+            foreach ((array)app()->session("Report_Logging")->buffer as $record) {
+                print ReportRenderer::render($record);
+            }
+            app()->session("Report_Logging")->buffer = array();
+        }
+    }
+    /**
+     * 応答前の処理
+     */
+    public function bufferPush($record)
+    {
+    }
 
-// -- 出力抑止Buffer制御
+// -- 旧出力抑止Buffer制御
 
     public function bufferStart()
     {
@@ -100,6 +135,7 @@ class ReportDriver
             $this->logException($error);
         }
         report_buffer_end(true);
+        $this->beforeShutdown();
     }
     /**
      * @private

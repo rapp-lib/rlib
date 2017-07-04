@@ -92,20 +92,12 @@ class HttpDriver implements Provider
         }
         if ($type=="redirect") {
             report("Redirect", array("uri"=>$data));
-            if (app()->debug->getDebugLevel()) {
-                $type = "html";
-                $data = '<a href="'.$data.'"><div style="padding:20px;'
-                    .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
-                    .'Location: '.$data.'</div></a>';
-            }
         }
         return ResponseFactory::factory($type, $data, $params);
     }
     public function emit ($response)
     {
-        if ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
-            $response = app()->report->beforeRedirect($response);
-        }
+        $response = app()->report->beforeEmitResponse($response);
         $emitter = new \Zend\Diactoros\Response\SapiEmitter();
         return $emitter->emit($response);
     }
