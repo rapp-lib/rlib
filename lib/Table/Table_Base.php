@@ -10,9 +10,9 @@ class Table_Base extends Table_Core
      * @ref R\Lib\Auth\ConfigBasedLogin::authenticate
      * ログイン処理の実装
      */
-    public function authenticate ($login_id, $login_pw)
+    public function authenticate ($params)
     {
-        if ($params["type"]=="idpw") {
+        if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
             $rs = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->select();
             return count($rs)===1 ? array_shift($rs) : false;
         }

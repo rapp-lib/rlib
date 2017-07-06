@@ -19,7 +19,7 @@
                 $priv = app()->user->authenticate("<?=$controller->getRole()->getName()?>", array(
                     "type" => "idpw",
                     "login_id" => $this->forms["login"]["login_id"],
-                    "login_pw" => $this->forms["login"]["login_w"],
+                    "login_pw" => $this->forms["login"]["login_pw"],
                 ));
                 if ($priv) {
                     app()->user->setPriv("<?=$controller->getRole()->getName()?>",$priv);
