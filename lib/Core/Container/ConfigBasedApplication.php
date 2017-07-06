@@ -17,7 +17,6 @@ class ConfigBasedApplication implements Container
             "session" => 'R\Lib\Session\SessionDriver',
             "user" => 'R\Lib\Auth\UserLoginDriver',
             // 3.x
-            "auth" => 'R\Lib\Auth\AccountManager',
             "table" => 'R\Lib\Table\TableFactory',
             "form" => 'R\Lib\Form\FormFactory',
             "enum" => 'R\Lib\Enum\EnumFactory',

@@ -3,19 +3,45 @@ namespace R\Lib\Auth;
 
 class UserLoginDriver
 {
+    public function __invoke($role)
+    {
+        return $this->id($role);
+    }
+    /**
+     * 現在のロールと一致する場合のみ、付与されている権限のIDを取得
+     */
+    public function id($role)
+    {
+        $priv = $this->getCurrentPriv($role);
+        if ( ! $priv) {
+            return null;
+        }
+        return $priv["id"] ?: 1;
+    }
+    /**
+     * 現在のロールと一致する場合のみ、付与されている権限を取得
+     */
+    public function getCurrentPriv($role)
+    {
+        return $role===$this->role ? $this->getPriv($role) : false;
+    }
+
+// -- LoginProviderの処理
+
     /**
      * 現在のロール、明示的に切り替えない限りロールはguest
      */
     private $role = "guest";
     /**
-     * 現在のロールと一致する場合のみ、付与されている権限を取得
+     * 指定ロールに付与されている権限を取得
      */
     public function getPriv($role)
     {
-        return $role===$this->role ? $this->getLoginProvider($role)->getPriv($role) : false;
+        $priv = $this->getLoginProvider($role)->getPriv($role);
+        return $priv;
     }
     /**
-     * 指定ロールの権限を設定
+     * 指定ロールに権限を設定
      * 主にログイン成功直後に使用、ロールは切り替わらない
      */
     public function setPriv($role, $priv)
@@ -52,7 +78,7 @@ class UserLoginDriver
         return $this->getLoginProvider($role)->firewall($request, $next);
     }
 
-// --
+// -- LoginProviderの管理
 
     private $login_providers = array();
     private function getLoginProvider($role)

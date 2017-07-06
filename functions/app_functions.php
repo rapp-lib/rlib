@@ -26,20 +26,6 @@
     /**
      * @alias
      */
-    function route ($route_name)
-    {
-        return app()->route($route_name);
-    }
-    /**
-     * @alias
-     */
-    function auth ($role_name=false)
-    {
-        return app()->auth($role_name);
-    }
-    /**
-     * @alias
-     */
     function util ($class_name, $constructor_args=false)
     {
         return app()->util($class_name, $constructor_args);
@@ -54,7 +40,8 @@
     /**
      * @alias
      */
-    function redirect ($url, $params=array(), $anchor=null) {
+    function redirect ($url, $params=array(), $anchor=null)
+    {
         $uri = app()->http->getServedRequest()->getWebroot()->uri($url, $params, $anchor);
         return app()->http->response("redirect", "".$uri);
     }
