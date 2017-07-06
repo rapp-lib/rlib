@@ -9,9 +9,10 @@
         "monolog/monolog": "v1.*@stable",
         "vlucas/phpdotenv": "v2.*@stable",
         "phpmailer/phpmailer": "v5.*@stable",
-        "zendframework/zend-cache": "^2.5",
-        "zendframework/zend-session": "^2.5",
-        "deepfreeze/zend-diactoros": "^1.1",
+        "zendframework/zend-cache": "v2.*@stable",
+        "zendframework/zend-session": "v2.*@stable",
+        "deepfreeze/zend-diactoros": "v1.*@stable",
+        "symfony/event-dispatcher": "v2.*@stable",
         "danbruce/fast-route": "^0.6.0",
         "rapp-lib/middleman": "dev-master"
     },

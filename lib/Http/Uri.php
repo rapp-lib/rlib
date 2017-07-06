@@ -73,15 +73,26 @@ class Uri extends \Zend\Diactoros\Uri
         $this->initParsed();
         return $this->parsed["page_file"];
     }
-    public function getPageAction()
-    {
-        $this->initParsed();
-        return $this->parsed["page_action"];
-    }
     public function getRoute()
     {
         $this->initParsed();
         return $this->parsed["route"];
+    }
+    public function getPageAction()
+    {
+        $this->initParsed();
+        if ( ! $this->parsed["page_action"]) {
+            $this->parsed["page_action"] = new PageAction($this);
+        }
+        return $this->parsed["page_action"];
+    }
+    public function getPageAuth()
+    {
+        $this->initParsed();
+        if ( ! $this->parsed["page_auth"]) {
+            $this->parsed["page_auth"] = new PageAuth($this);
+        }
+        return $this->parsed["page_auth"];
     }
     private function initParsed()
     {

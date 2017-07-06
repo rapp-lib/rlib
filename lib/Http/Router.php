@@ -25,7 +25,6 @@ class Router
         // 相対解決用BaseUri
         $request_uri = $this->webroot->getBaseUri();
         $parsed = array();
-        $parsed["page_action"] = new PageAction($uri);
         if (strlen($uri->getHost()) && $uri->getHost() !== $request_uri->getHost()) {
             return $parsed;
         }

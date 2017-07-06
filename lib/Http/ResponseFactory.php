@@ -23,6 +23,8 @@ class ResponseFactory
             return new EmptyResponse($params["status"]?:500, $params["headers"]?:array());
         } elseif ($type==="notfound") {
             return new EmptyResponse($params["status"]?:404, $params["headers"]?:array());
+        } elseif ($type==="forbidden") {
+            return new EmptyResponse($params["status"]?:403, $params["headers"]?:array());
         } elseif ($type==="readfile") {
             $data = new Stream($data, 'r');
             return new Response($data, $params["status"]?:200, $params["headers"]?:array());
