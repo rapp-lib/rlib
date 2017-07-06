@@ -23,16 +23,15 @@ class ConfigBasedLogin
         return false;
     }
     public function authenticate($params)
-    {report( array($this->config["accounts"],$params));
-        if (strlen($params["login_id"]) && strlen($params["login_pw"])) {
+    {
+        if ($auth_table = $this->config["auth_table"]) {
+            return table($auth_table)->authenticate($params);
+        } elseif (strlen($params["login_id"]) && strlen($params["login_pw"])) {
             foreach ((array)$this->config["accounts"] as $account) {
                 if ($account["login_id"]==$params["login_id"] && $account["login_pw"]==$params["login_pw"]) {
                     return $account;
                 }
             }
-        }
-        if ($table = $this->config["table"]) {
-            return table($table)->authenticate($params);
         }
         return false;
     }

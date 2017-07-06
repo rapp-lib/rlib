@@ -6,5 +6,4 @@ namespace R\App\Controller;
  */
 class <?=$role->getRoleControllerClassName()?> extends Controller_App
 {
-    protected static $access_as = "<?=$role->getName()?>";
 }

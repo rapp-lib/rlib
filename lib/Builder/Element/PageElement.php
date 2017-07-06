@@ -78,4 +78,19 @@ class PageElement extends Element_Base
     {
         return $this->getSchema()->fetch("parts.page_method_dec", array("page"=>$this));
     }
+    /**
+     * Route設定部分のPHPコードを取得
+     */
+    public function getRouteSource ()
+    {
+        $routes_dec = array();
+        if ($this->getController()->getType()=="index" && $this->getName()=="static") {
+            $routes_dec[] = '"static_route"=>true';
+        }
+        if ($this->getController()->getRole()->getName()!="guest" && ! $this->getController()->getPrivRequired()) {
+            $routes_dec[] = '"auth.priv_req"=>false';
+        }
+        return 'array('.$page->getFullPage().'", "'.$page->getPathPattern().'"'.
+            ($routes_dec ? ', array('.implode(', ',$routes_dec).')' : '').'),';
+    }
 }

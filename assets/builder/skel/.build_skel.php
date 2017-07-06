@@ -6,6 +6,8 @@
                 function ($schema) {
                     $schema->getSchema()->fetch("config.routing", array("schema"=>$schema),
                         "/config/routing.config.php");
+                    $schema->getSchema()->fetch("config.auth", array("schema"=>$schema),
+                        "/config/auth.config.php");
                 },
             ),
             "table" => array(
@@ -39,12 +41,12 @@
                         "/html".$role->getHeaderPath());
                     $role->getSchema()->fetch("include_html.footer", array("role"=>$role),
                         "/html".$role->getFooterPath());
-                    // Roleクラス
-                    $role->getSchema()->fetch("classes.role", array("role"=>$role),
-                        "/app/Role/".$role->getClassName().".php");
                     // RoleControllerクラス
                     $role->getSchema()->fetch("classes.role_controller", array("role"=>$role),
                         "/app/Controller/".$role->getRoleControllerClassName().".php");
+                    // Roleクラス
+                    //$role->getSchema()->fetch("classes.role", array("role"=>$role),
+                    //    "/app/Role/".$role->getClassName().".php");
                 },
             ),
             "controller" => array(
@@ -138,6 +140,7 @@
         ),
         "config" => array(
             "routing.template_file" => $dir."/config/routing.config.php",
+            "auth.template_file" => $dir."/config/auth.config.php",
         ),
         "parts" => array(
             "page_frame.template_file" => $dir."/parts/page_frame.html",
