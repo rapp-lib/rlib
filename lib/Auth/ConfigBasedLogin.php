@@ -4,10 +4,10 @@ namespace R\Lib\Auth;
 class ConfigBasedLogin
 {
     protected $role;
-    public function __construct($role)
+    public function __construct($role, $config)
     {
         $this->role = $role;
-        $this->config = app()->config("auth.roles.".$this->role.".login.option");
+        $this->config = $config;
     }
     public function setPriv($priv)
     {
@@ -23,7 +23,7 @@ class ConfigBasedLogin
         return false;
     }
     public function authenticate($params)
-    {
+    {report( array($this->config["accounts"],$params));
         if (strlen($params["login_id"]) && strlen($params["login_pw"])) {
             foreach ((array)$this->config["accounts"] as $account) {
                 if ($account["login_id"]==$params["login_id"] && $account["login_pw"]==$params["login_pw"]) {
@@ -31,11 +31,8 @@ class ConfigBasedLogin
                 }
             }
         }
-        if ($this->config["table"]) {
-            $rs = table($this->config["table"])->login($params)->select();
-            if (count($rs)==1) {
-                return $rs[0];
-            }
+        if ($table = $this->config["table"]) {
+            return table($table)->authenticate($params);
         }
         return false;
     }
@@ -44,8 +41,9 @@ class ConfigBasedLogin
         $priv_req = $request->getUri()->getPageAuth()->getPrivReq();
         $priv = $this->getPriv();
         if ($priv_req && ! $priv) {
-            if ($this->config["login_request_uri"]) {
-                return app()->http->response("redirect", $this->config["login_request_uri"]);
+            if ($login_request_uri = $this->config["login_request_uri"]) {
+                $uri = $request->getUri()->getWebroot()->uri($login_request_uri);
+                return app()->http->response("redirect", $uri);
             }
             return app()->http->response("forbidden");
         }

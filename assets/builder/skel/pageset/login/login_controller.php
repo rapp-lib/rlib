@@ -5,7 +5,7 @@
         "form_page" => ".index",
         "fields" => array(
             "login_id",
-            "login_pass",
+            "login_pw",
             "redirect",
         ),
         "rules" => array(

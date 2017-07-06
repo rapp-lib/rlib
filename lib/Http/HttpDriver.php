@@ -85,13 +85,20 @@ class HttpDriver implements Provider
         if ($type=="error" && $error_html = $this->getErrorHtml(500)) {
             $type = "html";
             $data = $error_html;
+            report("Respond Error");
         }
         if ($type=="notfound" && $error_html = $this->getErrorHtml(404)) {
             $type = "html";
             $data = $error_html;
+            report("Respond Notfound");
+        }
+        if ($type=="forbidden" && $error_html = $this->getErrorHtml(403)) {
+            $type = "html";
+            $data = $error_html;
+            report("Respond Forbidden");
         }
         if ($type=="redirect") {
-            report("Redirect", array("uri"=>$data));
+            report("Respond Redirect", array("uri"=>$data));
         }
         return ResponseFactory::factory($type, $data, $params);
     }

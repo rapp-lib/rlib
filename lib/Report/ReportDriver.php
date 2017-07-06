@@ -46,14 +46,14 @@ class ReportDriver
         if (app()->debug->getDebugLevel()) {
             if (preg_match('!^text/html!', $response->getHeaderLine('content-type'))) {
                 $this->flushable = true;
-                if ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
-                    $location = $response->getHeaderLine("location");
-                    return app()->response("html", '<a href="'.$location.'"><div style="padding:20px;'
-                        .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
-                        .'Location: '.$location.'</div></a>');
-                } else {
-                    $this->beforeShutdown();
-                }
+                $this->beforeShutdown();
+            } elseif ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
+                $this->flushable = true;
+                $this->beforeShutdown();
+                $location = $response->getHeaderLine("location");
+                return app()->http->response("html", '<a href="'.$location.'"><div style="padding:20px;'
+                    .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
+                    .'Location: '.$location.'</div></a>');
             }
         }
         return $response;

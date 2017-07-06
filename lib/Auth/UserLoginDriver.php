@@ -4,7 +4,7 @@ namespace R\Lib\Auth;
 class UserLoginDriver
 {
     /**
-     * 明示的に切り替えない限りロールはguest
+     * 現在のロール、明示的に切り替えない限りロールはguest
      */
     private $role = "guest";
     /**
@@ -15,10 +15,10 @@ class UserLoginDriver
         return $role===$this->role ? $this->getLoginProvider($role)->getPriv($role) : false;
     }
     /**
-     * 指定ロールの権限を設定、主にログイン成功直後に使用
-     * ロールは切り替えない
+     * 指定ロールの権限を設定
+     * 主にログイン成功直後に使用、ロールは切り替わらない
      */
-    public function setPriv($priv, $role)
+    public function setPriv($role, $priv)
     {
         $this->getLoginProvider($role)->setPriv($priv);
     }
