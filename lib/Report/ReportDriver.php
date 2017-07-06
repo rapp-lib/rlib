@@ -133,8 +133,8 @@ class ReportDriver
             $last_error['php_error_code'] = $last_error['type'];
             $error = $this->convertPhpErrorToHandlableError($last_error);
             $this->logException($error);
+            $this->flushable = true;
         }
-        report_buffer_end(true);
         $this->beforeShutdown();
     }
     /**

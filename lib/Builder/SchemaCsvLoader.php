@@ -6,6 +6,7 @@ class SchemaCsvLoader
     public function load ($filename)
     {
         $schema = $this->load_schema_csv($filename);
+        $schema = $this->complete_schema($schema);
         report("Schema csv loaded.",array("schema" => $schema));
         return $schema;
     }
@@ -13,6 +14,7 @@ class SchemaCsvLoader
     {
         $csv =util("CSVHandler",array($filename,"r",array(
             "file_charset" =>"SJIS-WIN",
+            "ignore_empty_line" =>true,
         )));
         // 読み込みモード/切り替え行
         $mode ="";
@@ -117,6 +119,7 @@ class SchemaCsvLoader
         foreach ($schema["controller"] as $name => & $c) {
             $c["name"] =$name;
             $c["access_as"] = $c["access_as"] ?: "guest";
+            $c["priv_required"] = $c["priv_required"] ?: false;
         }
         // テーブルごとに処理
         foreach ($schema["tables"] as $t_name => & $t) {

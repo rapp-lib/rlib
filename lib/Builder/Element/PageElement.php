@@ -84,13 +84,13 @@ class PageElement extends Element_Base
     public function getRouteSource ()
     {
         $routes_dec = array();
-        if ($this->getController()->getType()=="index" && $this->getName()=="static") {
+        if ($this->getController()->getType()=="index" && $this->getAttr("type")=="static") {
             $routes_dec[] = '"static_route"=>true';
         }
         if ($this->getController()->getRole()->getName()!="guest" && ! $this->getController()->getPrivRequired()) {
             $routes_dec[] = '"auth.priv_req"=>false';
         }
-        return 'array('.$page->getFullPage().'", "'.$page->getPathPattern().'"'.
-            ($routes_dec ? ', array('.implode(', ',$routes_dec).')' : '').'),';
+        return 'array("'.$this->getFullPage().'", "'.$this->getPathPattern().'"'
+            .($routes_dec ? ', array('.implode(', ',$routes_dec).')' : '').'),';
     }
 }
