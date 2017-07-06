@@ -75,13 +75,11 @@ class Mail
     public function startBody ()
     {
         if ($this->body_started) {
-            report_buffer_end();
             report_error("既にBody設定が開始されています",array(
                 "mailer" => $this,
             ));
         }
         $this->body_started = true;
-        report_buffer_start();
         ob_start();
         return $this;
     }
@@ -93,7 +91,6 @@ class Mail
             ));
         }
         $body = ob_get_clean();
-        report_buffer_end();
         $this->body_started = false;
         $lines = explode("\n", $body);
         if (preg_match('!^subject\s*:\s*(.+)$!',trim($lines[0]),$match)) {

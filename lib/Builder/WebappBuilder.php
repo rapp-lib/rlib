@@ -86,7 +86,6 @@ class WebappBuilder extends SchemaElement implements InvokableProvider
             ));
         }
         // テンプレートファイルの読み込み
-        //report_buffer_start();
         ob_start();
         try {
             extract($vars,EXTR_REFS);
@@ -97,7 +96,6 @@ class WebappBuilder extends SchemaElement implements InvokableProvider
         }
         $source = ob_get_clean();
         $source = str_replace(array('<!?','<#?'),'<?',$source);
-        //report_buffer_end();
         // ファイルの配置
         if ($deploy) {
             $this->deploySource($deploy, $source);

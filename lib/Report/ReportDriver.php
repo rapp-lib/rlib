@@ -70,23 +70,6 @@ class ReportDriver
             app()->session("Report_Logging")->buffer = array();
         }
     }
-    /**
-     * 応答前の処理
-     */
-    public function bufferPush($record)
-    {
-    }
-
-// -- 旧出力抑止Buffer制御
-
-    public function bufferStart()
-    {
-        $this->getLoggingHandler()->bufferStart();
-    }
-    public function bufferEnd($all=false)
-    {
-        $this->getLoggingHandler()->bufferEnd($all);
-    }
 
 // -- Error処理系
 
