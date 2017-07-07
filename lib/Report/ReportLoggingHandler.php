@@ -9,9 +9,9 @@ class ReportLoggingHandler extends AbstractProcessingHandler
     {
         if (app()->debug->getDebugLevel()) {
             if ( ! $record["context"]["__"]["backtraces"]) {
-                $record["context"]["__"]["backtraces"] = ReportDriver::compactBacktrace(debug_backtrace());
+                $record["context"]["__"]["backtraces"] = debug_backtrace();
             }
-            self::simplifyRecordContext($record["context"]);
+            $record["context"] = ReportRenderer::compactContext($record["context"]);
             // CLI→即時エラー出力
             if (php_sapi_name()==="cli") {
                 $html = ReportRenderer::render($record);
@@ -22,12 +22,18 @@ class ReportLoggingHandler extends AbstractProcessingHandler
             }
         }
     }
-    private static function simplifyRecordContext( & $arr)
+
+// --
+
+    /**
+     * Reportの情報を簡素化する
+     */
+    public static function simplifyContext ( & $arr)
     {
         foreach ($arr as & $v) {
             if (is_array($v)) {
-                self::simplifyRecordContext($v);
-            } elseif (is_object($v)) {
+                self::simplifyContext($v);
+            } elseif (is_object($v) && $v instanceof \Closure) {
                 $v = "object(".get_class($v).")";
             }
         }

@@ -221,7 +221,9 @@ class FormContainer extends ArrayObject
                 // ファイルアップロード
                 if ($value instanceof \Psr\Http\Message\UploadedFileInterface) {
                     $storage_name = $field_def["storage"];
-                    if ( ! $storage_name) {
+                    if ($value->getError() !== UPLOAD_ERR_OK) {
+                        // ファイルをアップロードしていない、またはエラー
+                    } elseif ( ! $storage_name) {
                         $value = null;
                         report_warning("File Upload NG", array(
                             "field_name" => $field_name,

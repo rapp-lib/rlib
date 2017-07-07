@@ -48,7 +48,7 @@ class UserFileStorage
         $file = $this->getFile(array("filename"=>$uploaded_file->getClientFilename()));
         $stream = $file->getSource();
         if (preg_match('!^(file:/)?/!', $stream)) {
-            mkdir(dirname($stream), 0777, true);
+            if ( ! file_exists(dirname($stream))) mkdir(dirname($stream), 0777, true);
             $uploaded_file->moveTo($stream);
         } else {
             $uploaded_file->writeFile($stream);

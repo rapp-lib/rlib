@@ -246,4 +246,51 @@ class ReportRenderer
         $info["params"] =array();
         return $info;
     }
+    public static function compactBacktrace($backtrace)
+    {
+        if ( ! is_array($backtrace) || ! $backtrace[0]["file"]) {
+            return array("ERROR");
+        }
+        foreach ((array)$backtrace as $k1=>$v1) {
+            // foreach ((array)$v1["args"] as $k2=>$v2) {
+            //     if (is_array($v2)) {
+            //         $backtrace[$k1]["args"][$k2] = "array(".count($v2).")";
+            //     } elseif (is_object($v2)) {
+            //         $backtrace[$k1]["args"][$k2] = "object(".get_class($v2).")";
+            //     }
+            // }
+            unset($backtrace[$k1]["args"]);
+            unset($backtrace[$k1]["object"]);
+        }
+        return $backtrace;
+    }
+    public static function compactContext($context)
+    {
+        if ( ! is_array($context)) {
+            return array("value"=>self::compactValue($context));
+        }
+        foreach ($context as $k=>$v) {
+            if ($k=="__") {
+                $v["__"]["backtraces"] = self::compactBacktrace($v["__"]["backtraces"]);
+            }
+            $context[$k] = self::compactValue($v);
+        }
+        return $context;
+    }
+    public static function compactValue($value)
+    {
+        $r = null;
+        if (is_array($value)) {
+            foreach ($value as $k=>$v) {
+                $r[$k] = self::compactValue($v);
+            }
+        } elseif (is_object($value) && method_exists($value,"__report")) {
+            foreach ((array)$value->__report() as $k=>$v) {
+                $r[get_class($value).":".$k] = self::compactValue($v);
+            }
+        } elseif (is_object($value)) {
+            $r = "object ".get_class($value);
+        }
+        return $r;
+    }
 }

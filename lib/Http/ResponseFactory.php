@@ -30,6 +30,7 @@ class ResponseFactory
             $data = new Stream($data, 'r');
             return new Response($data, $params["status"]?:200, $params["headers"]?:array());
         } elseif ($type==="stream") {
+            if ( ! $data instanceof Stream) $data = new Stream($data, 'r');
             return new Response($data, $params["status"]?:200, $params["headers"]?:array());
         } elseif ($type==="data") {
             $stream = new Stream('php://temp', 'wb+');

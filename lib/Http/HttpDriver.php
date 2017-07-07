@@ -28,7 +28,6 @@ class HttpDriver implements Provider
         report("Http Served", array(
             "request_uri"=>$served_request->getUri(),
             "input_values"=>$served_request->getAttribute(InputValues::ATTRIBUTE_INDEX),
-            "response"=>$response,
         ));
         return $response;
     }
