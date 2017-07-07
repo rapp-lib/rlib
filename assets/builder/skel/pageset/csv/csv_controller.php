@@ -31,13 +31,10 @@
             ->removePagenation()
             ->selectNoFetch();
         // CSVファイルの書き込み
-        $csv_file = app()->file_storage->create("tmp",null,array(
-            "original_filename" => "<?=$table->getName()?>-".date("Ymd-His").".csv",
-        ));
-        $csv = util("CSVHandler",array($csv_file->getFile(),"w",$this->csv_setting));
+        $csv = new \R\Lib\Util\CSVHandler("php://temp","r+",$this->csv_setting));
         while ($t = $res->fetch()) {
             $csv->write_line($t);
         }
         // データ出力
-        return app()->response->downloadStoredFile($csv_file);
+        return app()->http->response("stream", $csv->get_file_handle());
     }

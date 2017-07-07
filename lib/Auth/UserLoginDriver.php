@@ -25,6 +25,13 @@ class UserLoginDriver
     {
         return $role===$this->role ? $this->getPriv($role) : false;
     }
+    /**
+     * ログインされている場合のみ、現在のロールを取得
+     */
+    public function getCurrentRole()
+    {
+        return $this->getPriv($this->role) ? $this->role : "guest";
+    }
 
 // -- LoginProviderの処理
 
@@ -32,6 +39,13 @@ class UserLoginDriver
      * 現在のロール、明示的に切り替えない限りロールはguest
      */
     private $role = "guest";
+    /**
+     * 現在のロールの切り替え
+     */
+    public function switchRole($role)
+    {
+        $this->role = $role;
+    }
     /**
      * 指定ロールに付与されている権限を取得
      */
@@ -47,20 +61,6 @@ class UserLoginDriver
     public function setPriv($role, $priv)
     {
         $this->getLoginProvider($role)->setPriv($priv);
-    }
-    /**
-     * 現在のロールを取得
-     */
-    public function getRole()
-    {
-        return $this->role;
-    }
-    /**
-     * 現在のロールの切り替え
-     */
-    public function switchRole($role)
-    {
-        $this->role = $role;
     }
     /**
      * 認証試行を行って得られた権限を取得

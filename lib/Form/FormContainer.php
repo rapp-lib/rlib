@@ -216,17 +216,39 @@ class FormContainer extends ArrayObject
     {
         // 入力値の変換処理
         foreach ($this->def["fields"] as $field_name => $field_def) {
-            // 変換処理がなければスキップ
-            if ( ! $field_def["input_convert"]) {
-                continue;
-            }
             // 変換処理の逐次適用
             self::applyFieldFilter($input_values, $field_name, function($value, $field_name) use ($field_def) {
-                // 変換処理の複数指定に対応
-                $input_converts = $field_def["input_convert"];
-                $input_converts = is_array($input_converts) ? $input_converts : array($input_converts);
-                foreach ($input_converts as $input_convert) {
-                    $value = call_user_func(extention("input_convert",$input_convert), $value, $field_name, $field_def);
+                // ファイルアップロード
+                if ($value instanceof \Psr\Http\Message\UploadedFileInterface) {
+                    $storage_name = $field_def["storage"];
+                    if ( ! $storage_name) {
+                        $value = null;
+                        report_warning("File Upload NG", array(
+                            "field_name" => $field_name,
+                            "field_def" => $field_def,
+                        ));
+                    } elseif ($file = app()->file->getStorage($storage_name)->upload($value)) {
+                        $value = $file->getUri();
+                        report("File Upload OK",array(
+                            "field_name" => $field_name,
+                            "uri" => $value,
+                            "field_def" => $field_def,
+                        ));
+                    } else {
+                        $value = null;
+                        report_warning("File Upload NG",array(
+                            "field_name" => $field_name,
+                            "uploaded_file" => $value,
+                            "field_def" => $field_def,
+                        ));
+                    }
+                }
+                // 変換処理の指定
+                if ($input_converts = $field_def["input_convert"]) {
+                    $input_converts = is_array($input_converts) ? $input_converts : array($input_converts);
+                    foreach ($input_converts as $input_convert) {
+                        $value = call_user_func(extention("input_convert",$input_convert), $value, $field_name, $field_def);
+                    }
                 }
                 return $value;
             });

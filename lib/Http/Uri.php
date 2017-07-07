@@ -24,9 +24,9 @@ class Uri extends \Zend\Diactoros\Uri
             $uri = $this->webroot->getRouter()->buildUriStringByPagePath("/".$match[1]);
         // UriInterfaceをもとに初期化
         } elseif ($uri instanceof Uri) {
-            $uri = $uri->getFullUri();
+            $uri = $uri->getFullUriString();
         } elseif ($uri instanceof UriInterface) {
-            $uri = $uri;
+            $uri = $uri->__toString();
         }
         $uri = self::mergeQueryParams($uri, $query_params, $fragment);
         parent::__construct($uri);

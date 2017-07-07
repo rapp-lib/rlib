@@ -30,7 +30,7 @@ class ReportDriver
     public function raiseError ($message, $params=array(), $error_options=array())
     {
         if ( ! $params["__"]["backtraces"]) {
-            $params["__"]["backtraces"] = $this->compactBacktrace(debug_backtrace());
+            $params["__"]["backtraces"] = self::compactBacktrace(debug_backtrace());
         }
         throw new HandlableError($message, $params, $error_options);
     }
@@ -157,7 +157,7 @@ class ReportDriver
         if ( ! isset($last_error["backtraces"])) {
             $last_error["backtraces"] = debug_backtrace();
         }
-        $last_error["backtraces"] = $this->compactBacktrace($last_error["backtraces"]);
+        $last_error["backtraces"] = self::compactBacktrace($last_error["backtraces"]);
         // contextの簡素化
         if (is_array($last_error["context"])) {
             foreach ($last_error["context"] as $k=>$v) {
@@ -174,7 +174,7 @@ class ReportDriver
     private function convertExceptionToHandlableError($e)
     {
         // backtracesの簡素化
-        $backtraces = $this->compactBacktrace($e->getTrace());
+        $backtraces = self::compactBacktrace($e->getTrace());
         $message = "[PHP Uncaught ".get_class($e)."] ".$e->getMessage();
         $params = array("__"=>array(
             'file' => $e->getFile(),
@@ -183,20 +183,6 @@ class ReportDriver
             "backtraces" => $backtraces,
         ));
         return new HandlableError($message, $params);
-    }
-    private function compactBacktrace($backtrace)
-    {
-        foreach ($backtrace as $k1=>$v1) {
-            foreach ((array)$v1["args"] as $k2=>$v2) {
-                if (is_array($v2)) {
-                    $backtrace[$k1]["args"][$k2] = "array(".count($v2).")";
-                } elseif (is_object($v2)) {
-                    $backtrace[$k1]["args"][$k2] = "object(".get_class($v2).")";
-                }
-            }
-            unset($backtrace[$k1]["object"]);
-        }
-        return $backtrace;
     }
     private function getPhpErrorCodeLevel($code)
     {
@@ -243,5 +229,19 @@ class ReportDriver
     private function isFatalPhpErrorCode($php_error_code)
     {
         return $php_error_code & (E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR);
+    }
+    public static function compactBacktrace($backtrace)
+    {
+        foreach ($backtrace as $k1=>$v1) {
+            foreach ((array)$v1["args"] as $k2=>$v2) {
+                if (is_array($v2)) {
+                    $backtrace[$k1]["args"][$k2] = "array(".count($v2).")";
+                } elseif (is_object($v2)) {
+                    $backtrace[$k1]["args"][$k2] = "object(".get_class($v2).")";
+                }
+            }
+            unset($backtrace[$k1]["object"]);
+        }
+        return $backtrace;
     }
 }

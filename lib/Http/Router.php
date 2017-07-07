@@ -39,7 +39,7 @@ class Router
         $routed = $this->route_dispatcher->dispatch("ROUTE", $request_path);
         if ($routed[0] === \FastRoute\Dispatcher::FOUND) {
             $parsed["page_id"] = $routed[1];
-            $parsed["embed_params"] = $routed[2];
+            $parsed["embed_params"] = array_map("urldecode", (array)$routed[2]);
             $parsed["route"] = $this->getRouteByPageId($parsed["page_id"]);
             if ($parsed["embed_params"] && ! $parsed["route"]["static_route"]) {
                 $pattern = str_replace(array('[',']'),'',$parsed["route"]["pattern"]);

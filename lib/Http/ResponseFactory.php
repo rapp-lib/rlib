@@ -5,6 +5,7 @@ use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\RedirectResponse;
 use Zend\Diactoros\Response\EmptyResponse;
+use Zend\Diactoros\Stream;
 
 class ResponseFactory
 {

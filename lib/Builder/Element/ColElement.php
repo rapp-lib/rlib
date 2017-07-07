@@ -24,7 +24,7 @@ class ColElement extends Element_Base
     {
         if ($this->getAttr("type")=="file") {
             $html = '{{if '.$var_name.'.'.$this->getName().'}}<a href="{{'.
-                $var_name.'.'.$this->getName().'|stored_file_url}}">ファイル</a>{{/if}}';
+                $var_name.'.'.$this->getName().'}}" target="_blank">ファイル</a>{{/if}}';
         } else {
             $html = '{{'.$var_name.'.'.$this->getName();
             if ($this->getAttr("type")=="date") {
@@ -40,19 +40,20 @@ class ColElement extends Element_Base
     /**
      * 入力HTMLソースの取得
      */
-    public function getInputSource ()
+    public function getInputSource ($var_name='$forms.entry')
     {
         $html = '{{input name="'.$this->getName().'" type="'.$this->getAttr("type").'"';
         if ($enum_set = $this->getEnumSet()) {
             $html .=' enum="'.$enum_set->getFullName().'"';
         }
-        if ($this->getAttr("type")=="file") {
-            $html .=' plugins=["show_uploaded_file"=>[]]';
-        }
         if ($this->getAttr("type")=="password") {
             $html .=' autocomplete="new-password"';
         }
         $html .= '}}';
+        if ($this->getAttr("type")=="file") {
+            $html .= ' {{if '.$var_name.'.'.$this->getName().'}}<a href="{{'.
+                $var_name.'.'.$this->getName().'}}" target="_blank">ファイル</a>{{/if}}';
+        }
         return $html;
     }
     /**
@@ -63,7 +64,7 @@ class ColElement extends Element_Base
         $def = array();
         $def[] = '"label"=>"'.$this->getLabel().'"';
         if ($this->getAttr("type")=="file") {
-            $def[] = '"file_upload_to"=>"public"';
+            $def[] = '"storage"=>"public"';
         }
         return '            "'.$this->getName().'" => array('.implode(', ',$def).'),'."\n";
 

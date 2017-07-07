@@ -26,7 +26,7 @@ class ConfigBasedLogin
     {
         if ($auth_table = $this->config["auth_table"]) {
             return table($auth_table)->authenticate($params);
-        } elseif ($this->config["accounts"]) {report(array($this->config["accounts"],$params));
+        } elseif ($this->config["accounts"]) {
             foreach ($this->config["accounts"] as $account) {
                 if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
                     if ($account["login_id"]==$params["login_id"] && $account["login_pw"]==$params["login_pw"]) {
