@@ -37,7 +37,7 @@ class ReportDriver
 
 // reportのHttp出力バッファ制御
 
-    private $flushable = false;
+    private $flushable = true;
     /**
      * 応答前の処理
      */
@@ -45,7 +45,6 @@ class ReportDriver
     {
         if (app()->debug->getDebugLevel()) {
             if (preg_match('!^text/html!', $response->getHeaderLine('content-type'))) {
-                $this->flushable = true;
                 if ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
                     $location = $response->getHeaderLine("location");
                     return app()->response("html", '<a href="'.$location.'"><div style="padding:20px;'
@@ -54,6 +53,8 @@ class ReportDriver
                 } else {
                     $this->beforeShutdown();
                 }
+            } else {
+                $this->flushable = false;
             }
         }
         return $response;
