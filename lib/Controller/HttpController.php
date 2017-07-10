@@ -101,7 +101,7 @@ class HttpController implements FormRepositry
                     if (preg_match('!([a-zA-Z0-9]+)Controller$!',$dec_class,$match)) {
                         $dec_class = str_underscore($match[1]);
                     }
-                    $def["tmp_storage_name"] = $dec_class.".".$found_form_name;
+                    $def["tmp_storage_name"] = $dec_class."_".$found_form_name;
                     self::$defs[$class_name][$found_form_name] = $def;
                 }
             }

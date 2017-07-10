@@ -26,20 +26,6 @@
     /**
      * @alias
      */
-    function route ($route_name)
-    {
-        return app()->route($route_name);
-    }
-    /**
-     * @alias
-     */
-    function auth ($role_name=false)
-    {
-        return app()->auth($role_name);
-    }
-    /**
-     * @alias
-     */
     function util ($class_name, $constructor_args=false)
     {
         return app()->util($class_name, $constructor_args);
@@ -51,10 +37,14 @@
     {
         return app()->extention($extention_group, $extention_name);
     }
+
+// -- Webroot
+
     /**
-     * @alias
+     * 転送リクエストの作成
      */
-    function redirect ($url, $params=array(), $anchor=null) {
+    function redirect ($url, $params=array(), $anchor=null)
+    {
         $uri = app()->http->getServedRequest()->getWebroot()->uri($url, $params, $anchor);
         return app()->http->response("redirect", "".$uri);
     }
@@ -64,4 +54,26 @@
     function url ($base_url=null, $params=array(), $anchor=null)
     {
         return app()->http->getServedRequest()->getWebroot()->uri($base_url, $params, $anchor);
+    }
+
+// -- Report
+
+    function report ($message, $vars=array())
+    {
+        if ( ! is_array($vars)) {
+            $vars = array("value" => $vars);
+        }
+        if ( ! is_string($message)) {
+            $vars["message"] = $message;
+            $message = "DEBUG";
+        }
+        app()->report->getLogger()->info($message, $vars);
+    }
+    function report_warning ($message, $vars=array(), $options=array())
+    {
+        app()->report->getLogger()->warn($message, $vars);
+    }
+    function report_error ($message, $vars=array())
+    {
+        app()->report->raiseError($message, $vars);
     }

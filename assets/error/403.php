@@ -3,7 +3,6 @@
 <title>403 Forbidden</title>
 </head><body>
 <h1>Forbidden</h1>
-<p>You don't have permission to access /img/
-on this server.</p>
+<p>You don't have permission to access on this page.</p>
 <hr>
 </body></html>

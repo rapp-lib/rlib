@@ -9,7 +9,9 @@ class Router
     public function __construct ($webroot, array $routes_config)
     {
         $this->webroot = $webroot;
-        $this->routes = self::normalizeRoutesConfig($routes_config, $webroot->getBaseUri()->getPath(), array());
+        $this->routes = $routes_config;
+        $this->routes = self::flattenGrouped($this->routes, $webroot->getBaseUri()->getPath(), array());
+        $this->routes = self::sortStaticRoute($this->routes);
         // RouteDispatcherの構築
         $route_collector = new \FastRoute\RouteCollector(
             new \FastRoute\RouteParser\Std,
@@ -25,7 +27,6 @@ class Router
         // 相対解決用BaseUri
         $request_uri = $this->webroot->getBaseUri();
         $parsed = array();
-        $parsed["page_action"] = new PageAction($uri);
         if (strlen($uri->getHost()) && $uri->getHost() !== $request_uri->getHost()) {
             return $parsed;
         }
@@ -38,7 +39,7 @@ class Router
         $routed = $this->route_dispatcher->dispatch("ROUTE", $request_path);
         if ($routed[0] === \FastRoute\Dispatcher::FOUND) {
             $parsed["page_id"] = $routed[1];
-            $parsed["embed_params"] = $routed[2];
+            $parsed["embed_params"] = array_map("urldecode", (array)$routed[2]);
             $parsed["route"] = $this->getRouteByPageId($parsed["page_id"]);
             if ($parsed["embed_params"] && ! $parsed["route"]["static_route"]) {
                 $pattern = str_replace(array('[',']'),'',$parsed["route"]["pattern"]);
@@ -95,7 +96,10 @@ class Router
 
 // --
 
-    private static function normalizeRoutesConfig ($grouped, $base_path="", $route_config=array())
+    /**
+     * グループ階層化された設定を平坦に変換する
+     */
+    private static function flattenGrouped ($grouped, $base_path="", $route_config=array())
     {
         $routes = array();
         foreach ($grouped as $row) {
@@ -105,11 +109,24 @@ class Router
                 $route["pattern"] = $base_path.$row[1];
                 $routes[] = $route;
             } elseif (is_array($row[0])) {
-                foreach ((array)self::normalizeRoutesConfig($row[0], $row[1], $row[2]) as $append_route) {
+                foreach ((array)self::flattenGrouped($row[0], $row[1], $row[2]) as $append_route) {
                     $routes[] = $append_route;
                 }
             }
         }
+        return $routes;
+    }
+    /**
+     * 曖昧なパターンマッチを後回しにする
+     */
+    private static function sortStaticRoute ($routes)
+    {
+        usort($routes, function($a, $b){
+            if ($a["static_route"] && ! $b["static_route"]) return +1;
+            if ( ! $a["static_route"] && $b["static_route"]) return -1;
+            if ( ! $a["static_route"] && ! $b["static_route"]) return 0;
+            return strlen($a["pattern"]) < strlen($b["pattern"]) ? +1 : -1;
+        });
         return $routes;
     }
 }

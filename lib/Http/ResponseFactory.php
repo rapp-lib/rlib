@@ -5,6 +5,7 @@ use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\RedirectResponse;
 use Zend\Diactoros\Response\EmptyResponse;
+use Zend\Diactoros\Stream;
 
 class ResponseFactory
 {
@@ -22,11 +23,14 @@ class ResponseFactory
         } elseif ($type==="error") {
             return new EmptyResponse($params["status"]?:500, $params["headers"]?:array());
         } elseif ($type==="notfound") {
-            return new EmptyResponse($params["status"]?:404, $params["headers"]?:array());
+            return new EmptyResponse(404, $params["headers"]?:array());
+        } elseif ($type==="forbidden") {
+            return new EmptyResponse(403, $params["headers"]?:array());
         } elseif ($type==="readfile") {
             $data = new Stream($data, 'r');
             return new Response($data, $params["status"]?:200, $params["headers"]?:array());
         } elseif ($type==="stream") {
+            if ( ! $data instanceof Stream) $data = new Stream($data, 'r');
             return new Response($data, $params["status"]?:200, $params["headers"]?:array());
         } elseif ($type==="data") {
             $stream = new Stream('php://temp', 'wb+');

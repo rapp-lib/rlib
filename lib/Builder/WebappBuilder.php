@@ -86,19 +86,16 @@ class WebappBuilder extends SchemaElement implements InvokableProvider
             ));
         }
         // テンプレートファイルの読み込み
-        report_buffer_start();
         ob_start();
         try {
             extract($vars,EXTR_REFS);
             include($template_file);
         } catch (\Exception $e) {
             ob_end_clean();
-            report_buffer_end();
             throw $e;
         }
         $source = ob_get_clean();
         $source = str_replace(array('<!?','<#?'),'<?',$source);
-        report_buffer_end();
         // ファイルの配置
         if ($deploy) {
             $this->deploySource($deploy, $source);
@@ -118,9 +115,8 @@ class WebappBuilder extends SchemaElement implements InvokableProvider
             $status = crc32($current_source)==crc32($source) ? "nochange" : "modify";
         }
         util("File")->write($deploy_file, $source);
-        if ($status != "nochange" && $this->getConfig("show_source")) {
-            report("Deploy ".$status." ".$deploy_name);
-            print '<pre>'.htmlspecialchars($source)."</pre>";
+        if ($status != "nochange") {
+            print "Deploy ".$status." ".$deploy_name."\n";
         }
     }
 }

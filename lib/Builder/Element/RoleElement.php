@@ -19,6 +19,11 @@ class RoleElement extends Element_Base
     {
         return "/include/".$this->getName()."_footer.html";
     }
+    public function getAuthTable ()
+    {
+        $controller = $this->getLoginController();
+        return $controller ? $controller->getTable() : null;
+    }
     /**
      * ログイン後TOPとなるControllerの取得
      */

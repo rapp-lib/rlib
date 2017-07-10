@@ -5,7 +5,7 @@
         "form_page" => ".index",
         "fields" => array(
             "login_id",
-            "login_pass",
+            "login_pw",
             "redirect",
         ),
         "rules" => array(
@@ -16,13 +16,14 @@
         if ($this->forms["login"]->receive($this->input)) {
             if ($this->forms["login"]->isValid()) {
                 // ログイン処理
-                if (auth("<?=$controller->getRole()->getName()?>")->login($this->forms["login"])) {
-                    // ログイン成功時の転送処理
-                    if ($redirect = $this->forms["login"]["redirect"]) {
-                        return $this->redirect($redirect);
-                    } else {
-                        return $this->redirect("id://<?=$controller->getRole()->getIndexController()->getIndexPage()->getFullPage($pageset->getPageByType("login"))?>");
-                    }
+                $priv = app()->user->authenticate("<?=$controller->getRole()->getName()?>", array(
+                    "type" => "idpw",
+                    "login_id" => $this->forms["login"]["login_id"],
+                    "login_pw" => $this->forms["login"]["login_pw"],
+                ));
+                if ($priv) {
+                    app()->user->setPriv("<?=$controller->getRole()->getName()?>",$priv);
+                    return $this->redirect($this->forms["login"]["redirect"] ?: "id://<?=$controller->getRole()->getIndexController()->getIndexPage()->getFullPage($pageset->getPageByType("login"))?>");
                 } else {
                     $this->vars["login_error"] = true;
                 }
@@ -35,7 +36,7 @@
 <?=$pageset->getPageByType("exit")->getMethodDecSource()?>
     {
         // ログアウト処理
-        auth("<?=$controller->getRole()->getName()?>")->logout();
+        app()->user->setPriv("<?=$controller->getRole()->getName()?>",false);
         // ログアウト後の転送処理
         return $this->redirect("id://<?=$controller->getIndexPage()->getFullPage($pageset->getPageByType("exit"))?>");
     }

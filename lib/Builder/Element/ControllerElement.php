@@ -63,6 +63,13 @@ class ControllerElement extends Element_Base
         return $this->getAttr("priv_required");
     }
     /**
+     * type
+     */
+    public function getType ()
+    {
+        return $this->getAttr("type");
+    }
+    /**
      * 関係するRoleの取得
      */
     public function getRole ()

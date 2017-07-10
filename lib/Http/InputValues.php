@@ -10,11 +10,11 @@ class InputValues extends \ArrayObject
     public function __construct ($server_request)
     {
         // Valuesの構築
-        $values = array_merge(
-            (array)$server_request->getQueryParams(),
-            (array)$server_request->getParsedBody(),
-            (array)$server_request->getUri()->getEmbedParams()
-        );
+        $values = array();
+        self::mergeRecursive($values, (array)$server_request->getQueryParams());
+        self::mergeRecursive($values, (array)$server_request->getParsedBody());
+        self::mergeRecursive($values, (array)$server_request->getUri()->getEmbedParams());
+        self::mergeRecursive($values, (array)$server_request->getUploadedFiles());
         self::sanitizeRecursive($values);
         $this->exchangeArray($values);
     }
@@ -23,8 +23,22 @@ class InputValues extends \ArrayObject
         foreach ($arr as $key => $val) {
             if (is_array($val)) {
                 self::sanitizeRecursive($arr[$key]);
-            } else {
+            } elseif ( ! is_object($val)) {
                 $arr[$key] = htmlspecialchars($val, ENT_QUOTES);
+            }
+        }
+    }
+    private static function mergeRecursive ( & $arr, $values)
+    {
+        foreach ($values as $k=>$v) {
+            if (is_array($v)) {
+                self::mergeRecursive($arr[$k], $v);
+            } elseif ($v instanceof \Psr\Http\Message\UploadedFileInterface) {
+                if ($v->getError() === UPLOAD_ERR_OK) {
+                    $arr[$k] = $v;
+                }
+            } elseif (isset($v)) {
+                $arr[$k] = $v;
             }
         }
     }

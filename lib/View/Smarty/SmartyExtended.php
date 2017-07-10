@@ -86,14 +86,7 @@ class SmartyExtended extends SmartyBC
      */
     public function fetch ($template = null, $cache_id = null, $compile_id = null, $parent = null)
     {
-        report_buffer_start();
-        try {
-            $result = parent::fetch($template, $cache_id, $compile_id, $parent);
-        } catch (\Exception $e) {
-            report_buffer_end();
-            throw $e;
-        }
-        report_buffer_end();
+        $result = parent::fetch($template, $cache_id, $compile_id, $parent);
         return $result;
     }
 

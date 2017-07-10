@@ -6,6 +6,18 @@ namespace R\Lib\Table;
  */
 class Table_Base extends Table_Core
 {
+    /**
+     * @ref R\Lib\Auth\ConfigBasedLogin::authenticate
+     * ログイン処理の実装
+     */
+    public function authenticate ($params)
+    {
+        if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
+            $rs = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->select();
+            return count($rs)===1 ? array_shift($rs) : false;
+        }
+        return false;
+    }
 
 // -- 基本的なassoc hookの定義
 
@@ -107,7 +119,7 @@ class Table_Base extends Table_Core
         }
     }
 
-// -- 基本的ななchain hookの定義
+// -- 基本的なchain hookの定義
 
     /**
      * @hook chain
@@ -189,32 +201,6 @@ class Table_Base extends Table_Core
     public function chain_findBy ($col_name, $value=false)
     {
         $this->query->where($col_name, $value);
-    }
-    /**
-     * @hook chain
-     * ログイン中のアカウントを条件に指定する
-     */
-    public function chain_findMine ()
-    {
-        $account = auth()->getAccount();
-        if ( ! $account->isLogin()) {
-            report_warning("ログイン中ではありません",array(
-                "account" => $account,
-                "table" => $this,
-            ));
-            $this->query->where("0=1");
-            return;
-        }
-        // 関係先を条件に指定
-        $owner_key_attr = $account->getRole()."_owner_key";
-        $owner_key_col_name = $this->getColNameByAttr($owner_key_attr);
-        if ( ! $owner_key_col_name) {
-            report_error("ログイン中のアカウントに関係づけるキーが設定されていません",array(
-                "attr" => $owner_key_attr,
-                "table" => $this,
-            ));
-        }
-        $this->query->where($owner_key_col_name, $account->getId());
     }
     /**
      * @hook chain
@@ -432,8 +418,8 @@ class Table_Base extends Table_Core
     {
         if ($col_name = $this->getColNameByAttr("owner_role")) {
             $owner_role = static::$cols[$col_name]["owner_role"];
-            if (app()->auth->check($owner_role,true)) {
-                $this->query->setValue($col_name, auth($owner_role)->id);
+            if ($owner_id = app()->user->id($owner_role)) {
+                $this->query->setValue($col_name, $owner_id);
                 return true;
             }
         }
@@ -447,8 +433,8 @@ class Table_Base extends Table_Core
     {
         if ($col_name = $this->getColNameByAttr("owner_role")) {
             $owner_role = static::$cols[$col_name]["owner_role"];
-            if (app()->auth->check($owner_role,true)) {
-                $this->query->where($this->getQueryTableName().".".$col_name, auth($owner_role)->id);
+            if ($owner_id = app()->user->id($owner_role)) {
+                $this->query->where($this->getQueryTableName().".".$col_name, $owner_id);
                 return true;
             }
         }
