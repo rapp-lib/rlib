@@ -8,13 +8,10 @@ class ReportLoggingHandler extends AbstractProcessingHandler
     protected function write(array $record)
     {
         if (app()->debug->getDebugLevel()) {
-            if ( ! $record["context"]["__"]["backtraces"]) {
-                $record["context"]["__"]["backtraces"] = debug_backtrace();
-            }
-            $record["context"] = ReportRenderer::compactContext($record["context"]);
+            $record = ReportRenderer::compactRecord($record);
             // CLI→即時エラー出力
             if (php_sapi_name()==="cli") {
-                $html = ReportRenderer::render($record);
+                $html = ReportRenderer::render($record, "console");
                 app()->console->outputError($html);
             // HttpであればSessionBufferに追加
             } else {
