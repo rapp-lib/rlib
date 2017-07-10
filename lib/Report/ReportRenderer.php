@@ -289,12 +289,6 @@ class ReportRenderer
                 "class" => $values["class"],
                 "function" => $values["function"],
             ));
-        } else {
-            foreach ($values["bts"] as $bt) {
-                if (strpos($bt, '(rapp)/')===0) {
-                    $params["__"]["pos"] = $bt;
-                }
-            }
         }
         // params.level <- level
         $params["level"] = $values["level"] ?: Logger::ERROR;
@@ -356,9 +350,19 @@ class ReportRenderer
      */
     public static function compactRecord($record)
     {
+        // btsの補完
         if ( ! $record["context"]["__"]["bts"]) {
             $record["context"]["__"]["bts"] = ReportRenderer::compactBacktraces(debug_backtrace());
         }
+        // posの補完
+        if ( ! $record["context"]["__"]["pos"]) {
+            foreach ($record["context"]["__"]["bts"] as $bt) {
+                if (strpos($bt, '(rapp)/')===0) {
+                    $record["context"]["__"]["pos"] = $bt;
+                }
+            }
+        }
+        // __以外の値の整形
         foreach ($record["context"] as $k=>$v) {
             if ($k!=="__") {
                 $record["context"][$k] = self::compactValue($v);
@@ -372,12 +376,15 @@ class ReportRenderer
     public static function compactValue($value)
     {
         $r = null;
-        if (is_array($value)) {
+        if (is_array($value) || ($value instanceof \ArrayObject)) {
+            if (is_object($value)) {
+                $r["__type"] = "object(".get_class($value).')';
+            }
             foreach ($value as $k=>$v) {
                 $r[$k] = self::compactValue($v);
             }
         } elseif (is_object($value) && method_exists($value,"__report")) {
-            $r["type"] = get_class($value);
+            $r["__type"] = "object(".get_class($value).')';
             foreach ((array)$value->__report() as $k=>$v) {
                 $r[$k] = self::compactValue($v);
             }
@@ -385,15 +392,15 @@ class ReportRenderer
             $ref = is_array($value) ? new \ReflectionMethod($value[0], $value[1]) : new \ReflectionFunction($value);
             $r = 'function '.$ref->getName().'@'.$ref->getFileName().'(L'.$ref->getStartLine().')';
         } elseif (is_object($value)) {
-            $r = get_class($value);
+            $r = "object(".get_class($value).')';
         } elseif (is_null($value)) {
             $r = "null";
         } elseif (is_bool($value)) {
             $r = $value ? "true" : "false";
         } elseif ( ! is_string($value)) {
-            $r = gettype($value)." ".$value;
+            $r = gettype($value)."(".$value.")";
         } else {
-            $r = '"'.(string)$value.'"';
+            $r = '"'.(strlen($value)>500 ? substr($value,0,500).'...' : (string)$value).'"';
         }
         return $r;
     }
@@ -447,16 +454,16 @@ class ReportRenderer
         if ($bt["args"]) {
             $r .= "(";
             foreach ($bt["args"] as $i=>$arg) {
+                if ($i>0) {
+                    $r .=" , ";
+                }
                 if (is_object($arg)) {
                     $r .= get_class($arg);
                 } elseif (is_array($arg)) {
                     $r .= "array[".count($arg)."]";
                 } else {
                     $str = $arg;
-                    $r .= '"'.(strlen($str)>10 ? substr($str,10).'...' : $str).'"';
-                }
-                if ($i>0) {
-                    $r .=" , ";
+                    $r .= '"'.(strlen($str)>10 ? substr($str,0,10).'...' : $str).'"';
                 }
             }
             $r .= ")";
@@ -496,20 +503,21 @@ class ReportRenderer
                 .'#000000;cursor:hand;height:40px;color:'.$c.'">'.$pos
                 .'<div style="margin:0 0 0 10px">'.$message.self::indentValues($params, $format).'</div>'
                 .'<div style="margin:0 0 0 10px;display:none;" id="'.$elm_id.'_detail">'
-                .'Backtraces<br/>'.self::indentValues($bts, $format)
-                .'</div></div>';
+                .'Backtraces '.self::indentValues($bts, $format).'</div></div>';
         // Console形式
         } elseif ($format=="console") {
             $text = "";
             $text .= "*\n* ".$message."\n*";
             $text .= "\n[PARAM] ".self::indentValues($params, $format);
             $text .= "\n[TRACE] ".self::indentValues($bts, $format);
+            // 色の指定
             // http://qiita.com/hidai@github/items/1704bf2926ab8b157a4f
-            $c = array("n"=>"\033[0m", "bg"=>"\033[30;42m", "fg"=>"\033[32;40m");
-            if ($level >= Logger::ERROR) $c = array("n"=>"\033[0m", "bg"=>"\033[97;41m", "fg"=>"\033[31;40m");
-            elseif ($level >= Logger::WARNING) $c = array("n"=>"\033[0m", "bg"=>"\033[30;43m", "fg"=>"\033[33;40m");
-            return $c["bg"]."[".$level."] ".$pos.$c["n"]."\n"
-                .$c["fg"].$text.$c["n"]."\n";
+            $cn = "\033[0m";
+            $c = array("bg"=>"\033[30;42m", "fg"=>"\033[32;40m");
+            if ($level >= Logger::ERROR) $c = array("bg"=>"\033[97;41m", "fg"=>"\033[31;40m");
+            elseif ($level >= Logger::WARNING) $c = array("bg"=>"\033[30;43m", "fg"=>"\033[33;40m");
+            return $c["bg"]."[".$level."] ".$pos.$cn."\n"
+                .$c["fg"].$text.$cn."\n";
         }
     }
     /**
@@ -519,16 +527,17 @@ class ReportRenderer
     {
         $tab_code = $format==="html" ? "&nbsp;&nbsp;&nbsp;&nbsp;" : "    ";
         $br_code = $format==="html" ? "<br/>" : "\n";
-        if ($level > 10) {
-            return "*** DEPTH over 10 ***";
-        }
         $text = "";
+        if ($values["__type"]) {
+            $text .= $values["__type"];
+            unset($values["__type"]);
+        }
         foreach ($values as $k=>$v) {
             $text .= $br_code.str_repeat($tab_code, $level).$k." : ";
             if (is_array($v) && count($v)) {
                 $text .= self::indentValues($v,$format,$level+1);
             } elseif (is_array($v) && ! count($v)) {
-                $text .= "[]";
+                $text .= "array[]";
             } else {
                 $text .= $html_mode ? htmlspecialchars($v) : str_replace("\n",'\n',$v);
             }
