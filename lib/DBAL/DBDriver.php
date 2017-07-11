@@ -12,7 +12,7 @@ class DBDriver
     {
         if ( ! $this->connections[$ds_name]) {
             $config = app()->config("db.connection.".$ds_name);
-            $class = $config["class"] ?: 'R\Lib\DBAL\DBConnectionCake2';
+            $class = $config["class"] ?: 'R\Lib\DBAL\DBConnectionDoctrine2';
             $this->connections[$ds_name] = new $class($ds_name, $config);
         }
         return $this->connections[$ds_name];

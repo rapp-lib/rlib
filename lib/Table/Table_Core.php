@@ -237,7 +237,7 @@ class Table_Core
         if ( ! isset($this->pager)) {
             // Pager取得用にSQL再発行
             $query = clone($this->query);
-            $query["fields"] =array("count"=>"COUNT(*)");
+            $query["fields"] = array("count"=>"COUNT(*)");
             unset($query["limit"]);
             unset($query["offset"]);
             unset($query["order"]);

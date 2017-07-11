@@ -180,7 +180,7 @@ class ReportRenderer
         // posの補完
         if ( ! $record["context"]["__"]["pos"]) {
             foreach ($record["context"]["__"]["bts"] as $bt) {
-                if (strpos($bt, '(rapp)/')===0) {
+                if (preg_match('!^\(rapp\)/!',$bt)) {
                     $record["context"]["__"]["pos"] = $bt;
                 }
             }
@@ -236,9 +236,22 @@ class ReportRenderer
     private static function compactBacktraces($bts)
     {
         $rs = array();
-        foreach (array_reverse($bts) as $bt) {
+        $bts = array_reverse($bts);
+        foreach ($bts as $i=>$bt) {
+            // Monologの呼び出し以降は記録不要
             if ($bt['class']=='Monolog\Logger') break;
-            $rs[] = self::compactBacktraceRow($bt);
+            // 動的呼び出しでファイルの場所が解決できない場合Reflectionで解決
+            if ( ! $bt["line"] && ($bts[$i-1]["function"]==="call_user_func"
+                || $bts[$i-1]["function"]==="call_user_func_array")
+                && (is_callable($cb = $bts[$i-1]["args"][0]))) {
+                $ref = is_array($cb) ? new \ReflectionMethod($cb[0], $cb[1]) : new \ReflectionFunction($cb);
+                $bt["file"] = $ref->getFileName();
+                $bt["line"] = $ref->getStartLine();
+            }
+            $r = self::compactBacktraceRow($bt);
+            // vendor内は記録不要
+            if (preg_match('!^\(vendor\)/!',$r)) continue;
+            $rs[] = $r;
         }
         return $rs;
     }

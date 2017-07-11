@@ -12,7 +12,7 @@ class DBConnectionCake2 implements DBConnection
     }
     public function getDbName()
     {
-        return $this->config["database"];
+        return $this->config["dbname"];
     }
     public function quoteName($name)
     {
@@ -105,6 +105,9 @@ class DBConnectionCake2 implements DBConnection
             if ($this->config["driver"] && ! $this->config["datasource"]) {
                 $this->config["datasource"] ='Database/'.str_camelize($this->config["driver"]);
             }
+            if (preg_match('!^pdo_(,+)$!',$this->config["driver"],$_)) $this->config["driver"] = $_[1];
+            if ($this->config["dbname"]) $this->config["database"] = $db_config["dbname"];
+            if ($this->config["user"]) $this->config["login"] = $db_config["user"];
             \ConnectionManager::create($this->ds_name, $this->config);
             $this->ds = \ConnectionManager::getDataSource($this->ds_name);
         }
