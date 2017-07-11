@@ -21,7 +21,7 @@ class Query extends ArrayObject
         "offset" => array(),
         "limit" => array(),
         // WHERE句
-        "conditions" => array(),
+        "where" => array(),
         // UPDATE文のSET句、INSERT文のINTO/VALUES句
         "values" => array(),
 
@@ -51,7 +51,7 @@ class Query extends ArrayObject
             if ($key=="field") { $key = "fields"; }
             if ($key=="value") { $key = "values"; }
             if ($key=="join") { $key = "joins"; }
-            if ($key=="condition") { $key = "conditions"; }
+            if ($key=="where") { $key = "where"; }
             if ($key=="assoc_field") { $key = "assoc_fields"; }
             if ($key=="assoc_value") { $key = "assoc_values"; }
 
@@ -198,7 +198,6 @@ class Query extends ArrayObject
             "query" => $this,
         ));
     }
-
     /**
      * @deprecated
      * PHP5.3.3以前でArrayObjectでネストした配列のUnsetが無効になるバグに対応するUnset処理
@@ -207,7 +206,6 @@ class Query extends ArrayObject
     {
         array_unset($array, $key);
     }
-
     /**
      * @getter
      */
@@ -215,7 +213,6 @@ class Query extends ArrayObject
     {
         return strlen($this["alias"]) ? $this["alias"] : $this["table"];
     }
-
     /**
      * @setter
      */
@@ -234,33 +231,23 @@ class Query extends ArrayObject
         }
         $this["type"] = $type;
     }
-
     /**
      * @setter
      * joinsを設定する
      */
     public function join ($table, $on=array(), $type="LEFT")
     {
-        $alias = null;
-        if (is_string($table)) {
-            $alias = $table;
-        } elseif (is_array($table) && isset($table[0])) {
-            $alias = $table[1];
-            $table = $table[0];
-        } elseif (is_a($table,"R\\Lib\\Table\\Table_Base")) {
+        if ($table instanceof Table_Base) {
             $alias = $table->getQueryTableName();
+            if ($alias && is_string($table) && $alias!==$table) {
+                $table = array($table, $alias);
+            }
         }
         if ( ! is_array($on)) {
             $on = array($on);
         }
-        $this["joins"][] = array(
-            "table" => $table,
-            "alias" => $alias,
-            "conditions" => $on,
-            "type" => $type,
-        );
+        $this["joins"][] = array($table, $on, $type);
     }
-
     /**
      * @setter
      * conditionsを設定する
@@ -268,12 +255,11 @@ class Query extends ArrayObject
     public function where ($k,$v=false)
     {
         if ($v === false) {
-            $this["conditions"][] = $k;
+            $this["where"][] = $k;
         } else {
-            $this["conditions"][$k] = $v;
+            $this["where"][$k] = $v;
         }
     }
-
     /**
      * クエリの統合（上書きを避けつつ右を優先）
      */

@@ -31,8 +31,8 @@ class ReportRenderer
                 .'style="font-size:14px;text-align:left;overflow:hidden;'
                 .'margin:1px;padding:2px;font-family: monospace;'
                 .'border:#888888 1px solid;background-color:'
-                .'#000000;cursor:hand;height:40px;color:'.$c.'">'.$pos
-                .'<div style="margin:0 0 0 10px">'.htmlspecialchars($message).self::indentValues($params, $format).'</div>'
+                .'#000000;cursor:hand;line-height:20px;height:40px;color:'.$c.'">'.$pos
+                .'<div style="margin:0 0 0 10px">'.$message.self::indentValues($params, $format).'</div>'
                 .'<div style="margin:0 0 0 10px;display:none;" id="'.$elm_id.'_detail">'
                 .'Backtraces '.self::indentValues($bts, $format).'</div></div>';
         // Console形式
@@ -223,7 +223,7 @@ class ReportRenderer
         } elseif ( ! is_string($value)) {
             $r = gettype($value)."(".$value.")";
         } else {
-            $r = '"'.(strlen($value)>500 ? mb_substr($value,0,500,"UTF-8").'...' : (string)$value).'"';
+            $r = '"'.(strlen($value)>500 ? substr($value,0,500).'...' : (string)$value).'"';
         }
         return $r;
     }
@@ -286,7 +286,7 @@ class ReportRenderer
                     $r .= "array[".count($arg)."]";
                 } else {
                     $str = $arg;
-                    $r .= '"'.(strlen($str)>20 ? mb_substr($str,0,20,"UTF-8").'...' : $str).'"';
+                    $r .= '"'.(strlen($str)>20 ? substr($str,0,20).'...' : $str).'"';
                 }
             }
             $r .= ")";

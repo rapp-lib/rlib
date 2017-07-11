@@ -3,12 +3,10 @@ namespace R\Lib\Table;
 
 class Pager
 {
-    private $result;
     private $values;
 
-    public function __construct ($result, $count, $offset, $limit)
+    public function __construct ($count, $offset, $limit)
     {
-        $this->result = $result;
         // 明らかに無効なoffsetであれば補正
         if ($offset < 0 || $offset > $count) {
             $offset = 0;

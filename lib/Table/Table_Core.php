@@ -65,7 +65,7 @@ class Table_Core
 
         // テーブル名を関連づける
         if (static::$table_name) {
-            $this->query->setDbname($this->getDbname());
+            $this->query->setDbname($this->getConnection()->getDbname());
             $this->query->setTable(static::$table_name);
         }
     }
@@ -92,6 +92,37 @@ class Table_Core
         ));
     }
 
+// -- DBConnection取得
+
+    protected $connection = null;
+    /**
+     * dsnameに対応するDBConnectionを取得する
+     */
+    public function getConnection ()
+    {
+        return app()->db(static::$ds_name);
+    }
+
+// -- SQLBuilder取得
+
+    protected $sql_builder = null;
+    /**
+     * SQLBuilderを取得する
+     */
+    public function getSQLBuilder ()
+    {
+        if ( ! $this->sql_builder) {
+            $db = $this->getConnection();
+            $this->sql_builder = new QuerySQLBuilder(array(
+                "quote_name" => array($db,"quoteName"),
+                "quote_value" => array($db,"quoteValue"),
+            ));
+        }
+        return $this->sql_builder;
+    }
+
+// -- 関連オブジェクトのFactory
+
     /**
      * Tableオブジェクトを作成する
      */
@@ -105,7 +136,6 @@ class Table_Core
         }
         return table($match[1]);
     }
-
     /**
      * Recordオブジェクトを作成する
      */
@@ -126,6 +156,8 @@ class Table_Core
         return $record;
     }
 
+// -- 定義の取得
+
     /**
      * Table定義の取得
      */
@@ -137,7 +169,6 @@ class Table_Core
         $table_def["cols"] = (array)static::$cols;
         return $table_def;
     }
-
     /**
      * Col定義の取得
      */
@@ -145,7 +176,6 @@ class Table_Core
     {
         return static::$cols[$col_name];
     }
-
     /**
      * ID属性の指定されたカラム名の取得
      */
@@ -159,7 +189,6 @@ class Table_Core
         }
         return $id_col_name;
     }
-
     /**
      * 属性の指定されたカラム名の取得
      */
@@ -172,7 +201,6 @@ class Table_Core
         }
         return null;
     }
-
     /**
      * 属性の指定されたカラム名をすべて取得
      */
@@ -186,7 +214,6 @@ class Table_Core
         }
         return $cols;
     }
-
     /**
      * Query上で参照可能なTable名の取得
      */
@@ -194,6 +221,8 @@ class Table_Core
     {
         return $this->query->getTableName();
     }
+
+// -- resultに対するHook
 
     /**
      * @hook result
@@ -207,21 +236,20 @@ class Table_Core
         }
         if ( ! isset($this->pager)) {
             // Pager取得用にSQL再発行
-            $query = (array)$this->query;
+            $query = clone($this->query);
             $query["fields"] =array("count"=>"COUNT(*)");
             unset($query["limit"]);
             unset($query["offset"]);
             unset($query["order"]);
-            $statement = $this->queryToStatement($query);
-            $result = $this->getDBI()->exec($statement,array("Query"=>$query));
-            $t = $result->fetch();
-            $count =(int)$t["count"];
+            $statement = $this->getSQLBuilder()->render($this->query);
+            $result_res = $this->getConnection()->exec($statement);
+            $t = $this->getConnection()->fetch($result_res);
+            $count = (int)$t["count"];
             // Pager組み立て
-            $this->pager = new Pager($result, $count, $this->query["offset"], $this->query["limit"]);
+            $this->pager = new Pager($count, $this->query["offset"], $this->query["limit"]);
         }
         return $this->pager;
     }
-
     /**
      * @hook result
      * 各レコードの特定カラムのみの配列を取得する
@@ -238,7 +266,6 @@ class Table_Core
         }
         return $hashed_result;
     }
-
     /**
      * @hook result
      * 各レコードを特定カラムでグループ化した配列を取得する
@@ -255,22 +282,18 @@ class Table_Core
         }
         return $grouped_result;
     }
-
     /**
      * @hook result
      * InsertしたレコードのIDを取得
+     * ※値が書き換わるのでINSERT直後に一度呼び出しておくことを推奨
      */
     public function result_getLastInsertId ($result)
     {
         if ( ! isset($this->last_insert_id)) {
-            $ds = $this->getDBI()->get_datasource();
-            $id_col_name = $this->getIdColName();
-            $table_name = static::$table_name;
-            $this->last_insert_id = $this->getDBI()->get_datasource()->lastInsertId($table_name,$id_col_name);
+            $this->last_insert_id = $this->getConnection()->lastInsertId(static::$table_name, $this->getIdColName());
         }
         return $this->last_insert_id;
     }
-
     /**
      * @hook result
      * 1結果レコードのFetch
@@ -281,16 +304,8 @@ class Table_Core
         if ($this->fetch_done) {
             return false;
         }
-
-        $ds = $this->getDBI()->get_datasource();
-        // 実行結果が無効であれば処理しない
-        if ( ! $ds) {
-            return false;
-        }
         // fetch実処理
-        $ds->resultSet($ds->_result = $this->result_res);
-        $data = $ds->fetchResult();
-
+        $data = $this->getConnection()->fetch($this->result_res);
         // 結果セットの残りがなければ完了済みとする
         if ( ! $data) {
             // on_fetchEnd_*を呼び出す
@@ -315,13 +330,10 @@ class Table_Core
                 $result[] = $record;
             }
         }
-
         // on_fetch_*を呼び出す
         $this->callListenerMethod("fetch",array($record));
-
         return $record;
     }
-
     /**
      * @hook result
      * 全結果レコードのFetch
@@ -331,6 +343,8 @@ class Table_Core
         while ($result->fetch() !== false);
         return $result;
     }
+
+// -- recordに対するHook
 
     /**
      * @hook record
@@ -351,7 +365,6 @@ class Table_Core
             }
         }
     }
-
     /**
      * @hook record
      * IDの設定によりInsert/Update処理
@@ -377,33 +390,22 @@ class Table_Core
 // -- SELECT文の発行
 
     /**
-     * idを指定してSELECT文の発行 1件取得
+     * SELECT文の発行 全件取得
      */
-    public function selectById ($id, $fields=array())
+    public function select ($fields=array())
     {
-        $this->findById($id);
-        return $this->selectOne($fields);
+        $this->query->addFields($fields);
+        return $this->execQuery("select")->fetchAll();
     }
-
     /**
-     * 本登録URL押下時の処理（仮）
-     * 仮登録パラメータとの完全一致レコードを取得する
-     * 記述場所は正しいか
-     * 拡張性を持たせるため共通でCredだが、
-     * +で仮メールアドレスの完全一致が必要??
+     * SELECT文の発行 Fetch/マッピングを行わない
      */
-    public function selectByCred ($key,$val, $fields=array())
+    public function selectNoFetch ($fields=array())
     {
-        $this->findByCred($key,$val);
-        return $this->selectOne($fields);
+        $this->query->addFields($fields);
+        $this->query->setNoMapping(true);
+        return $this->execQuery("select");
     }
-
-    public function selectByMail ($key,$val, $fields=array())
-    {
-        $this->findByMail($key,$val);
-        return $this->selectOne($fields);
-    }
-
     /**
      * SELECT文の発行 1件取得
      */
@@ -419,7 +421,14 @@ class Table_Core
         }
         return $record;
     }
-
+    /**
+     * idを指定してSELECT文の発行 1件取得
+     */
+    public function selectById ($id, $fields=array())
+    {
+        $this->findById($id);
+        return $this->selectOne($fields);
+    }
     /**
      * SELECT文の発行 全件取得してハッシュを作成
      */
@@ -430,25 +439,6 @@ class Table_Core
         $this->query->addField($col_name);
         $ts = $this->select();
         return $ts->hashBy($col_name);
-    }
-
-    /**
-     * SELECT文の発行 全件取得
-     */
-    public function select ($fields=array())
-    {
-        $this->query->addFields($fields);
-        return $this->execQuery("select")->fetchAll();
-    }
-
-    /**
-     * SELECT文の発行 Fetch/マッピングを行わない
-     */
-    public function selectNoFetch ($fields=array())
-    {
-        $this->query->addFields($fields);
-        $this->query->setNoMapping(true);
-        return $this->execQuery("select");
     }
 
 // -- INSERT/UPDATE/DELETE文の発行
@@ -469,7 +459,6 @@ class Table_Core
             return $this->insert();
         }
     }
-
     /**
      * INSERT文の発行
      */
@@ -478,7 +467,6 @@ class Table_Core
         $this->query->addValues($values);
         return $this->execQuery("insert");
     }
-
     /**
      * idを指定してUPDATE文の発行
      */
@@ -487,7 +475,6 @@ class Table_Core
         $this->findById($id);
         return $this->updateAll($values);
     }
-
     /**
      * UPDATE文の発行
      */
@@ -496,7 +483,6 @@ class Table_Core
         $this->query->addValues($values);
         return $this->execQuery("update");
     }
-
     /**
      * DELETE文の発行
      */
@@ -505,7 +491,6 @@ class Table_Core
         $this->findById($id);
         return $this->deleteAll();
     }
-
     /**
      * DELETE文の発行
      */
@@ -515,30 +500,28 @@ class Table_Core
         return $this->execQuery("update");
     }
 
+// -- トランザクションの操作
+
     /**
-     * BEGIN文の発行
+     * BEGINの発行
      */
-    public function transactionBegin ()
+    public function begin ()
     {
-        return $this->getDBI()->begin();
+        return $this->getConnection()->begin();
     }
-
-// -- TRANSACTION文発行
-
     /**
-     * COMMIT文の発行
+     * COMMITの発行
      */
-    public function transactionCommit ()
+    public function commit ()
     {
-        return $this->getDBI()->commit();
+        return $this->getConnection()->commit();
     }
-
     /**
-     * ROLLBACK文の発行
+     * ROLLBACKの発行
      */
-    public function transactionRollback ()
+    public function rollback ()
     {
-        return $this->getDBI()->rollback();
+        return $this->getConnection()->rollback();
     }
 
 // -- SQL組み立て/発行実処理
@@ -552,7 +535,6 @@ class Table_Core
         if ($this->statement) {
             return $this->statement;
         }
-
         // typeの指定を確認する
         if ($type) {
             $this->query->setType($type);
@@ -563,17 +545,123 @@ class Table_Core
                 "table" => $this,
             ));
         }
-
         // Query組み立て処理を呼び出す
         $this->callBuildQueryMethods();
-
-        // SQL組み立て用配列をDBIの仕様にあわせて加工
-        return $this->statement = $this->queryToStatement($this->query);
+        // SQL組み立て
+        return $this->statement = $this->getSQLBuilder()->render($this->query);
     }
     /**
-     * 完成済みのQueryからSQL文を取得する
+     * SQLの発行実処理
      */
-    public function queryToStatement ($query)
+    public function execQuery ($type=null)
+    {
+        // 実行済みであれば結果を返す
+        if ($this->result) {
+            return $this->result;
+        }
+        // Query組み立ての仕上げ処理
+        $statement = $this->buildQuery($type);
+        // SQLの実行
+        $this->result_res = $this->getConnection()->exec($statement, array("table"=>$this));
+        // Resultの組み立て
+        $this->result = new Result($this);
+        // LastInsertIdの確保
+        if ($type=="insert") {
+            $this->result->getLastInsertId();
+        }
+        // on_afterWrite_*を呼び出す
+        if ($type=="insert" || $type=="update") {
+            $this->callListenerMethod("afterWrite",array($record));
+        }
+
+        return $this->result;
+    }
+
+// -- hookメソッド呼び出し関連処理
+
+    /**
+     * buildQuery上で必要になるon_*_*処理をまとめて呼び出す
+     */
+    private function callBuildQueryMethods ()
+    {
+        // 呼び出すHookを選択
+        $hooks = array();
+        $type = $this->query->getType();
+        // type別
+        $hooks[] =$type;
+        // valuesを持つQuery
+        if ($type=="insert" || $type=="update") {
+            $hooks[] ="write";
+        }
+        // whereを持つQuery
+        if ($type=="select" || $type=="update") {
+            $hooks[] ="read";
+        }
+        // 全て
+        $hooks[] ="any";
+        // 呼び出す
+        foreach ($hooks as $hook) {
+            $this->callListenerMethod($hook,array());
+        }
+    }
+    /**
+     * on hookメソッドを呼び出す
+     */
+    protected function callListenerMethod ($hook, $args=array())
+    {
+        // 定義されているon_*_*メソッド名を収集
+        $defined = & self::$defined_listener_method[get_class($this)];
+        if ( ! isset($defined)) {
+            $defined = array();
+            foreach (get_class_methods($this) as $method_name) {
+                if (strpos($method_name,"on_")!==0) {
+                    continue;
+                }
+                $pattern = explode("_",$method_name,3);
+                $defined[$pattern[1]][] = $method_name;
+            }
+        }
+
+        // Hookを呼び出す
+        foreach ((array)$defined[$hook] as $method_name) {
+            $this->callHookMethod($method_name,$args);
+        }
+    }
+    /**
+     * hookメソッドを呼び出す
+     */
+    protected function callHookMethod ($method_name, $args=array())
+    {
+        if (method_exists($this, $method_name)) {
+            $result = call_user_func_array(array($this,$method_name),$args);
+            if ($result!==false) {
+                // 履歴への登録
+                $this->hook_history[] = $method_name;
+                return true;
+            }
+        }
+        //TODO: extentionの探索
+        return false;
+    }
+
+// -- その他
+
+    /**
+     * reportの呼び出し時の処理
+     */
+    public function __report ()
+    {
+        return array(
+            "query" => $this->query,
+            "history" => (array)$this->hook_history,
+        );
+    }
+
+    /**
+     * 完成済みのQueryからSQL文を取得する
+     * @deprecated
+     */
+    private function queryToStatement ($query)
     {
         $query = (array)$query;
         if ($query["type"]=="select" && ! $query["fields"]) {
@@ -620,130 +708,14 @@ class Table_Core
         $st_method = "st_".$query["type"];
         return $this->getDBI()->$st_method($query);
     }
-
-    /**
-     * buildQuery上で必要になるon_*_*処理をまとめて呼び出す
-     */
-    private function callBuildQueryMethods ()
-    {
-        // 呼び出すHookを選択
-        $hooks = array();
-        $type = $this->query->getType();
-        // type別
-        $hooks[] =$type;
-        // valuesを持つQuery
-        if ($type=="insert" || $type=="update") {
-            $hooks[] ="write";
-        }
-        // whereを持つQuery
-        if ($type=="select" || $type=="update") {
-            $hooks[] ="read";
-        }
-        // 全て
-        $hooks[] ="any";
-        // 呼び出す
-        foreach ($hooks as $hook) {
-            $this->callListenerMethod($hook,array());
-        }
-    }
-
-    /**
-     * Queryの発行
-     */
-    public function execQuery ($type=null)
-    {
-        // 実行済みであれば結果を返す
-        if ($this->result) {
-            return $this->result;
-        }
-
-        // Query組み立ての仕上げ処理
-        $statement = $this->buildQuery($type);
-        // SQLの実行
-        $this->result_res =$this->getDBI()->exec($statement, array(
-            "Table" =>$this,
-        ));
-        // Resultの組み立て
-        $this->result = new Result($this);
-        // LastInsertIdの確保
-        if ($type=="insert") {
-            $this->result->getLastInsertId();
-        }
-        // on_afterWrite_*を呼び出す
-        if ($type=="insert" || $type=="update") {
-            $this->callListenerMethod("afterWrite",array($record));
-        }
-
-        return $this->result;
-    }
-
-// -- hookメソッド呼び出し関連処理
-
-    /**
-     * on hookメソッドを呼び出す
-     */
-    protected function callListenerMethod ($hook, $args=array())
-    {
-        // 定義されているon_*_*メソッド名を収集
-        $defined = & self::$defined_listener_method[get_class($this)];
-        if ( ! isset($defined)) {
-            $defined = array();
-            foreach (get_class_methods($this) as $method_name) {
-                if (strpos($method_name,"on_")!==0) {
-                    continue;
-                }
-                $pattern = explode("_",$method_name,3);
-                $defined[$pattern[1]][] = $method_name;
-            }
-        }
-
-        // Hookを呼び出す
-        foreach ((array)$defined[$hook] as $method_name) {
-            $this->callHookMethod($method_name,$args);
-        }
-    }
-
-    /**
-     * hookメソッドを呼び出す
-     */
-    protected function callHookMethod ($method_name, $args=array())
-    {
-        if (method_exists($this, $method_name)) {
-            $result = call_user_func_array(array($this,$method_name),$args);
-            if ($result!==false) {
-                // 履歴への登録
-                $this->hook_history[] = $method_name;
-                return true;
-            }
-        }
-        //TODO: extentionの探索
-        return false;
-    }
-
     /**
      * @deprecated
      * DB名を取得する
      */
     protected function getDbname ()
     {
-        return app()->config("db.connection.".static::$ds_name.'.database');
+        return $this->getConnection()->getDbname();
     }
-
-// -- その他のprivateメソッド
-
-    /**
-     * @deprecated
-     * @override
-     * reportの呼び出し時の処理
-     */
-    public function __report ()
-    {
-        return array(
-            "query" => $this->query,
-            "history" => (array)$this->hook_history,
-        );
-    }
-
     /**
      * @deprecated
      * DBIオブジェクトの取得

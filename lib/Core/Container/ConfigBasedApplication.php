@@ -17,6 +17,7 @@ class ConfigBasedApplication implements Container
             "session" => 'R\Lib\Session\SessionDriver',
             "user" => 'R\Lib\Auth\UserLoginDriver',
             "file" => 'R\Lib\File\UserFileDriver',
+            "db" => 'R\Lib\DBAL\DBDriver',
             // 3.x
             "table" => 'R\Lib\Table\TableFactory',
             "form" => 'R\Lib\Form\FormFactory',

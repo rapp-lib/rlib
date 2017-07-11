@@ -18,6 +18,23 @@ class Table_Base extends Table_Core
         }
         return false;
     }
+    /**
+     * 本登録URL押下時の処理（仮）
+     * 仮登録パラメータとの完全一致レコードを取得する
+     * 記述場所は正しいか
+     * 拡張性を持たせるため共通でCredだが、
+     * +で仮メールアドレスの完全一致が必要??
+     */
+    public function selectByCred ($key,$val, $fields=array())
+    {
+        $this->findByCred($key,$val);
+        return $this->selectOne($fields);
+    }
+    public function selectByMail ($key,$val, $fields=array())
+    {
+        $this->findByMail($key,$val);
+        return $this->selectOne($fields);
+    }
 
 // -- 基本的なassoc hookの定義
 
