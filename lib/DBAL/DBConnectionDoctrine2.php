@@ -4,6 +4,7 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use PDO;
 use PDOStatement;
+use R\Lib\Util\Cli;
 
 class DBConnectionDoctrine2 implements DBConnection
 {
@@ -18,6 +19,14 @@ class DBConnectionDoctrine2 implements DBConnection
     {
         return $this->config["dbname"];
     }
+    public function getDoctrine()
+    {
+        return $this->getDS();
+    }
+    public function lastInsertId ($table_name=null, $pkey_name=null)
+    {
+        return $this->getDS()->lastInsertId($table_name);
+    }
     public function quoteName($name)
     {
         return $this->getDS()->quoteIdentifier($name);
@@ -26,10 +35,9 @@ class DBConnectionDoctrine2 implements DBConnection
     {
         return $this->getDS()->quote($value);
     }
-    public function lastInsertId ($table_name=null, $pkey_name=null)
-    {
-        return $this->getDS()->lastInsertId($table_name);
-    }
+
+// -- トランザクション操作
+
     public function begin ()
     {
         $this->getDS()->beginTransaction();
@@ -57,6 +65,7 @@ class DBConnectionDoctrine2 implements DBConnection
             $stmt->execute();
         } catch (\Exception $e) {
             $error = $this->getDS()->errorInfo();
+            if ($error[0]==="00000") unset($error);
         }
         // SQL発行後のレポート
         $params["elapsed"] = round((microtime(true) - $start_ms)*1000,2)."ms";
@@ -96,6 +105,46 @@ class DBConnectionDoctrine2 implements DBConnection
         return $result;
     }
 
+// -- 固有機能
+
+    public function getDoctrineConnection()
+    {
+        return $this->getDS();
+    }
+    public function analyzeSql($st)
+    {
+        if ($this->config["driver"]==="pdo_mysql") {
+            if ( ! preg_match('!^SELECT\s!is',$st)) return null;
+            $result = $this->getDS()->query("EXPLAIN ".$st);
+            $result->execute();
+            $explain = $result->fetchAll(\PDO::FETCH_ASSOC);
+            return SQLAnalyzer::analyzeMysqlExplain($explain);
+        }
+        return false;
+    }
+    public function dumpData($filename)
+    {
+        if ($this->config["driver"]==="pdo_mysql") {
+            $args = array();
+            $args[] = array("-B", $this->config["dbname"]);
+            if ($this->config["host"]) $args[] = array("-h", $this->config["host"]);
+            if ($this->config["port"]) $args[] = array("-P", $this->config["port"]);
+            if ($this->config["login"]) $args[] = array("-u", $this->config["login"]);
+            if ($this->config["password"]) $args[] = array("--password=".$this->config["password"]);
+            $outpipe = preg_match('!\.gz!',$filename) ? "| gzip >" : ">";
+            $cmd = Cli::escape(array("mysqldump", $args, $outpipe=>array($filename)));
+            list($ret, $out, $err) = Cli::exec($cmd);
+            if ($ret) {
+                report_warning("mysqldumpが正常に実行できませんでした",array(
+                    "cmd" => $cmd,
+                    "err" => $err,
+                ));
+            }
+            return true;
+        }
+        return false;
+    }
+
 // --
 
     private $ds;
@@ -106,15 +155,5 @@ class DBConnectionDoctrine2 implements DBConnection
             $this->ds = DriverManager::getConnection($this->config, $options);
         }
         return $this->ds;
-    }
-    private function analyzeSql($st)
-    {
-        if ($this->config["driver"]==="pdo_mysql") {
-            if ( ! preg_match('!^SELECT\s!is',$st)) return null;
-            $result = $this->getDS()->query("EXPLAIN ".$st);
-            $result->execute();
-            $explain = $result->fetchAll(\PDO::FETCH_ASSOC);
-            return SQLAnalyzer::analyzeMysqlExplain($explain);
-        }
     }
 }

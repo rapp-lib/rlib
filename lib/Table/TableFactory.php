@@ -1,17 +1,12 @@
 <?php
 namespace R\Lib\Table;
 
-use R\Lib\Core\Contract\InvokableProvider;
-
 /**
  * Tableインスタンス生成クラス
  */
-class TableFactory implements InvokableProvider
+class TableFactory
 {
-    /**
-     * @override InvokableProvider
-     */
-    public function invoke ($table_name)
+    public function __invoke ($table_name)
     {
         return $this->factory($table_name);
     }
@@ -20,33 +15,45 @@ class TableFactory implements InvokableProvider
      */
     public function factory ($table_name)
     {
+        $def = $this->getTableDef($table_name);
+        return new $def["class"];
+    }
+
+// -- Table定義の取得
+
+    /**
+     * Tableの定義を取得
+     */
+    public function getTableDef($table_name)
+    {
         $class = 'R\App\Table\\'.str_camelize($table_name)."Table";
-        if ( ! $table_name || ! class_exists($class)) {
-            report_error("テーブルの指定が不正です",array(
+        if ( ! class_exists($class)) {
+            report_error("Tableクラスがありません",array(
                 "table_name" => $table_name,
                 "class" => $class,
             ));
         }
-        $table = new $class;
-        return $table;
-
+        $def = $class::getDef();
+        $def["class"] = $class;
+        return $def;
     }
     /**
-     * getDefのために使うTableインスタンス
+     * Table定義の一覧を取得
      */
-    private $tables = array();
-    /**
-     * Tableの構成を取得
-     */
-    public function getDef ($table_name, $col_name=null)
+    public function collectTableDefs(array $dirs)
     {
-        if ( ! isset($this->table[$table_name])) {
-            $this->table[$table_name] = table($table_name);
+        foreach ($dirs as $dir) {
+            foreach (glob($dir."/*") as $file) {
+                require_once($file);
+            }
         }
-        if (isset($col_name)) {
-            return $this->table[$table_name]->getColDef($col_name);
-        } else {
-            return $this->table[$table_name]->getDef();
+        $defs = array();
+        foreach (get_declared_classes() as $class) {
+            if (preg_match('!^'.preg_quote('R\App\Table\\').'([\w\d]+)Table$!', $class, $_)) {
+                $table_name = str_underscore($_[1]);
+                $defs[$table_name] = $this->getTableDef($table_name);
+            }
         }
+        return $defs;
     }
 }

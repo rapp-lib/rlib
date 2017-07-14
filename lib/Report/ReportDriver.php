@@ -61,10 +61,12 @@ class ReportDriver
     public function beforeShutdown()
     {
         if (app()->debug->getDebugLevel() && $this->flushable) {
-            foreach ((array)app()->session("Report_Logging")->buffer as $record) {
-                print ReportRenderer::render($record, "html");
+            if (php_sapi_name()!=="cli") {
+                foreach ((array)app()->session("Report_Logging")->buffer as $record) {
+                    print ReportRenderer::render($record, "html");
+                }
+                app()->session("Report_Logging")->buffer = array();
             }
-            app()->session("Report_Logging")->buffer = array();
         }
     }
 

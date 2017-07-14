@@ -128,13 +128,8 @@ class Table_Core
      */
     public function createTable ()
     {
-        $class_name = get_class($this);
-        if ( ! preg_match('!([a-zA-Z0-9]+)Table$!',$class_name,$match)) {
-            report_error("Tableクラスの命名が不正です",array(
-                "class_name" => $class_name,
-            ));
-        }
-        return table($match[1]);
+        $class = get_class($this);
+        return new $class;
     }
     /**
      * Recordオブジェクトを作成する
@@ -161,7 +156,7 @@ class Table_Core
     /**
      * Table定義の取得
      */
-    public function getDef ()
+    public static function getDef ()
     {
         $table_def = (array)static::$def;
         $table_def["table_name"] = static::$table_name;
@@ -172,16 +167,16 @@ class Table_Core
     /**
      * Col定義の取得
      */
-    public function getColDef ($col_name)
+    public static function getColDef ($col_name)
     {
         return static::$cols[$col_name];
     }
     /**
      * ID属性の指定されたカラム名の取得
      */
-    protected function getIdColName ()
+    public static function getIdColName ()
     {
-        $id_col_name = $this->getColNameByAttr("id");
+        $id_col_name = self::getColNameByAttr("id");
         if ( ! $id_col_name) {
             report_error("idカラムが定義されていません",array(
                 "table" => $this,
@@ -192,7 +187,7 @@ class Table_Core
     /**
      * 属性の指定されたカラム名の取得
      */
-    protected function getColNameByAttr ($attr, $value=true)
+    public static function getColNameByAttr ($attr, $value=true)
     {
         foreach (static::$cols as $col_name => $col) {
             if (($value===true && $col[$attr]) || $col[$attr]===$value) {
@@ -204,7 +199,7 @@ class Table_Core
     /**
      * 属性の指定されたカラム名をすべて取得
      */
-    protected function getColNamesByAttr ($attr, $value=true)
+    public static function getColNamesByAttr ($attr, $value=true)
     {
         $cols = array();
         foreach (static::$cols as $col_name => $col) {
@@ -214,6 +209,9 @@ class Table_Core
         }
         return $cols;
     }
+
+// -- Queryの情報取得
+
     /**
      * Query上で参照可能なTable名の取得
      */
