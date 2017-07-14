@@ -73,10 +73,10 @@ class DBConnectionDoctrine2 implements DBConnection
             $analyzed = $this->analyzeSql($st);
             if ($analyzed["msg"]) $params["explain"] = $analyzed["msg"];
         }
-        report('SQL Exec : '.$st, $params);
+        report_info('SQL Exec : '.$st, $params);
         if ($error) report_error('SQL Error : '.implode(' , ',$error), array_merge($params,array("SQL"=>$st)));
         foreach ((array)$analyzed["warn"] as $msg) {
-            report('Bad SQL '.$msg,array(
+            report_info('Bad SQL '.$msg,array(
                 "Full Explain" => $analyzed["full"],
             ));
         }

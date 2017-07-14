@@ -69,6 +69,7 @@
                                 $v =implode(',',$v);
                             }
                         }
+                        if (is_object($v)) $v = "";
                         $v =str_replace(array("\r\n","\n",'"'),array(" "," ",'&quot;'),$v);
                         $html .=$k.'="'.$v.'" ';
                     }

@@ -178,4 +178,49 @@ class ValidateRuleLoader
         }
         return array("message"=>"入力された値が異なっています");
     }
+    /**
+     * ファイルアップロードのエラーチェック
+     */
+    public static function callbackValidFile ($validator, $value, $rule)
+    {
+        if (is_string($value) && ! strlen($value)) {
+            return false;
+        }
+        if ( ! $value instanceof \Psr\Http\Message\UploadedFileInterface) {
+            return false;
+        }
+        $error = $value->getError();
+        // 値: 4; ファイルはアップロードされませんでした。
+        if ($error  == UPLOAD_ERR_NO_FILE) {
+            $result = false;
+        // 値: 0; エラーはなく、ファイルアップロードは成功しています。
+        } elseif ($error == UPLOAD_ERR_OK) {
+            $result = false;
+        // 値: 3; アップロードされたファイルは一部のみしかアップロードされていません。
+        } elseif ($error == UPLOAD_ERR_PARTIAL) {
+            $result = array("message"=>"ファイルのアップロードが完了しませんでした");
+        // 値: 1; アップロードされたファイルは、php.ini の upload_max_filesize ディレクティブの値を超えています。
+        // 値: 2; アップロードされたファイルは、HTML フォームで指定された MAX_FILE_SIZE を超えています。
+        } elseif ($error == UPLOAD_ERR_INI_SIZE || $error == UPLOAD_ERR_FORM_SIZE) {
+            $result = array("message"=>"ファイルサイズが制限容量オーバーです");
+        // 値: 6; テンポラリフォルダがありません。
+        // 値: 7; ディスクへの書き込みに失敗しました。
+        // 値: 8; PHP の拡張モジュールがファイルのアップロードを中止しました。
+        } elseif ($error > 4) {
+            $result = array("message"=>"ファイルが正しくアップロードできませんでした");
+        } else {
+            report_warning("ファイルアップロードで原因不明のエラーがありました",array(
+                "value" => $value,
+                "rule" => $rule,
+            ));
+        }
+        if ($result) {
+            report_warning("ファイルアップロードで問題がありました",array(
+                "error" => $result,
+                "value" => $value,
+                "rule" => $rule,
+            ));
+        }
+        return $result;
+    }
 }

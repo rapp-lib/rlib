@@ -24,7 +24,7 @@ class Uri extends \Zend\Diactoros\Uri
             $uri = $this->webroot->getRouter()->buildUriStringByPagePath("/".$match[1]);
         // UriInterfaceをもとに初期化
         } elseif ($uri instanceof Uri) {
-            $uri = $uri->getFullUriString();
+            $uri = $uri->__toString();
         } elseif ($uri instanceof UriInterface) {
             $uri = $uri->__toString();
         }
@@ -34,17 +34,19 @@ class Uri extends \Zend\Diactoros\Uri
 
 // --
 
-    public function getAbsUriString()
+    public function withoutAuthority()
+    {
+        $full_uri = parent::__toString();
+        $uri = preg_replace('!^(https?:)?//[^/]+!', "", $full_uri);
+        return new Uri($this->webroot,$uri);
+    }
+    public function withoutAuthorityInWebroot()
     {
         $full_uri = parent::__toString();
         if (preg_match('!^'.preg_quote($this->webroot->getBaseUri(),"!").'!', $full_uri)) {
-            return preg_replace('!^(https?:)?//[^/]+!', "", $full_uri);
+            return $this->withoutAuthority();
         }
-        return $full_uri;
-    }
-    public function getFullUriString()
-    {
-        return parent::__toString();
+        return $this;
     }
 
 // --

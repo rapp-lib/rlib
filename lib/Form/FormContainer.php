@@ -225,20 +225,20 @@ class FormContainer extends ArrayObject
                         // ファイルをアップロードしていない、またはエラー
                     } elseif ( ! $storage_name) {
                         $value = null;
-                        report_warning("File Upload NG", array(
+                        report_warning("File Upload Failure", array(
                             "field_name" => $field_name,
                             "field_def" => $field_def,
                         ));
                     } elseif ($file = app()->file->getStorage($storage_name)->upload($value)) {
                         $value = $file->getUri();
-                        report("File Upload OK",array(
+                        report_info("File Uploaded",array(
                             "field_name" => $field_name,
                             "uri" => $value,
                             "field_def" => $field_def,
                         ));
                     } else {
                         $value = null;
-                        report_warning("File Upload NG",array(
+                        report_warning("File Upload Failure",array(
                             "field_name" => $field_name,
                             "uploaded_file" => $value,
                             "field_def" => $field_def,
@@ -246,12 +246,12 @@ class FormContainer extends ArrayObject
                     }
                 }
                 // 変換処理の指定
-                if ($input_converts = $field_def["input_convert"]) {
-                    $input_converts = is_array($input_converts) ? $input_converts : array($input_converts);
-                    foreach ($input_converts as $input_convert) {
-                        $value = call_user_func(extention("input_convert",$input_convert), $value, $field_name, $field_def);
-                    }
-                }
+                // if ($input_converts = $field_def["input_convert"]) {
+                //     $input_converts = is_array($input_converts) ? $input_converts : array($input_converts);
+                //     foreach ($input_converts as $input_convert) {
+                //         $value = call_user_func(extention("input_convert",$input_convert), $value, $field_name, $field_def);
+                //     }
+                // }
                 return $value;
             });
         }
@@ -293,7 +293,7 @@ class FormContainer extends ArrayObject
             }
         }
         $attrs["action"] = app()->http->getServedRequest()->getUri()
-            ->getPageAction()->getController()->uri($attrs["action"])->getAbsUriString();
+            ->getPageAction()->getController()->uri($attrs["action"])->withoutAuthorityInWebroot();
         return tag("form",$attrs,$content);
     }
 
@@ -692,10 +692,9 @@ class FormContainer extends ArrayObject
                     $field_def["col"] = $field_col_name;
                 }
             }
-            // file_uploadの補完
-            if (isset($field_def["file_upload_to"])) {
-                $field_def["input_convert"][] = "file_upload";
-                $field_def["storage"] = $field_def["file_upload_to"];
+            // valid_file ruleの補完
+            if (isset($field_def["storage"])) {
+                $def["rules"][] = array($field_name, "valid_file");
             }
             $field_def["field_name"] = $field_name;
         }

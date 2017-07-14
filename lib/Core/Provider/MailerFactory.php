@@ -153,11 +153,11 @@ class Mail
     {
         $result = $this->mailer->send();
         if ($result) {
-            report("メール送信完了",array(
+            report_info("Mail Sent",array(
                 "mailer" => $this->mailer,
             ));
         } else {
-            report_warning("メール送信失敗",array(
+            report_warning("Mail Send Failure",array(
                 "mailer" => $this->mailer,
                 "error" => $this->mailer->ErrorInfo,
             ));

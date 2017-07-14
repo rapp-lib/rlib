@@ -10,7 +10,6 @@ class CsvfilterLoader
         if (method_exists($class_name,$callback_method)) {
             return array($class_name,$callback_method);
         }
-        report($callback_method);
     }
     // CSVからの入力項目についてのサニタイズ処理
     public static function callbackSanitize ($values, $mode, $line, $filter, $csv)

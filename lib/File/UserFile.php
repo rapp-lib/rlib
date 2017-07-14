@@ -23,4 +23,11 @@ class UserFile
         // "s3://"はAmazon S3 stream wrapperを導入して解決
         return $this->params["source"];
     }
+
+// --
+
+    public function __report()
+    {
+        return $this->params;
+    }
 }

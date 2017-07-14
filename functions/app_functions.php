@@ -58,22 +58,22 @@
 
 // -- Report
 
-    function report ($message, $vars=array())
+    function report ($message=null, $vars=null)
     {
-        if ( ! is_array($vars)) {
-            $vars = array("value" => $vars);
+        if (is_string($message) && is_array($vars)) {
+            return report_info($message, $vars);
         }
-        if ( ! is_string($message)) {
-            $vars["message"] = $message;
-            $message = "DEBUG";
-        }
+        app()->report->getLogger()->debug("DEBUG", func_get_args());
+    }
+    function report_info ($message, array $vars=array())
+    {
         app()->report->getLogger()->info($message, $vars);
     }
-    function report_warning ($message, $vars=array(), $options=array())
+    function report_warning ($message, array $vars=array())
     {
         app()->report->getLogger()->warn($message, $vars);
     }
-    function report_error ($message, $vars=array())
+    function report_error ($message, array $vars=array())
     {
         app()->report->raiseError($message, $vars);
     }

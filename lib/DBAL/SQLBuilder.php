@@ -32,8 +32,8 @@ class SQLBuilder
     }
     public function stInsert($q)
     {
-        return "INSERT ".$this->stTable($q["table"])
-            ." INTO ( ".$this->mapJoin($q["values"], function($self,$k,$v){ return $self->stName($k); }, " , ")." )"
+        return "INSERT INTO ".$this->stTable($q["table"])
+            ." ( ".$this->mapJoin($q["values"], function($self,$k,$v){ return $self->stName($k); }, " , ")." )"
             ." VALUES ( ".$this->mapJoin($q["values"], function($self,$k,$v){ return $self->stValue($v); }, " , ")." )";
     }
     public function stDelete($q)
@@ -151,7 +151,6 @@ class SQLBuilder
         // 条件式の演算子の分解
         $ops = array("<",">","=","<=",">=","==","<>","!=","LIKE","IN","NOT LIKE","NOT IN");
         $ptn = $this->mapJoin($ops, function($self,$k,$v){ return preg_quote($v,'!'); }, "|");
-        //preg_match($p='!^(.+?)\s+?('.$ptn.')$!i',$k,$_);report(array($k,$_,$p));
         return preg_match('!^(.+?)\s+?('.$ptn.')$!i',$k,$_) ? array($_[1], $_[2]) : false;
     }
 }

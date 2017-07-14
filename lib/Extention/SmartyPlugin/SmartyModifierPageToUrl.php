@@ -17,7 +17,7 @@ class SmartyModifierPageToUrl
             $page = $part[0].".".($match[1] ?: $part[1]);
         }
         $uri = app()->http->getServedRequest()->getUri()
-            ->getPageAction()->getController()->uri("id://".$page, $url_params, $anchor)->getAbsUriString();
+            ->getPageAction()->getController()->uri("id://".$page, $url_params, $anchor)->withoutAuthorityInWebroot();
         return "".$uri;
     }
 }

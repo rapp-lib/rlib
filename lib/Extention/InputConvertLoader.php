@@ -33,7 +33,7 @@ class InputConvertLoader
             return $value;
         }
         // アップロードの正常終了
-        report("ファイルが正常にアップロードできました",array(
+        report_info("File Uploaded",array(
             "field_name" => $field_name,
             "storage" => $field_def["storage"],
             "code" => $result["code"],

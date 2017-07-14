@@ -206,9 +206,10 @@ class ReportRenderer
             foreach ($value as $k=>$v) {
                 $r[$k] = self::compactValue($v);
             }
-        } elseif (is_object($value) && method_exists($value,"__report")) {
+        } elseif (is_object($value)) {
             $r["__type"] = "object(".get_class($value).')';
-            foreach ((array)$value->__report() as $k=>$v) {
+            $obj_vars = method_exists($value,"__report") ? (array)$value->__report() : get_object_vars($value);
+            foreach ($obj_vars as $k=>$v) {
                 $r[$k] = self::compactValue($v);
             }
         } elseif ( ! is_string($value) && is_callable($value)) {
@@ -223,7 +224,7 @@ class ReportRenderer
         } elseif ( ! is_string($value)) {
             $r = gettype($value)."(".$value.")";
         } else {
-            $r = '"'.(strlen($value)>500 ? substr($value,0,500).'...' : (string)$value).'"';
+            $r = '"'.(strlen($value)>3000 ? substr($value,0,3000).'...' : (string)$value).'"';
         }
         return $r;
     }

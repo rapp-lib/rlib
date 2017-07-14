@@ -34,7 +34,7 @@ class InputValues extends \ArrayObject
             if (is_array($v)) {
                 self::mergeRecursive($arr[$k], $v);
             } elseif ($v instanceof \Psr\Http\Message\UploadedFileInterface) {
-                if ($v->getError() === UPLOAD_ERR_OK) {
+                if ($v->getError() !== UPLOAD_ERR_NO_FILE) {
                     $arr[$k] = $v;
                 }
             } elseif (isset($v)) {
