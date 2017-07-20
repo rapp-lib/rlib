@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Core\Util;
+namespace R\Lib\Util;
 
 /**
  * ファイル操作
