@@ -62,7 +62,6 @@ class DBConnectionDoctrine2 implements DBConnection
         try {
             // SQL発行
             $stmt = $this->getDS()->query($st);
-            $stmt->execute();
         } catch (\Exception $e) {
             $error = $this->getDS()->errorInfo();
             if ($error[0]==="00000") unset($error);
