@@ -40,7 +40,12 @@ class InputField
      */
     public function getOptions ($group=null)
     {
-        $values = is_array($this->field_value) ? $this->field_value : array($this->field_value);
+        $values = array();
+        if (isset($this->field_value)) {
+            $values = is_array($this->field_value) ? $this->field_value : array($this->field_value);
+        } elseif (isset($this->attrs["value"])) {
+            $values = is_array($this->attrs["value"]) ? $this->attrs["value"] : array($this->attrs["value"]);
+        }
         $options = array();
         if ($enum_name = $this->attrs["enum"]) {
             $parent_key = $group ? $group : false;
@@ -100,6 +105,7 @@ class InputField
                 $option_html[] = tag("option",$option_attrs,$option["label"]);
             }
             unset($attrs["type"]);
+            unset($attrs["value"]);
             $this->html = tag("select",$attrs,implode('',$option_html));
         // type=checklistであれば選択肢構築
         } elseif ($this->attrs["type"]=="checklist") {

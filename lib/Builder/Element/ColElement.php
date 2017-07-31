@@ -62,11 +62,11 @@ class ColElement extends Element_Base
     public function getEntryFormFieldDefSource ()
     {
         $def = array();
-        $def[] = '"label"=>"'.$this->getLabel().'"';
+        $def["label"] = $this->getLabel();
         if ($this->getAttr("type")=="file") {
-            $def[] = '"storage"=>"public"';
+            $def["storage"] = "public";
         }
-        return '            "'.$this->getName().'" => array('.implode(', ',$def).'),'."\n";
+        return '            '.$this->stringifyValue($this->getName(), $def).','."\n";
 
     }
     /**
@@ -79,20 +79,25 @@ class ColElement extends Element_Base
         if ($this->getAttr("type")=="checklist" && $def["type"]=="text" && ! $def["format"]) {
             $def["format"] = "json";
         }
-        foreach ($def as $k => $v) {
-            if (is_numeric($v)) {
-                $v = $v;
-            } elseif (is_string($v)) {
-                $v = '"'.$v.'"';
-            } elseif (is_null($v)) {
-                $v = 'null';
-            } elseif (is_bool($v)) {
-                $v = $v ? 'true' : 'false';
-            } else {
-                $v = (string)$v;
+        return '        '.$this->stringifyValue($this->getName(), $def).','."\n";
+    }
+    private function stringifyValue($k, $v)
+    {
+        if (is_array($v)) {
+            foreach ($v as $k2=>$v2) {
+                $v[$k2] = $this->stringifyValue($k2,$v2);
             }
-            $def[$k] = '"'.$k.'"=>'.$v;
+            $v = 'array('.implode(', ',$v).')';
+        } elseif (is_numeric($v)) {
+        } elseif (is_string($v)) {
+            $v = '"'.$v.'"';
+        } elseif (is_null($v)) {
+            $v = 'null';
+        } elseif (is_bool($v)) {
+            $v = $v ? 'true' : 'false';
+        } else {
+            $v = (string)$v;
         }
-        return '        "'.$this->getName().'" => array('.implode(', ',$def).'),'."\n";
+        return '"'.$k.'"=>'.$v;
     }
 }

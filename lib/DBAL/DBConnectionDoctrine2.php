@@ -101,7 +101,7 @@ class DBConnectionDoctrine2 implements DBConnection
     {
         $results = array();
         while (($result = $stmt->fetch()) !== false) $results[] = $result;
-        return $result;
+        return $results;
     }
 
 // -- 固有機能

@@ -10,7 +10,7 @@
                 "auth_table" => "<?=$role->getAuthTable()->getName()?>",
 <?php else: /* role has auth_table */ ?>
                 "accounts" => array(
-                    array("login_id"=>"<?=$role->getName()?>", "login_pw"=>"cftyuhbvg"),
+                    array("login_id"=>"<?=$role->getName()?>", "login_pw"=>"cftyuhbvg", "priv"=>array("id"=>1)),
                 ),
 <?php endif; /* role nhas auth_table */ ?>
 <?php if ($role->getLoginController()): ?>

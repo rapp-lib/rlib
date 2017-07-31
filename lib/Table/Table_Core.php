@@ -239,10 +239,10 @@ class Table_Core
             unset($query["limit"]);
             unset($query["offset"]);
             unset($query["order"]);
-            $statement = $this->getSQLBuilder()->render($this->query);
+            $statement = $this->getSQLBuilder()->render($query);
             $result_res = $this->getConnection()->exec($statement);
             $t = $this->getConnection()->fetch($result_res);
-            $count = (int)$t["count"];
+            $count = (int)$t[0]["count"];
             // Pager組み立て
             $this->pager = new Pager($count, $this->query["offset"], $this->query["limit"]);
         }

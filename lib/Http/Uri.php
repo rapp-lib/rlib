@@ -108,7 +108,8 @@ class Uri extends \Zend\Diactoros\Uri
     public static function mergeQueryParams($uri, $query_params=array(), $fragment="")
     {
         $uri = new \Zend\Diactoros\Uri("".$uri);
-        $query_params = array_merge((array)parse_str($uri->getQuery()), $query_params);
+        parse_str($uri->getQuery(), $uri_query_params);
+        $query_params = array_merge((array)$uri_query_params, $query_params);
         self::normalizeQueryParamRecursive($query_params);
         $fragment = strlen($fragment) ?: $uri->getFragment();
         return self::buildUriString($uri->getScheme(), $uri->getAuthority(), $uri->getPath(),

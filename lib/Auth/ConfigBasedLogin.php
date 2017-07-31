@@ -30,7 +30,7 @@ class ConfigBasedLogin
             foreach ($this->config["accounts"] as $account) {
                 if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
                     if ($account["login_id"]==$params["login_id"] && $account["login_pw"]==$params["login_pw"]) {
-                        return $account["id"] ?: 1;
+                        return $account["priv"] ?: 1;
                     }
                 }
             }

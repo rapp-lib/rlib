@@ -17,7 +17,37 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
         }
     //TODO:指定の様式のselectフィールドを作成
     } else {
-        //
+        var config = {
+            year : [2010, "+3", "年"],
+            month : [1, 12, "月"],
+            day : [1, 31, "日"],
+            hour : [0, 23, "時"],
+            min : [0, 59, "分"],
+            sec : [0, 59, "秒"]
+        }
+        // 表示様式
+        var format = params.format || ["year","month","day"];
+        // 年範囲指定
+        if (params.year_range) {
+            config.year[0] = params.year_range[0];
+            config.year[1] = params.year_range[1];
+        }
+        // 相対年の解決
+        var now = new Date();
+        if (config.year[0].match(/^[\+\-]/)) { config.year[0] = now.getFullYear() + parseInt(config.year[0]); }
+        if (config.year[1].match(/^[\+\-]/)) { config.year[1] = now.getFullYear() + parseInt(config.year[1]); }
+        // プルダウンの生成
+        for (var _i in format) {
+            var i = format[_i];
+            var $select = $('<select></select>').addClass(i);
+            $select.append('<option value=""></option>');
+            for (var j=config[i][0]; j<config[i][1]+1; j++) {
+                $select.append('<option value="' + j + '">' + j + '</option>');
+            }
+            bind_elms[i] = $select;
+            $elm.before($select);
+            $elm.before(config[i][2]+" ");
+        }
     }
     // selectフィールドの値の初期化
     var date = new Date($elm.val());
