@@ -96,7 +96,11 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
             var hh = ('0'+date.getHours()).slice(-2);
             var ii = ('0'+date.getMinutes()).slice(-2);
             var ss = ('0'+date.getSeconds()).slice(-2);
-            $elm.val(yyyy+"-"+mm+"-"+dd+" "+hh+":"+ii+":"+ss);
+            if ($elm.attr("type")=="date") {
+                $elm.val(yyyy+"-"+mm+"-"+dd);
+            } else {
+                $elm.val(yyyy+"-"+mm+"-"+dd+" "+hh+":"+ii+":"+ss);
+            }
         } else {
             $elm.val("");
         }

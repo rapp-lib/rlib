@@ -95,7 +95,7 @@ class SQLBuilder
     }
     public function stLimitOffset($limit, $offset)
     {
-        return ($offset ? " OFFSET ".$offset : "").($limit ? " LIMIT ".$limit : "");
+        return ($limit ? " LIMIT ".$limit : "").($offset ? " OFFSET ".$offset : "");
     }
 // -- UPDATE文固有の表現
     public function stSet(array $xs)

@@ -108,7 +108,6 @@ window.MiHandler = function ($mi)
         // フォームの編集
         $item.find("input,select,textarea").on("change",function(e){
             $mi.trigger("miChange",["edit",$(this).closest(".mi-item"), undefined, $(this)]);
-            e.stopPropagation();
         });
         // 削除ボタンの操作
         $item.find(".mi-item-remove").on("click",function(){

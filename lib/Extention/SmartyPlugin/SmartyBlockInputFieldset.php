@@ -2,44 +2,53 @@
 namespace R\Lib\Extention\SmartyPlugin;
 
 /**
- * {{input_fieldset name="items" key="i"}}
+ * {{input_fieldset}}
  */
 class SmartyBlockInputFieldset
 {
+    static $c = 0;
     /**
      * @overload
      */
     public static function callback ($attrs, $content, $smarty, &$repeat)
     {
-        // FormContainerによるタグ生成
-        $form = $smarty->getCurrentForm();
         $fieldset_name = $attrs["name"];
-        $key_assign = $attrs["key"];
-        //$stack = $smarty->getBlockTagStack("fieldset.".$fieldset_name);
+        $tmpl = $attrs["tmpl"];
+        $key_assign = $attrs["key"] ?: "key";
+        $parent_assign = $attrs["parent"] ?: "parent";
+        $assign = $attrs["assign"] ?: "fieldset";
+        $smarty->assign($parent_assign, $fieldset_name);
+        // Blockタグスタック上の情報を参照
+        $tag = & $smarty->smarty->_cache['_tag_stack'][end($keys = array_keys($smarty->smarty->_cache['_tag_stack']))];
+        // 初回の開くタグの処理
         if ($repeat===true) {
-            $repeat = array(
-                "keys" => array_keys((array)$form[$fieldset_name])
-            );
+            // Keysの初期化
+            $form = $smarty->getCurrentForm();
+            $tag["keys"] = isset($form[$fieldset_name]) ? array_keys((array)$form[$fieldset_name]) : array();
+            // テンプレート処理用の要素をアサイン
+            if ($tmpl) {
+                $tag["current"] = "tmpl";
+                $smarty->assign($key_assign, $tmpl);
+            } else {
+                $repeat = false;
+            }
         }
-        // 開始タグの場合処理を行わない
-        if ($repeat) {
-            $smarty->assign($key_assign, $key);
+        // 閉じタグ兼2周目以降の開くタグの処理
+        if ($repeat===false) {
+            // 処理した要素の出力をAssignに追加
+            if ($tag["current"] === "tmpl") {
+                $tag["assign"]["tmpl"] = $content;
+            } elseif ($tag["current"]) {
+                $tag["assign"]["items"][$tag["current"]] = $content;
+            }
+            // Keysの残りがある限りループ処理
+            if (count($tag["keys"])) {
+                $smarty->assign($key_assign, $tag["current"] = array_pop($tag["keys"]));
+                $repeat = true;
+            // 全てのループ完了時にassignをおこなう
+            } else {
+                $smarty->assign($assign, $tag["assign"]);
+            }
         }
-    }
-}
-
-class Fieldset
-{
-    private $values;
-    private $key_stack;
-    public function __construct ($values)
-    {
-        $this->values = $values;
-        $this->key_stack = array_keys($values);
-    }
-    public function pop ()
-    {
-        $key = array_pop($this->key_stack);
-        $this->values[$key];
     }
 }
