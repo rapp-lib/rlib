@@ -53,7 +53,7 @@
      */
     function url ($base_url=null, $params=array(), $anchor=null)
     {
-        return app()->http->getServedRequest()->getWebroot()->uri($base_url, $params, $anchor);
+        return app()->http->getServedRequest()->getUri()->getWebroot()->uri($base_url, $params, $anchor);
     }
 
 // -- Report

@@ -3,9 +3,9 @@ namespace R\Lib\Extention\SmartyPlugin;
 
 class SmartyModifierCheckUserPriv
 {
-    public function callback ($priv_req)
+    public function callback ($priv_req, $role=null)
     {
-        $role = app()->user->getCurrentRole();
+        $role = isset($role) ? $role : app()->user->getCurrentRole();
         return app()->user->checkCurrentPriv($role, $priv_req);
     }
 }
