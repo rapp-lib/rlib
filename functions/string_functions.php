@@ -19,15 +19,11 @@
      */
     function rand_string ($length=8, $seed=null)
     {
-        $charmap = '0123456789abcdefghijklmnopqrstuvwxyz';
+        $charmap = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $chars = str_split($charmap);
         $string = "";
-        $seed === null
-                ? srand()
-                : srand(crc32((string)$seed));
-        for ($i=0; $i<$length; $i++) {
-            $string .=$chars[array_rand($chars)];
-        }
+        if (isset($seed)) srand(crc32((string)$seed));
+        for ($i=0; $i<$length; $i++) $string .=$chars[array_rand($chars)];
         return $string;
     }
     /**

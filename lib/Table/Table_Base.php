@@ -458,6 +458,22 @@ class Table_Base extends Table_Core
         return false;
     }
 
+    /**
+     * @hook on_insert
+     * INSERT時のID生成ルールを対応づける
+     */
+    protected function on_insert_attachGenerator ()
+    {
+        $col_name = $this->getColNameByAttr("generator");
+        $col_def = $this->getColDef($col_name);
+        $value = $this->query->getValue($col_name);
+        if (isset($value) || ! $col_def["generator"]) {
+            return false;
+        }
+        $value = call_user_func(array($this, "generator_".$col_def["generator"]), $col_name);
+        $this->query->setValue($col_name, $value);
+    }
+
 // -- assoc hookを呼び出すためのon hookの定義
 
     /**
@@ -668,5 +684,21 @@ class Table_Base extends Table_Core
         }
         $this->query->setOffset(($value-1)*$volume);
         $this->query->setLimit($volume);
+    }
+
+
+// -- 基本的なID生成ルールの定義
+
+    /**
+     * ランダム文字列で生成
+     */
+    protected function generator_randString ($col_name)
+    {
+        $col_def = $this->getColDef($col_name);
+        $length = $col_def["length"] ?: 32;
+        $chars = str_split('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+        $value = "";
+        for ($i=0; $i<$length; $i++) $value .= $chars[array_rand($chars)];
+        return $value;
     }
 }
