@@ -13,6 +13,10 @@ class GuestLogin
     {
         return false;
     }
+    public function checkPriv($priv_req)
+    {
+        return false;
+    }
     public function authenticate($params)
     {
         return false;

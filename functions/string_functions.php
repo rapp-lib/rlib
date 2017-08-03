@@ -88,7 +88,7 @@
                 $html .=call_user_func_array("tag",(array)$v);
             }
             $html .='</'.$name.'>';
-        } elseif (is_string($content)) {
+        } else {
             $html .='>';
             $html .=$content;
             $html .='</'.$name.'>';

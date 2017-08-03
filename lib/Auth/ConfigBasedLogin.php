@@ -22,6 +22,15 @@ class ConfigBasedLogin
         }
         return false;
     }
+    public function checkPriv($priv_req)
+    {
+        $priv = $this->getPriv();
+        if ($check_priv = $this->config["check_priv"]) {
+            return call_user_func($check_priv, $priv_req, $priv);
+        } else {
+            return ! ($priv_req && ! $priv);
+        }
+    }
     public function authenticate($params)
     {
         if ($auth_table = $this->config["auth_table"]) {
@@ -52,6 +61,8 @@ class ConfigBasedLogin
                 $uri = $request->getUri()->getWebroot()->uri($login_request_uri);
                 return app()->http->response("redirect", $uri);
             }
+            return app()->http->response("forbidden");
+        } elseif ( ! $this->checkPriv($priv_req)) {
             return app()->http->response("forbidden");
         }
         return $next($request);

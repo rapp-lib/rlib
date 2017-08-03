@@ -42,7 +42,7 @@ class HttpController implements FormRepositry
     }
     public function redirect ($uri, $query_params=array(), $fragment=null)
     {
-        return app()->http->response("redirect", $this->uri($uri));
+        return app()->http->response("redirect", $this->uri($uri, $query_params, $fragment));
     }
     public function uri ($uri, $query_params=array(), $fragment=null)
     {

@@ -13,8 +13,8 @@ class Table_Base extends Table_Core
     public function authenticate ($params)
     {
         if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
-            $rs = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->select();
-            return count($rs)===1 ? array_shift($rs) : false;
+            $t = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->selectOne();
+            return $t ? (array)$t : false;
         }
         return false;
     }

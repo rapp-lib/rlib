@@ -16,6 +16,10 @@
 <?php if ($role->getLoginController()): ?>
                 "login_request_uri" => "id://<?=$role->getLoginController()->getName().'.login'?>",
 <?php endif; /* role has login_controller */ ?>
+                "check_priv" => function($priv_req, $priv){
+                    if ($priv_req && ! $priv) return false;
+                    return true;
+                }
             ),
         ),
 <?php endif; /* role neq guest */ ?>
