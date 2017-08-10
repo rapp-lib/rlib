@@ -91,10 +91,8 @@ class ControllerElement extends Element_Base
     public function getInputCols ()
     {
         $cols = array();
-        foreach ($this->getTable()->getCols() as $col) {
-            if ($col->getAttr("type")) {
-                $cols[] = $col;
-            }
+        foreach ($this->getTable()->getInputCols() as $col) {
+            $cols[] = $col;
         }
         return $cols;
     }

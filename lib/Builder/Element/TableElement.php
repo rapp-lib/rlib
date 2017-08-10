@@ -60,6 +60,16 @@ class TableElement extends Element_Base
     {
         return (array)$this->children["col"];
     }
+    public function getInputCols ()
+    {
+        $cols = array();
+        foreach ($this->getCols() as $col) {
+            if ($col->getAttr("type")) {
+                $cols[] = $col;
+            }
+        }
+        return $cols;
+    }
     /**
      * @getter children.enum
      */

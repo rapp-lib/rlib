@@ -20,15 +20,19 @@ class ColElement extends Element_Base
     /**
      * 表示HTMLソースの取得
      */
-    public function getShowSource ($var_name='$t')
+    public function getShowSource ($o=array())
     {
+        $var_name = $o["var_name"] ?: '$t';
+        $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
+        if ($this->getAttr("type")=="mi") {
+            //TODO: mi input
+            return;
+        }
         if ($this->getAttr("type")=="file") {
-            $html .= '{{if '.$var_name.'.'.$this->getName().'}} <a href="{{'.
-                $var_name.'.'.$this->getName().'}}" target="_blank">ファイル</a>{{/if}}';
-        } elseif ($this->getAttr("type")=="mi") {
-            //TODO: mi show
+            $html .= '{{if '.$var_name.'.'.$name.'}} <a href="{{'.
+                $var_name.'.'.$name.'}}" target="_blank">ファイル</a>{{/if}}';
         } else {
-            $html = '{{'.$var_name.'.'.$this->getName();
+            $html = '{{'.$var_name.'.'.$name;
             if ($this->getAttr("type")=="date") {
                 $html .='|date:"Y/m/d"';
             }
@@ -45,13 +49,15 @@ class ColElement extends Element_Base
     /**
      * 入力HTMLソースの取得
      */
-    public function getInputSource ($var_name='$forms.entry')
+    public function getInputSource ($o=array())
     {
+        $var_name = $o["var_name"] ?: '$forms.entry';
+        $name = $o["name_parent"] ? $o["name_parent"]."[".$this->getName()."]" : $this->getName();
         if ($this->getAttr("type")=="mi") {
             //TODO: mi input
             return;
         }
-        $html = '{{input name="'.$this->getName().'" type="'.$this->getAttr("type").'"';
+        $html = '{{input name="'.$name.'" type="'.$this->getAttr("type").'"';
         if ($enum_set = $this->getEnumSet()) {
             $html .=' enum="'.$enum_set->getFullName().'"';
         }
@@ -70,23 +76,25 @@ class ColElement extends Element_Base
     /**
      * $form_entryの定義行の取得
      */
-    public function getEntryFormFieldDefSource ()
+    public function getEntryFormFieldDefSource ($o=array())
     {
+        $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
+        if ($this->getAttr("type")=="mi") {
+            //TODO: mi field_def
+            return;
+        }
         $def = array();
         $def["label"] = $this->getLabel();
         if ($this->getAttr("type")=="file") {
             $def["storage"] = "public";
         }
-        if ($this->getAttr("type")=="mi") {
-            //TODO: mi field_def
-        }
-        return '            '.$this->stringifyValue($this->getName(), $def).','."\n";
+        return '            '.$this->stringifyValue($name, $def).','."\n";
 
     }
     /**
      * $colsの定義行の取得
      */
-    public function getColDefSource ()
+    public function getColDefSource ($o=array())
     {
         $def = (array)$this->getAttr("def");
         $def["comment"] = $this->getAttr("label");
@@ -94,6 +102,13 @@ class ColElement extends Element_Base
             $def["format"] = "json";
         }
         return '        '.$this->stringifyValue($this->getName(), $def).','."\n";
+    }
+    /**
+     * assoc関係にあるTableを取得
+     */
+    public function getAssocTable ()
+    {
+        return $this->getAttr("assoc") ? $this->getSchema()->getTableByName($assoc["table"]) : null;
     }
     private function stringifyValue($k, $v)
     {
