@@ -106,6 +106,8 @@
         ->required("InputPluginRegistry");
     $asset->registerJsUrl("input_plugin.date_select", $url.'/input_plugin/date_select.js')
         ->required("InputPluginRegistry");
+    $asset->registerJsUrl("input_plugin.radio_set_first", $url.'/input_plugin/radio_set_first.js')
+        ->required("InputPluginRegistry");
     $asset->registerJsUrl("input_plugin.show_uploaded_file", $url.'/input_plugin/show_uploaded_file.js')
         ->required("InputPluginRegistry")
         ->required("config.current_webroot_url");

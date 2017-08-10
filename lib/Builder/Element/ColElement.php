@@ -25,6 +25,8 @@ class ColElement extends Element_Base
         if ($this->getAttr("type")=="file") {
             $html .= '{{if '.$var_name.'.'.$this->getName().'}} <a href="{{'.
                 $var_name.'.'.$this->getName().'}}" target="_blank">ファイル</a>{{/if}}';
+        } elseif ($this->getAttr("type")=="mi") {
+            //TODO: mi show
         } else {
             $html = '{{'.$var_name.'.'.$this->getName();
             if ($this->getAttr("type")=="date") {
@@ -45,6 +47,10 @@ class ColElement extends Element_Base
      */
     public function getInputSource ($var_name='$forms.entry')
     {
+        if ($this->getAttr("type")=="mi") {
+            //TODO: mi input
+            return;
+        }
         $html = '{{input name="'.$this->getName().'" type="'.$this->getAttr("type").'"';
         if ($enum_set = $this->getEnumSet()) {
             $html .=' enum="'.$enum_set->getFullName().'"';
@@ -70,6 +76,9 @@ class ColElement extends Element_Base
         $def["label"] = $this->getLabel();
         if ($this->getAttr("type")=="file") {
             $def["storage"] = "public";
+        }
+        if ($this->getAttr("type")=="mi") {
+            //TODO: mi field_def
         }
         return '            '.$this->stringifyValue($this->getName(), $def).','."\n";
 

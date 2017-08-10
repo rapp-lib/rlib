@@ -56,6 +56,7 @@ class Table_Base extends Table_Core
     {
         $assoc_table_name = static::$cols[$col_name]["assoc"]["table"];
         $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
+        $assoc_extra_values = static::$cols[$col_name]["assoc"]["extra_values"];
         $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
         $assoc_join = static::$cols[$col_name]["assoc"]["join"];
         // 主テーブルのIDを取得
@@ -63,6 +64,8 @@ class Table_Base extends Table_Core
         $ids = $this->result->getHashedBy($pkey);
         // 関連テーブルをFkeyでSELECT
         $table = table($assoc_table_name)->findBy($assoc_fkey, $ids);
+        // ExtraValueを条件に設定
+        if ($assoc_extra_values) $table->where($assoc_extra_values);
         // joinの指定があればJOINを接続
         if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
         $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
@@ -84,6 +87,7 @@ class Table_Base extends Table_Core
     {
         $assoc_table_name = static::$cols[$col_name]["assoc"]["table"];
         $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
+        $assoc_extra_values = static::$cols[$col_name]["assoc"]["extra_values"];
         $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
         // 書き込んだIDを確認
         $id = null;
@@ -97,6 +101,8 @@ class Table_Base extends Table_Core
         }
         // 対象のIDに関係する関係先のレコードを差分削除
         $table = table($assoc_table_name)->findBy($assoc_fkey, $id);
+        // ExtraValueを条件に設定
+        if ($assoc_extra_values) $table->where($assoc_extra_values);
         $assoc_result = $table->select();
         $assoc_id_col = $table->getIdColName();
         // value_col指定=1項目の値のみに絞り込む場合
@@ -109,7 +115,9 @@ class Table_Base extends Table_Core
                     unset($delete_assoc_ids[$value]);
                 // 入力値が未登録であれば、新規登録
                 } else {
-                    table($assoc_table_name)->insert(array($assoc_fkey=>$id, $assoc_value_col=>$value));
+                    $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
+                    foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
+                    table($assoc_table_name)->insert($record);
                 }
             }
             // 削除
@@ -126,6 +134,7 @@ class Table_Base extends Table_Core
                 }
                 // 新規/上書き
                 $record[$assoc_fkey] = $id;
+                foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
                 table($assoc_table_name)->save($record);
             }
             // 削除
