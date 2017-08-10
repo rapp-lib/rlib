@@ -7,7 +7,7 @@ window.InputPluginRegistry = {
         $root = $root || $(document);
         $root.find('*[data-rui-plugins][data-rui-plugins-applied!=yes]').each(function(){
             var $elm = $(this);
-            $elm.data("rui-plugins-applied","yes");
+            $elm.attr("data-rui-plugins-applied","yes");
             var paramSet = $elm.data("rui-plugins");
             if (typeof paramSet != "object") {
                 console.error("@rui-plugins is not valid JSON", paramSet);
@@ -24,4 +24,4 @@ window.InputPluginRegistry = {
     }
 };
 jQuery(function() { InputPluginRegistry.apply(); });
-jQuery(document).on("update-dom-structure", function() { InputPluginRegistry.apply($(this)); });
+jQuery(document).on("dom-structure-add", function() { InputPluginRegistry.apply($(this)); });

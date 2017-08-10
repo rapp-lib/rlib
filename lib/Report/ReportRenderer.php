@@ -222,7 +222,7 @@ class ReportRenderer
         } elseif ( ! is_string($value)) {
             $r = gettype($value)."(".$value.")";
         } else {
-            $r = '"'.(strlen($value)>3000 ? substr($value,0,3000).'...' : (string)$value).'"';
+            $r = '"'.(mb_strlen($value)>3000 ? mb_substr($value,0,3000).'...' : (string)$value).'"';
         }
         return $r;
     }
@@ -266,13 +266,13 @@ class ReportRenderer
         $r = "";
         $bt['file'] = realpath($bt['file']);
         if (strpos($bt['file'],$lib_path)===0) {
-            $r .= "(rlib)".substr($bt['file'],strlen($lib_path));
+            $r .= "(rlib)".mb_substr($bt['file'],mb_strlen($lib_path));
         } elseif (strpos($bt['file'],$logger_path)===0) {
-            $r .= "(logger)".substr($bt['file'],strlen($logger_path));
+            $r .= "(logger)".mb_substr($bt['file'],mb_strlen($logger_path));
         } elseif (strpos($bt['file'],$vendor_path)===0) {
-            $r .= "(vendor)".substr($bt['file'],strlen($vendor_path));
+            $r .= "(vendor)".mb_substr($bt['file'],mb_strlen($vendor_path));
         } elseif (strpos($bt['file'],$app_path)===0) {
-            $r .= "(rapp)".substr($bt['file'],strlen($app_path));
+            $r .= "(rapp)".mb_substr($bt['file'],mb_strlen($app_path));
         } else {
             $r .= "(ext)".$bt['file'];
         }
@@ -298,7 +298,7 @@ class ReportRenderer
                     $r .= "array[".count($arg)."]";
                 } else {
                     $str = (string)$arg;
-                    $r .= '"'.(strlen($str)>20 ? substr($str,0,20).'...' : $str).'"';
+                    $r .= '"'.(mb_strlen($str)>20 ? mb_substr($str,0,20).'...' : $str).'"';
                 }
             }
             $r .= ")";

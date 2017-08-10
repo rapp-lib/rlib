@@ -28,7 +28,7 @@ class SQLBuilder
     {
         return "UPDATE ".$this->stTable($q["table"])
             ." SET ".$this->stSet($q["values"])
-            .$this->stWhere($q["where"], "WHERE");
+            .$this->stWhere($q["where"], " WHERE ");
     }
     public function stInsert($q)
     {
@@ -38,8 +38,8 @@ class SQLBuilder
     }
     public function stDelete($q)
     {
-        return "DELETE ".$this->stTable($q["table"])
-            .$this->stWhere($q["where"], "WHERE");
+        return "DELETE FROM ".$this->stTable($q["table"])
+            .$this->stWhere($q["where"], " WHERE ");
     }
 // -- JOIN句
     public function stJoins($xs)

@@ -98,6 +98,7 @@ window.MiHandler = function ($mi)
         }
         $mi.trigger("miChange",["append",$item,$anchorItem]);
         o.update();
+        $item.trigger("dom-structure-add");
         return $item;
     };
     /**
@@ -303,3 +304,5 @@ MiHandler.extend = function (extension)
 {
     MiHandler.extensions.push(extension);
 };
+// 自動適用
+jQuery(function(){ jQuery(".mi").mi(); });

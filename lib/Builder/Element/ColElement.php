@@ -30,6 +30,9 @@ class ColElement extends Element_Base
             if ($this->getAttr("type")=="date") {
                 $html .='|date:"Y/m/d"';
             }
+            if ($this->getAttr("type")=="datetime") {
+                $html .='|date:"Y/m/d H:i"';
+            }
             if ($enum_set = $this->getEnumSet()) {
                 $html .='|enum_value:"'.$enum_set->getFullName().'"';
             }

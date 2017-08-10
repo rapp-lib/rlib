@@ -58,27 +58,14 @@ class Table_Base extends Table_Core
         $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
         $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
         $assoc_join = static::$cols[$col_name]["assoc"]["join"];
-        if ( ! $assoc_table_name || ! $assoc_fkey) {
-            report_error("パラメータの指定が不足しています",array(
-                "col_name" => $col_name,
-                "params" => static::$cols[$col_name]["assoc"],
-                "required" => array("table","fkey"),
-                "table" => $this,
-            ));
-        }
         // 主テーブルのIDを取得
         $pkey = $this->getIdColName();
         $ids = $this->result->getHashedBy($pkey);
         // 関連テーブルをFkeyでSELECT
-        $table = table($assoc_table_name)
-            ->findBy($assoc_fkey, $ids);
+        $table = table($assoc_table_name)->findBy($assoc_fkey, $ids);
         // joinの指定があればJOINを接続
-        if ($assoc_join) {
-            $table->join($assoc_join[0], $assoc_join[1]);
-        }
-        $assoc_result_set = $table
-            ->select()
-            ->getGroupedBy($assoc_fkey);
+        if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
+        $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
         // 主テーブルのResultに関連づける
         foreach ($this->result as $i => $record) {
             // value_col指定=1項目の値のみに絞り込む場合
@@ -98,40 +85,52 @@ class Table_Base extends Table_Core
         $assoc_table_name = static::$cols[$col_name]["assoc"]["table"];
         $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
         $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
-        if ( ! $assoc_table_name || ! $assoc_fkey) {
-            report_error("パラメータの指定が不足しています",array(
-                "col_name" => $col_name,
-                "params" => static::$cols[$col_name]["assoc"],
-                "required" => array("table","fkey"),
-                "table" => $this,
-            ));
-        }
         // 書き込んだIDを確認
         $id = null;
-        if ($this->query->getType() == "update") {
-            $id = $this->query->getCondition($this->getIdColName());
-        } elseif ($this->query->getType() == "insert") {
-            $id = $this->result->getLastInsertId();
-        }
+        if ($this->query->getType() == "update") $id = $this->query->getWhere($this->getIdColName());
+        if ($this->query->getType() == "insert") $id = $this->result->getLastInsertId();
         if ( ! isset($id)) {
             report_warning("IDの特定できないUpdate/Insertに対してAssoc処理は実行できません",array(
                 "table" => $table,
             ));
             return;
         }
-        // 対象のIDに関係する関係先のレコードを全件削除
-        table($assoc_table_name)
-            ->findBy($assoc_fkey, $id)
-            ->deleteAll();
-        // 登録対象のレコードを順次Insert
-        foreach ((array)$values as $i => $record) {
-            // value_col指定=1項目の値のみに絞り込む場合
-            if (isset($assoc_value_col)) {
-                $record = array($assoc_fkey=>$id, $assoc_value_col=>$record);
-                table($assoc_table_name)->insert($record);
-            } else {
+        // 対象のIDに関係する関係先のレコードを差分削除
+        $table = table($assoc_table_name)->findBy($assoc_fkey, $id);
+        $assoc_result = $table->select();
+        $assoc_id_col = $table->getIdColName();
+        // value_col指定=1項目の値のみに絞り込む場合
+        if (isset($assoc_value_col)) {
+            // 既存の情報を値→IDでハッシュ
+            $delete_assoc_ids = $assoc_result->getHashedBy($assoc_value_col, $assoc_id_col);
+            foreach ((array)$values as $value) {
+                // 入力値が登録済みであれば、削除対象から除外
+                if (isset($delete_assoc_ids[$value])) {
+                    unset($delete_assoc_ids[$value]);
+                // 入力値が未登録であれば、新規登録
+                } else {
+                    table($assoc_table_name)->insert(array($assoc_fkey=>$id, $assoc_value_col=>$value));
+                }
+            }
+            // 削除
+            if ($delete_assoc_ids) {
+                table($assoc_table_name)->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
+            }
+        } else {
+            // 既存の情報をID→IDでハッシュ
+            $delete_assoc_ids = $assoc_result->getHashedBy($assoc_id_col, $assoc_id_col);
+            foreach ((array)$values as $key => $record) {
+                // 入力レコードのIDが空白で無ければ、削除対象から除外
+                if (strlen($record[$assoc_id_col])) {
+                    unset($delete_assoc_ids[$record[$assoc_id_col]]);
+                }
+                // 新規/上書き
                 $record[$assoc_fkey] = $id;
-                table($assoc_table_name)->insert($record);
+                table($assoc_table_name)->save($record);
+            }
+            // 削除
+            if ($delete_assoc_ids) {
+                table($assoc_table_name)->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
             }
         }
     }
