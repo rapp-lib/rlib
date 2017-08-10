@@ -32,10 +32,10 @@
                         {{input type="hidden" name="$parent[$key][<?=$col->getAssocTable()->getIdCol()->getName()?>]"}}
 <?php endif; ?>
                         <table class="tbl_admin detail">
-<?php foreach ($col->getAssocTable->getInputCols() as $assoc_col): ?>
+<?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
                         <tr>
-                            <th><?=$col->getLabel()?></th>
-                            <td class="inputBlock"><?=$col->getInputSource(array("name_parent"=>"$parent[$key]")?></td>
+                            <th><?=$assoc_col->getLabel()?></th>
+                            <td class="inputBlock"><?=$assoc_col->getInputSource(array("name_parent"=>'$parent[$key]'))?></td>
                         </tr>
 <?php endforeach; /* foreach as $assoc_col */ ?>
                         <tr>

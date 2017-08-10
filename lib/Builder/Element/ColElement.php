@@ -28,21 +28,20 @@ class ColElement extends Element_Base
             //TODO: mi input
             return;
         }
+        $html = '{{'.$var_name.'.'.$name;
+        if ($this->getAttr("type")=="date") {
+            $html .='|date:"Y/m/d"';
+        }
+        if ($this->getAttr("type")=="datetime") {
+            $html .='|date:"Y/m/d H:i"';
+        }
+        if ($enum_set = $this->getEnumSet()) {
+            $html .='|enum_value:"'.$enum_set->getFullName().'"';
+        }
+        $html .= '}}';
         if ($this->getAttr("type")=="file") {
             $html .= '{{if '.$var_name.'.'.$name.'}} <a href="{{'.
                 $var_name.'.'.$name.'}}" target="_blank">ファイル</a>{{/if}}';
-        } else {
-            $html = '{{'.$var_name.'.'.$name;
-            if ($this->getAttr("type")=="date") {
-                $html .='|date:"Y/m/d"';
-            }
-            if ($this->getAttr("type")=="datetime") {
-                $html .='|date:"Y/m/d H:i"';
-            }
-            if ($enum_set = $this->getEnumSet()) {
-                $html .='|enum_value:"'.$enum_set->getFullName().'"';
-            }
-            $html .= '}}';
         }
         return $html;
     }
@@ -66,7 +65,7 @@ class ColElement extends Element_Base
         }
         $html .= '}}';
         if ($this->getAttr("type")=="file") {
-            $html = '{{if '.$var_name.'.'.$this->getName().'}}<span> <a href="{{'
+            $html .= '{{if '.$var_name.'.'.$this->getName().'}}<span> <a href="{{'
                 .$var_name.'.'.$this->getName().'}}" target="_blank" class="uploaded">ファイル</a>'
                 .' <a href="javascript:void(0);" onclick="$(this).parent().parent().find(\'input.uploaded\').val(\'\');'
                 .'$(this).parent().hide();">削除</a></span>{{/if}}';
@@ -79,10 +78,6 @@ class ColElement extends Element_Base
     public function getEntryFormFieldDefSource ($o=array())
     {
         $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
-        if ($this->getAttr("type")=="mi") {
-            //TODO: mi field_def
-            return;
-        }
         $def = array();
         $def["label"] = $this->getLabel();
         if ($this->getAttr("type")=="file") {
@@ -108,7 +103,8 @@ class ColElement extends Element_Base
      */
     public function getAssocTable ()
     {
-        return $this->getAttr("assoc") ? $this->getSchema()->getTableByName($assoc["table"]) : null;
+        $table_name = $this->getAttr("def.assoc.table");
+        return $table_name ? $this->getSchema()->getTableByName($table_name) : null;
     }
     private function stringifyValue($k, $v)
     {

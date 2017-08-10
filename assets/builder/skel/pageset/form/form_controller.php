@@ -14,9 +14,9 @@
 <?=$col->getEntryFormFieldDefSource()?>
 <?php if ($col->getAttr("type")==="mi"): ?>
 <?php if ($controller->getAttr("type")==="master"): ?>
-            "<?=$col->getAssocTable()->getIdCol()->getName()?>",
+            "<?=$col->getName()?>.*.<?=$col->getAssocTable()->getIdCol()->getName()?>",
 <?php endif; ?>
-<?php foreach ($col->getAssocTable->getInputCols() as $assoc_col): ?>
+<?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
 <?=$assoc_col->getEntryFormFieldDefSource(array("name_parent"=>$col->getName().".*"))?>
 <?php endforeach; /* foreach as $assoc_col */ ?>
 <?php endif; /* if type=="mi" */ ?>
