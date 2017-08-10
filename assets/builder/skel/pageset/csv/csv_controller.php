@@ -11,12 +11,10 @@
 <?php endforeach; ?>
         ),
         "filters" => array(
-            array("filter" => "sanitize"),
+            array("filter"=>"sanitize"),
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?php if ($col->getEnumSet()): ?>
-            array("target" => "<?=$col->getName()?>", "filter" => "list_select",
-                "enum" => "<?=$col->getEnumSet()->getFullName()?>",
-            ),
+            array("target"=>"<?=$col->getName()?>", "filter"=>"list_select", "enum"=>"<?=$col->getEnumSet()->getFullName()?>"),
 <?php endif; ?>
 <?php endforeach; ?>
         ),
@@ -26,15 +24,15 @@
     {
         // 検索結果の取得
         $this->forms["search"]->restore();
-        $res = $this->forms["search"]
-            ->search()
-            ->removePagenation()
-            ->selectNoFetch();
+        $res = $this->forms["search"]->search()->removePagenation()->selectNoFetch();
         // CSVファイルの書き込み
-        $csv = new \R\Lib\Util\CSVHandler("php://temp","r+",$this->csv_setting));
+        $csv = new \R\Lib\Util\CSVHandler("php://temp","w",$this->csv_setting);
         while ($t = $res->fetch()) {
             $csv->write_line($t);
         }
         // データ出力
-        return app()->http->response("stream", $csv->get_file_handle());
+        return app()->http->response("stream", $csv->get_file_handle(), array("headers"=>array(
+            'content-type' => 'application/octet-stream',
+            'content-disposition' => 'attachment; filename='.'<?=$table->getName()?>.csv'
+        )));
     }

@@ -24,9 +24,19 @@ class TableElement extends Element_Base
             $this->children["enum"][0] = new EnumElement($this->getName(), $enum_attrs, $this);
         }
     }
+    /**
+     * テーブルクラス名
+     */
     public function getClassName ()
     {
         return str_camelize($this->getName())."Table";
+    }
+    /**
+     * 定義上のテーブル名
+     */
+    public function getDefName ()
+    {
+        return $this->attrs["def"]["table_name"] ?: $this->getName();
     }
     /**
      * IDのColを取得

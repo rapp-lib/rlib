@@ -68,7 +68,7 @@ class ReportRenderer
             if (is_array($v) && count($v)) {
                 $text .= self::indentValues($v,$format,$level+1);
             } elseif (is_array($v) && ! count($v)) {
-                $text .= "array[]";
+                $text .= "array[0]";
             } else {
                 $text .= $format==="html" ? htmlspecialchars($v) : str_replace("\n",'\n',$v);
             }
@@ -201,7 +201,7 @@ class ReportRenderer
         $r = null;
         if (is_array($value) || ($value instanceof \ArrayObject)) {
             if (is_object($value)) {
-                $r["__type"] = "object(".get_class($value).')';
+                $r["__type"] = "object(".get_class($value).')['.count($value).']';
             }
             foreach ($value as $k=>$v) {
                 $r[$k] = self::compactValue($v);
@@ -215,8 +215,6 @@ class ReportRenderer
         } elseif ( ! is_string($value) && is_callable($value)) {
             $ref = is_array($value) ? new \ReflectionMethod($value[0], $value[1]) : new \ReflectionFunction($value);
             $r = 'function '.$ref->getName().'@'.$ref->getFileName().'(L'.$ref->getStartLine().')';
-        } elseif (is_object($value)) {
-            $r = "object(".get_class($value).')';
         } elseif (is_null($value)) {
             $r = "null";
         } elseif (is_bool($value)) {
@@ -299,7 +297,7 @@ class ReportRenderer
                 } elseif (is_array($arg)) {
                     $r .= "array[".count($arg)."]";
                 } else {
-                    $str = $arg;
+                    $str = (string)$arg;
                     $r .= '"'.(strlen($str)>20 ? substr($str,0,20).'...' : $str).'"';
                 }
             }

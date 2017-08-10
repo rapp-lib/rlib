@@ -1,25 +1,27 @@
 window.InputPluginRegistry = {
     plugins : {},
-    elements : {},
     registerPlugin : function (pluginId, callback) {
         InputPluginRegistry.plugins[pluginId] = callback;
     },
-    registerElement : function (elementId, paramSet) {
-        InputPluginRegistry.elements[elementId] = paramSet;
-    },
-    applyAll : function () {
-        var $elms = $('*[data-plugin-elmid][data-plugin-applied!=yes]');
-        $elms.each(function(){
+    apply : function ($root) {
+        $root = $root || $(document);
+        $root.find('*[data-rui-plugins][data-rui-plugins-applied!=yes]').each(function(){
             var $elm = $(this);
-            var elementId = $elm.attr("data-plugin-elmid");
-            var paramSet = InputPluginRegistry.elements[elementId];
-            for (var pluginId in paramSet) {
-                InputPluginRegistry.plugins[pluginId]($elm, paramSet[pluginId]);
+            $elm.data("rui-plugins-applied","yes");
+            var paramSet = $elm.data("rui-plugins");
+            if (typeof paramSet != "object") {
+                console.error("@rui-plugins is not valid JSON", paramSet);
+            } else {
+                for (var pluginId in paramSet) {
+                    if ( ! InputPluginRegistry.plugins[pluginId]) {
+                        console.error("@rui-plugins."+pluginId+" is not registered", paramSet);
+                    } else {
+                        InputPluginRegistry.plugins[pluginId]($elm, paramSet[pluginId]);
+                    }
+                }
             }
-            $elm.attr("data-plugin-applied","yes");
-        });
+        })
     }
 };
-$(function(){
-    InputPluginRegistry.applyAll();
-});
+jQuery(function() { InputPluginRegistry.apply(); });
+jQuery(document).on("update-dom-structure", function() { InputPluginRegistry.apply($(this)); });

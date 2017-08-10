@@ -76,12 +76,14 @@
                 "controller.template_file" => $dir."/pageset/index/index_controller.php",
                 "pages.index.template_file" => $dir."/pageset/index/index.html",
                 "pages.static.template_file" => null,// $dir."/pageset/index/static.html",
+                "pages.index.label" => null,
             ),
             "login" => array(
                 "index_page" => "login",
                 "controller.template_file" => $dir."/pageset/login/login_controller.php",
                 "pages.login.template_file" => $dir."/pageset/login/login.html",
                 "pages.exit.template_file" => null,// $dir."/pageset/login/exit.html",
+                "pages.login.label" => null,
             ),
             "reminder" => array(
                 "index_page" => "reminder",
@@ -90,12 +92,18 @@
                 "pages.send.template_file" => $dir."/pageset/reminder/send.html",
                 "pages.reset.template_file" => $dir."/pageset/reminder/reset.html",
                 "pages.complete.template_file" => $dir."/pageset/reminder/complete.html",
+                "pages.reminder.label" => null,
+                "pages.send.label" => "送信",
+                "pages.reset.label" => "リセット",
+                "pages.complete.label" => "完了",
             ),
             "show" => array(
                 "index_page" => "list",
                 "controller.template_file" => $dir."/pageset/show/show_controller.php",
                 "pages.list.template_file" => $dir."/pageset/show/list.html",
                 "pages.detail.template_file" => $dir."/pageset/show/detail.html",
+                "pages.list.label" => null,
+                "pages.detail.label" => "詳細",
             ),
             "form" => array(
                 "index_page" => "form",
@@ -103,6 +111,9 @@
                 "pages.form.template_file" => $dir."/pageset/form/form.html",
                 "pages.confirm.template_file" => $dir."/pageset/form/confirm.html",
                 "pages.complete.template_file" => $dir."/pageset/form/complete.html",
+                "pages.form.label" => "入力",
+                "pages.confirm.label" => "確認",
+                "pages.complete.label" => "完了",
             ),
             "mailcheck" => array(
                 "index_page" => "send",
@@ -125,6 +136,7 @@
                 "controller.template_file" => $dir."/pageset/import/import_controller.php",
                 "pages.import.template_file" => $dir."/pageset/import/import.html",
                 "pages.complete.template_file" => null,// $dir."/pageset/csv/complete.html",
+                "pages.import.label" => "アップロード",
             ),
         ),
         "include_html" => array(

@@ -33,23 +33,25 @@ class ConfigBasedLogin
     }
     public function authenticate($params)
     {
-        if ($auth_table = $this->config["auth_table"]) {
-            return table($auth_table)->authenticate($params);
-        } elseif ($this->config["accounts"]) {
-            foreach ($this->config["accounts"] as $account) {
+        if ($accounts = $this->config["accounts"]) {
+            foreach ($accounts as $account) {
                 if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
                     if ($account["login_id"]==$params["login_id"] && $account["login_pw"]==$params["login_pw"]) {
                         return $account["priv"] ?: 1;
                     }
                 }
             }
-        } else {
-            report_error("認証方法が設定されていません",array(
-                "role" => $this->role,
-                "config" => $this->config,
-                "authenticate_params" => $params,
-            ));
         }
+        if ($auth_table = $this->config["auth_table"]) {
+            if ($priv = table($auth_table)->authenticate($params)) {
+                return $priv;
+            }
+        }
+        report_warning("ログインできませんでした",array(
+            "role" => $this->role,
+            "config" => $this->config,
+            "authenticate_params" => $params,
+        ));
         return false;
     }
     public function firewall($request, $next)

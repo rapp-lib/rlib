@@ -6,7 +6,7 @@ namespace R\App\Table;
  */
 class <?=$table->getClassName()?> extends Table_App
 {
-    protected static $table_name = "<?=$table->getName()?>";
+    protected static $table_name = "<?=$table->getDefName()?>";
     protected static $cols = array(
 <?php foreach ($table->getCols() as $col): ?>
 <?=$col->getColDefSource()?>

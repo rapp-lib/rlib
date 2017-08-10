@@ -84,6 +84,8 @@ class PageElement extends Element_Base
     public function getRouteSource ()
     {
         $routes_dec = array();
+        //TODO: ページタイトルを設定してパンくずを生成できるようにする
+        //$routes_dec[] = '"title"=>"'.$page->getTitle().'"';
         if ($this->getController()->getType()=="index" && $this->getAttr("type")=="static") {
             $routes_dec[] = '"static_route"=>true';
         }

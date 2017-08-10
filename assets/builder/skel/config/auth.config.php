@@ -8,10 +8,9 @@
                 "persist" => "session",
 <?php if ($role->getAuthTable()): ?>
                 "auth_table" => "<?=$role->getAuthTable()->getName()?>",
+                //"accounts" => array(array("login_id"=>"<?=$role->getName()?>", "login_pw"=>"cftyuhbvg", "priv"=>array("id"=>9999999))),
 <?php else: /* role has auth_table */ ?>
-                "accounts" => array(
-                    array("login_id"=>"<?=$role->getName()?>", "login_pw"=>"cftyuhbvg", "priv"=>array("id"=>1)),
-                ),
+                "accounts" => array(array("login_id"=>"<?=$role->getName()?>", "login_pw"=>"cftyuhbvg", "priv"=>array("id"=>9999999))),
 <?php endif; /* role nhas auth_table */ ?>
 <?php if ($role->getLoginController()): ?>
                 "login_request_uri" => "id://<?=$role->getLoginController()->getName().'.login'?>",

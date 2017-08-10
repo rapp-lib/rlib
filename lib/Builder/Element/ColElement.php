@@ -23,10 +23,8 @@ class ColElement extends Element_Base
     public function getShowSource ($var_name='$t')
     {
         if ($this->getAttr("type")=="file") {
-            $html = '{{if '.$var_name.'.'.$this->getName().'}}<span> <a href="{{'
-                .$var_name.'.'.$this->getName().'}}" target="_blank" class="uploaded">ファイル</a>'
-                .' <a href="javascript:void(0);" onclick="$(this).parent().parent().find(\'input.uploaded\').val(\'\');'
-                .'$(this).parent().hide();">削除</a></span>{{/if}}';
+            $html .= '{{if '.$var_name.'.'.$this->getName().'}} <a href="{{'.
+                $var_name.'.'.$this->getName().'}}" target="_blank">ファイル</a>{{/if}}';
         } else {
             $html = '{{'.$var_name.'.'.$this->getName();
             if ($this->getAttr("type")=="date") {
@@ -53,8 +51,10 @@ class ColElement extends Element_Base
         }
         $html .= '}}';
         if ($this->getAttr("type")=="file") {
-            $html .= ' {{if '.$var_name.'.'.$this->getName().'}}<a href="{{'.
-                $var_name.'.'.$this->getName().'}}" target="_blank">ファイル</a>{{/if}}';
+            $html = '{{if '.$var_name.'.'.$this->getName().'}}<span> <a href="{{'
+                .$var_name.'.'.$this->getName().'}}" target="_blank" class="uploaded">ファイル</a>'
+                .' <a href="javascript:void(0);" onclick="$(this).parent().parent().find(\'input.uploaded\').val(\'\');'
+                .'$(this).parent().hide();">削除</a></span>{{/if}}';
         }
         return $html;
     }

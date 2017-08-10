@@ -101,11 +101,13 @@ class SchemaCsvLoader
             $value = (string)$match[1];
         } elseif (is_numeric($value)) {
             $value = (int)$value;
-        } elseif ($value=="true") {
+        } elseif (preg_match('!^\{.*\}$!i', $value)) {
+            $value = json_decode($value, true);
+        } elseif (preg_match('!^true$!i', $value)) {
             $value = true;
-        } elseif ($value=="false") {
+        } elseif (preg_match('!^false$!i', $value)) {
             $value = false;
-        } elseif ($value=="null") {
+        } elseif (preg_match('!^null$!i', $value)) {
             $value = null;
         }
         return $value;
