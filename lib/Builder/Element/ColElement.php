@@ -22,55 +22,14 @@ class ColElement extends Element_Base
      */
     public function getShowSource ($o=array())
     {
-        $var_name = $o["var_name"] ?: '$t';
-        $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
-        if ($this->getAttr("type")=="mi") {
-            //TODO: mi input
-            return;
-        }
-        $html = '{{'.$var_name.'.'.$name;
-        if ($this->getAttr("type")=="date") {
-            $html .='|date:"Y/m/d"';
-        }
-        if ($this->getAttr("type")=="datetime") {
-            $html .='|date:"Y/m/d H:i"';
-        }
-        if ($enum_set = $this->getEnumSet()) {
-            $html .='|enum_value:"'.$enum_set->getFullName().'"';
-        }
-        $html .= '}}';
-        if ($this->getAttr("type")=="file") {
-            $html .= '{{if '.$var_name.'.'.$name.'}} <a href="{{'.
-                $var_name.'.'.$name.'}}" target="_blank">ファイル</a>{{/if}}';
-        }
-        return $html;
+        return $this->getSchema()->fetch("parts.col_show", array("col"=>$this, "o"=>$o));
     }
     /**
      * 入力HTMLソースの取得
      */
     public function getInputSource ($o=array())
     {
-        $var_name = $o["var_name"] ?: '$forms.entry';
-        $name = $o["name_parent"] ? $o["name_parent"]."[".$this->getName()."]" : $this->getName();
-        if ($this->getAttr("type")=="mi") {
-            //TODO: mi input
-            return;
-        }
-        $html = '{{input name="'.$name.'" type="'.$this->getAttr("type").'"';
-        if ($enum_set = $this->getEnumSet()) {
-            $html .=' enum="'.$enum_set->getFullName().'"';
-        }
-        if ($this->getAttr("type")=="password") {
-            $html .=' autocomplete="new-password"';
-        }
-        $html .= '}}';
-        if ($this->getAttr("type")=="file") {
-            $html .= '{{if '.$var_name.'.'.$this->getName().'}}<span> <a href="{{'
-                .$var_name.'.'.$this->getName().'}}" target="_blank" class="uploaded">ファイル</a>'
-                .' <a href="javascript:void(0);" onclick="$(this).parent().parent().find(\'input.uploaded\').val(\'\');'
-                .'$(this).parent().hide();">削除</a></span>{{/if}}';
-        }
-        return $html;
+        return $this->getSchema()->fetch("parts.col_input", array("col"=>$this, "o"=>$o));
     }
     /**
      * $form_entryの定義行の取得

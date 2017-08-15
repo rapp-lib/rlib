@@ -10,7 +10,6 @@ class SchemaCommand extends \R\Lib\Console\Command
         $ds_name = $this->console["ds"] ?: "default";
         $sqls = DBSchemaDoctrine2::getMigrateSql($ds_name, array(constant("R_APP_ROOT_DIR")."/app/Table"));
         if ($sqls) {
-            app()->console->output("* Diff:\n\n");
             foreach ($sqls as $sql) app()->console->output($sql.";\n\n");
             // 差分の適応
             if ($apply) {

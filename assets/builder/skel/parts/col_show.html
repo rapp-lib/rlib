@@ -1,0 +1,34 @@
+<?php
+    $var_name = $o["var_name"] ?: '$t';
+    $name = $o["name_parent"] ? $o["name_parent"].".".$col->getName() : $col->getName();
+?>
+<? if ($col->getAttr("type")=="assoc"): ?>
+                    {{foreach <?=$var_name?>.<?=$name?> as $key=>$item}}
+                        <table class="tbl_admin detail">
+<?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
+                        <tr>
+                            <th><?=$assoc_col->getLabel()?></th>
+                            <td><?=$assoc_col->getShowSource(array("name_parent"=>$name.'.$key'))?></td>
+                        </tr>
+<?php endforeach; /* foreach as $assoc_col */ ?>
+                        </table>
+                    {{/foreach}}
+<?php else: /* if type==="assoc" */ ?>
+<?php
+    $html = '{{'.$var_name.'.'.$name;
+    if ($col->getAttr("type")=="date") {
+        $html .='|date:"Y/m/d"';
+    }
+    if ($col->getAttr("type")=="datetime") {
+        $html .='|date:"Y/m/d H:i"';
+    }
+    if ($enum_set = $col->getEnumSet()) {
+        $html .='|enum_value:"'.$enum_set->getFullName().'"';
+    }
+    $html .= '}}';
+    if ($col->getAttr("type")=="file") {
+        $html .= '{{if '.$var_name.'.'.$name.'}} <a href="{{'.$var_name.'.'.$name.'}}" target="_blank">ファイル</a>{{/if}}';
+    }
+?>
+<?=$html?>
+<?php endif; /* if type==="assoc" */ ?>

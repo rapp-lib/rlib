@@ -38,6 +38,13 @@ class TableFactory
         return $def;
     }
     /**
+     * クラス名からTable名を逆引き
+     */
+    public function getTableNameByClass($class)
+    {
+        return preg_match('!^\\\\?R\\\\App\\\\Table\\\\(.+?)Table$!', $class, $_) ? $_[1] : null;
+    }
+    /**
      * Table定義の一覧を取得
      */
     public function collectTableDefs(array $dirs)

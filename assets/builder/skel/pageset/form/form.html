@@ -23,37 +23,7 @@
 <?php foreach ($controller->getInputCols() as $col): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
-<?php if ($col->getAttr("type")==="mi"): ?>
-        <td>
-            <div class="mi" data-minItems="0" data-maxItems="20">
-                {{input_fieldset name="<?=$col->getName()?>" tmpl="<%=id%>" key="key" parent="parent" assign="fieldset"}}
-                    <div class="mi-item" data-itemId="{{$key}}">
-<?php if ($controller->getAttr("type")==="master"): ?>
-                        {{input type="hidden" name="$parent[$key][<?=$col->getAssocTable()->getIdCol()->getName()?>]"}}
-<?php endif; ?>
-                        <table class="tbl_admin detail">
-<?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
-                        <tr>
-                            <th><?=$assoc_col->getLabel()?></th>
-                            <td class="inputBlock"><?=$assoc_col->getInputSource(array("name_parent"=>'$parent[$key]'))?></td>
-                        </tr>
-<?php endforeach; /* foreach as $assoc_col */ ?>
-                        <tr>
-                            <th></th>
-                            <td><a href="javascript:void(0);" class="mi-item-remove">削除</a></td>
-                        </tr>
-                        </table>
-                    </div>
-                {{/input_fieldset}}
-                {{foreach $fieldset.items as $item}}{{$item}}{{/foreach}}
-                <script type="text/template" class="mi-tmpl mi-anchor">{{$fieldset.tmpl}}</script>
-                <a href="javascript:void(0);" class="mi-append">追加</a>
-            </div>
-            {{asset required="rui.mi"}}
-        </td>
-<?php else: /* if type=="mi" */ ?>
         <td class="inputBlock"><?=$col->getInputSource()?></td>
-<?php endif; /* if type=="mi" */ ?>
     </tr>
 <?php endforeach; /* foreach as $col */ ?>
 </table>

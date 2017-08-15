@@ -18,23 +18,6 @@ class Table_Base extends Table_Core
         }
         return false;
     }
-    /**
-     * 本登録URL押下時の処理（仮）
-     * 仮登録パラメータとの完全一致レコードを取得する
-     * 記述場所は正しいか
-     * 拡張性を持たせるため共通でCredだが、
-     * +で仮メールアドレスの完全一致が必要??
-     */
-    public function selectByCred ($key,$val, $fields=array())
-    {
-        $this->findByCred($key,$val);
-        return $this->selectOne($fields);
-    }
-    public function selectByMail ($key,$val, $fields=array())
-    {
-        $this->findByMail($key,$val);
-        return $this->selectOne($fields);
-    }
 
 // -- 基本的なassoc hookの定義
 
@@ -43,14 +26,22 @@ class Table_Base extends Table_Core
      * パラメータ例:
      *     "type"=>"hasMany",
      *     "table"=>"Product", // 必須 関係先テーブル名
-     *     "fkey"=>"owner_member_id", // 必須 関係先テーブル上のFK
+     *     "fkey"=>"owner_member_id", // 任意 関係先テーブル上のFK
+     *     // fkeyの設定がない場合、assoc.tableの参照先のfkey_forの設定されたカラムを使用する
      *     "value_col"=>"status", // 任意 値を1項目に絞る場合
+     *     "extra_values"=>array("type"=>1), // 任意 このassocで関係づけるレコードに設定する値
+     *     "single"=>true, // 任意 trueが指定されると1レコードに対応付ける
      *  読み込み時の動作:
      *      Fetch完了後、結果全てのPKで関係先テーブルをSelectする
+     *          extra_valuesの指定があれば絞り込みに使用する
+     *          singleの指定があれば、既存1レコード目のみ取得する
      *  書き込み時の動作:
      *      ※書き込んだIDがわかることが必須なので、IDを指定しないUpdateではエラー
-     *      対象のIDに関係する関係先のレコードを全件削除
-     *      登録対象のレコードを順次Insert
+     *      書き込み完了後、対象のIDに関係する関係先のレコードで削除/更新/登録する
+     *          assoc.tableのPKの一致で更新する
+     *          value_col指定があれば、対象のカラムの一致で更新する
+     *          singleの指定があれば、既存1レコード目を一致させて更新する
+     *          extra_valuesの指定があれば絞り込みと、値の設定に使用する
      */
     protected function assoc_fetchEnd_hasMany ($col_name)
     {
@@ -58,7 +49,13 @@ class Table_Base extends Table_Core
         $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
         $assoc_extra_values = static::$cols[$col_name]["assoc"]["extra_values"];
         $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
+        $assoc_single = (boolean)static::$cols[$col_name]["assoc"]["single"];
         $assoc_join = static::$cols[$col_name]["assoc"]["join"];
+        // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
+        if ( ! isset($assoc_fkey)) {
+            $table_name = app()->table->getTableNameByClass(get_class($this));
+            $assoc_fkey = table($assoc_table_name)->getColByAttr("fkey_for", $table_name);
+        }
         // 主テーブルのIDを取得
         $pkey = $this->getIdColName();
         $ids = $this->result->getHashedBy($pkey);
@@ -68,6 +65,8 @@ class Table_Base extends Table_Core
         if ($assoc_extra_values) $table->where($assoc_extra_values);
         // joinの指定があればJOINを接続
         if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
+        // singleの指定があれば1レコードに制限
+        if ($assoc_single) $table->pagenate(0, 1);
         $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
         // 主テーブルのResultに関連づける
         foreach ($this->result as $i => $record) {
@@ -89,13 +88,27 @@ class Table_Base extends Table_Core
         $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
         $assoc_extra_values = static::$cols[$col_name]["assoc"]["extra_values"];
         $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
+        $assoc_single = (boolean)static::$cols[$col_name]["assoc"]["single"];
+        // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
+        if ( ! isset($assoc_fkey)) {
+            $table_name = app()->table->getTableNameByClass(get_class($this));
+            $assoc_fkey = table($assoc_table_name)->getColByAttr("fkey_for", $table_name);
+        }
+        // singleの指定があれば1レコードに制限
+        if ($assoc_single) $values = array_slice($values, 0, 1, true);
         // 書き込んだIDを確認
         $id = null;
-        if ($this->query->getType() == "update") $id = $this->query->getWhere($this->getIdColName());
-        if ($this->query->getType() == "insert") $id = $this->result->getLastInsertId();
+        if ($this->query->getType() == "insert") {
+            $id = $this->result->getLastInsertId();
+        } elseif ($this->query->getType() == "update") {
+            $id = $this->query->getWhere($this->getQueryTableName().".".$this->getIdColName());
+            if ( ! isset($id)) {
+                $id = $this->query->getWhere($this->getIdColName());
+            }
+        }
         if ( ! isset($id)) {
-            report_warning("IDの特定できないUpdate/Insertに対してAssoc処理は実行できません",array(
-                "table" => $table,
+            report_error("IDの特定できないUpdate/Insertに対してAssoc処理は実行できません",array(
+                "table" => $this,
             ));
             return;
         }
@@ -127,6 +140,10 @@ class Table_Base extends Table_Core
         } else {
             // 既存の情報をID→IDでハッシュ
             $delete_assoc_ids = $assoc_result->getHashedBy($assoc_id_col, $assoc_id_col);
+            // singleの指定があれば1レコード目を更新対象、その他を削除対象とする
+            if ($assoc_single) {
+                $values[key($values)][$assoc_id_col] = current($delete_assoc_ids);
+            }
             foreach ((array)$values as $key => $record) {
                 // 入力レコードのIDが空白で無ければ、削除対象から除外
                 if (strlen($record[$assoc_id_col])) {
@@ -511,11 +528,12 @@ class Table_Base extends Table_Core
         }
         foreach ($col_names as $col_name) {
             if ($assoc = static::$cols[$col_name]["assoc"]) {
+                $assoc_type = $assoc["type"] ?: "hasMany";
                 // fields→assoc_fieldsに項目を移動
                 $this->query->removeField($col_name);
                 $this->query->addAssocField($col_name);
                 // assoc処理の呼び出し
-                $this->callHookMethod("assoc_select_".$assoc["type"], array($col_name));
+                $this->callHookMethod("assoc_select_".$assoc_type, array($col_name));
             }
         }
         return false;
@@ -528,8 +546,9 @@ class Table_Base extends Table_Core
     {
         foreach ((array)$this->query->getAssocFields() as $col_name) {
             $assoc = static::$cols[$col_name]["assoc"];
+            $assoc_type = $assoc["type"] ?: "hasMany";
             // assoc処理の呼び出し
-            $this->callHookMethod("assoc_fetch_".$assoc["type"], array($col_name, $record));
+            $this->callHookMethod("assoc_fetch_".$assoc_type, array($col_name, $record));
         }
         return false;
     }
@@ -541,8 +560,9 @@ class Table_Base extends Table_Core
     {
         foreach ((array)$this->query->getAssocFields() as $col_name) {
             $assoc = static::$cols[$col_name]["assoc"];
+            $assoc_type = $assoc["type"] ?: "hasMany";
             // assoc処理の呼び出し
-            $this->callHookMethod("assoc_fetchEnd_".$assoc["type"], array($col_name));
+            $this->callHookMethod("assoc_fetchEnd_".$assoc_type, array($col_name));
         }
         return false;
     }
@@ -554,11 +574,12 @@ class Table_Base extends Table_Core
     {
         foreach ((array)$this->query->getValues() as $col_name => $value) {
             if ($assoc = static::$cols[$col_name]["assoc"]) {
+                $assoc_type = $assoc["type"] ?: "hasMany";
                 // values→assoc_valuesに項目を移動
                 $this->query->removeValue($col_name);
                 $this->query->setAssocValue($col_name,$value);
                 // assoc処理の呼び出し
-                $this->callHookMethod("assoc_write_".$assoc["type"], array($col_name,$value));
+                $this->callHookMethod("assoc_write_".$assoc_type, array($col_name,$value));
             }
         }
         return false;
@@ -571,8 +592,9 @@ class Table_Base extends Table_Core
     {
         foreach ((array)$this->query->getAssocValues() as $col_name => $value) {
             $assoc = static::$cols[$col_name]["assoc"];
+            $assoc_type = $assoc["type"] ?: "hasMany";
             // assoc処理の呼び出し
-            $this->callHookMethod("assoc_afterWrite_".$assoc["type"], array($col_name,$value));
+            $this->callHookMethod("assoc_afterWrite_".$assoc_type, array($col_name,$value));
         }
         return false;
     }

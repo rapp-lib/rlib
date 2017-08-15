@@ -12,14 +12,14 @@
 <?php endif; ?>
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?=$col->getEntryFormFieldDefSource()?>
-<?php if ($col->getAttr("type")==="mi"): ?>
+<?php if ($col->getAttr("type")==="assoc"): ?>
 <?php if ($controller->getAttr("type")==="master"): ?>
             "<?=$col->getName()?>.*.<?=$col->getAssocTable()->getIdCol()->getName()?>",
 <?php endif; ?>
 <?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
 <?=$assoc_col->getEntryFormFieldDefSource(array("name_parent"=>$col->getName().".*"))?>
 <?php endforeach; /* foreach as $assoc_col */ ?>
-<?php endif; /* if type=="mi" */ ?>
+<?php endif; /* if type=="assoc" */ ?>
 <?php endforeach /* foreach as $col */ ?>
         ),
         "rules" => array(
