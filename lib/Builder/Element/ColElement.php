@@ -43,7 +43,6 @@ class ColElement extends Element_Base
             $def["storage"] = "public";
         }
         return '            '.$this->stringifyValue($name, $def).','."\n";
-
     }
     /**
      * $colsの定義行の取得

@@ -54,7 +54,7 @@ class Table_Base extends Table_Core
         // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
         if ( ! isset($assoc_fkey)) {
             $table_name = app()->table->getTableNameByClass(get_class($this));
-            $assoc_fkey = table($assoc_table_name)->getColByAttr("fkey_for", $table_name);
+            $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
         }
         // 主テーブルのIDを取得
         $pkey = $this->getIdColName();
@@ -62,7 +62,7 @@ class Table_Base extends Table_Core
         // 関連テーブルをFkeyでSELECT
         $table = table($assoc_table_name)->findBy($assoc_fkey, $ids);
         // ExtraValueを条件に設定
-        if ($assoc_extra_values) $table->where($assoc_extra_values);
+        if ($assoc_extra_values) $table->findBy($assoc_extra_values);
         // joinの指定があればJOINを接続
         if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
         // singleの指定があれば1レコードに制限
@@ -92,10 +92,10 @@ class Table_Base extends Table_Core
         // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
         if ( ! isset($assoc_fkey)) {
             $table_name = app()->table->getTableNameByClass(get_class($this));
-            $assoc_fkey = table($assoc_table_name)->getColByAttr("fkey_for", $table_name);
+            $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
         }
         // singleの指定があれば1レコードに制限
-        if ($assoc_single) $values = array_slice($values, 0, 1, true);
+        if ($assoc_single) $values = array_slice((array)$values, 0, 1, true);
         // 書き込んだIDを確認
         $id = null;
         if ($this->query->getType() == "insert") {
@@ -115,7 +115,7 @@ class Table_Base extends Table_Core
         // 対象のIDに関係する関係先のレコードを差分削除
         $table = table($assoc_table_name)->findBy($assoc_fkey, $id);
         // ExtraValueを条件に設定
-        if ($assoc_extra_values) $table->where($assoc_extra_values);
+        if ($assoc_extra_values) $table->findBy($assoc_extra_values);
         $assoc_result = $table->select();
         $assoc_id_col = $table->getIdColName();
         // value_col指定=1項目の値のみに絞り込む場合
@@ -130,7 +130,12 @@ class Table_Base extends Table_Core
                 } else {
                     $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
                     foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                    table($assoc_table_name)->insert($record);
+                    // singleの指定があれば削除対象の1レコード目を更新対象とする
+                    if ($assoc_single && $delete_assoc_ids) {
+                        $record[$assoc_id_col] = current($delete_assoc_ids);
+                        unset($delete_assoc_ids[key($delete_assoc_ids)]);
+                    }
+                    table($assoc_table_name)->save($record);
                 }
             }
             // 削除

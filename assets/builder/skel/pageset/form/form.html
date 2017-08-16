@@ -23,7 +23,7 @@
 <?php foreach ($controller->getInputCols() as $col): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
-        <td class="inputBlock"><?=$col->getInputSource()?></td>
+        <td class="inputBlock"><?=$col->getInputSource(array("is_edit"=>$controller->getAttr("type")==="master"))?></td>
     </tr>
 <?php endforeach; /* foreach as $col */ ?>
 </table>

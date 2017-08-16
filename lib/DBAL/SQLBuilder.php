@@ -57,7 +57,7 @@ class SQLBuilder
     }
     public function stCondList($xs, $glue=" AND ")
     {
-        if (is_array($xs)) $xs = $this->filter($xs, function($self,$k,$v){ return ! (is_array($v) && count($v)==0); });
+        //if (is_array($xs)) $xs = $this->filter($xs, function($self,$k,$v){ return ! (is_array($v) && count($v)==0); });
         if ( ! is_array($xs)) return $this->stCondItem(0, $xs);
         if (count($xs)==1) return $this->mapJoin($xs, function($self,$k,$v){ return $self->stCondItem($k, $v); });
         return "(".$this->mapJoin($xs, function($self,$k,$v){ return $self->stCondItem($k, $v); }, $glue).")";
@@ -100,7 +100,12 @@ class SQLBuilder
 // -- UPDATE文固有の表現
     public function stSet(array $xs)
     {
-        return $this->mapJoin($xs, function($self,$k,$v){ return $self->stName($k)." = ".$self->stValue($v, $k); }, " , ");
+        return $this->mapJoin($xs, function($self,$k,$v){ return $self->stSetItem($k, $v); }, " , ");
+    }
+    public function stSetItem($k, $v)
+    {
+        if (preg_match('!^(.*?)\s*=$!', $k, $p)) return $this->stName($p[1])." = ".$v;
+        return $this->stName($k)." = ".$this->stValue($v, $k);
     }
 // -- 共通の表現
     public function stTable($x)

@@ -22,12 +22,12 @@ class CsvfilterLoader
         }
         // CSV読み込み時
         if ($mode == "r") {
-            $values = util("Func")->mapRecursive(function($value) {
+            $values = self::mapRecursive(function($value) {
                 return htmlspecialchars($value, ENT_QUOTES);
             }, $values);
         // CSV書き込み時
         } elseif ($mode == "w") {
-            $values = util("Func")->mapRecursive(function($value) {
+            $values = self::mapRecursive(function($value) {
                 return htmlspecialchars_decode($value, ENT_QUOTES);
             }, $values);
         }
@@ -149,6 +149,20 @@ class CsvfilterLoader
             if ($value===null) {
                 $csv->register_error("設定された値が不正です",true,$filter["target"]);
             }
+        }
+        return $value;
+    }
+    /**
+     * 再帰的にarray_mapを実行する
+     */
+    private static function mapRecursive ($func, $value)
+    {
+        if (is_array($value)) {
+            foreach ($value as $k => $v) {
+                $value[$k] = self::mapRecursive($func, $v);
+            }
+        } else {
+            $value = call_user_func($func, $value);
         }
         return $value;
     }

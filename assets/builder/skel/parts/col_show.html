@@ -3,6 +3,7 @@
     $name = $o["name_parent"] ? $o["name_parent"].".".$col->getName() : $col->getName();
 ?>
 <? if ($col->getAttr("type")=="assoc"): ?>
+<?="\n"?>
                     {{foreach <?=$var_name?>.<?=$name?> as $key=>$item}}
                         <table class="tbl_admin detail">
 <?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
@@ -13,6 +14,7 @@
 <?php endforeach; /* foreach as $assoc_col */ ?>
                         </table>
                     {{/foreach}}
+<?="                "?>
 <?php else: /* if type==="assoc" */ ?>
 <?php
     $html = '{{'.$var_name.'.'.$name;
