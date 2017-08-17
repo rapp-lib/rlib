@@ -203,7 +203,7 @@ class Table_Core
     {
         $cols = array();
         foreach (static::$cols as $col_name => $col) {
-            if ($col[$attr]===$value) {
+            if (($value===true && $col[$attr]) || $col[$attr]===$value) {
                 $cols[] = $col_name;
             }
         }
@@ -605,8 +605,9 @@ class Table_Core
     /**
      * on hookメソッドを呼び出す
      */
-    protected function callListenerMethod ($hook, $args=array())
+    protected function callListenerMethod ($hooks, $args=array())
     {
+        $hooks = is_array($hooks) ? $hooks : array($hooks);
         // 定義されているon_*_*メソッド名を収集
         $defined = & self::$defined_listener_method[get_class($this)];
         if ( ! isset($defined)) {
@@ -621,7 +622,14 @@ class Table_Core
         }
 
         // Hookを呼び出す
-        foreach ((array)$defined[$hook] as $method_name) {
+        $method_names = array();
+        foreach ($hooks as $hook) $method_names = array_merge($method_names, (array)$defined[$hook]);
+        usort($method_names, function($a, $b){
+            $a_priority = preg_match('!_(\d+)$!', $a, $_) ? $_[1] : 500;
+            $b_priority = preg_match('!_(\d+)$!', $b, $_) ? $_[1] : 500;
+            return $a_priority>$b_priority ? +1 : -1;
+        });
+        foreach ($method_names as $method_name) {
             $this->callHookMethod($method_name,$args);
         }
     }
