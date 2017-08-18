@@ -10,13 +10,24 @@ class TableFactory
     {
         return $this->factory($table_name);
     }
+
+    private $reserved_attrs = array();
     /**
      * Tableのインスタンスを作成
      */
     public function factory ($table_name)
     {
         $def = $this->getTableDef($table_name);
-        return new $def["class"];
+        $table = new $def["class"];
+        foreach ($this->reserved_attrs as $key=>$value) $table->setAttr($key, $value);
+        return $table;
+    }
+    /**
+     * Tableのインスタンス生成時に設定する値の予約
+     */
+    public function reserveAttr ($name, $value)
+    {
+        $this->reserved_attrs[$name] = $value;
     }
 
 // -- Table定義の取得

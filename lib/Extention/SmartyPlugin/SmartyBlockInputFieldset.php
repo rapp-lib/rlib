@@ -17,6 +17,7 @@ class SmartyBlockInputFieldset
         $key_assign = $attrs["key"] ?: "key";
         $parent_assign = $attrs["parent"] ?: "parent";
         $assign = $attrs["assign"] ?: "fieldset";
+        $blank_keys = $attrs["length"] ? range(1, $attrs["length"]+1) : array();
         $smarty->assign($parent_assign, $fieldset_name);
         // Blockタグスタック上の情報を参照
         $tag = & $smarty->smarty->_cache['_tag_stack'][end($keys = array_keys($smarty->smarty->_cache['_tag_stack']))];
@@ -24,7 +25,7 @@ class SmartyBlockInputFieldset
         if ($repeat===true) {
             // Keysの初期化
             $form = $smarty->getCurrentForm();
-            $tag["keys"] = isset($form[$fieldset_name]) ? array_keys((array)$form[$fieldset_name]) : array();
+            $tag["keys"] = isset($form[$fieldset_name]) ? array_keys((array)$form[$fieldset_name]) : $blank_keys;
             // テンプレート処理用の要素をアサイン
             if ($tmpl) {
                 $tag["current"] = "tmpl";
@@ -43,7 +44,7 @@ class SmartyBlockInputFieldset
             }
             // Keysの残りがある限りループ処理
             if (count($tag["keys"])) {
-                $smarty->assign($key_assign, $tag["current"] = array_pop($tag["keys"]));
+                $smarty->assign($key_assign, $tag["current"] = array_shift($tag["keys"]));
                 $repeat = true;
             // 全てのループ完了時にassignをおこなう
             } else {

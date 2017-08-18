@@ -1,35 +1,36 @@
 <?php
     $var_name = $o["var_name"] ?: '$forms.entry';
-    $name = $o["name_parent"] ? $o["name_parent"]."[".$col->getName()."]" : $col->getName();
+    $name = $col->getName();
+    $input_name = $o["name_parent"] ? $o["name_parent"]."[".$name."]" : $name;
     $is_edit = $o["is_edit"];
 ?>
 <?php if ($col->getAttr("type")==="assoc" && $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>
-            {{input_fieldset name="<?=$name?>" tmpl="1" key="key" parent="parent" assign="fieldset"}}
+            {{input_fieldset name="<?=$name?>" tmpl="1" key="key" assign="fieldset"}}
                 <table class="tbl_admin detail">
 <?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
                 <tr>
                     <th><?=$assoc_col->getLabel()?></th>
-                    <td class="inputBlock"><?=$assoc_col->getInputSource(array("name_parent"=>'$parent[$key]'))?></td>
+                    <td class="inputBlock"><?=$assoc_col->getInputSource(array("name_parent"=>$name.'[$key]', "var_name"=>$var_name.".".$name.'[$key]'))?></td>
                 </tr>
 <?php endforeach; /* foreach as $assoc_col */ ?>
                 </table>
             {{/input_fieldset}}
             {{foreach $fieldset.items as $item}}{{$item}}{{foreachelse}}{{$fieldset.tmpl}}{{/foreach}}
-<?="        "?>
+        <?=""?>
 <?php elseif ($col->getAttr("type")==="assoc"): /* if type==="assoc" && def.assoc.single */ ?>
 <?="\n"?>
             <div class="mi" data-minItems="0" data-maxItems="20">
-                {{input_fieldset name="<?=$col->getName()?>" tmpl="<%=id%>" key="key" parent="parent" assign="fieldset"}}
+                {{input_fieldset name="<?=$name?>" tmpl="<%=id%>" key="key" assign="fieldset"}}
                     <div class="mi-item" data-itemId="{{$key}}">
 <?php if ($is_edit): ?>
-                        {{input type="hidden" name="$parent[$key][<?=$col->getAssocTable()->getIdCol()->getName()?>]"}}
+                        {{input type="hidden" name="<?=$name?>[$key][<?=$col->getAssocTable()->getIdCol()->getName()?>]"}}
 <?php endif; ?>
                         <table class="tbl_admin detail">
 <?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
                         <tr>
                             <th><?=$assoc_col->getLabel()?></th>
-                            <td class="inputBlock"><?=$assoc_col->getInputSource(array("name_parent"=>'$parent[$key]'))?></td>
+                            <td class="inputBlock"><?=$assoc_col->getInputSource(array("name_parent"=>$name.'[$key]', "var_name"=>$var_name.".".$name.'[$key]'))?></td>
                         </tr>
 <?php endforeach; /* foreach as $assoc_col */ ?>
                         <tr>
@@ -44,23 +45,11 @@
                 <a href="javascript:void(0);" class="mi-append">追加</a>
             </div>
             {{asset required="rui.mi"}}
-<?="        "?>
-<?php else: /* if type==="assoc" */ ?>
-<?php
-    $html = '{{input name="'.$name.'" type="'.$col->getAttr("type").'"';
-    if ($enum_set = $col->getEnumSet()) {
-        $html .=' enum="'.$enum_set->getFullName().'"';
-    }
-    if ($col->getAttr("type")=="password") {
-        $html .=' autocomplete="new-password"';
-    }
-    $html .= '}}';
-    if ($col->getAttr("type")=="file") {
-        $html .= '{{if '.$var_name.'.'.$col->getName().'}}<span> <a href="{{'
-            .$var_name.'.'.$col->getName().'}}" target="_blank" class="uploaded">ファイル</a>'
-            .' <a href="javascript:void(0);" onclick="$(this).parent().parent().find(\'input.uploaded\').val(\'\');'
-            .'$(this).parent().hide();">削除</a></span>{{/if}}';
-    }
-?>
-<?=$html?>
-<?php endif; /* if type==="assoc" */ ?>
+        <?=""?>
+<?php else: /* elseif type==="assoc" */ ?>
+{{input name="<?=$input_name?>" type="<?=$col->getAttr("type")?>"<?=""?>
+<? if ($enum_set = $col->getEnumSet()): ?> enum="<?=$enum_set->getFullName()?>"<?php endif; ?>
+<? if ($col->getAttr("type")=="password"): ?> autocomplete="new-password"<?php endif; ?>
+}}<?=""?>
+<? if ($col->getAttr("type")=="file"): ?>{{if <?=$var_name?>.<?=$name?>}}<span> <a href="{{<?=$var_name?>.<?=$name?>}}" target="_blank" class="uploaded">ファイル</a> <a href="javascript:void(0);" onclick="$(this).parent().parent().find('input.uploaded').val('');$(this).parent().hide();">削除</a></span>{{/if}}<?php endif; ?>
+<?php endif; /* if type==="assoc" && def.assoc.single */ ?>

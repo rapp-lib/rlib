@@ -11,6 +11,9 @@
     </div>
 {{/form}}
 
+<a id="table-sort" data-sort-base-url='{{$forms.search->getSearchPageUrl(["p"=>0, "sort"=>""])}}' data-sort-current="{{$forms.search.sort}}" data-sort-param-name="sort" data-sort-default="id"></a>
+{{asset required=["rui.sort"]}}
+
 <div class="ad_btn clearfix">
 <?php if ($pageset = $controller->getPagesetByType("form")): ?>
     <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="create">新規登録</a>

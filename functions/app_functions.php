@@ -58,12 +58,11 @@
 
 // -- Report
 
-    function report ($message=null, $vars=null)
+    function report ()
     {
-        if (is_string($message) && is_array($vars)) {
-            return report_info($message, $vars);
-        }
-        app()->report->getLogger()->debug("DEBUG", func_get_args());
+        $values = array();
+        foreach (func_get_args() as $k=>$v) $values["arg-".$k] = $v;
+        app()->report->getLogger()->debug("DEBUG", $values);
     }
     function report_info ($message, array $vars=array())
     {

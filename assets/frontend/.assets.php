@@ -53,6 +53,10 @@
         ->required("jquery")
         ->required("nicEdit");
 
+    // rui.sort
+    $asset->registerJsUrl("rui.sort:1.0.0", $url.'/rui.sort/sort.js')
+        ->required("jquery");
+
     // rui.zip
     $asset->registerJsUrl("rui.zip:1.0.0", $url.'/rui.zip/index.js')
         ->required("jquery");

@@ -57,6 +57,24 @@ class ColElement extends Element_Base
         return '        '.$this->stringifyValue($this->getName(), $def).','."\n";
     }
     /**
+     * form.field_def中でのrule定義行の取得
+     */
+    public function getRuleDefSource ($o=array())
+    {
+        $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
+        $rules = array();
+        foreach ((array)$this->getAttr("rules") as $type=>$params) {
+            if ($type==="required") {
+                if ($params) $rules[] = $name;
+            } else {
+                $rules[] = array_merge(array($name, $type), (array)$params);
+            }
+        }
+        $source = "";
+        foreach ($rules as $rule) $source .= '            '.$this->stringifyValue(0, $rule).','."\n";
+        return $source;
+    }
+    /**
      * assoc関係にあるTableを取得
      */
     public function getAssocTable ()
@@ -81,6 +99,6 @@ class ColElement extends Element_Base
         } else {
             $v = (string)$v;
         }
-        return '"'.$k.'"=>'.$v;
+        return (is_numeric($k) ? "" : '"'.$k.'"=>').$v;
     }
 }

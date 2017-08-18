@@ -11,12 +11,10 @@ class Table_Core
      * Queryオブジェクト
      */
     protected $query;
-
     /**
      * Resultオブジェクト
      */
     protected $result;
-
     /**
      * テーブルの定義
      */
@@ -24,36 +22,34 @@ class Table_Core
     protected static $ds_name = "default";
     protected static $def = array();
     protected static $cols = array();
-
     /**
      * テーブル別のListenerメソッドの定義
      */
     protected static $defined_listener_method = array();
-
     /**
      * Hook処理の呼び出し履歴
      */
     private $hook_history = array();
-
     /**
      * DBIのSQL実行結果リソース
      */
     private $result_res = null;
-
     /**
      * Insert発行直後のLastInsertId
      */
     private $last_insert_id = null;
-
     /**
      * buildQueryの結果作成されたSQL文
      */
     private $statemenet = false;
-
     /**
      * fetchが最後まで完了しているかどうか
      */
     private $fetch_done = false;
+    /**
+     * 外部から設定できる値
+     */
+    protected $attrs = array();
 
     /**
      * @override
@@ -69,7 +65,6 @@ class Table_Core
             $this->query->setTable(static::$table_name);
         }
     }
-
     /**
      * @override
      */
@@ -586,21 +581,15 @@ class Table_Core
         $hooks = array();
         $type = $this->query->getType();
         // type別
-        $hooks[] =$type;
+        $hooks[] = $type;
         // valuesを持つQuery
-        if ($type=="insert" || $type=="update") {
-            $hooks[] ="write";
-        }
+        if ($type=="insert" || $type=="update") $hooks[] = "write";
         // whereを持つQuery
-        if ($type=="select" || $type=="update") {
-            $hooks[] ="read";
-        }
+        if ($type=="select" || $type=="update") $hooks[] = "read";
         // 全て
-        $hooks[] ="any";
+        $hooks[] = "any";
         // 呼び出す
-        foreach ($hooks as $hook) {
-            $this->callListenerMethod($hook,array());
-        }
+        foreach ($hooks as $hook) $this->callListenerMethod($hook,array());
     }
     /**
      * on hookメソッドを呼び出す
@@ -620,7 +609,6 @@ class Table_Core
                 $defined[$pattern[1]][] = $method_name;
             }
         }
-
         // Hookを呼び出す
         $method_names = array();
         foreach ($hooks as $hook) $method_names = array_merge($method_names, (array)$defined[$hook]);
@@ -650,6 +638,27 @@ class Table_Core
         return false;
     }
 
+// -- Attr操作
+
+    /**
+     * Attrに値を設定する
+     */
+    public function setAttr ($key, $value)
+    {
+        $this->attrs[$key] = $value;
+    }
+    /**
+     * Attrに値を設定する
+     */
+    public function getAttr ($key)
+    {
+        $value = $this->attrs[$key];
+        if ( ! isset($value)) {
+            report_error("Attrの値が設定されていません",array("table"=>$this, "key"=>$key));
+        }
+        return $value;
+    }
+
 // -- その他
 
     /**
@@ -659,92 +668,8 @@ class Table_Core
     {
         return array(
             "query" => $this->query,
+            "attrs" => (array)$this->attrs,
             "history" => (array)$this->hook_history,
         );
-    }
-
-    /**
-     * 完成済みのQueryからSQL文を取得する
-     * @deprecated
-     */
-    private function queryToStatement ($query)
-    {
-        $query = (array)$query;
-        if ($query["type"]=="select" && ! $query["fields"]) {
-            // 空のfieldsを*に変換
-            $query["fields"] = array("*");
-        }
-        foreach ((array)$query["fields"] as $k => $v) {
-            // Fieldsのサブクエリ展開
-            if (is_object($v) && method_exists($v,"buildQuery")) {
-                $query["fields"][$k] = $v = "(".$v->buildQuery("select").")";
-            }
-            // FieldsのAlias展開
-            if ( ! is_numeric($k)) {
-                $query["fields"][$k] = $v = $v." AS ".$k;
-            }
-        }
-        foreach ((array)$query["joins"] as $k => $v) {
-            // Joinsのサブクエリ展開
-            if (is_object($v["table"]) && method_exists($v["table"],"buildQuery")) {
-                $v["table"]->modifyQuery(function($sub_query) use (&$query, $k){
-                    $sub_query_statement = $query["joins"][$k]["table"]->buildQuery("select");
-                    if ($sub_query->getGroup()) {
-                        //TODO: GroupBy付きのJOINでも異なるDB間でJOINできるようにする
-                        $query["joins"][$k]["table"] = "(".$sub_query_statement.")";
-                    } else {
-                        $table_name = $sub_query->getTableName();
-                        // 異なるDB間でのJOIN時にはDBNAME付きのTable名とする
-                        if ($query["dbname"]!==$sub_query["dbname"]) {
-                            $table_name = $sub_query["dbname"].".".$table_name;
-                        }
-                        $query["joins"][$k]["table"] = $table_name;
-                        $query["joins"][$k]["conditions"][] = $sub_query["conditions"];
-                    }
-                });
-            }
-        }
-        // Updateを物理削除に切り替え
-        if ($query["type"]=="update" && $query["delete"]) {
-            unset($query["delete"]);
-            $query["type"] = "delete";
-        }
-
-        // SQL文の作成
-        $st_method = "st_".$query["type"];
-        return $this->getDBI()->$st_method($query);
-    }
-    /**
-     * @deprecated
-     * DB名を取得する
-     */
-    protected function getDbname ()
-    {
-        return $this->getConnection()->getDbname();
-    }
-    /**
-     * @deprecated
-     * DBIオブジェクトの取得
-     */
-    private function getDBI ()
-    {
-        if ( ! defined("DBI_LOADED")) {
-            register_shutdown_function(function(){
-                $instance = & $GLOBALS["loaded_dbi"];
-                foreach ((array)$instance as $dbi) {
-                    $result =$dbi->rollback();
-                }
-            });
-            define("DBI_LOADED",true);
-        }
-        $instance =& $GLOBALS["loaded_dbi"];
-        $name =static::$ds_name;
-
-        if ( ! $instance[$name]) {
-            $connect_info =app()->config("db.connection.".$name);
-            $instance[$name] =new DBI_Base($name);
-            $instance[$name]->connect($connect_info);
-        }
-        return $instance[$name];
     }
 }
