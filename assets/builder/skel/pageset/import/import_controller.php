@@ -29,12 +29,10 @@
             }
             // CSVファイルを開く
             $csv_file = app()->file->getFileByUri($this->forms["entry_csv"]["csv_file"])->getSource();
-            $csv = new \R\Lib\Util\CSVHandler($csv_file,"r",$this->csv_setting);
+            $csv = csvfile($csv_file, "r", $this->csv_setting);
             // DBへの登録処理
             app()->db()->begin();
-            while ($t=$csv->read_line()) {
-                table("<?=$table->getName()?>")->save($t);
-            }
+            while ($t=$csv->read_line()) table("<?=$table->getName()?>")->save($t);
             app()->db()->commit();
             $this->forms["entry_csv"]->clear();
         }

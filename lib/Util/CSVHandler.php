@@ -6,299 +6,236 @@ namespace R\Lib\Util;
  */
 class CSVHandler
 {
-    protected $current_line_num;
-    protected $errors;
     protected $filename;
     protected $mode;
+    protected $options;
     protected $handle;
-    protected $delim;
-    protected $escape;
-    protected $file_charset;
-    protected $data_charset;
-    protected $return_code;
-    protected $map;
-    protected $labels;
-    protected $filters;
-    protected $ignore_empty_line;
-    //-------------------------------------
-    // コンストラクタ
+    protected $current_line_num = 0;
+
     public function __construct ($filename, $mode="r", $options=array())
     {
-        $this->handle =fopen($filename,$mode);
-        $this->filename =$filename;
-        $this->mode =$mode;
-        $this->current_line_num =0;
-        $this->errors =array();
-        $this->delim =isset($options["delim"])
-                ? $options["delim"]
-                : ",";
-        $this->escape =isset($options["escape"])
-                ? $options["escape"]
-                : '"';
-        $this->return_code =isset($options["return_code"])
-                ? $options["return_code"]
-                : "\n";
-        $this->file_charset =isset($options["file_charset"])
-                ? $options["file_charset"]
-                : "SJIS-WIN";
-        $this->data_charset =isset($options["data_charset"])
-                ? $options["data_charset"]
-                : "UTF-8";
-        $this->all_escape =(boolean)$options["all_escape"];
-        $this->map =isset($options["map"])
-                ? $options["map"]
-                : null;
-        $this->labels =isset($options["labels"])
-                ? $options["labels"]
-                : null;
-        if ($options["rows"]) {
-            $this->map =array_keys($options["rows"]);
-            $this->labels =$options["rows"];
+        $this->filename = $filename;
+        $this->mode = $mode;
+        $this->options = $options;
+        $this->handle = fopen($this->filename, $this->mode);
+        // optionsの値設定
+        $this->options["delim"] = $this->options["delim"] ?: ",";
+        $this->options["escape"] = $this->options["escape"] ?: '"';
+        $this->options["return_code"] = $this->options["return_code"] ?: "\n";
+        $this->options["map"] = $this->options["map"] ?: null;
+        $this->options["labels"] = $this->options["labels"] ?: null;
+        if ($this->options["rows"]) {
+            $this->options["map"] = array_keys($options["rows"]);
+            $this->options["labels"] = $options["rows"];
         }
-        $this->filters =isset($options["filters"])
-                ? $options["filters"]
-                : null;
-        $this->ignore_empty_line =isset($options["ignore_empty_line"])
-                ? $options["ignore_empty_line"]
-                : null;
+        $this->options["filters"] = $this->options["filters"] ?: array();
+        if ($this->options["filters"]) ksort($this->options["filters"]);
+        $this->options["data_charset"] = $this->options["data_charset"] ?: "UTF-8";
+        $this->options["file_charset"] = $this->options["file_charset"] ?: "SJIS-WIN";
+        $this->options["sanitize"] = (boolean)$this->options["sanitize"];
+        $this->options["ignore_empty_line"] = (boolean)$this->options["ignore_empty_line"];
+        $this->options["escape_all"] = (boolean)$this->options["escape_all"];
+        // 標準filterの登録
+        if ($this->options["sanitize"]) {
+            array_unshift($this->options["filters"],
+                array(null, array($this, "filterSanitize"), "ignore_skip"=>true));
+        }
+        if ($this->options["data_charset"] != $this->options["file_charset"]) {
+            array_unshift($this->options["filters"],
+                array(null, array($this, "filterConvertCharset"), "ignore_skip"=>true));
+        }
         // ラベル行の書き込み/スキップ
-        if ($this->labels) {
-            if ($mode=="r") {
-                $this->read_line(array("ignore_filters" =>true));
-            } elseif ($mode=="w") {
-                $this->write_line($this->labels,array("ignore_filters" =>true));
-            }
+        if ($this->options["labels"]) {
+            if ($this->mode=="r") $this->readLine(array("skip_filters"=>true));
+            if ($this->mode=="w") $this->writeLine($this->options["labels"], array("skip_filters"=>true));
         }
     }
-    //-------------------------------------
-    // オプションの追加設定
-    public function set_options ($options) {
-        $overwritables =array("map","filters","ignore_empty_line");
-        foreach ($options as $k => $v) {
-            if (in_array($k,$overwritables)) {
-                $this->$k =$v;
-            }
-        }
-    }
-    //-------------------------------------
-    // ファイルハンドルの取得
-    public function get_file_handle () {
+    /**
+     * ファイルハンドルの取得
+     */
+    public function getHandle ()
+    {
         return $this->handle;
     }
-    //-------------------------------------
-    // 全データの読み込み
-    public function read_all ($counter=null) {
-        return $this->read_lines($counter);
+    /**
+     * 現在の行番号を取得
+     */
+    public function getCurrentLineNum ()
+    {
+        return $this->current_line_num;
     }
-    //-------------------------------------
-    // 複数の行読み込み
-    public function read_lines ($options=array()) {
-        $lines =array();
-        $counter =$options["limit"];
-        while ( ! is_null($line =$this->read_line($options))) {
-            if ( ! is_null($counter) && $counter-->0) {
-                break;
-            }
-            $lines[] =$line;
+    /**
+     * 複数行読み込み
+     */
+    public function readLines ($options=array())
+    {
+        $lines = array();
+        $counter = $options["limit"];
+        while ( ! is_null($line = $this->readLine($options))) {
+            if ( ! is_null($counter) && $counter-->0) break;
+            $lines[] = $line;
         }
         return $lines;
     }
-    //-------------------------------------
-    // 行ベースの読み込み
-    public function read_line ($options=array()) {
-        if ( ! $this->handle || feof($this->handle)) {
-            if ($this->handle) {
-                fclose($this->handle);
-                $this->handle =null;
-            }
-            return null;
+    /**
+     * 1行読み込み
+     */
+    public function readLine ($options=array())
+    {
+        $csv_data = $this->readCsvLine();
+        if ( ! isset($csv_data)) return;
+        // 空行のスキップ
+        if ($this->options["ignore_empty_line"] && ! strlen(implode("",$csv_data))) {
+            return $this->readLine();
         }
+        // KVマッピング
+        if (is_array($this->options["map"])) {
+            $csv_data_tmp = array();
+            foreach ($this->options["map"] as $k => $v) $csv_data_tmp[$v] = $csv_data[$k];
+            $csv_data = $csv_data_tmp;
+        }
+        // Filters実行
+        if ($this->options["filters"]) $this->applyFilters($csv_data, "r", $options["skip_filters"]);
+        // 配列ドット参照の解決
+        if (is_array($this->options["map"])) {
+            foreach (array_keys($csv_data) as $k) {
+                if (strpos($k, ".")!==false) {
+                    array_add($csv_data, $k, $csv_data[$k]);
+                    unset($csv_data[$k]);
+                }
+            }
+        }
+        array_clean($csv_data);
+        return $csv_data;
+    }
+    /**
+     * 何も処理せずにCSVファイルを1行読み込む
+     */
+    private function readCsvLine ()
+    {
+        // ファイルの末尾に到達したらnullを返す
+        if (feof($this->handle)) return null;
+        // エスケープを考慮して1行読み込み
+        $d = $this->options["delim"];
+        $e = $this->options["escape"];
         $line = "";
-        $d =preg_quote($this->delim);
-        $e =preg_quote($this->escape);
         do {
-            $line .=fgets($this->handle);
-            $item_count =preg_match_all('/'.$e.'/', $line, $dummy);
+            $line .= fgets($this->handle);
+            $item_count = preg_match_all('/'.$e.'/', $line, $dummy);
         } while ($item_count % 2 != 0);
-        $csv_line =preg_replace('/(?:\r\n|[\r\n])?$/',$d,trim($line));
+        $csv_line = preg_replace('/(?:\r\n|[\r\n])?$/', $d, trim($line));
         $csv_pattern ='/('.$e.'[^'.$e.']*(?:'.$e.$e.'[^'
                 .$e.']*)*'.$e.'|[^'.$d.']*)'.$d.'/';
         preg_match_all($csv_pattern, $csv_line, $matches);
-        $csv_data =$matches[1];
-        for ($i=0; $i< count($csv_data); $i++) {
-            $csv_data[$i] =preg_replace(
-                    '/^'.$e.'(.*)'.$e.'$/s','$1',
-                    $csv_data[$i]);
-            $csv_data[$i] =str_replace($e.$e, $e, $csv_data[$i]);
-            // エンコーディング変換
-            if ($this->data_charset != $this->file_charset) {
-                $csv_data[$i] =mb_convert_encoding(
-                        $csv_data[$i],
-                        $this->data_charset,
-                        $this->file_charset);
-            }
-        }
-        // KVマッピング
-        if (is_array($this->map)) {
-            $csv_data_tmp =array();
-            foreach ($this->map as $k => $v) {
-                $csv_data_tmp[$v] =$csv_data[$k];
-            }
-            $csv_data =$csv_data_tmp;
-        }
-        // Filter実行
-        if ($this->filters && ! $options["ignore_filters"]) {
-            $filters =(array)$this->filters;
-            ksort($filters);
-            foreach ($filters as $filter) {
-                $module = extention("csvfilter",$filter["filter"]);
-                // target指定がある場合、要素単位で処理
-                if ($filter["target"]) {
-                    $csv_data[$filter["target"]] =call_user_func_array($module,array(
-                        $csv_data[$filter["target"]],
-                        "r",
-                        $csv_data,
-                        $filter,
-                        $this,
-                    ));
-                // target指定がない場合、全要素を処理
-                } else {
-                    $csv_data =call_user_func_array($module,array(
-                        $csv_data,
-                        "r",
-                        $csv_data,
-                        $filter,
-                        $this,
-                    ));
-                    if ($csv_data === null) {
-                        return array();
-                    }
-                }
-            }
+        $csv_data = $matches[1];
+        // エスケープの解除
+        foreach ($csv_data as & $value) {
+            $value = preg_replace('/^'.$e.'(.*)'.$e.'$/s','$1', $value);
+            $value = str_replace($e.$e, $e, $value);
         }
         $this->current_line_num++;
-        // 空行判定
-        $is_empty_line =true;
-        foreach ($csv_data as & $v) {
-            if ((is_array($v) && count($v)) || ( ! is_array($v) && strlen($v))) {
-                $is_empty_line =false;
-            }
-        }
-        if ($is_empty_line && $this->ignore_empty_line) {
-            return $this->read_line();
-        } else {
-            return $csv_data;
-        }
+        return $csv_data;
     }
-    //-------------------------------------
-    // 複数行書き込み
-    public function write_lines ($lines, $options=array()) {
-        if ( ! is_array($lines)) {
-            return false;
-        }
-        foreach ($lines as $line) {
-            $this->write_line($line,$options);
-        }
-        return true;
+    /**
+     * 複数行書き込み
+     */
+    public function writeLines ($lines, $options=array())
+    {
+        foreach ((array)$lines as $line) $this->writeLine($line,$options);
     }
-    //-------------------------------------
-    // 行書き込み
-    public function write_line ($csv_data, $options=array()) {
+    /**
+     * 1行書き込み
+     */
+    public function writeLine ($csv_data, $options=array())
+    {
         $csv_data = (array)$csv_data;
-        if ($this->ignore_empty_line &&  ! strlen(implode("",$csv_data))) {
-            return false;
-        }
-        // Filter実行
-        if ($this->filters && ! $options["ignore_filters"]) {
-            $filters =(array)$this->filters;
-            krsort($filters);
-            foreach ($filters as $filter) {
-                $module = extention("csvfilter",$filter["filter"]);
-                // target指定がある場合、要素単位で処理
-                if ($filter["target"]) {
-                    $csv_data[$filter["target"]] =call_user_func_array($module,array(
-                        $csv_data[$filter["target"]],
-                        "w",
-                        $csv_data,
-                        $filter,
-                        $this,
-                    ));
-                // target指定がない場合、全要素を処理
-                } else {
-                    $csv_data =call_user_func_array($module,array(
-                        $csv_data,
-                        "w",
-                        $csv_data,
-                        $filter,
-                        $this,
-                    ));
-                    if ($csv_data === null) {
-                        return;
-                    }
-                }
+        // 配列ドット参照の解決
+        if (is_array($this->options["map"])) {
+            // $csv_data["xxx.0.yyy"]に参照先の値をコピーする
+            foreach ($this->options["map"] as $k => $v) {
+                if ( ! isset($csv_data[$v])) $csv_data[$v] = array_get($csv_data, $v);
+            }
+            // コピー対象となった$csv_data["xxx"]を削除する
+            foreach (array_keys($csv_data) as $k) {
+                if ( ! in_array($k, $this->options["map"])) unset($csv_data[$k]);
             }
         }
+        // Filters実行
+        if ($this->options["filters"]) $this->applyFilters($csv_data, "w", $options["skip_filters"]);
         // VKマッピング
-        if (is_array($this->map)) {
-            $csv_data_tmp =array();
-            foreach ($this->map as $k => $v) {
-                $csv_data_tmp[$k] =$csv_data[$v];
+        if (is_array($this->options["map"])) {
+            $csv_data_tmp = array();
+            foreach ($this->options["map"] as $k => $v) {
+                $csv_data_tmp[$k] = $csv_data[$v];
             }
-            $csv_data =$csv_data_tmp;
+            $csv_data = $csv_data_tmp;
             ksort($csv_data);
         }
-        $csv_data =array_values($csv_data);
-        for ($i=0; $i< count($csv_data); $i++) {
-            if ( ! isset($csv_data[$i])) {
-                continue;
-            }
-            // エンコーディング変換
-            if ($this->data_charset != $this->file_charset) {
-                $csv_data[$i] =mb_convert_encoding(
-                        $csv_data[$i],
-                        $this->file_charset,
-                        $this->data_charset);
-            }
-            $csv_data[$i] =$this->quote_csv_data($csv_data[$i]);
+        // 空行のスキップ
+        if ($this->options["ignore_empty_line"] && ! strlen(implode("",$csv_data))) {
+            return;
         }
-        $csv_data =implode($this->delim,$csv_data).$this->return_code;
-        fwrite($this->handle,$csv_data);
+        return $this->writeCsvLine($csv_data);
+    }
+    /**
+     * 何も処理せずにCSVファイルに1行書き込む
+     */
+    private function writeCsvLine ($csv_data)
+    {
+        $d = $this->options["delim"];
+        $e = $this->options["escape"];
+        $r = $this->options["return_code"];
+        foreach ($csv_data as & $value) {
+            $value = str_replace($e,$e.$e, $value);
+            $escape_pattern ='/['.$e.$d.$r.']/';
+            if (preg_match($escape_pattern,$value) || $this->options["escape_all"]) {
+                $value = $e.$value.$e;
+            }
+        }
+        $line = implode($d, $csv_data).$r;
+        fwrite($this->handle, $line);
         $this->current_line_num++;
     }
-    //-------------------------------------
-    // 次回または現在の読み込み/書き込みの行番号
-    public function get_current_line_num () {
-        return $this->current_line_num;
-    }
-    //-------------------------------------
-    // エラーの登録
-    public function register_error ($message, $line_num=null, $row=null) {
-        $error =array();
-        $error["message"] =$message;
-        if ($line_num !== null) {
-            $error["line"] =$line_num===true
-                    ? $this->get_current_line_num()
-                    : $line_num;
+    /**
+     * Filters適用
+     * 読み込み時は正順、書き込み時は逆順に適用する
+     */
+    private function applyFilters ( & $csv_data, $mode, $skip_filters)
+    {
+        $filters = $mode=="r" ? $this->options["filters"] : array_reverse($this->options["filters"]);
+        foreach ($filters as $filter) {
+            if ($skip_filters && ! $filter["ignore_skip"]) continue;
+            $filter["target"] = $filter["target"] ?: $filter[0];
+            $filter["filter"] = $filter["filter"] ?: $filter[1];
+            if ( ! $filter["target"]) $filter["target"] = array_keys($csv_data);
+            if ( ! is_array($filter["target"])) $filter["target"] = array($filter["target"]);
+            $module = $filter["filter"];
+            if ( ! is_callable($module)) $module = extention("csvfilter", $filter["filter"]);
+            foreach ($filter["target"] as $target) {
+                $csv_data[$target] = call_user_func($module, $csv_data[$target], $mode, $filter, $csv_data);
+            }
         }
-        if ($row !== null) {
-            $error["row"] =$row;
-        }
-        $this->errors[] =$error;
     }
-    //-------------------------------------
-    // 読み込み/書き込みエラーの取得
-    public function get_errors () {
-        return $this->errors;
-    }
-    //-------------------------------------
-    // CSVセルエスケープ
-    protected function quote_csv_data ($value) {
-        $value =(string)$value;
-        $value =str_replace($this->escape,$this->escape.$this->escape, $value);
-        $escape_pattern ='!['.preg_quote($this->escape.$this->delim.$this->return_code,"!").']!';
-        if (preg_match($escape_pattern,$value) || $this->all_escape) {
-            $value =$this->escape.$value.$this->escape;
+    private function filterSanitize ($value, $mode, $filter, $csv_data)
+    {
+        // 入出力サニタイズ処理
+        // CSV読み込み時
+        if ($mode == "r") {
+            return htmlspecialchars($value, ENT_QUOTES);
+        // CSV書き込み時
+        } else {
+            return htmlspecialchars_decode($value, ENT_QUOTES);
         }
-        return $value;
+    }
+    private function filterConvertCharset ($value, $mode, $filter, $csv_data)
+    {
+        // 文字コード変換処理
+        // CSV読み込み時
+        if ($mode == "r") {
+            return mb_convert_encoding($value, $this->options["data_charset"], $this->options["file_charset"]);
+        // CSV書き込み時
+        } else {
+            return mb_convert_encoding($value, $this->options["file_charset"], $this->options["data_charset"]);
+        }
     }
 }

@@ -11,159 +11,39 @@ class CsvfilterLoader
             return array($class_name,$callback_method);
         }
     }
-    // CSVからの入力項目についてのサニタイズ処理
-    public static function callbackSanitize ($values, $mode, $line, $filter, $csv)
+    // 分解/結合
+    public static function callbackExplode ($value, $mode, $filter, $csv_data)
     {
-        // オプションチェック
-        if ($filter["target"]) {
-            report_error('csvfilter:sanitize targetの指定は不可',array(
-                "filter" =>$filter,
-            ));
-        }
+        $filter["delim"] = $filter["delim"] ?: ",";
         // CSV読み込み時
         if ($mode == "r") {
-            $values = self::mapRecursive(function($value) {
-                return htmlspecialchars($value, ENT_QUOTES);
-            }, $values);
+            return explode($filter["delim"], $value);
         // CSV書き込み時
-        } elseif ($mode == "w") {
-            $values = self::mapRecursive(function($value) {
-                return htmlspecialchars_decode($value, ENT_QUOTES);
-            }, $values);
+        } else {
+            return implode($filter["delim"], $value);
         }
-        return $values;
     }
-    // 対象の値が正しい日付であるか評価、整形を行う
-    public static function callbackDate ($value, $mode, $line, $filter, $csv)
+    // 指定のenumに変換
+    public static function callbackEnumValue ($value, $mode, $filter, $csv_data)
     {
-        // オプションチェック
-        if ( ! $filter["target"]) {
-            report_error('csvfilter:date targetの指定は必須です',array(
-                "filter" =>$filter,
-            ));
+        // 配列であれば各要素を処理
+        if (is_array($value)) {
+            foreach ($value as & $v) {
+                $v = self::callbackEnumValue($v, $mode, $filter, $csv_data);
+            }
             return $value;
         }
         // 空白要素の無視
-        if ( ! strlen($value)) {
-            return $mode=="r" ? null : "";
-        }
+        if ( ! strlen($value)) return $value;
+        $enum = app()->enum($filter["enum"]);
         // CSV読み込み時
         if ($mode == "r") {
-            if (strtotime($value) == -1) {
-                $csv->register_error("設定された値が不正です",true,$filter["target"]);
-                return null;
-            }
-            if ($filter["format"]) {
-                //$value = longdate_format($value,$filter["format"]);
-                $date = new \DateTime($value);
-                $value = $date->format($filter["format"]);
-            }
+            $enum->initValues();
+            $enum_reverse = array_flip((array)$enum);
+            return $enum_reverse[$value];
         // CSV書き込み時
-        } elseif ($mode == "w") {
-            if ( ! strlen($value)) {
-                return "";
-            }
-            if ($filter["format"]) {
-                //$value =longdate_format($value,$filter["format"]);
-                $date = new \DateTime($value);
-                $value = $date->format($filter["format"]);
-            }
-        }
-        return $value;
-    }
-    // 指定のlistでselect/select_reverseする
-    public static function callbackListSelect ($value, $mode, $line, $filter, $csv)
-    {
-        // 空白要素の無視
-        if ( ! $value || ($value && is_string($value) && ! strlen($value))) {
-            return $mode=="r" ? null : "";
-        }
-        // listの指定
-        if ($filter["list"]) {
-            $list_options =get_list($filter["list"]);
-            $list_params =(array)$filter["list_params"];
-        }
-        if ($filter["enum"]) {
-            $enum = app()->enum($filter["enum"],$list_params[0]);
-            if ( ! isset($enum)) {
-                report_error("csv_filterのenum指定が不正です", $filter);
-            }
-            if ($mode == "r") {
-                $enum->initValues();
-                $enum_reverse = array_flip((array)$enum);
-            }
-        }
-        // target_parentの指定
-        if ($target_parent =$filter["target_parent"]) {
-            $list_params[] =$line[$target_parent];
-        }
-        // 複合データの場合
-        if ($delim =$filter["delim"]) {
-            // CSV読み込み時
-            if ($mode == "r") {
-                $value_exploded =explode($delim,$value);
-                $value =array();
-                foreach ($value_exploded as $k=>$v) {
-                    if ($enum && $enum_reverse[$v]) {
-                        $value_unserialized[$k] =$enum_reverse[$v];
-                    } elseif ($v =$list_options->select_reverse($v, $list_params)) {
-                        $value[$k] =$v;
-                    } else {
-                        $csv->register_error("設定された値が不正です",true,$filter["target"]);
-                    }
-                }
-            // CSV書き込み時
-            } elseif ($mode == "w") {
-                $value_unserialized =array();
-                $value =is_array($value)
-                        ? $value
-                        : (array)unserialize($value);
-                foreach ($value as $k=>$v) {
-                    if ($enum && $enum[$v]) {
-                        $value_unserialized[$k] =$enum[$v];
-                    } elseif ($list_options && $v =$list_options->select($v, $list_params)) {
-                        $value_unserialized[$k] =$v;
-                    } else {
-                        $csv->register_error("設定された値が不正です",true,$filter["target"]);
-                    }
-                }
-                $value =implode($delim,$value_unserialized);
-            }
-        // 単純データの場合
         } else {
-            // CSV読み込み時
-            if ($mode == "r") {
-                if ($enum) {
-                    $value =$enum_reverse[$value];
-                } elseif ($list_options) {
-                    $value =$select_reverse->select($value, $list_params);
-                }
-            // CSV書き込み時
-            } elseif ($mode == "w") {
-                if ($enum) {
-                    $value =$enum[$value];
-                } elseif ($list_options) {
-                    $value =$list_options->select($value, $list_params);
-                }
-            }
-            if ($value===null) {
-                $csv->register_error("設定された値が不正です",true,$filter["target"]);
-            }
+            return $enum[$value];
         }
-        return $value;
-    }
-    /**
-     * 再帰的にarray_mapを実行する
-     */
-    private static function mapRecursive ($func, $value)
-    {
-        if (is_array($value)) {
-            foreach ($value as $k => $v) {
-                $value[$k] = self::mapRecursive($func, $v);
-            }
-        } else {
-            $value = call_user_func($func, $value);
-        }
-        return $value;
     }
 }

@@ -6,7 +6,7 @@
 ?>
 <?php if ($col->getAttr("type")==="assoc" && $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>
-            {{input_fieldset name="<?=$name?>" tmpl="1" key="key" assign="fieldset"}}
+            {{input_fieldset name="<?=$name?>" tmpl="0" key="key" assign="fieldset"}}
                 <table class="tbl_admin detail">
 <?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
                 <tr>
@@ -18,7 +18,7 @@
             {{/input_fieldset}}
             {{foreach $fieldset.items as $item}}{{$item}}{{foreachelse}}{{$fieldset.tmpl}}{{/foreach}}
         <?=""?>
-<?php elseif ($col->getAttr("type")==="assoc"): /* if type==="assoc" && def.assoc.single */ ?>
+<?php elseif ($col->getAttr("type")==="assoc" && ! $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>
             <div class="mi" data-minItems="0" data-maxItems="20">
                 {{input_fieldset name="<?=$name?>" tmpl="<%=id%>" key="key" assign="fieldset"}}

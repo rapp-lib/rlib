@@ -10,6 +10,13 @@
         return is_array($arr) || $arr instanceof \ArrayAccess;
     }
     /**
+     * 再帰的にarray_mapを行う
+     */
+    function array_map_recursive (callable $callback, array $array)
+    {
+        return filter_var($array, \FILTER_CALLBACK, array('options' => $callback));
+    }
+    /**
      * ドット記法で配列の値を再帰的に追加する
      */
     function array_add ( & $ref, $key, $value=array())

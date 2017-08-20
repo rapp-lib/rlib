@@ -17,8 +17,6 @@ class ValidateRuleLoader
         "kana" => array('!^(ア|イ|ウ|エ|オ|カ|キ|ク|ケ|コ|サ|シ|ス|セ|ソ|タ|チ|ツ|テ|ト|ナ|ニ|ヌ|ネ|ノ|ハ|ヒ|フ|ヘ|ホ|マ|ミ|ム|メ|モ|ヤ|ユ|ヨ|ラ|リ|ル|レ|ロ|ワ|ヲ|ン|ァ|ィ|ゥ|ェ|ォ|ッ|ャ|ュ|ョ|ー|ガ|ギ|グ|ゲ|ゴ|ザ|ジ|ズ|ゼ|ゾ|ダ|ヂ|ヅ|デ|ド|バ|ビ|ブ|ベ|ボ|パ|ピ|プ|ペ|ポ|ヴ| |　|・)*$!u', "全角カナのみで入力してください"),
         "date" => array('!^(\d+)[/-]+(\d+)[/-](\d+)$!', "正しい日付を入力してください"),
     );
-
-    private static $regacy_callbacks = array();
     public static function getCallback ($name)
     {
         $class_name = get_class();
@@ -26,21 +24,7 @@ class ValidateRuleLoader
         if (method_exists($class_name,$callback_method)) {
             return array($class_name,$callback_method);
         }
-
-        // 旧仕様クラスの読み込み
-        if (self::$regacy_callbacks[$name]) {
-            return self::$regacy_callbacks[$name];
-        }
-        $class_name = "R\\Lib\\Form\\Rule\\".str_camelize($name);
-        if (class_exists($class_name)) {
-            return self::$regacy_callbacks[$name] = function ($validator, $value, $rule) use ($class_name) {
-                $rule =new $class_name($rule);
-                $result = $rule->check($name);
-                return $result ? false : array("message"=>$rule->getMessage());
-            };
-        }
     }
-
     /**
      * 必須チェック
      */

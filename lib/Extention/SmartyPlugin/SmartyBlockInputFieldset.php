@@ -27,7 +27,7 @@ class SmartyBlockInputFieldset
             $form = $smarty->getCurrentForm();
             $tag["keys"] = isset($form[$fieldset_name]) ? array_keys((array)$form[$fieldset_name]) : $blank_keys;
             // テンプレート処理用の要素をアサイン
-            if ($tmpl) {
+            if (strlen($tmpl)) {
                 $tag["current"] = "tmpl";
                 $smarty->assign($key_assign, $tmpl);
             } else {

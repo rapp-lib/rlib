@@ -2,36 +2,52 @@
      * CSV設定
      */
     protected $csv_setting = array(
-        "file_charset" => "SJIS-WIN",
+        "ignore_empty_line" => true,
+        "sanitize" => true,
         "data_charset" => "UTF-8",
+        "file_charset" => "SJIS-WIN",
         "rows" => array(
             "<?=$table->getIdCol()->getName()?>" => "#ID",
 <?php foreach ($controller->getInputCols() as $col): ?>
+<?php   if ($col->getAttr("type")==="assoc"): ?>
+<?php       if ($controller->getAttr("type")==="master" && ! $col->getAttr("def.assoc.single")): ?>
+            "<?=$col->getName()?>.0.<?=$col->getAssocTable()->getIdCol()->getName()?>" => "<?=$col->getLabel()?>[0] #ID",
+<?php       endif; ?>
+<?php       foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
+            "<?=$col->getName()?>.0.<?=$assoc_col->getName()?>" => "<?=$col->getLabel()?>[0] <?=$assoc_col->getLabel()?>",
+<?php       endforeach; /* foreach as $assoc_col */ ?>
+<?php   else: /* if type=="assoc" */ ?>
             "<?=$col->getName()?>" => "<?=$col->getLabel()?>",
-<?php endforeach; ?>
+<?php   endif; /* if type=="assoc" */ ?>
+<?php endforeach; /* foreach as $col */ ?>
         ),
         "filters" => array(
             array("filter"=>"sanitize"),
 <?php foreach ($controller->getInputCols() as $col): ?>
-<?php if ($col->getEnumSet()): ?>
-            array("target"=>"<?=$col->getName()?>", "filter"=>"list_select", "enum"=>"<?=$col->getEnumSet()->getFullName()?>"),
-<?php endif; ?>
+<?php   if ($col->getAttr("type")==="assoc"): ?>
+<?php       foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
+<?php           if ($assoc_col->getEnumSet()): ?>
+            array("<?=$col->getName()?>.0.<?=$assoc_col->getName()?>", "enum_value", "enum"=>"<?=$assoc_col->getEnumSet()->getFullName()?>"),
+<?php           endif; ?>
+<?php       endforeach; /* foreach as $assoc_col */ ?>
+<?php   else: /* if type=="assoc" */ ?>
+<?php       if ($col->getEnumSet()): ?>
+            array("<?=$col->getName()?>", "enum_value", "enum"=>"<?=$col->getEnumSet()->getFullName()?>"),
+<?php       endif; ?>
+<?php   endif; /* if type=="assoc" */ ?>
 <?php endforeach; ?>
         ),
-        "ignore_empty_line" => true,
     );
 <?=$pageset->getPageByType("download")->getMethodDecSource()?>
     {
         // 検索結果の取得
         $this->forms["search"]->restore();
-        $res = $this->forms["search"]->search()->removePagenation()->selectNoFetch();
+        $ts = $this->forms["search"]->search()->removePagenation()->select();
         // CSVファイルの書き込み
-        $csv = new \R\Lib\Util\CSVHandler("php://temp","w",$this->csv_setting);
-        while ($t = $res->fetch()) {
-            $csv->write_line($t);
-        }
+        $csv = csvfile("php://temp", "w", $this->csv_setting);
+        $csv->writeLines($ts);
         // データ出力
-        return app()->http->response("stream", $csv->get_file_handle(), array("headers"=>array(
+        return app()->http->response("stream", $csv->getHandle(), array("headers"=>array(
             'content-type' => 'application/octet-stream',
             'content-disposition' => 'attachment; filename='.'<?=$table->getName()?>.csv'
         )));

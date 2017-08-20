@@ -312,11 +312,10 @@ class Table_Core
         $record->hydrate($data);
 
         // マッピング
-        $no_mapping = $this->query->getNoMapping();
-        $id_col_name = $this->getColNameByAttr("id");
-        if ($id_col_name && ! $no_mapping) {
+        if ( ! $this->getAttr("no_mapping")) {
+            $id_col_name = $this->getColNameByAttr("id");
             // ID列を取得していればIDでマッピング
-            if (isset($record[$id_col_name])) {
+            if ($this->getAttr("mapping_by_id") && $id_col_name && isset($record[$id_col_name])) {
                 $result[$record[$id_col_name]] = $record;
             // 指定が無ければ連番でマッピング
             } else {
@@ -396,7 +395,7 @@ class Table_Core
     public function selectNoFetch ($fields=array())
     {
         $this->query->addFields($fields);
-        $this->query->setNoMapping(true);
+        $this->setAttr("no_mapping", true);
         return $this->execQuery("select");
     }
     /**
@@ -648,12 +647,12 @@ class Table_Core
         $this->attrs[$key] = $value;
     }
     /**
-     * Attrに値を設定する
+     * Attrの値を取得する
      */
-    public function getAttr ($key)
+    public function getAttr ($key, $required=false)
     {
         $value = $this->attrs[$key];
-        if ( ! isset($value)) {
+        if ($required && ! isset($value)) {
             report_error("Attrの値が設定されていません",array("table"=>$this, "key"=>$key));
         }
         return $value;

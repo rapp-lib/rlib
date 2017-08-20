@@ -76,3 +76,10 @@
     {
         app()->report->raiseError($message, $vars);
     }
+
+// -- Util
+
+    function csvfile ($filename, $mode, $options=array())
+    {
+        return new \R\Lib\Util\CSVHandler($filename, $mode, $options);
+    }

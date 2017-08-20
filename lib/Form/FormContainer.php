@@ -245,13 +245,6 @@ class FormContainer extends ArrayObject
                         ));
                     }
                 }
-                // 変換処理の指定
-                // if ($input_converts = $field_def["input_convert"]) {
-                //     $input_converts = is_array($input_converts) ? $input_converts : array($input_converts);
-                //     foreach ($input_converts as $input_convert) {
-                //         $value = call_user_func(extention("input_convert",$input_convert), $value, $field_name, $field_def);
-                //     }
-                // }
                 return $value;
             });
         }

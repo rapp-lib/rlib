@@ -240,10 +240,10 @@ window.MiHandler = function ($mi)
         $mi.find(".mi-item").each(function(){
             var itemId = 1*$(this).attr("data-itemId");
             if (nextId <= itemId) {
-                nextId = itemId;
+                nextId = 1+itemId;
             }
         });
-        return 1*nextId+1;
+        return nextId;
     };
     /**
      * 親要素を取得

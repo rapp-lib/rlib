@@ -76,9 +76,9 @@ class Table_Base extends Table_Core
                 foreach ((array)$assoc_result_set[$record[$pkey]] as $assoc_record) {
                     $values[] = $assoc_record[$assoc_value_col];
                 }
-                $this->result[$i][$col_name] = $values;
+                $record[$col_name] = $assoc_single ? current($values) : $values;
             } else {
-                $this->result[$i][$col_name] = (array)$assoc_result_set[$record[$pkey]];
+                $record[$col_name] = (array)$assoc_result_set[$record[$pkey]];
             }
         }
     }
@@ -122,6 +122,16 @@ class Table_Base extends Table_Core
         if (isset($assoc_value_col)) {
             // 既存の情報を値→IDでハッシュ
             $delete_assoc_ids = $assoc_result->getHashedBy($assoc_value_col, $assoc_id_col);
+            // singleの指定があれば削除対象の1レコード目を更新対象とする
+            if ($assoc_single) {
+                $record = array($assoc_fkey=>$id, $assoc_value_col=>current($values));
+                if ($delete_assoc_ids) {
+                    $record[$assoc_id_col] = current($delete_assoc_ids);
+                    unset($delete_assoc_ids[key($delete_assoc_ids)]);
+                }
+                table($assoc_table_name)->save($record);
+                $values = array();
+            }
             foreach ((array)$values as $value) {
                 // 入力値が登録済みであれば、削除対象から除外
                 if (isset($delete_assoc_ids[$value])) {
@@ -130,11 +140,6 @@ class Table_Base extends Table_Core
                 } else {
                     $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
                     foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                    // singleの指定があれば削除対象の1レコード目を更新対象とする
-                    if ($assoc_single && $delete_assoc_ids) {
-                        $record[$assoc_id_col] = current($delete_assoc_ids);
-                        unset($delete_assoc_ids[key($delete_assoc_ids)]);
-                    }
                     table($assoc_table_name)->save($record);
                 }
             }
