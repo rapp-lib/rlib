@@ -12,10 +12,9 @@ class SchemaCsvLoader
     }
     private function load_schema_csv ($filename)
     {
-        $csv =util("CSVHandler",array($filename,"r",array(
-            "file_charset" =>"SJIS-WIN",
-            "ignore_empty_line" =>true,
-        )));
+        $csv =csvfile($filename, "r", array(
+            "ignore_empty_line" => true,
+        ));
         // 読み込みモード/切り替え行
         $mode ="";
         $header_line =array();
@@ -23,7 +22,7 @@ class SchemaCsvLoader
         $parent_data =array();
         // 組み立て結果となるSchema
         $s =array();
-        foreach ($csv->read_all() as $line_num=>$current_line) {
+        foreach ($csv->readLines() as $line_num=>$current_line) {
             // コメント行→無視
             if ($current_line[0] == "#") { continue; }
             // コマンド列＝#xxx→読み込みモード切り替え

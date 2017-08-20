@@ -4,8 +4,6 @@
     protected $csv_setting = array(
         "ignore_empty_line" => true,
         "sanitize" => true,
-        "data_charset" => "UTF-8",
-        "file_charset" => "SJIS-WIN",
         "rows" => array(
             "<?=$table->getIdCol()->getName()?>" => "#ID",
 <?php foreach ($controller->getInputCols() as $col): ?>
