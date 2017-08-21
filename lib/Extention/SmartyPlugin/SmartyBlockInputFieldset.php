@@ -39,7 +39,7 @@ class SmartyBlockInputFieldset
             // 処理した要素の出力をAssignに追加
             if ($tag["current"] === "tmpl") {
                 $tag["assign"]["tmpl"] = $content;
-            } elseif ($tag["current"]) {
+            } elseif (strlen($tag["current"])) {
                 $tag["assign"]["items"][$tag["current"]] = $content;
             }
             // Keysの残りがある限りループ処理
