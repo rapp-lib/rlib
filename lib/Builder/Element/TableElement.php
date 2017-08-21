@@ -64,11 +64,17 @@ class TableElement extends Element_Base
     {
         $cols = array();
         foreach ($this->getCols() as $col) {
-            if ($col->getAttr("type")) {
-                $cols[] = $col;
-            }
+            if ($col->getAttr("type")) $cols[] = $col;
         }
         return $cols;
+    }
+    public function getOrdCol ()
+    {
+        $cols = array();
+        foreach ($this->getCols() as $col) {
+            if ($col->getAttr("ord")) return $col;
+        }
+        return null;
     }
     /**
      * @getter children.enum

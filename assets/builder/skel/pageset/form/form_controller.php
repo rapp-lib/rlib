@@ -16,6 +16,11 @@
 <?php       if ($controller->getAttr("type")==="master" && ! $col->getAttr("def.assoc.single")): ?>
             "<?=$col->getName()?>.*.<?=$col->getAssocTable()->getIdCol()->getName()?>",
 <?php       endif; ?>
+<?php       if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
+            "<?=$col->getName()?>.*.<?=$assoc_ord_col->getName()?>",
+<?php       else: /* if $assoc_ord_col */ ?>
+            "<?=$col->getName()?>.*.ord_seq"=>array("col"=>null),
+<?php       endif; /* if $assoc_ord_col */ ?>
 <?php       foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
 <?=$assoc_col->getEntryFormFieldDefSource(array("name_parent"=>$col->getName().".*"))?>
 <?php       endforeach; /* foreach as $assoc_col */ ?>
