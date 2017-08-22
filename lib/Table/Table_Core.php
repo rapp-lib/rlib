@@ -303,6 +303,10 @@ class Table_Core
         if ( ! $data) {
             // on_fetchEnd_*を呼び出す
             $this->callListenerMethod("fetchEnd");
+            report_info("Fetch End : ".static::$table_name."[".count($this->result)."]", array(
+                "statement"=>$this->statement,
+                "result"=>$this->result,
+            ));
 
             $this->fetch_done = true;
             return false;

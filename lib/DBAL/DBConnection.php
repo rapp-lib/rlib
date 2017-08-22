@@ -15,5 +15,4 @@ interface DBConnection
 // -- SQL発行
     public function exec($st, $params=array());
     public function fetch($stmt);
-    public function fetchAll($stmt);
 }

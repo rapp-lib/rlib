@@ -72,9 +72,22 @@ class TableElement extends Element_Base
     {
         $cols = array();
         foreach ($this->getCols() as $col) {
-            if ($col->getAttr("ord")) return $col;
+            if ($col->getAttr("def.ord")) return $col;
         }
         return null;
+    }
+    public function getIndexes ()
+    {
+        $indexes = array();
+        foreach ($this->getCols() as $col) {
+            if ($index_name = $col->getAttr("index")) {
+                if ( ! isset($indexes[$index_name])) {
+                    $indexes[$index_name] = array("name"=>$index_name, "cols"=>array());
+                }
+                $indexes[$index_name]["cols"][] = $col->getName();
+            }
+        }
+        return $indexes;
     }
     /**
      * @getter children.enum

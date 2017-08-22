@@ -13,6 +13,10 @@ class <?=$table->getClassName()?> extends Table_App
 <?php endforeach; ?>
     );
     protected static $def = array(
-        "indexes" => array(),
+        "indexes" => array(
+<?php foreach ($table->getIndexes() as $index): ?>
+            array("name"=>"<?=$index["name"]?>", "cols"=>array("<?=implode($index["cols"],'", "')?>")),
+<?php endforeach; ?>
+        ),
     );
 }

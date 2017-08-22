@@ -68,17 +68,9 @@ class DBConnectionDoctrine2 implements DBConnection
         }
         // SQL発行後のレポート
         $params["elapsed"] = round((microtime(true) - $start_ms)*1000,2)."ms";
-        if (app()->debug() && ! $error) {
-            $analyzed = $this->analyzeSql($st);
-            if ($analyzed["msg"]) $params["explain"] = $analyzed["msg"];
-        }
-        report_info('SQL Exec : '.$st, $params);
-        if ($error) report_error('SQL Error : '.implode(' , ',$error), array_merge($params,array("SQL"=>$st)));
-        foreach ((array)$analyzed["warn"] as $msg) {
-            report_info('Bad SQL '.$msg,array(
-                "Full Explain" => $analyzed["full"],
-            ));
-        }
+        if (app()->debug()) report_info('SQL Exec : '.$st, $params);
+        if ($error) report_error('SQL Error : '.implode(' , ',$error), array("SQL"=>$st));
+        if (app()->debug()) $this->analyzeSql($st, $params);
         return $stmt;
     }
     /**
@@ -97,29 +89,12 @@ class DBConnectionDoctrine2 implements DBConnection
         foreach ($stmt->map as $i=>$c) $result_copy[$c[0]][$c[1]] = $result[$i];
         return $result_copy;
     }
-    public function fetchAll($stmt)
-    {
-        $results = array();
-        while (($result = $stmt->fetch()) !== false) $results[] = $result;
-        return $results;
-    }
 
 // -- 固有機能
 
     public function getDoctrineConnection()
     {
         return $this->getDS();
-    }
-    public function analyzeSql($st)
-    {
-        if ($this->config["driver"]==="pdo_mysql") {
-            if ( ! preg_match('!^SELECT\s!is',$st)) return null;
-            $result = $this->getDS()->query("EXPLAIN ".$st);
-            $result->execute();
-            $explain = $result->fetchAll(\PDO::FETCH_ASSOC);
-            return SQLAnalyzer::analyzeMysqlExplain($explain);
-        }
-        return false;
     }
     public function dumpData($filename)
     {
@@ -138,10 +113,15 @@ class DBConnectionDoctrine2 implements DBConnection
                     "cmd" => $cmd,
                     "err" => $err,
                 ));
+                return false;
             }
             return true;
+        } else {
+            report_warning("mysqldumpが実行できません",array(
+                "driver" => $this->config["driver"],
+            ));
+            return false;
         }
-        return false;
     }
 
 // --
@@ -154,5 +134,17 @@ class DBConnectionDoctrine2 implements DBConnection
             $this->ds = DriverManager::getConnection($this->config, $options);
         }
         return $this->ds;
+    }
+    private function analyzeSql($st)
+    {
+        if ($this->config["driver"]==="pdo_mysql") {
+            if ( ! preg_match('!^SELECT\s!is',$st)) return;
+            $result = $this->getDS()->query("EXPLAIN ".$st);
+            $explain = $result->fetchAll(\PDO::FETCH_ASSOC);
+            $analyzed = SQLAnalyzer::analyzeMysqlExplain($explain, $st);
+            if ($analyzed) foreach ($analyzed["hint"] as $hint) {
+                report_warning("SQL Warning : ".$hint[0], $hint[1]);
+            }
+        }
     }
 }

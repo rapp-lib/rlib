@@ -3,64 +3,37 @@ namespace R\Lib\DBAL;
 
 class SQLAnalyzer
 {
-    public static function analyzeMysqlExplain($ts)
+    public static function analyzeMysqlExplain($explain, $st)
     {
-        $explain["full"] =array();
-        $explain["msg"] =array();
-        $explain["warn"] =array();
-        foreach ($ts as $i =>$t) {
-            $t["Extra"] =array_map("trim",explode(';',$t["Extra"]));
-            $msg =$t["select_type"];
-            if ($t["type"]) {
-                $msg .=".".$t["type"];
-            }
-            if ($t["table"]) {
-                $msg .=" , Table=".$t["table"];
-            }
-            if ($t["rows"]) {
-                $msg .="(".$t["rows"].")";
-            }
-            if ($t["key"]) {
-                $msg .=" , Index=".$t["key"];
-            }
-            if ($t["Extra"]) {
-                $msg .=" , ".implode(" , ",$t["Extra"])."";
-            }
-            $explain["msg"][] =$msg;
-            $full =$t;
-            $full["Extra"] =implode(",",$t["Extra"]);
-            $explain["full"][] =$full;
-            if ($t["type"] == "index") {
-                if ($t["select_type"] != "PRIMARY") {
-                    $explain["warn"][] ="[INDEX全件スキャン] ".$msg;
-                }
-            }
-            if ($t["type"] == "ALL") {
-                $explain["warn"][] ="[★全件スキャン] ".$msg;
-            }
-            if ($t["select_type"] == "DEPENDENT SUBQUERY") {
-                if ($t["type"] == "ref" || $t["type"] == "eq_ref") {
-                    $explain["warn"][] ="[参照相関SQ] ".$msg;
-                } elseif ($t["type"] == "unique_subquery") {
-                    $explain["warn"][] ="[U-INDEX相関SQ] ".$msg;
-                } elseif ($t["type"] == "index_subquery") {
-                    $explain["warn"][] ="[INDEX相関SQ] ".$msg;
-                } else {
-                    $explain["warn"][] ="[★★全件スキャン相関SQ] ".$msg;
-                }
-            }
-            foreach ($t["Extra"] as $extra_msg) {
-                // if ($extra_msg == "Using filesort") {
-                //     $explain["warn"][] ="[INDEXのないソート] ".$msg;
-                // }
-                // if ($extra_msg == "Using temporary") {
-                //     $explain["warn"][] ="[一時テーブルの生成] ".$msg;
-                // }
-                if ($extra_msg == "Using join buffer") {
-                    $explain["warn"][] ="[★★全件スキャンJOIN] ".$msg;
-                }
+        $analyzed = array();
+        foreach ($explain as $t) {
+            $t["Extra"] = array_map("trim",explode(';',$t["Extra"]));
+            $is_fow_rows = $t["rows"] < 100;
+            $is_seq_scan = $t["type"] == "ALL";
+            $is_index_seq_scan = $t["type"] == "index";
+            $is_no_possible_keys = ! $t["possible_keys"];
+            $is_dep_sq = $t["select_type"] == "DEPENDENT SUBQUERY";
+            $is_seq_join = in_array("Using join buffer", $t["Extra"]);
+            $is_using_where = in_array("Using where", $t["Extra"]);
+
+            $msg = "";
+            if ($is_fow_rows) {
+                // 行数が少ない場合はINDEXの設定状況のみ確認
+                if ($is_seq_scan && $is_using_where && $is_no_possible_keys) $msg = "INDEXが設定されていない";
+            } elseif ($is_seq_scan && $is_using_where) {
+                if ($is_dep_sq) $msg = "INDEXが適用されない相関サブクエリ";
+                elseif ($is_seq_join) $msg = "INDEXが適用されないJOIN";
+                else $msg = "INDEXが適用されないWHERE句";
+            } elseif ($is_index_seq_scan) $msg = "INDEX(".$t["key"].")の全件走査になるWHERE句";
+            if ($msg) {
+                $msg .= " on ".$t["table"];
+                $analyzed["hint"][] = array($msg, array(
+                    "statement"=>$st,
+                    "explain"=>$t,
+                    "full_explain"=>$explain,
+                ));
             }
         }
-        return $explain;
+        return $analyzed;
     }
 }

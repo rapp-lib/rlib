@@ -243,6 +243,7 @@ class ReportRenderer
             if ( ! $bt["line"] && ($bts[$i-1]["function"]==="call_user_func"
                 || $bts[$i-1]["function"]==="call_user_func_array")
                 && (is_callable($cb = $bts[$i-1]["args"][0]))) {
+                if (is_string($cb) && preg_match('!^(.*?)::(.*?)$!', $cb, $match)) $cb = array($match[1], $match[2]);
                 $ref = is_array($cb) ? new \ReflectionMethod($cb[0], $cb[1]) : new \ReflectionFunction($cb);
                 $bt["file"] = $ref->getFileName();
                 $bt["line"] = $ref->getStartLine();

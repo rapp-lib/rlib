@@ -12,7 +12,7 @@ class SchemaCsvLoader
     }
     private function load_schema_csv ($filename)
     {
-        $csv =csvfile($filename, "r", array(
+        $csv = csv_open($filename, "r", array(
             "ignore_empty_line" => true,
         ));
         // 読み込みモード/切り替え行
@@ -100,7 +100,7 @@ class SchemaCsvLoader
             $value = (string)$match[1];
         } elseif (is_numeric($value)) {
             $value = (int)$value;
-        } elseif (preg_match('!^\{.*\}$!i', $value)) {
+        } elseif (preg_match('!^(\{.*\}|\[.*\])$!i', $value)) {
             $value = json_decode($value, true);
         } elseif (preg_match('!^true$!i', $value)) {
             $value = true;

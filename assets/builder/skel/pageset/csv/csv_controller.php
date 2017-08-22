@@ -20,7 +20,6 @@
 <?php endforeach; /* foreach as $col */ ?>
         ),
         "filters" => array(
-            array("filter"=>"sanitize"),
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?php   if ($col->getAttr("type")==="assoc"): ?>
 <?php       foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
@@ -42,7 +41,7 @@
         $this->forms["search"]->restore();
         $ts = $this->forms["search"]->search()->removePagenation()->select();
         // CSVファイルの書き込み
-        $csv = csvfile("php://temp", "w", $this->csv_setting);
+        $csv = csv_open("php://temp", "w", $this->csv_setting);
         $csv->writeLines($ts);
         // データ出力
         return app()->http->response("stream", $csv->getHandle(), array("headers"=>array(

@@ -19,7 +19,7 @@
 <?php       if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
             "<?=$col->getName()?>.*.<?=$assoc_ord_col->getName()?>",
 <?php       else: /* if $assoc_ord_col */ ?>
-            "<?=$col->getName()?>.*.ord_seq"=>array("col"=>null),
+            "<?=$col->getName()?>.*.ord_seq"=>array("col"=>false),
 <?php       endif; /* if $assoc_ord_col */ ?>
 <?php       foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
 <?=$assoc_col->getEntryFormFieldDefSource(array("name_parent"=>$col->getName().".*"))?>

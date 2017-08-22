@@ -79,7 +79,7 @@
 
 // -- Util
 
-    function csvfile ($filename, $mode, $options=array())
+    function csv_open ($filename, $mode, $options=array())
     {
         return new \R\Lib\Util\CSVHandler($filename, $mode, $options);
     }
