@@ -166,5 +166,6 @@
             "page_method_dec.template_file" => $dir."/parts/page_method_dec.php",
             "col_input.template_file" => $dir."/parts/col_input.html",
             "col_show.template_file" => $dir."/parts/col_show.html",
+            "col_mail.template_file" => $dir."/parts/col_mail.php",
         ),
     );

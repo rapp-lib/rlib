@@ -7,11 +7,18 @@ class MailElement extends Element_Base
     {
     }
     /**
+     * @getter Controller
+     */
+    public function getController ()
+    {
+        return $this->getParent()->getParent();
+    }
+    /**
      * テンプレート設定名を取得
      */
     public function getTemplateEntry ()
     {
-        return $this->getparent()->getTemplateEntry().".mail_template";
+        return $this->getParent()->getTemplateEntry().".mail_template";
     }
     /**
      * テンプレートファイル名を取得

@@ -18,6 +18,13 @@ class ColElement extends Element_Base
         return null;
     }
     /**
+     * 入力HTMLソースの取得
+     */
+    public function getInputSource ($o=array())
+    {
+        return $this->getSchema()->fetch("parts.col_input", array("col"=>$this, "o"=>$o));
+    }
+    /**
      * 表示HTMLソースの取得
      */
     public function getShowSource ($o=array())
@@ -25,11 +32,11 @@ class ColElement extends Element_Base
         return $this->getSchema()->fetch("parts.col_show", array("col"=>$this, "o"=>$o));
     }
     /**
-     * 入力HTMLソースの取得
+     * メール表示用PHPソースの取得
      */
-    public function getInputSource ($o=array())
+    public function getMailSource ($o=array())
     {
-        return $this->getSchema()->fetch("parts.col_input", array("col"=>$this, "o"=>$o));
+        return $this->getSchema()->fetch("parts.col_mail", array("col"=>$this, "o"=>$o));
     }
     /**
      * $form_entryの定義行の取得

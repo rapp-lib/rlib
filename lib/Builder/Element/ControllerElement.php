@@ -18,26 +18,32 @@ class ControllerElement extends Element_Base
                 $pagesets[] = array("type"=>"reminder");
             }
         } elseif ($this->getAttr("type") == "form") {
-            $pagesets[] = array("type"=>"form", "use_mail"=>true);
-            if ($this->getAttr("use_mailcheck")) {
+            $pagesets[] = array("type"=>"form",
+                "use_mail"=>$this->getFlagAttr("use_mail",true),
+                "skip_confirm"=>$this->getFlagAttr("skip_confirm", false),
+                "skip_complete"=>$this->getFlagAttr("skip_complete", false));
+            if ($this->getFlagAttr("use_mailcheck", false)) {
                 $pagesets[] = array("type"=>"mailcheck");
             }
         } elseif ($this->getAttr("type") == "show") {
             $pagesets[] = array("type"=>"show");
         } elseif ($this->getAttr("type") == "master") {
             $pagesets[] = array("type"=>"show");
-            $pagesets[] = array("type"=>"form", "skip_confirm"=>true, "skip_complete"=>true);
+            $pagesets[] = array("type"=>"form",
+                "use_mail"=>$this->getFlagAttr("use_mail",false),
+                "skip_confirm"=>$this->getFlagAttr("skip_confirm", true),
+                "skip_complete"=>$this->getFlagAttr("skip_complete", true));
             $pagesets[] = array("type"=>"delete");
-            if ($this->getAttr("use_csv")) {
+            if ($this->getFlagAttr("use_csv", false)) {
                 $pagesets[] = array("type"=>"csv");
-                if ($this->getAttr("use_import")) {
+                if ($this->getFlagAttr("use_import", false)) {
                     $pagesets[] = array("type"=>"import");
                 }
             }
         }
         // Pagesetの登録
         foreach ($pagesets as $pageset_attrs) {
-            $pageset_name = $pageset_attrs["name"] ? $pageset_attrs["name"] : $pageset_attrs["type"];
+            $pageset_name = $pageset_attrs["type"];
             $this->children["pageset"][$pageset_name] = new PagesetElement($pageset_name, $pageset_attrs, $this);
         }
     }
@@ -54,6 +60,14 @@ class ControllerElement extends Element_Base
     public function getClassName ()
     {
         return str_camelize($this->getName())."Controller";
+    }
+    /**
+     * 生成パターンを切り替えるフラグの取得
+     */
+    public function getFlagAttr ($name, $default=false)
+    {
+        $flag = $this->getAttr($name);
+        return isset($flag) ? $flag : $default;
     }
     /**
      * 認証必須設定

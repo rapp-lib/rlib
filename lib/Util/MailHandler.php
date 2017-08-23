@@ -95,48 +95,10 @@ class MailHandler
                 "mailer" => $this->mailer,
             ));
         } else {
-            report_warning("Mail Send Failure",array(
+            report_warning("Mail Send Failure : ".$this->mailer->ErrorInfo,array(
                 "mailer" => $this->mailer,
-                "error" => $this->mailer->ErrorInfo,
             ));
         }
         return $result;
-    }
-
-// -- @deprecated
-
-    protected $body_started = 0;
-    public function startBody ()
-    {
-        return $this;
-        if ($this->body_started) {
-            report_error("既にBody設定が開始されています",array(
-                "mailer" => $this,
-            ));
-        }
-        $this->body_started = true;
-        ob_start();
-        return $this;
-    }
-    public function endBody ()
-    {
-        return $this;
-        if ( ! $this->body_started) {
-            report_error("Body設定が開始されていません",array(
-                "mailer" => $this,
-            ));
-        }
-        $body = ob_get_clean();
-        $this->body_started = false;
-        $lines = explode("\n", $body);
-        if (preg_match('!^subject\s*:\s*(.+)$!',trim($lines[0]),$match)) {
-            $this->mailer->Subject = $match[1];
-            array_shift($lines);
-            if (strlen(trim($lines[0]))==0) {
-                array_shift($lines);
-            }
-        }
-        $this->mailer->Body .= implode("\n", $lines);
-        return $this;
     }
 }
