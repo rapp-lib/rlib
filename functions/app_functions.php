@@ -26,13 +26,6 @@
     /**
      * @alias
      */
-    function util ($class_name, $constructor_args=false)
-    {
-        return app()->util($class_name, $constructor_args);
-    }
-    /**
-     * @alias
-     */
     function extention ($extention_group, $extention_name)
     {
         return app()->extention($extention_group, $extention_name);
@@ -82,4 +75,9 @@
     function csv_open ($filename, $mode, $options=array())
     {
         return new \R\Lib\Util\CSVHandler($filename, $mode, $options);
+    }
+    function send_mail ($template_filename, $vars=array())
+    {
+        $mailer = new \R\Lib\Util\MailHandler();
+        return $mailer->load($template_filename, $vars)->send();
     }

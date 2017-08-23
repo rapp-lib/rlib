@@ -75,10 +75,10 @@
 <?php else: ?>
             $t = $this->forms["entry"]->getValues();
 <?php endif; ?>
-<?php if ($pageset->getAttr("use_mail")): ?>
+<?php foreach ($pageset->getMails() as $mail): ?>
             // メールの送信
-            app()->mailer("sample.php", array("t"=>$t))->send();
-<?php endif; ?>
+            send_mail("<?=$mail->getTemplateFile()?>", array("t"=>$t));
+<?php endforeach; ?>
             $this->forms["entry"]->clear();
         }
 <?php if ($pageset->getAttr("skip_complete")): ?>

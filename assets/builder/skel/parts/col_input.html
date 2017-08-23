@@ -6,7 +6,7 @@
 ?>
 <?php if ($col->getAttr("type")==="assoc" && $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>
-            {{input_fieldset name="<?=$name?>" tmpl="0" key="key" assign="fieldset"}}
+            {{input_fieldset name="<?=$name?>" key="key" assign="fieldset" length=1}}
 <?php   if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
                 {{input type="hidden" name="<?=$name?>[$key][<?=$assoc_ord_col->getName()?>]" value=$key}}
 <?php   else: /* if $assoc_ord_col */ ?>
@@ -21,7 +21,7 @@
 <?php endforeach; /* foreach as $assoc_col */ ?>
                 </table>
             {{/input_fieldset}}
-            {{foreach $fieldset.items as $item}}{{$item}}{{foreachelse}}{{$fieldset.tmpl}}{{/foreach}}
+            {{foreach $fieldset.items as $item}}{{$item}}{{/foreach}}
         <?=""?>
 <?php elseif ($col->getAttr("type")==="assoc" && ! $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>

@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Core\Provider;
+namespace R\Lib\Console;
 
 use R\Lib\Core\Contract\Provider;
 use ArrayObject;

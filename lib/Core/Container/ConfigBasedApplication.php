@@ -21,14 +21,11 @@ class ConfigBasedApplication implements Container
             // 3.x
             "table" => 'R\Lib\Table\TableFactory',
             "form" => 'R\Lib\Form\FormFactory',
-            "enum" => 'R\Lib\Enum\EnumFactory',
             "view" => 'R\Lib\View\SmartyViewFactory',
-            "asset" => 'R\Lib\Asset\AssetManager',
-            "file_storage" => 'R\Lib\FileStorage\FileStorageManager',
-            "mailer" => 'R\Lib\Core\Provider\MailerFactory',
-            "console" => 'R\Lib\Core\Provider\ConsoleDriver',
+            "console" => 'R\Lib\Console\ConsoleDriver',
             "builder" => 'R\Lib\Builder\WebappBuilder',
-            "util" => 'R\Lib\Core\Provider\UtilLoader',
+            "enum" => 'R\Lib\Enum\EnumFactory',
+            "asset" => 'R\Lib\Asset\AssetManager',
             "extention" => 'R\Lib\Core\Provider\ExtentionLoader',
         ),
         "contract" => array(

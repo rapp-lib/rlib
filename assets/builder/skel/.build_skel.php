@@ -69,6 +69,12 @@
                     }
                 },
             ),
+            "mail" => array(
+                function ($mail) {
+                    $mail->getSchema()->fetch($mail->getTemplateEntry(), array("mail"=>$mail),
+                        "/mail/".$mail->getTemplateFile());
+                },
+            ),
         ),
         "pageset" => array(
             "index" => array(
@@ -114,6 +120,7 @@
                 "pages.form.label" => "入力",
                 "pages.confirm.label" => "確認",
                 "pages.complete.label" => "完了",
+                "mail_template.template_file" => $dir."/pageset/form/mail_template.php",
             ),
             "mailcheck" => array(
                 "index_page" => "send",

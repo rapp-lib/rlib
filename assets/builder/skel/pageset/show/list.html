@@ -47,6 +47,8 @@
         <td>
 <?php if ($pageset = $controller->getPagesetByType("form")): ?>
             <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="edit">編集</a>
+<?php else: ?>
+            <a href='{{"<?=$page->getParent()->getPageByType("detail")->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}'>詳細</a>
 <?php endif; ?>
 <?php if ($pageset = $controller->getPagesetByType("delete")): ?>
             <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="delete" onclick="return confirm('削除します');">削除</a>

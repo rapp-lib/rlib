@@ -6,26 +6,25 @@ namespace R\Lib\Extention\SmartyPlugin;
  */
 class SmartyBlockInputFieldset
 {
-    static $c = 0;
     /**
      * @overload
      */
     public static function callback ($attrs, $content, $smarty, &$repeat)
     {
         $fieldset_name = $attrs["name"];
-        $tmpl = $attrs["tmpl"];
-        $key_assign = $attrs["key"] ?: "key";
-        $parent_assign = $attrs["parent"] ?: "parent";
-        $assign = $attrs["assign"] ?: "fieldset";
-        $blank_keys = $attrs["length"] ? range(1, $attrs["length"]+1) : array();
-        $smarty->assign($parent_assign, $fieldset_name);
+        $tmpl = $attrs["tmpl"] ?: null; // tmplに登録する際のkeyの値
+        $key_assign = $attrs["key"] ?: "key"; // keyをアサインする変数名
+        $assign = $attrs["assign"] ?: "fieldset"; // 結果をアサインする変数名
+        $length = $attrs["length"] ?: null; // 固定数表示の場合の件数指定
         // Blockタグスタック上の情報を参照
         $tag = & $smarty->smarty->_cache['_tag_stack'][end($keys = array_keys($smarty->smarty->_cache['_tag_stack']))];
         // 初回の開くタグの処理
         if ($repeat===true) {
             // Keysの初期化
             $form = $smarty->getCurrentForm();
-            $tag["keys"] = isset($form[$fieldset_name]) ? array_keys((array)$form[$fieldset_name]) : $blank_keys;
+            $tag["keys"] = array();
+            if ($length) $tag["keys"] = range(0,$length-1);
+            else $tag["keys"] = isset($form[$fieldset_name]) ? array_keys((array)$form[$fieldset_name]) : array();
             // テンプレート処理用の要素をアサイン
             if (strlen($tmpl)) {
                 $tag["current"] = "tmpl";

@@ -114,7 +114,7 @@ class WebappBuilder extends SchemaElement implements InvokableProvider
             $current_source = file_get_contents($current_file);
             $status = crc32($current_source)==crc32($source) ? "nochange" : "modify";
         }
-        util("File")->write($deploy_file, $source);
+        \R\Lib\Util\File::write($deploy_file, $source);
         if ($status != "nochange") {
             print "Deploy ".$status." ".$deploy_name."\n";
         }

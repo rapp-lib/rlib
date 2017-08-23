@@ -93,7 +93,7 @@ class BuildCommand extends Command
             // dブランチからCSVをコピーする
             $schema_csv_file = $work_dir."/schema.config.csv";
             $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":config/schema.config.csv"));
-            util("File")->write($schema_csv_file,$csv_data);
+            \R\Lib\Util\File::write($schema_csv_file,$csv_data);
             // Builderを作成→全件生成
             $schema = app()->builder(array(
                 "current_dir" => $current_dir,
