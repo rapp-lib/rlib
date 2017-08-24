@@ -7,4 +7,8 @@ class EnumSetElement extends Element_Base
     {
         return $this->getParent()->getName().".".$this->getName();
     }
+    public function getCol ()
+    {
+        return $this->getParent()->getParent()->getCol($this->getAttr("col_name"));
+    }
 }

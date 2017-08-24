@@ -2,6 +2,7 @@
 namespace R\Lib\DBAL;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Types\Type;
 use PDO;
 use PDOStatement;
 use R\Lib\Util\Cli;
@@ -96,6 +97,16 @@ class DBConnectionDoctrine2 implements DBConnection
     {
         return $this->getDS();
     }
+    public function setTypes($types)
+    {
+        foreach ((array)$types as $type_name => $type_class) {
+            if (Type::hasType($type_name)) {
+                Type::overrideType($type_name, $type_class);
+            } else {
+                Type::addType($type_name, $type_class);
+            }
+        }
+    }
     public function dumpData($filename)
     {
         if ($this->config["driver"]==="pdo_mysql") {
@@ -130,8 +141,14 @@ class DBConnectionDoctrine2 implements DBConnection
     private function getDS()
     {
         if ( ! $this->ds) {
-            $options = $this->config["options"] ? new Configuration($this->config["options"]) : null;
-            $this->ds = DriverManager::getConnection($this->config, $options);
+            // データ型の登録
+            $this->setTypes($this->config["types"]);
+            unset($this->config["types"]);
+            // configの構築
+            $config = $this->config["config"] ? new Configuration($this->config["config"]) : null;
+            unset($this->config["config"]);
+            // 接続
+            $this->ds = DriverManager::getConnection($this->config, $config);
         }
         return $this->ds;
     }

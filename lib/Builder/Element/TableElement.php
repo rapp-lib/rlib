@@ -39,6 +39,13 @@ class TableElement extends Element_Base
         return $this->attrs["def"]["table_name"] ?: $this->getName();
     }
     /**
+     * @getter children.col
+     */
+    public function getCols ()
+    {
+        return (array)$this->children["col"];
+    }
+    /**
      * IDのColを取得
      */
     public function getIdCol ()
@@ -53,13 +60,6 @@ class TableElement extends Element_Base
         ));
         return null;
     }
-    /**
-     * @getter children.col
-     */
-    public function getCols ()
-    {
-        return (array)$this->children["col"];
-    }
     public function getInputCols ()
     {
         $cols = array();
@@ -70,11 +70,17 @@ class TableElement extends Element_Base
     }
     public function getOrdCol ()
     {
-        $cols = array();
         foreach ($this->getCols() as $col) {
             if ($col->getAttr("def.ord")) return $col;
         }
         return null;
+    }
+    public function getLabelCol ()
+    {
+        foreach ($this->getInputCols() as $col) {
+            return $col;
+        }
+        return $this->getIdCol();
     }
     public function getIndexes ()
     {

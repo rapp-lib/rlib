@@ -377,7 +377,6 @@ class Table_Base extends Table_Core
             return false;
         }
     }
-
     /**
      * @hook on_fetch
      * JSON形式で保存するカラムの処理
@@ -395,7 +394,6 @@ class Table_Base extends Table_Core
             return false;
         }
     }
-
     /**
      * @hook on_read
      * 削除フラグを関連づける
@@ -408,7 +406,6 @@ class Table_Base extends Table_Core
             return false;
         }
     }
-
     /**
      * @hook on_update
      * 削除フラグを関連づける
@@ -422,20 +419,6 @@ class Table_Base extends Table_Core
             return false;
         }
     }
-
-    /**
-     * @hook on_insert
-     * 削除日を関連づける
-     */
-    protected function on_update_attachDelDate ()
-    {
-        if (($col_name = $this->getColNameByAttr("del_date")) && $this->query->getDelete()) {
-            $this->query->setValue($col_name, date("Y/m/d H:i:s"));
-        } else {
-            return false;
-        }
-    }
-
     /**
      * @hook on_insert
      * 登録日を関連づける
@@ -448,7 +431,6 @@ class Table_Base extends Table_Core
             return false;
         }
     }
-
     /**
      * @hook on_write
      * 更新日を関連づける
@@ -461,7 +443,6 @@ class Table_Base extends Table_Core
             return false;
         }
     }
-
     /**
      * @hook on_write
      * 認証が必要な領域でのテーブル操作について、認証中のアカウントのIDを上書きする
@@ -492,7 +473,6 @@ class Table_Base extends Table_Core
         }
         return false;
     }
-
     /**
      * @hook on_insert
      * INSERT時のID生成ルールを対応づける
@@ -507,6 +487,37 @@ class Table_Base extends Table_Core
         }
         $value = call_user_func(array($this, "generator_".$col_def["generator"]), $col_name);
         $this->query->setValue($col_name, $value);
+    }
+    /**
+     * @hook on_write
+     * GEOMETRY型の入出力変換
+     */
+    protected function on_write_geometryType_900 ()
+    {
+        foreach ($this->getColNamesByAttr("type", "geometry") as $col_name) {
+            $value = $this->query->getValue($col_name);
+            if (isset($value)) {
+                if (preg_match('!\d+(\.\d+)?\s*,\s*\d+(\.\d+)?!', $value, $match)) {
+                    $this->query->removeValue($col_name);
+                    $this->query->setValue($col_name."=", 'POINT('.$match[0].')');
+                } else {
+                    $this->query->setValue($col_name, null);
+                }
+            }
+        }
+    }
+    /**
+     * @hook on_write
+     * GEOMETRY型の入出力変換
+     */
+    protected function on_fetch_geometryType_100 ($record)
+    {
+        foreach ($this->getColNamesByAttr("type", "geometry") as $col_name) {
+            if (isset($record[$col_name])) {
+                $unpacked = unpack('Lpadding/corder/Lgtype/dlatitude/dlongitude', $record[$col_name]);
+                $record[$col_name] = $unpacked["latitude"]." , ".$unpacked["longitude"];
+            }
+        }
     }
 
 // -- assoc hookを呼び出すためのon hookの定義
