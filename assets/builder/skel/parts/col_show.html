@@ -7,6 +7,7 @@
                     {{foreach <?=$var_name?>.<?=$name?> as $key=>$item}}
                         <table class="tbl_admin detail">
 <?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
+<?php   if ($assoc_col->getAttr("type")==="assoc") continue; ?>
                         <tr>
                             <th><?=$assoc_col->getLabel()?></th>
                             <td><?=$assoc_col->getShowSource(array("var_name"=>$var_name.".".$name.'[$key]'))?></td>

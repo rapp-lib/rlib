@@ -2,12 +2,13 @@
     $var_name = $o["var_name"] ?: '$mail->vars["t"]';
     $name = $col->getName();
 ?>
-<? if ($col->getAttr("type")=="assoc"): ?>
+<?php if ($col->getAttr("type")=="assoc"): ?>
 --<?="\n"?>
 <#?php foreach (<?=$var_name?>["<?=$name?>"] as $key=>$item): ?>
-<?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
+<?php   foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
+<?php       if ($assoc_col->getAttr("type")==="assoc") continue; ?>
   <?=$assoc_col->getLabel()?> : <?=$assoc_col->getMailSource(array("var_name"=>'$item'))?><?="\n"?>
-<?php endforeach; /* foreach as $assoc_col */ ?>
+<?php   endforeach; /* foreach as $assoc_col */ ?>
 --<?="\n"?>
 <#?php endforeach; ?><?=""?>
 <?php elseif ($enum_set = $col->getEnumSet()): /* if type=="assoc" */ ?>

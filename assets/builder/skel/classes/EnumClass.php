@@ -8,7 +8,7 @@ class <?=$enum->getClassName()?> extends Enum_App
 {
 <?php foreach ($enum->getEnumSets() as $enum_set): ?>
 <?php   if ($fkey_for_table_name = $enum_set->getCol()->getAttr("def.fkey_for")): ?>
-<?php       $fkey_for_table = $this->getSchema()->getTable($fkey_for_table_name); ?>
+<?php       $fkey_for_table = $enum_set->getSchema()->getTableByName($fkey_for_table_name); ?>
     protected static function values_<?=$enum_set->getName()?> ($keys)
     {
         $query = table("<?=$fkey_for_table->getName()?>");

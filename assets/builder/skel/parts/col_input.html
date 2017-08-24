@@ -13,12 +13,13 @@
                 {{input type="hidden" name="<?=$name?>[$key][ord_seq]" value=$key}}
 <?php   endif; /* if $assoc_ord_col */ ?>
                 <table class="tbl_admin detail">
-<?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
+<?php   foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
+<?php       if ($assoc_col->getAttr("type")==="assoc") continue; ?>
                 <tr>
                     <th><?=$assoc_col->getLabel()?></th>
                     <td class="inputBlock"><?=$assoc_col->getInputSource(array("name_parent"=>$name.'[$key]', "var_name"=>$var_name.".".$name.'[$key]'))?></td>
                 </tr>
-<?php endforeach; /* foreach as $assoc_col */ ?>
+<?php   endforeach; /* foreach as $assoc_col */ ?>
                 </table>
             {{/input_fieldset}}
             {{foreach $fieldset.items as $item}}{{$item}}{{/foreach}}
@@ -28,21 +29,22 @@
             <div class="mi" data-minItems="0" data-maxItems="20">
                 {{input_fieldset name="<?=$name?>" tmpl="<%=id%>" key="key" assign="fieldset"}}
                     <div class="mi-item" data-itemId="{{$key}}">
-<?php if ($is_edit): ?>
+<?php   if ($is_edit): ?>
                         {{input type="hidden" name="<?=$name?>[$key][<?=$col->getAssocTable()->getIdCol()->getName()?>]"}}
-<?php endif; ?>
+<?php   endif; ?>
 <?php   if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
                         {{input type="hidden" name="<?=$name?>[$key][<?=$assoc_ord_col->getName()?>]" class="mi-item-seq"}}
 <?php   else: /* if $assoc_ord_col */ ?>
                         {{input type="hidden" name="<?=$name?>[$key][ord_seq]" class="mi-item-seq"}}
 <?php   endif; /* if $assoc_ord_col */ ?>
                         <table class="tbl_admin detail">
-<?php foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
+<?php   foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
+<?php       if ($assoc_col->getAttr("type")==="assoc") continue; ?>
                         <tr>
                             <th><?=$assoc_col->getLabel()?></th>
                             <td class="inputBlock"><?=$assoc_col->getInputSource(array("name_parent"=>$name.'[$key]', "var_name"=>$var_name.".".$name.'[$key]'))?></td>
                         </tr>
-<?php endforeach; /* foreach as $assoc_col */ ?>
+<?php   endforeach; /* foreach as $assoc_col */ ?>
                         <tr>
                             <th></th>
                             <td><a href="javascript:void(0);" class="mi-item-remove">削除</a></td>

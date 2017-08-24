@@ -305,4 +305,4 @@ MiHandler.extend = function (extension)
     MiHandler.extensions.push(extension);
 };
 // 自動適用
-jQuery(function(){ jQuery(".mi").mi(); });
+jQuery(function(){ jQuery(".mi").each(function() { $(this).mi(); }); });

@@ -46,6 +46,13 @@ class TableElement extends Element_Base
         return (array)$this->children["col"];
     }
     /**
+     * @getter Col
+     */
+    public function getColByName ($col_name)
+    {
+        return $this->children["col"][$col_name];
+    }
+    /**
      * IDのColを取得
      */
     public function getIdCol ()
