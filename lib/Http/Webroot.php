@@ -55,6 +55,8 @@ class Webroot
     {
         $stack = (array)$this->config["middlewares"];
         $stack[] = $deligate;
+        ksort($stack);
+        $stack = array_values($stack);
         $dispatcher = new \mindplay\middleman\Dispatcher($stack);
         $response = $dispatcher->dispatch($request);
         return $response;

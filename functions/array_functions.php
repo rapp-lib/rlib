@@ -10,6 +10,15 @@
         return is_array($arr) || $arr instanceof \ArrayAccess;
     }
     /**
+     * 配列が連想配列ではなく連番配列であるか判定
+     */
+    function is_seqarray ( & $arr)
+    {
+        $last = 0;
+        foreach ($arr as $k=> & $v) if ( ! is_numeric($k) || $k!=$last++) return false;
+        return true;
+    }
+    /**
      * 再帰的にarray_mapを行う
      */
     function array_map_recursive (callable $callback, array $array)
@@ -23,22 +32,32 @@
     {
         // keyを配列で指定した場合
         if (is_array($key)) {
-            foreach ($key as $k => $v) {
-                array_add($ref, $k, $v);
+            // 連番添え字の場合上書きせず追加
+            if (is_seqarray($key)) {
+                $offset = count($ref)==0 ? 0 : (int)max(array_keys($ref))+1;
+                for ($i=0; $i<count($key); $i++) {
+                    array_add($ref, $offset+$i, $key[$i]);
+                }
+            } else {
+                foreach ($key as $k => $v) {
+                    array_add($ref, $k, $v);
+                }
             }
         } else {
-            // 数値添え字の場合上書きせず追加
-            if (is_numeric($key)) {
-                if ( ! is_array($ref)) {
-                    $ref = array();
-                }
-                $key = count($ref)==0 ? 0 : (int)max(array_keys($ref))+1;
-            }
+            if ( ! is_array($ref)) $ref = array();
             // valueを配列で指定した場合
             if (is_array($value)) {
                 $ref_sub = & array_get_ref($ref, $key);
-                foreach ($value as $k => $v) {
-                    array_add($ref_sub, $k, $v);
+                // 連番添え字の場合上書きせず追加
+                if (is_seqarray($value)) {
+                    $offset = count($ref_sub)==0 ? 0 : (int)max(array_keys($ref_sub))+1;
+                    for ($i=0; $i<count($value); $i++) {
+                        array_add($ref_sub, $offset+$i, $value[$i]);
+                    }
+                } else {
+                    foreach ($value as $k => $v) {
+                        array_add($ref_sub, $k, $v);
+                    }
                 }
             } else {
                 $ref_sub = & array_get_ref($ref, $key);

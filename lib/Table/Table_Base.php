@@ -240,6 +240,14 @@ class Table_Base extends Table_Core
     }
     /**
      * @hook chain
+     * LIMIT句の設定
+     */
+    public function chain_limit ($limit)
+    {
+        $this->query->setLimit($limit);
+    }
+    /**
+     * @hook chain
      * IDを条件に指定する
      */
     public function chain_findById ($id)
