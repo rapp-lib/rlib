@@ -425,17 +425,6 @@ class Table_Core
         $this->findById($id);
         return $this->selectOne($fields);
     }
-    /**
-     * SELECT文の発行 全件取得してハッシュを作成
-     */
-    public function selectHash ($col_name)
-    {
-        $id_col_name = $this->getIdColName();
-        $this->query->addField($id_col_name);
-        $this->query->addField($col_name);
-        $ts = $this->select();
-        return $ts->hashBy($col_name);
-    }
 
 // -- INSERT/UPDATE/DELETE文の発行
 
