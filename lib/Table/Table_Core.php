@@ -1,6 +1,6 @@
 <?php
 namespace R\Lib\Table;
-use R\Lib\DBAL\Regacy\DBI_Base;
+use R\Lib\DBAL\SQLBuilder;
 
 /**
  * Tableクラスのコア機能セット
@@ -105,24 +105,6 @@ class Table_Core
     public function getConnection ()
     {
         return app()->db(static::$ds_name);
-    }
-
-// -- SQLBuilder取得
-
-    protected $sql_builder = null;
-    /**
-     * SQLBuilderを取得する
-     */
-    public function getSQLBuilder ()
-    {
-        if ( ! $this->sql_builder) {
-            $db = $this->getConnection();
-            $this->sql_builder = new QuerySQLBuilder(array(
-                "quote_name" => array($db,"quoteName"),
-                "quote_value" => array($db,"quoteValue"),
-            ));
-        }
-        return $this->sql_builder;
     }
 
 // -- 関連オブジェクトのFactory
@@ -549,7 +531,7 @@ class Table_Core
         // Query組み立て処理を呼び出す
         $this->callBuildQueryMethods();
         // SQL組み立て
-        return $this->statement = $this->getSQLBuilder()->render($this->query);
+        return $this->statement = $this->renderSQL($this->query);
     }
     /**
      * SQLの発行実処理
@@ -574,8 +556,68 @@ class Table_Core
         if ($type=="insert" || $type=="update") {
             $this->callListenerMethod("afterWrite",array($record));
         }
-
         return $this->result;
+    }
+
+// -- SQL文字列構築
+
+    private $sql_builder = null;
+    /**
+     * SQLBuilderを取得する
+     */
+    protected function getSQLBuilder()
+    {
+        if ( ! $this->sql_builder) {
+            $db = $this->getConnection();
+            $this->sql_builder = new SQLBuilder(array(
+                "quote_name" => array($db,"quoteName"),
+                "quote_value" => array($db,"quoteValue"),
+            ));
+        }
+        return $this->sql_builder;
+    }
+    /**
+     * SQLの発行実処理
+     */
+    protected function renderSQL($query)
+    {
+        $query = (array)$query;
+        foreach ((array)$query["fields"] as $k => $v) {
+            // FieldsのAlias展開
+            if ( ! is_numeric($k)) {
+                $query["fields"][$k] = array($v,$k);
+            }
+            // Fieldsのサブクエリ展開
+            if (is_object($v) && method_exists($v,"buildQuery")) {
+                $query["fields"][$k] = $v = "(".$v->buildQuery("select").")";
+            }
+        }
+        foreach ((array)$query["joins"] as $k => $v) {
+            // Joinsのサブクエリ展開
+            if (is_object($v["table"]) && method_exists($v["table"],"buildQuery")) {
+                $v["table"]->modifyQuery(function($sub_query) use (&$query, $k){
+                    $sub_query_statement = $query["joins"][$k][0]->buildQuery("select");
+                    if ($sub_query->getGroup()) {
+                        //TODO: GroupBy付きのJOINでも異なるDB間でJOINできるようにする
+                        $query["joins"][$k][0] = "(".$sub_query_statement.")";
+                    } else {
+                        $table_name = $sub_query->getTableName();
+                        // 異なるDB間でのJOIN時にはDBNAME付きのTable名とする
+                        if ($query["dbname"]!==$sub_query["dbname"]) {
+                            $table_name = $sub_query["dbname"].".".$table_name;
+                        }
+                        $query["joins"][$k][0] = $table_name;
+                        $query["joins"][$k][1][] = $sub_query["where"];
+                    }
+                });
+            }
+        }
+        // Updateを物理削除に切り替え
+        if ($query["type"]=="update" && $query["delete"]) {
+            unset($query["delete"]);
+            $query["type"] = "delete";
+        }
+        return $this->getSQLBuilder()->render($query);
     }
 
 // -- hookメソッド呼び出し関連処理

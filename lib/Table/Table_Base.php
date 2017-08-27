@@ -385,6 +385,16 @@ class Table_Base extends Table_Core
      */
     private $assoc_fields = null;
     /**
+     * assoc hook処理の呼び出し
+     */
+    protected function callAssocHookMethod ($method_name, $col_name)
+    {
+        $assoc = static::$cols[$col_name]["assoc"];
+        $method_name .= "_".($assoc["type"] ?: "hasMany");
+        if ( ! method_exists($this, $method_name)) return false;
+        return call_user_func_array(array($this, $method_name), array($col_name));
+    }
+    /**
      * assoc処理 selectの発行前
      */
     protected function on_select_assoc ()
@@ -407,13 +417,12 @@ class Table_Base extends Table_Core
         }
         $this->assoc_fields = array();
         foreach ($col_names as $col_name) {
-            if ($assoc = static::$cols[$col_name]["assoc"]) {
-                $assoc_type = $assoc["type"] ?: "hasMany";
+            if (static::$cols[$col_name]["assoc"]) {
                 // fields→assoc_fieldsに項目を移動
                 $this->query->removeField($col_name);
                 $this->assoc_fields[] = $col_name;
                 // assoc処理の呼び出し
-                $this->callHookMethod("assoc_select_".$assoc_type, array($col_name));
+                $this->callAssocHookMethod("assoc_select", $col_name);
             }
         }
         return $this->assoc_fields ? true : false;
@@ -424,12 +433,9 @@ class Table_Base extends Table_Core
     protected function on_fetch_assoc ($record)
     {
         foreach ((array)$this->assoc_fields as $col_name) {
-            $assoc = static::$cols[$col_name]["assoc"];
-            $assoc_type = $assoc["type"] ?: "hasMany";
-            // assoc処理の呼び出し
-            $this->callHookMethod("assoc_fetch_".$assoc_type, array($col_name, $record));
+            $this->callAssocHookMethod("assoc_fetch", $col_name);
         }
-        return false;
+        return $this->assoc_fields ? true : false;
     }
     /**
      * assoc処理 fetch完了後
@@ -437,12 +443,9 @@ class Table_Base extends Table_Core
     protected function on_fetchEnd_assoc ()
     {
         foreach ((array)$this->assoc_fields as $col_name) {
-            $assoc = static::$cols[$col_name]["assoc"];
-            $assoc_type = $assoc["type"] ?: "hasMany";
-            // assoc処理の呼び出し
-            $this->callHookMethod("assoc_fetchEnd_".$assoc_type, array($col_name));
+            $this->callAssocHookMethod("assoc_fetchEnd", $col_name);
         }
-        return false;
+        return $this->assoc_fields ? true : false;
     }
 
     /**
@@ -452,13 +455,12 @@ class Table_Base extends Table_Core
     {
         $this->assoc_values = array();
         foreach ((array)$this->query->getValues() as $col_name => $value) {
-            if ($assoc = static::$cols[$col_name]["assoc"]) {
-                $assoc_type = $assoc["type"] ?: "hasMany";
+            if (static::$cols[$col_name]["assoc"]) {
                 // values→assoc_valuesに項目を移動
                 $this->query->removeValue($col_name);
                 $this->assoc_values[$col_name] = $value;
                 // assoc処理の呼び出し
-                $this->callHookMethod("assoc_write_".$assoc_type, array($col_name,$value));
+                $this->callAssocHookMethod("assoc_write", $col_name);
             }
         }
         return $this->assoc_values ? true : false;
@@ -469,12 +471,9 @@ class Table_Base extends Table_Core
     protected function on_afterWrite_assoc ()
     {
         foreach ((array)$this->assoc_values as $col_name => $value) {
-            $assoc = static::$cols[$col_name]["assoc"];
-            $assoc_type = $assoc["type"] ?: "hasMany";
-            // assoc処理の呼び出し
-            $this->callHookMethod("assoc_afterWrite_".$assoc_type, array($col_name,$value));
+            $this->callAssocHookMethod("assoc_afterWrite", $col_name);
         }
-        return false;
+        return $this->assoc_values ? true : false;
     }
 
 // -- 基本的なassoc hookの定義
