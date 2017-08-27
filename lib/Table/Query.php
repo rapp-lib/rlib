@@ -29,13 +29,6 @@ class Query extends ArrayObject
         "type" => array(),
         // trueであればUPDATE文をDELETE文に変換する
         "delete" => array(),
-
-        // fetch時、マッピングを行わない指定（NoFetch時に使用）
-        "no_mapping" => array(),
-
-        // fields/valuesに指定された項目で、テーブル定義に含まれないもの
-        "assoc_fields" => array(),
-        "assoc_values" => array(),
     );
 
     /**
@@ -52,8 +45,6 @@ class Query extends ArrayObject
             if ($key=="value") { $key = "values"; }
             if ($key=="join") { $key = "joins"; }
             if ($key=="where") { $key = "where"; }
-            if ($key=="assoc_field") { $key = "assoc_fields"; }
-            if ($key=="assoc_value") { $key = "assoc_values"; }
 
             if ( ! array_key_exists($key, static::$keys)) {
                 report_error("メソッドの定義がありません",array(

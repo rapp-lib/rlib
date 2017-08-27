@@ -16,6 +16,10 @@ class Table_Core
      */
     protected $result;
     /**
+     * 外部から設定できる属性値
+     */
+    protected $attrs;
+    /**
      * テーブルの定義
      */
     protected static $table_name = null;
@@ -35,10 +39,6 @@ class Table_Core
      */
     private $result_res = null;
     /**
-     * Insert発行直後のLastInsertId
-     */
-    private $last_insert_id = null;
-    /**
      * buildQueryの結果作成されたSQL文
      */
     private $statemenet = false;
@@ -47,9 +47,17 @@ class Table_Core
      */
     private $fetch_done = false;
     /**
-     * 外部から設定できる値
+     * Insert発行直後のLastInsertId
      */
-    protected $attrs = array();
+    private $last_insert_id = null;
+    /**
+     * Select条件に対応する登録総数
+     */
+    private $total = null;
+    /**
+     * totalに対応するPager
+     */
+    private $pager = null;
 
     /**
      * @override
@@ -58,6 +66,7 @@ class Table_Core
     {
         $this->query = new Query;
         $this->result = null;
+        $this->attrs = array();
 
         // テーブル名を関連づける
         if (static::$table_name) {
@@ -219,28 +228,35 @@ class Table_Core
 
     /**
      * @hook result
+     * 条件に対する件数の取得（Limit解除）
+     */
+    public function result_getTotal ($result)
+    {
+        if (isset($this->total)) return $this->total;
+        // 件数取得用にSQL再発行
+        $query = clone($this->query);
+        $query["fields"] = array("count"=>"COUNT(*)");
+        unset($query["limit"]);
+        unset($query["offset"]);
+        unset($query["order"]);
+        $statement = $this->getSQLBuilder()->render($query);
+        $result_res = $this->getConnection()->exec($statement);
+        $t = $this->getConnection()->fetch($result_res);
+        $this->total = (int)$t[0]["count"];
+        return $this->total;
+    }
+    /**
+     * @hook result
      * Pagerの取得
      */
     public function result_getPager ($result)
     {
+        if (isset($this->pager)) return $this->pager;
         // limit指定のないSQLに対するPagerは発行不能
-        if ( ! $this->query["limit"]) {
-            return null;
-        }
-        if ( ! isset($this->pager)) {
-            // Pager取得用にSQL再発行
-            $query = clone($this->query);
-            $query["fields"] = array("count"=>"COUNT(*)");
-            unset($query["limit"]);
-            unset($query["offset"]);
-            unset($query["order"]);
-            $statement = $this->getSQLBuilder()->render($query);
-            $result_res = $this->getConnection()->exec($statement);
-            $t = $this->getConnection()->fetch($result_res);
-            $count = (int)$t[0]["count"];
-            // Pager組み立て
-            $this->pager = new Pager($count, $this->query["offset"], $this->query["limit"]);
-        }
+        if ( ! $this->query["limit"]) return null;
+        $total = $this->result_getTotal($result);
+        // Pager組み立て
+        $this->pager = new Pager($total, $this->query["offset"], $this->query["limit"]);
         return $this->pager;
     }
     /**

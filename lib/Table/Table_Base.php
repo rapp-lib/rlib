@@ -6,180 +6,29 @@ namespace R\Lib\Table;
  */
 class Table_Base extends Table_Core
 {
-    /**
-     * @ref R\Lib\Auth\ConfigBasedLogin::authenticate
-     * ログイン処理の実装
-     */
-    public function authenticate ($params)
-    {
-        if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
-            $t = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->selectOne();
-            return $t ? (array)$t : false;
-        }
-        return false;
-    }
-
-// -- 基本的なassoc hookの定義
-
-    /**
-     * @hook assoc hasMany
-     * パラメータ例:
-     *     "type"=>"hasMany",
-     *     "table"=>"Product", // 必須 関係先テーブル名
-     *     "fkey"=>"owner_member_id", // 任意 関係先テーブル上のFK
-     *     // fkeyの設定がない場合、assoc.tableの参照先のfkey_forの設定されたカラムを使用する
-     *     "value_col"=>"status", // 任意 値を1項目に絞る場合
-     *     "extra_values"=>array("type"=>1), // 任意 このassocで関係づけるレコードに設定する値
-     *     "single"=>true, // 任意 trueが指定されると1レコードに対応付ける
-     *  読み込み時の動作:
-     *      Fetch完了後、結果全てのPKで関係先テーブルをSelectする
-     *          extra_valuesの指定があれば絞り込みに使用する
-     *          singleの指定があれば、既存1レコード目のみ取得する
-     *  書き込み時の動作:
-     *      ※書き込んだIDがわかることが必須なので、IDを指定しないUpdateではエラー
-     *      書き込み完了後、対象のIDに関係する関係先のレコードで削除/更新/登録する
-     *          assoc.tableのPKの一致で更新する
-     *          value_col指定があれば、対象のカラムの一致で更新する
-     *          singleの指定があれば、既存1レコード目を一致させて更新する
-     *          extra_valuesの指定があれば絞り込みと、値の設定に使用する
-     */
-    protected function assoc_fetchEnd_hasMany ($col_name)
-    {
-        $assoc_table_name = static::$cols[$col_name]["assoc"]["table"];
-        $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
-        $assoc_extra_values = static::$cols[$col_name]["assoc"]["extra_values"];
-        $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
-        $assoc_single = (boolean)static::$cols[$col_name]["assoc"]["single"];
-        $assoc_join = static::$cols[$col_name]["assoc"]["join"];
-        // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
-        if ( ! isset($assoc_fkey)) {
-            $table_name = app()->table->getTableNameByClass(get_class($this));
-            $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
-        }
-        // 主テーブルのIDを取得
-        $pkey = $this->getIdColName();
-        $ids = $this->result->getHashedBy($pkey);
-        // 関連テーブルをFkeyでSELECT
-        $table = table($assoc_table_name)->findBy($assoc_fkey, $ids);
-        // ExtraValueを条件に設定
-        if ($assoc_extra_values) $table->findBy($assoc_extra_values);
-        // joinの指定があればJOINを接続
-        if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
-        // singleの指定があれば1レコードに制限
-        if ($assoc_single) $table->pagenate(0, 1);
-        $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
-        // 主テーブルのResultに関連づける
-        foreach ($this->result as $i => $record) {
-            // value_col指定=1項目の値のみに絞り込む場合
-            if (isset($assoc_value_col)) {
-                $values = array();
-                foreach ((array)$assoc_result_set[$record[$pkey]] as $assoc_record) {
-                    $values[] = $assoc_record[$assoc_value_col];
-                }
-                $record[$col_name] = $assoc_single ? current($values) : $values;
-            } else {
-                $record[$col_name] = (array)$assoc_result_set[$record[$pkey]];
-            }
-        }
-    }
-    protected function assoc_afterWrite_hasMany ($col_name, $values)
-    {
-        $assoc_table_name = static::$cols[$col_name]["assoc"]["table"];
-        $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
-        $assoc_extra_values = static::$cols[$col_name]["assoc"]["extra_values"];
-        $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
-        $assoc_single = (boolean)static::$cols[$col_name]["assoc"]["single"];
-        // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
-        if ( ! isset($assoc_fkey)) {
-            $table_name = app()->table->getTableNameByClass(get_class($this));
-            $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
-        }
-        // singleの指定があれば1レコードに制限
-        if ($assoc_single) $values = array_slice((array)$values, 0, 1, true);
-        // 書き込んだIDを確認
-        $id = null;
-        if ($this->query->getType() == "insert") {
-            $id = $this->result->getLastInsertId();
-        } elseif ($this->query->getType() == "update") {
-            $id = $this->query->getWhere($this->getQueryTableName().".".$this->getIdColName());
-            if ( ! isset($id)) {
-                $id = $this->query->getWhere($this->getIdColName());
-            }
-        }
-        if ( ! isset($id)) {
-            report_error("IDの特定できないUpdate/Insertに対してAssoc処理は実行できません",array(
-                "table" => $this,
-            ));
-            return;
-        }
-        // 対象のIDに関係する関係先のレコードを差分削除
-        $table = table($assoc_table_name)->findBy($assoc_fkey, $id);
-        // ExtraValueを条件に設定
-        if ($assoc_extra_values) $table->findBy($assoc_extra_values);
-        $assoc_result = $table->select();
-        $assoc_id_col = $table->getIdColName();
-        // value_col指定=1項目の値のみに絞り込む場合
-        if (isset($assoc_value_col)) {
-            // 既存の情報を値→IDでハッシュ
-            $delete_assoc_ids = $assoc_result->getHashedBy($assoc_value_col, $assoc_id_col);
-            // singleの指定があれば削除対象の1レコード目を更新対象とする
-            if ($assoc_single) {
-                $record = array($assoc_fkey=>$id, $assoc_value_col=>current($values));
-                if ($delete_assoc_ids) {
-                    $record[$assoc_id_col] = current($delete_assoc_ids);
-                    unset($delete_assoc_ids[key($delete_assoc_ids)]);
-                }
-                table($assoc_table_name)->save($record);
-                $values = array();
-            }
-            foreach ((array)$values as $value) {
-                // 入力値が登録済みであれば、削除対象から除外
-                if (isset($delete_assoc_ids[$value])) {
-                    unset($delete_assoc_ids[$value]);
-                // 入力値が未登録であれば、新規登録
-                } else {
-                    $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
-                    foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                    table($assoc_table_name)->save($record);
-                }
-            }
-            // 削除
-            if ($delete_assoc_ids) {
-                table($assoc_table_name)->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
-            }
-        } else {
-            // 既存の情報をID→IDでハッシュ
-            $delete_assoc_ids = $assoc_result->getHashedBy($assoc_id_col, $assoc_id_col);
-            // singleの指定があれば1レコード目を更新対象、その他を削除対象とする
-            if ($assoc_single) {
-                $values[key($values)][$assoc_id_col] = current($delete_assoc_ids);
-            }
-            foreach ((array)$values as $key => $record) {
-                // 入力レコードのIDが空白で無ければ、削除対象から除外
-                if (strlen($record[$assoc_id_col])) {
-                    unset($delete_assoc_ids[$record[$assoc_id_col]]);
-                }
-                // 新規/上書き
-                $record[$assoc_fkey] = $id;
-                foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                table($assoc_table_name)->save($record);
-            }
-            // 削除
-            if ($delete_assoc_ids) {
-                table($assoc_table_name)->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
-            }
-        }
-    }
 
 // -- 基本的なchain hookの定義
 
     /**
      * @hook chain
      * Select文のField部を指定する
-     * ※何も指定されていない場合は全て取得する
+     */
+    public function chain_fields ($col_name, $col_name_sub=false)
+    {
+        if ($col_name_sub === false) {
+            $this->query->addField($col_name);
+        } else {
+            $this->query->addField($col_name, $col_name_sub);
+        }
+    }
+    /**
+     * @hook chain
+     * Select文のField部を追加する
+     * 何も指定されていなければ"*"を追加する
      */
     public function chain_with ($col_name, $col_name_sub=false)
     {
+        if ( ! $this->query->getFields()) $this->query->addField("*");
         if ($col_name_sub === false) {
             $this->query->addField($col_name);
         } else {
@@ -315,8 +164,6 @@ class Table_Base extends Table_Core
         }
         return $applied;
     }
-
-
     /**
      * @hook chain
      * offset/limit指定を削除する
@@ -326,7 +173,6 @@ class Table_Base extends Table_Core
         $this->query->removeOffset();
         $this->query->removeLimit();
     }
-
     /**
      * @hook chain
      * Queryを操作する関数を指定する
@@ -336,7 +182,7 @@ class Table_Base extends Table_Core
         call_user_func($query, $this->query);
     }
 
-// -- on_*_*処理の定義
+// -- 基本的なon_*の定義
 
     /**
      * @hook on_fetch
@@ -531,20 +377,24 @@ class Table_Base extends Table_Core
 // -- assoc hookを呼び出すためのon hookの定義
 
     /**
+     * assoc指定されたFeieldに対応するValues
+     */
+    private $assoc_values = null;
+    /**
+     * assoc指定されたFieldに対応するFields
+     */
+    private $assoc_fields = null;
+    /**
      * assoc処理 selectの発行前
      */
     protected function on_select_assoc ()
     {
         // Select対象となっているcol_nameの特定
         $fields = (array)$this->query->getFields();
-        if ( ! $fields) {
-            $fields = array("*");
-        }
+        if ( ! $fields) $fields = array("*");
         $col_names = array();
         foreach ($fields as $i => $col_name) {
-            if ( ! is_numeric($i)) {
-                $col_name = $i;
-            }
+            if ( ! is_numeric($i)) $col_name = $i;
             if ($col_name == "*") {
                 foreach (static::$cols as $def_col_name  => $def_col) {
                     if ( ! static::$cols[$col_name]["assoc"]["except"]) {
@@ -555,27 +405,25 @@ class Table_Base extends Table_Core
                 $col_names[$col_name] = $col_name;
             }
         }
-        $assoc_fields = array();
+        $this->assoc_fields = array();
         foreach ($col_names as $col_name) {
             if ($assoc = static::$cols[$col_name]["assoc"]) {
                 $assoc_type = $assoc["type"] ?: "hasMany";
                 // fields→assoc_fieldsに項目を移動
                 $this->query->removeField($col_name);
-                $assoc_fields[] = $col_name;
+                $this->assoc_fields[] = $col_name;
                 // assoc処理の呼び出し
                 $this->callHookMethod("assoc_select_".$assoc_type, array($col_name));
             }
         }
-        $this->setAttr("assoc_field", $assoc_fields);
-        return $assoc_fields ? true : false;
+        return $this->assoc_fields ? true : false;
     }
-
     /**
      * assoc処理 各レコードfetch後
      */
     protected function on_fetch_assoc ($record)
     {
-        foreach ((array)$this->getAttr("assoc_field") as $col_name) {
+        foreach ((array)$this->assoc_fields as $col_name) {
             $assoc = static::$cols[$col_name]["assoc"];
             $assoc_type = $assoc["type"] ?: "hasMany";
             // assoc処理の呼び出し
@@ -583,13 +431,12 @@ class Table_Base extends Table_Core
         }
         return false;
     }
-
     /**
      * assoc処理 fetch完了後
      */
     protected function on_fetchEnd_assoc ()
     {
-        foreach ((array)$this->getAttr("assoc_field") as $col_name) {
+        foreach ((array)$this->assoc_fields as $col_name) {
             $assoc = static::$cols[$col_name]["assoc"];
             $assoc_type = $assoc["type"] ?: "hasMany";
             // assoc処理の呼び出し
@@ -603,33 +450,183 @@ class Table_Base extends Table_Core
      */
     protected function on_write_assoc ()
     {
-        $assoc_values = array();
+        $this->assoc_values = array();
         foreach ((array)$this->query->getValues() as $col_name => $value) {
             if ($assoc = static::$cols[$col_name]["assoc"]) {
                 $assoc_type = $assoc["type"] ?: "hasMany";
                 // values→assoc_valuesに項目を移動
                 $this->query->removeValue($col_name);
-                $assoc_values[$col_name] = $value;
+                $this->assoc_values[$col_name] = $value;
                 // assoc処理の呼び出し
                 $this->callHookMethod("assoc_write_".$assoc_type, array($col_name,$value));
             }
         }
-        $this->setAttr("assoc_values", $assoc_values);
-        return $assoc_values ? true : false;
+        return $this->assoc_values ? true : false;
     }
-
     /**
      * assoc処理 insert/updateの発行後
      */
     protected function on_afterWrite_assoc ()
     {
-        foreach ((array)$this->getAttr("assoc_values") as $col_name => $value) {
+        foreach ((array)$this->assoc_values as $col_name => $value) {
             $assoc = static::$cols[$col_name]["assoc"];
             $assoc_type = $assoc["type"] ?: "hasMany";
             // assoc処理の呼び出し
             $this->callHookMethod("assoc_afterWrite_".$assoc_type, array($col_name,$value));
         }
         return false;
+    }
+
+// -- 基本的なassoc hookの定義
+
+    /**
+     * @hook assoc hasMany
+     * パラメータ例:
+     *     "type"=>"hasMany",
+     *     "table"=>"Product", // 必須 関係先テーブル名
+     *     "fkey"=>"owner_member_id", // 任意 関係先テーブル上のFK
+     *     // fkeyの設定がない場合、assoc.tableの参照先のfkey_forの設定されたカラムを使用する
+     *     "value_col"=>"status", // 任意 値を1項目に絞る場合
+     *     "extra_values"=>array("type"=>1), // 任意 このassocで関係づけるレコードに設定する値
+     *     "single"=>true, // 任意 trueが指定されると1レコードに対応付ける
+     *  読み込み時の動作:
+     *      Fetch完了後、結果全てのPKで関係先テーブルをSelectする
+     *          extra_valuesの指定があれば絞り込みに使用する
+     *          singleの指定があれば、既存1レコード目のみ取得する
+     *  書き込み時の動作:
+     *      ※書き込んだIDがわかることが必須なので、IDを指定しないUpdateではエラー
+     *      書き込み完了後、対象のIDに関係する関係先のレコードで削除/更新/登録する
+     *          assoc.tableのPKの一致で更新する
+     *          value_col指定があれば、対象のカラムの一致で更新する
+     *          singleの指定があれば、既存1レコード目を一致させて更新する
+     *          extra_valuesの指定があれば絞り込みと、値の設定に使用する
+     */
+    protected function assoc_fetchEnd_hasMany ($col_name)
+    {
+        $assoc_table_name = static::$cols[$col_name]["assoc"]["table"];
+        $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
+        $assoc_extra_values = static::$cols[$col_name]["assoc"]["extra_values"];
+        $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
+        $assoc_single = (boolean)static::$cols[$col_name]["assoc"]["single"];
+        $assoc_join = static::$cols[$col_name]["assoc"]["join"];
+        // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
+        if ( ! isset($assoc_fkey)) {
+            $table_name = app()->table->getTableNameByClass(get_class($this));
+            $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
+        }
+        // 主テーブルのIDを取得
+        $pkey = $this->getIdColName();
+        $ids = $this->result->getHashedBy($pkey);
+        // 関連テーブルをFkeyでSELECT
+        $table = table($assoc_table_name)->findBy($assoc_fkey, $ids);
+        // ExtraValueを条件に設定
+        if ($assoc_extra_values) $table->findBy($assoc_extra_values);
+        // joinの指定があればJOINを接続
+        if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
+        // singleの指定があれば1レコードに制限
+        if ($assoc_single) $table->pagenate(0, 1);
+        $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
+        // 主テーブルのResultに関連づける
+        foreach ($this->result as $i => $record) {
+            // value_col指定=1項目の値のみに絞り込む場合
+            if (isset($assoc_value_col)) {
+                $values = array();
+                foreach ((array)$assoc_result_set[$record[$pkey]] as $assoc_record) {
+                    $values[] = $assoc_record[$assoc_value_col];
+                }
+                $record[$col_name] = $assoc_single ? current($values) : $values;
+            } else {
+                $record[$col_name] = (array)$assoc_result_set[$record[$pkey]];
+            }
+        }
+    }
+    protected function assoc_afterWrite_hasMany ($col_name, $values)
+    {
+        $assoc_table_name = static::$cols[$col_name]["assoc"]["table"];
+        $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
+        $assoc_extra_values = static::$cols[$col_name]["assoc"]["extra_values"];
+        $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
+        $assoc_single = (boolean)static::$cols[$col_name]["assoc"]["single"];
+        // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
+        if ( ! isset($assoc_fkey)) {
+            $table_name = app()->table->getTableNameByClass(get_class($this));
+            $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
+        }
+        // singleの指定があれば1レコードに制限
+        if ($assoc_single) $values = array_slice((array)$values, 0, 1, true);
+        // 書き込んだIDを確認
+        $id = null;
+        if ($this->query->getType() == "insert") {
+            $id = $this->result->getLastInsertId();
+        } elseif ($this->query->getType() == "update") {
+            $id = $this->query->getWhere($this->getQueryTableName().".".$this->getIdColName());
+            if ( ! isset($id)) {
+                $id = $this->query->getWhere($this->getIdColName());
+            }
+        }
+        if ( ! isset($id)) {
+            report_error("IDの特定できないUpdate/Insertに対してAssoc処理は実行できません",array(
+                "table" => $this,
+            ));
+            return;
+        }
+        // 対象のIDに関係する関係先のレコードを差分削除
+        $table = table($assoc_table_name)->findBy($assoc_fkey, $id);
+        // ExtraValueを条件に設定
+        if ($assoc_extra_values) $table->findBy($assoc_extra_values);
+        $assoc_result = $table->select();
+        $assoc_id_col = $table->getIdColName();
+        // value_col指定=1項目の値のみに絞り込む場合
+        if (isset($assoc_value_col)) {
+            // 既存の情報を値→IDでハッシュ
+            $delete_assoc_ids = $assoc_result->getHashedBy($assoc_value_col, $assoc_id_col);
+            // singleの指定があれば削除対象の1レコード目を更新対象とする
+            if ($assoc_single) {
+                $record = array($assoc_fkey=>$id, $assoc_value_col=>current($values));
+                if ($delete_assoc_ids) {
+                    $record[$assoc_id_col] = current($delete_assoc_ids);
+                    unset($delete_assoc_ids[key($delete_assoc_ids)]);
+                }
+                table($assoc_table_name)->save($record);
+                $values = array();
+            }
+            foreach ((array)$values as $value) {
+                // 入力値が登録済みであれば、削除対象から除外
+                if (isset($delete_assoc_ids[$value])) {
+                    unset($delete_assoc_ids[$value]);
+                // 入力値が未登録であれば、新規登録
+                } else {
+                    $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
+                    foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
+                    table($assoc_table_name)->save($record);
+                }
+            }
+            // 削除
+            if ($delete_assoc_ids) {
+                table($assoc_table_name)->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
+            }
+        } else {
+            // 既存の情報をID→IDでハッシュ
+            $delete_assoc_ids = $assoc_result->getHashedBy($assoc_id_col, $assoc_id_col);
+            // singleの指定があれば1レコード目を更新対象、その他を削除対象とする
+            if ($assoc_single) {
+                $values[key($values)][$assoc_id_col] = current($delete_assoc_ids);
+            }
+            foreach ((array)$values as $key => $record) {
+                // 入力レコードのIDが空白で無ければ、削除対象から除外
+                if (strlen($record[$assoc_id_col])) {
+                    unset($delete_assoc_ids[$record[$assoc_id_col]]);
+                }
+                // 新規/上書き
+                $record[$assoc_fkey] = $id;
+                foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
+                table($assoc_table_name)->save($record);
+            }
+            // 削除
+            if ($delete_assoc_ids) {
+                table($assoc_table_name)->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
+            }
+        }
     }
 
 // -- 基本的なsearch hookの定義
@@ -749,7 +746,6 @@ class Table_Base extends Table_Core
         $this->query->setLimit($volume);
     }
 
-
 // -- 基本的なID生成ルールの定義
 
     /**
@@ -763,5 +759,20 @@ class Table_Base extends Table_Core
         $value = "";
         for ($i=0; $i<$length; $i++) $value .= $chars[array_rand($chars)];
         return $value;
+    }
+
+// -- 基本的な認証処理の定義
+
+    /**
+     * @ref R\Lib\Auth\ConfigBasedLogin::authenticate
+     * ログイン処理の実装
+     */
+    public function authenticate ($params)
+    {
+        if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
+            $t = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->selectOne();
+            return $t ? (array)$t : false;
+        }
+        return false;
     }
 }
