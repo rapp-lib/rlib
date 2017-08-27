@@ -222,7 +222,7 @@ class ReportRenderer
         } elseif ( ! is_string($value)) {
             $r = gettype($value)."(".$value.")";
         } else {
-            $r = '"'.(mb_strlen($value)>3000 ? mb_substr($value,0,3000).'...' : (string)$value).'"';
+            $r = '"'.self::str_truncate($value,3000,'...').'"';
         }
         return $r;
     }
@@ -298,12 +298,18 @@ class ReportRenderer
                 } elseif (is_array($arg)) {
                     $r .= "array[".count($arg)."]";
                 } else {
-                    $str = (string)$arg;
-                    $r .= '"'.(mb_strlen($str)>20 ? mb_substr($str,0,20).'...' : $str).'"';
+                    $r .= '"'.self::str_truncate((string)$arg,20,'...').'"';
                 }
             }
             $r .= ")";
         }
         return $r;
+    }
+    /**
+     * 文字数指定して省略
+     */
+    private static function str_truncate($str, $length, $postfix="...")
+    {
+        return mb_strlen($str,"UTF-8")>$length ? mb_substr($str,0,$length,"UTF-8").$postfix : $str;
     }
 }

@@ -510,14 +510,25 @@ class Table_Base extends Table_Core
         $assoc_join = static::$cols[$col_name]["assoc"]["join"];
         // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
         if ( ! isset($assoc_fkey)) {
-            $table_name = app()->table->getTableNameByClass(get_class($this));
+            $table_name = $this->getAppTableName();
             $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
         }
+        // 深度と循環参照の確認処理
+        $assoc_depth = $this->getAttr("assoc_depth") !== null ? $this->getAttr("assoc_depth") : 1;
+        $assoc_stack = (array)$this->getAttr("assoc_stack");
+        $assoc_identity = $this->getDefTableName().".".$col_name;
+        if ($assoc_depth === 0) return false;
+        if (in_array($assoc_identity, $assoc_stack)) return false;
+        $assoc_depth--;
+        $assoc_stack[] = $assoc_identity;
         // 主テーブルのIDを取得
         $pkey = $this->getIdColName();
         $ids = $this->result->getHashedBy($pkey);
         // 関連テーブルをFkeyでSELECT
         $table = table($assoc_table_name)->findBy($assoc_fkey, $ids);
+        // 深度と循環参照の条件設定
+        $table->setAttr("assoc_depth", $assoc_depth);
+        $table->setAttr("assoc_stack", $assoc_stack);
         // ExtraValueを条件に設定
         if ($assoc_extra_values) $table->findBy($assoc_extra_values);
         // joinの指定があればJOINを接続
@@ -548,7 +559,7 @@ class Table_Base extends Table_Core
         $assoc_single = (boolean)static::$cols[$col_name]["assoc"]["single"];
         // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
         if ( ! isset($assoc_fkey)) {
-            $table_name = app()->table->getTableNameByClass(get_class($this));
+            $table_name = $this->getAppTableName();
             $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
         }
         // singleの指定があれば1レコードに制限

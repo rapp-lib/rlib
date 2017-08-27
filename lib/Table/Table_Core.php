@@ -196,14 +196,28 @@ class Table_Core
         return $cols;
     }
 
-// -- Queryの情報取得
+// -- Table情報取得
 
     /**
-     * Query上で参照可能なTable名の取得
+     * SQL文中で参照可能なTable名の取得
      */
     public function getQueryTableName ()
     {
         return $this->query->getTableName();
+    }
+    /**
+     * スキーマ定義上のTable名の取得
+     */
+    public function getDefTableName ()
+    {
+        return static::$table_name;
+    }
+    /**
+     * アプリケーション上でのTable名の取得
+     */
+    public function getAppTableName ()
+    {
+        return app()->table->getAppTableNameByClass(get_class($this));
     }
 
 // -- resultに対するHook
@@ -276,13 +290,10 @@ class Table_Core
     /**
      * @hook result
      * InsertしたレコードのIDを取得
-     * ※値が書き換わるのでINSERT直後に一度呼び出しておくことを推奨
+     * ※Insertの発行都度、値が書き換わるのでINSERT直後に確保してある
      */
     public function result_getLastInsertId ($result)
     {
-        if ( ! isset($this->last_insert_id)) {
-            $this->last_insert_id = $this->getConnection()->lastInsertId(static::$table_name, $this->getIdColName());
-        }
         return $this->last_insert_id;
     }
     /**
@@ -347,7 +358,7 @@ class Table_Core
     public function record_hydrate ($record, $data)
     {
         // QueryのFROMとなったテーブル名の確認
-        $query_table_name = $this->query->getTableName();
+        $query_table_name = $this->getQueryTableName();
         // QueryのFROMとなったテーブル以外の値は階層を下げてHydrate
         foreach ((array)$data as $table_name => $values) {
             foreach ((array)$values as $col_name => $value) {
@@ -550,7 +561,8 @@ class Table_Core
         $this->result = new Result($this);
         // LastInsertIdの確保
         if ($type=="insert") {
-            $this->result->getLastInsertId();
+            $this->last_insert_id = $this->getConnection()
+                ->lastInsertId(static::$table_name, $this->getIdColName());
         }
         // on_afterWrite_*を呼び出す
         if ($type=="insert" || $type=="update") {
@@ -601,7 +613,7 @@ class Table_Core
                         //TODO: GroupBy付きのJOINでも異なるDB間でJOINできるようにする
                         $query["joins"][$k][0] = "(".$sub_query_statement.")";
                     } else {
-                        $table_name = $sub_query->getTableName();
+                        $table_name = $sub_query->getQueryTableName();
                         // 異なるDB間でのJOIN時にはDBNAME付きのTable名とする
                         if ($query["dbname"]!==$sub_query["dbname"]) {
                             $table_name = $sub_query["dbname"].".".$table_name;
