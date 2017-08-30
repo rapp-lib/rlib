@@ -69,10 +69,8 @@ class Table_Core
         $this->attrs = array();
 
         // テーブル名を関連づける
-        if (static::$table_name) {
-            $this->query->setDbname($this->getConnection()->getDbname());
-            $this->query->setTable(static::$table_name);
-        }
+        $this->query->setDbname($this->getConnection()->getDbname());
+        $this->query->setTable(array($this->getDefTableName(), $this->getAppTableName()));
     }
     /**
      * @override
@@ -235,7 +233,7 @@ class Table_Core
         unset($query["limit"]);
         unset($query["offset"]);
         unset($query["order"]);
-        $statement = $this->getSQLBuilder()->render($query);
+        $statement = $this->renderSQL($query);
         $result_res = $this->getConnection()->exec($statement);
         $t = $this->getConnection()->fetch($result_res);
         $this->total = (int)$t[0]["count"];
@@ -596,9 +594,7 @@ class Table_Core
         $query = (array)$query;
         foreach ((array)$query["fields"] as $k => $v) {
             // FieldsのAlias展開
-            if ( ! is_numeric($k)) {
-                $query["fields"][$k] = array($v,$k);
-            }
+            if ( ! is_numeric($k)) $query["fields"][$k] = array($v,$k);
             // Fieldsのサブクエリ展開
             if (is_object($v) && method_exists($v,"buildQuery")) {
                 $query["fields"][$k] = $v = "(".$v->buildQuery("select").")";
@@ -606,20 +602,20 @@ class Table_Core
         }
         foreach ((array)$query["joins"] as $k => $v) {
             // Joinsのサブクエリ展開
-            if (is_object($v["table"]) && method_exists($v["table"],"buildQuery")) {
-                $v["table"]->modifyQuery(function($sub_query) use (&$query, $k){
+            if (is_object($v[0]) && method_exists($v[0],"buildQuery")) {
+                $v[0]->modifyQuery(function($sub_query) use (&$query, $k){
                     $sub_query_statement = $query["joins"][$k][0]->buildQuery("select");
                     if ($sub_query->getGroup()) {
                         //TODO: GroupBy付きのJOINでも異なるDB間でJOINできるようにする
                         $query["joins"][$k][0] = "(".$sub_query_statement.")";
                     } else {
-                        $table_name = $sub_query->getQueryTableName();
+                        $table_name = $sub_query->getTable();
                         // 異なるDB間でのJOIN時にはDBNAME付きのTable名とする
                         if ($query["dbname"]!==$sub_query["dbname"]) {
                             $table_name = $sub_query["dbname"].".".$table_name;
                         }
                         $query["joins"][$k][0] = $table_name;
-                        $query["joins"][$k][1][] = $sub_query["where"];
+                        if ($sub_query["where"]) $query["joins"][$k][1][] = $sub_query["where"];
                     }
                 });
             }

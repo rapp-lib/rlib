@@ -181,6 +181,14 @@ class Table_Base extends Table_Core
     {
         call_user_func($query, $this->query);
     }
+    /**
+     * @hook chain
+     * attr属性値を設定する
+     */
+    public function chain_attr ($name, $value)
+    {
+        $this->setAttr($name, $value);
+    }
 
 // -- 基本的なon_*の定義
 
@@ -447,7 +455,6 @@ class Table_Base extends Table_Core
         }
         return $this->assoc_fields ? true : false;
     }
-
     /**
      * assoc処理 insert/updateの発行前
      */

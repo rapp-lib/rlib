@@ -16,7 +16,7 @@ class SQLBuilder
     public function stSelect($q)
     {
         return "SELECT ".$this->stSelectFields($q["fields"])
-            ." FROM ".$this->stTable($q["table"])
+            ." FROM ".$this->stTableWithAlias($q["table"])
             .$this->stJoins($q["joins"])
             .$this->stWhere($q["where"]," WHERE ")
             .$this->stCols($q["group"], " GROUP BY ")
@@ -26,7 +26,7 @@ class SQLBuilder
     }
     public function stUpdate($q)
     {
-        return "UPDATE ".$this->stTable($q["table"])
+        return "UPDATE ".$this->stTableWithAlias($q["table"])
             ." SET ".$this->stSet($q["values"])
             .$this->stWhere($q["where"], " WHERE ");
     }
@@ -38,7 +38,7 @@ class SQLBuilder
     }
     public function stDelete($q)
     {
-        return "DELETE FROM ".$this->stTable($q["table"])
+        return "DELETE FROM ".$this->stTableWithAlias($q["table"])
             .$this->stWhere($q["where"], " WHERE ");
     }
 // -- JOIN句
@@ -48,7 +48,7 @@ class SQLBuilder
     }
     public function stJoin($table, $where, $type)
     {
-        return " ".($type ?: "LEFT")." JOIN ".$this->stTable($table).$this->stWhere($where," ON ");
+        return " ".($type ?: "LEFT")." JOIN ".$this->stTableWithAlias($table).$this->stWhere($where," ON ");
     }
 // -- WHERE句
     public function stWhere($xs, $prefix=" WHERE ")
@@ -108,9 +108,14 @@ class SQLBuilder
         return $this->stName($k)." = ".$this->stValue($v, $k);
     }
 // -- 共通の表現
+    public function stTableWithAlias($x)
+    {
+        if ($x[0] === $x[1]) return $this->stExpression($x[0]);
+        return is_array($x) ? $this->stExpression($x[0]).$this->stAlias($x[1]) : $this->stExpression($x);
+    }
     public function stTable($x)
     {
-        return is_array($x) ? $this->stExpression($x[0]).$this->stAlias($x[1]) : $this->stExpression($x);
+        return is_array($x) ? $this->stExpression($x[0]) : $this->stExpression($x);
     }
     public function stField($x)
     {

@@ -202,7 +202,7 @@ class Query extends ArrayObject
      */
     public function getTableName ()
     {
-        return strlen($this["alias"]) ? $this["alias"] : $this["table"];
+        return is_array($this["table"]) ? $this["table"][1] : $this["table"];
     }
     /**
      * @setter
