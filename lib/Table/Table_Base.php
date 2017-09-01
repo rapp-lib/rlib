@@ -534,6 +534,8 @@ class Table_Base extends Table_Core
         if (in_array($assoc_identity, $assoc_stack)) return false;
         $assoc_depth--;
         $assoc_stack[] = $assoc_identity;
+        // 主テーブルの取得件数が0件であれば処理を行わない
+        if (count($this->result) === 0) return false;
         // 主テーブルのIDを取得
         $pkey = $this->getIdColName();
         $ids = $this->result->getHashedBy($pkey);
