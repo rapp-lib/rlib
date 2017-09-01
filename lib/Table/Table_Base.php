@@ -49,6 +49,7 @@ class Table_Base extends Table_Core
      */
     public function chain_join ($table, $on=array(), $type="LEFT")
     {
+        if (is_string($table)) $table = table($table);
         $this->query->join($table, $on, $type);
     }
     /**
@@ -91,9 +92,10 @@ class Table_Base extends Table_Core
      * @hook chain
      * LIMIT句の設定
      */
-    public function chain_limit ($limit)
+    public function chain_limit ($limit, $offset=0)
     {
         $this->query->setLimit($limit);
+        $this->query->setOffset($offset);
     }
     /**
      * @hook chain
@@ -223,40 +225,6 @@ class Table_Base extends Table_Core
         }
     }
     /**
-     * @hook on_write
-     * JSON形式で保存するカラムの処理
-     */
-    protected function on_write_jsonFormat ()
-    {
-        if ($col_names = $this->getColNamesByAttr("format", "json")) {
-            foreach ($col_names as $col_name) {
-                $value = $this->query->getValue($col_name);
-                if (is_array($value)) {
-                    $this->query->setValue($col_name, json_encode((array)$value));
-                }
-            }
-        } else {
-            return false;
-        }
-    }
-    /**
-     * @hook on_fetch
-     * JSON形式で保存するカラムの処理
-     */
-    protected function on_fetch_jsonFormat ($record)
-    {
-        if ($col_names = $this->getColNamesByAttr("format", "json")) {
-            foreach ($col_names as $col_name) {
-                $value = $record[$col_name];
-                if (strlen($value)) {
-                    $record[$col_name] = (array)json_decode($record[$col_name]);
-                }
-            }
-        } else {
-            return false;
-        }
-    }
-    /**
      * @hook on_read
      * 削除フラグを関連づける
      */
@@ -350,11 +318,48 @@ class Table_Base extends Table_Core
         $value = call_user_func(array($this, "generator_".$col_def["generator"]), $col_name);
         $this->query->setValue($col_name, $value);
     }
+
+// -- on_* ストレージ型変換 write+200/read-200
+
+    /**
+     * @hook on_write
+     * JSON形式で保存するカラムの処理
+     */
+    protected function on_write_jsonFormat_700 ()
+    {
+        if ($col_names = $this->getColNamesByAttr("format", "json")) {
+            foreach ($col_names as $col_name) {
+                $value = $this->query->getValue($col_name);
+                if (is_array($value)) {
+                    $this->query->setValue($col_name, json_encode((array)$value));
+                }
+            }
+        } else {
+            return false;
+        }
+    }
+    /**
+     * @hook on_fetch
+     * JSON形式で保存するカラムの処理
+     */
+    protected function on_fetch_jsonFormat_300 ($record)
+    {
+        if ($col_names = $this->getColNamesByAttr("format", "json")) {
+            foreach ($col_names as $col_name) {
+                $value = $record[$col_name];
+                if (strlen($value)) {
+                    $record[$col_name] = (array)json_decode($record[$col_name]);
+                }
+            }
+        } else {
+            return false;
+        }
+    }
     /**
      * @hook on_write
      * GEOMETRY型の入出力変換
      */
-    protected function on_write_geometryType_900 ()
+    protected function on_write_geometryType_700 ()
     {
         foreach ($this->getColNamesByAttr("type", "geometry") as $col_name) {
             $value = $this->query->getValue($col_name);
@@ -369,10 +374,10 @@ class Table_Base extends Table_Core
         }
     }
     /**
-     * @hook on_write
+     * @hook on_fetch
      * GEOMETRY型の入出力変換
      */
-    protected function on_fetch_geometryType_100 ($record)
+    protected function on_fetch_geometryType_300 ($record)
     {
         foreach ($this->getColNamesByAttr("type", "geometry") as $col_name) {
             if (isset($record[$col_name])) {
@@ -395,12 +400,13 @@ class Table_Base extends Table_Core
     /**
      * assoc hook処理の呼び出し
      */
-    protected function callAssocHookMethod ($method_name, $col_name)
+    protected function callAssocHookMethod ($method_name, $col_name, $args=array())
     {
         $assoc = static::$cols[$col_name]["assoc"];
         $method_name .= "_".($assoc["type"] ?: "hasMany");
         if ( ! method_exists($this, $method_name)) return false;
-        return call_user_func_array(array($this, $method_name), array($col_name));
+        array_unshift($args, $col_name);
+        return call_user_func_array(array($this, $method_name), $args);
     }
     /**
      * assoc処理 selectの発行前
@@ -477,8 +483,8 @@ class Table_Base extends Table_Core
      */
     protected function on_afterWrite_assoc ()
     {
-        foreach ((array)$this->assoc_values as $col_name => $value) {
-            $this->callAssocHookMethod("assoc_afterWrite", $col_name);
+        foreach ((array)$this->assoc_values as $col_name => $values) {
+            $this->callAssocHookMethod("assoc_afterWrite", $col_name, array($values));
         }
         return $this->assoc_values ? true : false;
     }
@@ -541,7 +547,7 @@ class Table_Base extends Table_Core
         // joinの指定があればJOINを接続
         if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
         // singleの指定があれば1レコードに制限
-        if ($assoc_single) $table->pagenate(0, 1);
+        if ($assoc_single) $table->limit(1);
         $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
         // 主テーブルのResultに関連づける
         foreach ($this->result as $i => $record) {

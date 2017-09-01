@@ -68,10 +68,10 @@ class DBConnectionDoctrine2 implements DBConnection
             if ($error[0]==="00000") unset($error);
         }
         // SQL発行後のレポート
-        $params["elapsed"] = round((microtime(true) - $start_ms)*1000,2)."ms";
+        $params["elapsed_ms"] = round((microtime(true) - $start_ms)*1000,2);
         if (app()->debug()) report_info('SQL Exec : '.$st, $params);
         if ($error) report_error('SQL Error : '.implode(' , ',$error), array("SQL"=>$st));
-        if (app()->debug()) $this->analyzeSql($st, $params);
+        if (app()->debug()) $params = $this->analyzeSql($st, $params);
         return $stmt;
     }
     /**
@@ -152,16 +152,17 @@ class DBConnectionDoctrine2 implements DBConnection
         }
         return $this->ds;
     }
-    private function analyzeSql($st)
+    private function analyzeSql($st, $params)
     {
         if ($this->config["driver"]==="pdo_mysql") {
             if ( ! preg_match('!^SELECT\s!is',$st)) return;
             $result = $this->getDS()->query("EXPLAIN ".$st);
             $explain = $result->fetchAll(\PDO::FETCH_ASSOC);
-            $analyzed = SQLAnalyzer::analyzeMysqlExplain($explain, $st);
+            $analyzed = SQLAnalyzer::analyzeMysqlExplain($explain, $st, $params);
             if ($analyzed) foreach ($analyzed["hint"] as $hint) {
                 report_warning("SQL Warning : ".$hint[0], $hint[1]);
             }
+            return $params;
         }
     }
 }
