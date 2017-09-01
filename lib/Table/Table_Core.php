@@ -271,6 +271,19 @@ class Table_Core
     }
     /**
      * @hook result
+     * 各レコードを特定のユニークカラムで添え字を書き換えた配列を取得する
+     */
+    public function result_getMappedBy ($result, $col_name, $col_name_sub=false)
+    {
+        $mapped_result = array();
+        foreach ($result as $key => $record) {
+            if ($col_name_sub === false) $mapped_result[$record[$col_name]] = $record;
+            else $mapped_result[$record[$col_name][$col_name_sub]] = $record;
+        }
+        return $mapped_result;
+    }
+    /**
+     * @hook result
      * 各レコードを特定カラムでグループ化した配列を取得する
      */
     public function result_getGroupedBy ($result, $col_name, $col_name_sub=false)
