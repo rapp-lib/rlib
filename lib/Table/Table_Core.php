@@ -255,51 +255,6 @@ class Table_Core
     }
     /**
      * @hook result
-     * 各レコードの特定カラムのみの配列を取得する
-     */
-    public function result_getHashedBy ($result, $col_name, $col_name_sub=false)
-    {
-        $hashed_result = array();
-        foreach ($result as $key => $record) {
-            if ($col_name_sub === false) {
-                $hashed_result[$key] = $record[$col_name];
-            } else {
-                $hashed_result[$record[$col_name]] = $record[$col_name_sub];
-            }
-        }
-        return $hashed_result;
-    }
-    /**
-     * @hook result
-     * 各レコードを特定のユニークカラムで添え字を書き換えた配列を取得する
-     */
-    public function result_getMappedBy ($result, $col_name, $col_name_sub=false)
-    {
-        $mapped_result = array();
-        foreach ($result as $key => $record) {
-            if ($col_name_sub === false) $mapped_result[$record[$col_name]] = $record;
-            else $mapped_result[$record[$col_name][$col_name_sub]] = $record;
-        }
-        return $mapped_result;
-    }
-    /**
-     * @hook result
-     * 各レコードを特定カラムでグループ化した配列を取得する
-     */
-    public function result_getGroupedBy ($result, $col_name, $col_name_sub=false)
-    {
-        $grouped_result = array();
-        foreach ($result as $key => $record) {
-            if ($col_name_sub === false) {
-                $grouped_result[$record[$col_name]][$key] = $record;
-            } else {
-                $grouped_result[$record[$col_name][$col_name_sub]][$key] = $record;
-            }
-        }
-        return $grouped_result;
-    }
-    /**
-     * @hook result
      * InsertしたレコードのIDを取得
      * ※Insertの発行都度、値が書き換わるのでINSERT直後に確保してある
      */
@@ -430,7 +385,7 @@ class Table_Core
         $this->query->addFields($fields);
         $this->execQuery("select");
         $record = $this->result->fetch();
-        if ($this->result->fetch()) {
+        if (count($this->result->fetchAll()) > 1) {
             report_warning("複数Record取得して最初の1件のみを結果とします",array(
                 "table" => $this,
             ));
@@ -444,6 +399,24 @@ class Table_Core
     {
         $this->findById($id);
         return $this->selectOne($fields);
+    }
+    /**
+     * 集計を行って結果を取得
+     */
+    public function selectSummary ($summary_field, $key_col_name, $key_col_name_sub=false)
+    {
+        if ($key_col_name_sub === false) {
+            return $this->fields(array("summary"=>$summary_field, "key_col_name"=>$key_col_name))
+                ->groupBy($key_col_name)->select()
+                ->getHasedBy("key_col_name", "summary");
+        } else {
+            return $this->fields(array(
+                "summary" => $summary_field,
+                "key_col_name" => $key_col_name,
+                "key_col_name_sub" => $key_col_name_sub))
+                ->groupBy($key_col_name)->groupBy($key_col_name_sub)->select()
+                ->getHasedBy("key_col_name", "key_col_name_sub", "summary");
+        }
     }
 
 // -- INSERT/UPDATE/DELETE文の発行

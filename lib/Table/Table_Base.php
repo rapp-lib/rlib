@@ -54,6 +54,32 @@ class Table_Base extends Table_Core
     }
     /**
      * @hook chain
+     * JOIN句の設定 主テーブル側が持つ外部キーでJOIN
+     */
+    public function chain_joinBelongsTo ($table, $fkey=null, $type="LEFT")
+    {
+        if (is_string($table)) $table = table($table);
+        // fkeyの設定がなければ、tableのfkey_forを参照
+        if ( ! isset($fkey)) $fkey = $this->getColNameByAttr("fkey_for", $table->getAppTableName());
+        $on = $this->getQueryTableName().".".$fkey
+            ."=".$table->getQueryTableName().".".$table->getIdColName();
+        $this->chain_join($table, $on, $type);
+    }
+    /**
+     * @hook chain
+     * JOIN句の設定 JOIN先テーブル側が持つ外部キーでJOIN
+     */
+    public function chain_joinHasMany ($table, $fkey=null, $type="LEFT")
+    {
+        if (is_string($table)) $table = table($table);
+        // fkeyの設定がなければ、tableのfkey_forを参照
+        if ( ! isset($fkey)) $fkey = $table->getColNameByAttr("fkey_for", $this->getAppTableName());
+        $on = $this->getQueryTableName().".".$this->getIdColName()
+            ."=".$table->getQueryTableName().".".$fkey;
+        $this->chain_join($table, $on, $type);
+    }
+    /**
+     * @hook chain
      * GROUP_BY句の設定
      */
     public function chain_groupBy ($col_name)
@@ -190,6 +216,122 @@ class Table_Base extends Table_Core
     public function chain_attr ($name, $value)
     {
         $this->setAttr($name, $value);
+    }
+
+// -- 基本的なresultに対するHook
+
+    /**
+     * @hook result
+     * 指定したカラムとしてKEYの値で対応付けて統合する
+     */
+    public function result_mergeBy ($result, $merge_col_name, $values, $key_col_name=false)
+    {
+        if ($key_col_name===false) $key_col_name = $this->getIdColName();
+        foreach ($result as $record) $result[$merge_col_name] = $values[$result[$key_col_name]];
+        return $result;
+    }
+    /**
+     * @hook result
+     * 各レコードの特定カラムのみの配列を取得する
+     */
+    public function result_getHashedBy ($result, $col_name, $col_name_sub=false, $col_name_sub_ex=false)
+    {
+        $hashed_result = array();
+        foreach ($result as $key => $record) {
+            if ($col_name_sub === false) {
+                $hashed_result[$key] = $record[$col_name];
+            } elseif ($col_name_sub_ex === false) {
+                $hashed_result[$record[$col_name]] = $record[$col_name_sub];
+            } else {
+                $hashed_result[$record[$col_name]][$record[$col_name_sub]] = $record[$col_name_sub_ex];
+            }
+        }
+        return $hashed_result;
+    }
+    /**
+     * @hook result
+     * 各レコードを特定のユニークカラムで添え字を書き換えた配列を取得する
+     */
+    public function result_getMappedBy ($result, $col_name, $col_name_sub=false)
+    {
+        $mapped_result = array();
+        foreach ($result as $key => $record) {
+            if ($col_name_sub === false) $mapped_result[$record[$col_name]] = $record;
+            else $mapped_result[$record[$col_name][$col_name_sub]] = $record;
+        }
+        return $mapped_result;
+    }
+    /**
+     * @hook result
+     * 各レコードを特定カラムでグループ化した配列を取得する
+     */
+    public function result_getGroupedBy ($result, $col_name, $col_name_sub=false)
+    {
+        $grouped_result = array();
+        foreach ($result as $key => $record) {
+            if ($col_name_sub === false) {
+                $grouped_result[$record[$col_name]][$key] = $record;
+            } else {
+                $grouped_result[$record[$col_name][$col_name_sub]][$key] = $record;
+            }
+        }
+        return $grouped_result;
+    }
+    /**
+     * @hook result
+     * Resultに対して定義とは別にassocの対応付けを行う
+     */
+    public function result_mergeAssoc ($result, $col_name, $assoc)
+    {
+        $assoc_table_name = $assoc["table"];
+        $assoc_fkey = $assoc["fkey"];
+        $assoc_extra_values = $assoc["extra_values"];
+        $assoc_value_col = $assoc["value_col"];
+        $assoc_single = (boolean)$assoc["single"];
+        $assoc_join = $assoc["join"];
+        // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
+        if ( ! isset($assoc_fkey)) {
+            $table_name = $this->getAppTableName();
+            $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
+        }
+        // 深度と循環参照の確認処理
+        $assoc_depth = $this->getAttr("assoc_depth") !== null ? $this->getAttr("assoc_depth") : 1;
+        $assoc_stack = (array)$this->getAttr("assoc_stack");
+        $assoc_identity = $this->getDefTableName().".".$col_name;
+        if (in_array($assoc_identity, $assoc_stack)) return false;
+        if ($assoc_depth === 0) return false;
+        $assoc_depth--;
+        $assoc_stack[] = $assoc_identity;
+        // 主テーブルの取得件数が0件であれば処理を行わない
+        if (count($this->result) === 0) return false;
+        // 主テーブルのIDを取得
+        $pkey = $this->getIdColName();
+        $ids = $this->result->getHashedBy($pkey);
+        // 関連テーブルをFkeyでSELECT
+        $table = table($assoc_table_name)->findBy($assoc_fkey, $ids);
+        // 深度と循環参照の条件設定
+        $table->setAttr("assoc_depth", $assoc_depth);
+        $table->setAttr("assoc_stack", $assoc_stack);
+        // ExtraValueを条件に設定
+        if ($assoc_extra_values) $table->findBy($assoc_extra_values);
+        // joinの指定があればJOINを接続
+        if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
+        // singleの指定があれば1レコードに制限
+        if ($assoc_single) $table->limit(1);
+        $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
+        // 主テーブルのResultに関連づける
+        foreach ($this->result as $i => $record) {
+            // value_col指定=1項目の値のみに絞り込む場合
+            if (isset($assoc_value_col)) {
+                $values = array();
+                foreach ((array)$assoc_result_set[$record[$pkey]] as $assoc_record) {
+                    $values[] = $assoc_record[$assoc_value_col];
+                }
+                $record[$col_name] = $assoc_single ? current($values) : $values;
+            } else {
+                $record[$col_name] = (array)$assoc_result_set[$record[$pkey]];
+            }
+        }
     }
 
 // -- 基本的なon_*の定義
@@ -515,63 +657,16 @@ class Table_Base extends Table_Core
      */
     protected function assoc_fetchEnd_hasMany ($col_name)
     {
-        $assoc_table_name = static::$cols[$col_name]["assoc"]["table"];
-        $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
-        $assoc_extra_values = static::$cols[$col_name]["assoc"]["extra_values"];
-        $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
-        $assoc_single = (boolean)static::$cols[$col_name]["assoc"]["single"];
-        $assoc_join = static::$cols[$col_name]["assoc"]["join"];
-        // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
-        if ( ! isset($assoc_fkey)) {
-            $table_name = $this->getAppTableName();
-            $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
-        }
-        // 深度と循環参照の確認処理
-        $assoc_depth = $this->getAttr("assoc_depth") !== null ? $this->getAttr("assoc_depth") : 1;
-        $assoc_stack = (array)$this->getAttr("assoc_stack");
-        $assoc_identity = $this->getDefTableName().".".$col_name;
-        if ($assoc_depth === 0) return false;
-        if (in_array($assoc_identity, $assoc_stack)) return false;
-        $assoc_depth--;
-        $assoc_stack[] = $assoc_identity;
-        // 主テーブルの取得件数が0件であれば処理を行わない
-        if (count($this->result) === 0) return false;
-        // 主テーブルのIDを取得
-        $pkey = $this->getIdColName();
-        $ids = $this->result->getHashedBy($pkey);
-        // 関連テーブルをFkeyでSELECT
-        $table = table($assoc_table_name)->findBy($assoc_fkey, $ids);
-        // 深度と循環参照の条件設定
-        $table->setAttr("assoc_depth", $assoc_depth);
-        $table->setAttr("assoc_stack", $assoc_stack);
-        // ExtraValueを条件に設定
-        if ($assoc_extra_values) $table->findBy($assoc_extra_values);
-        // joinの指定があればJOINを接続
-        if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
-        // singleの指定があれば1レコードに制限
-        if ($assoc_single) $table->limit(1);
-        $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
-        // 主テーブルのResultに関連づける
-        foreach ($this->result as $i => $record) {
-            // value_col指定=1項目の値のみに絞り込む場合
-            if (isset($assoc_value_col)) {
-                $values = array();
-                foreach ((array)$assoc_result_set[$record[$pkey]] as $assoc_record) {
-                    $values[] = $assoc_record[$assoc_value_col];
-                }
-                $record[$col_name] = $assoc_single ? current($values) : $values;
-            } else {
-                $record[$col_name] = (array)$assoc_result_set[$record[$pkey]];
-            }
-        }
+        $this->result->mergeAssoc($col_name, $assoc);
     }
     protected function assoc_afterWrite_hasMany ($col_name, $values)
     {
-        $assoc_table_name = static::$cols[$col_name]["assoc"]["table"];
-        $assoc_fkey = static::$cols[$col_name]["assoc"]["fkey"];
-        $assoc_extra_values = static::$cols[$col_name]["assoc"]["extra_values"];
-        $assoc_value_col = static::$cols[$col_name]["assoc"]["value_col"];
-        $assoc_single = (boolean)static::$cols[$col_name]["assoc"]["single"];
+        $assoc = static::$cols[$col_name]["assoc"];
+        $assoc_table_name = $assoc["table"];
+        $assoc_fkey = $assoc["fkey"];
+        $assoc_extra_values = $assoc["extra_values"];
+        $assoc_value_col = $assoc["value_col"];
+        $assoc_single = (boolean)$assoc["single"];
         // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
         if ( ! isset($assoc_fkey)) {
             $table_name = $this->getAppTableName();
