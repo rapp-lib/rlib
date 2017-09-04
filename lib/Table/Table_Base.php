@@ -657,7 +657,7 @@ class Table_Base extends Table_Core
      */
     protected function assoc_fetchEnd_hasMany ($col_name)
     {
-        $this->result->mergeAssoc($col_name, $assoc);
+        $this->result->mergeAssoc($col_name, static::$cols[$col_name]["assoc"]);
     }
     protected function assoc_afterWrite_hasMany ($col_name, $values)
     {

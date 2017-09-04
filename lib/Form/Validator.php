@@ -29,7 +29,7 @@ class Validator
         $field_parts = explode('.', $this->currentRule["field_name"]);
         if (count($field_parts)==1) return $this->values[$name];
         elseif (count($field_parts)==2) return $this->values[$field_parts[0]][$name];
-        elseif (count($field_parts)==3) return $this->values[$field_parts[0]][$rule["fieldset_index"]][$name];
+        elseif (count($field_parts)==3) return $this->values[$field_parts[0]][$this->currentRule["fieldset_index"]][$name];
         return null;
     }
     private function applyRules ($rules)
@@ -129,8 +129,8 @@ class Validator
     }
     private function stCondEval($key, $cond)
     {
-        if ($cond === true) return $this->stEvalIsBlank($key);
-        if ($cond === false) return ! $this->stEvalIsBlank($key);
+        if ($cond === false) return $this->stEvalIsBlank($key);
+        if ($cond === true) return ! $this->stEvalIsBlank($key);
         if (is_string($cond)) return $this->stEvalEq($key, $cond);
         if ($cond["is_blank"]) return $this->stEvalIsBlank($key, $cond["sibling"]);
         if ($cond["not_blank"]) return ! $this->stEvalIsBlank($key, $cond["sibling"]);
