@@ -357,6 +357,14 @@ class Table_Core
             return $result;
         }
     }
+    /**
+     * @hook record
+     * Resultの取得
+     */
+    public function record_getResult ($record)
+    {
+        return $this->result;
+    }
 
 // -- SELECT文の発行
 
