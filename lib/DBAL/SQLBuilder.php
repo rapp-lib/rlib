@@ -38,7 +38,7 @@ class SQLBuilder
     }
     public function stDelete($q)
     {
-        return "DELETE FROM ".$this->stTableWithAlias($q["table"])
+        return "DELETE ".$this->stDeleteFrom($q["table"])
             .$this->stWhere($q["where"], " WHERE ");
     }
 // -- JOIN句
@@ -106,6 +106,13 @@ class SQLBuilder
     {
         if (preg_match('!^(.*?)\s*=$!', $k, $p)) return $this->stName($p[1])." = ".$v;
         return $this->stName($k)." = ".$this->stValue($v, $k);
+    }
+// -- DELETE文固有の表現
+    public function stDeleteFrom($x)
+    {
+        if ($x[0] === $x[1]) return " FROM ".$this->stExpression($x[0]);
+        if ( ! is_array($x)) return " FROM ".$this->stExpression($x);
+        return " FROM ".$this->stExpression($x[1])." USING ".$this->stTableWithAlias($x);
     }
 // -- 共通の表現
     public function stTableWithAlias($x)
