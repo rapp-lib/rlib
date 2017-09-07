@@ -12,10 +12,13 @@ class Uri extends \Zend\Diactoros\Uri
         $this->webroot = $webroot;
         // page_idを元に初期化
         if (is_array($uri) && isset($uri["page_id"])) {
+            if ( ! isset($uri["embed_params"])) {
+                $uri["embed_params"] = $this->webroot->getRouter()->filterEmbedParamsFromQueryParams($uri["page_id"], $query_params);
+            }
             $uri = $this->webroot->getRouter()->buildUriStringByPageId($uri["page_id"], $uri["embed_params"]);
-        } elseif (is_string($uri) && preg_match('!^id://([^\?]+)(?:\?(.*))?$!', $uri, $match)) {
+        } elseif (is_string($uri) && preg_match('!^id://([^\?]+)$!', $uri, $match)) {
             $page_id = $match[1];
-            $embed_params = $match[2] ? parse_str($match[2]) : array();
+            $embed_params = $this->webroot->getRouter()->filterEmbedParamsFromQueryParams($uri["page_id"], $query_params);
             $uri = $this->webroot->getRouter()->buildUriStringByPageId($page_id, $embed_params);
         // page_pathを元に初期化
         } elseif (is_array($uri) && isset($uri["page_path"])) {
@@ -59,6 +62,11 @@ class Uri extends \Zend\Diactoros\Uri
     {
         $this->initParsed();
         return $this->parsed["page_id"];
+    }
+    public function getEmbedParam($key)
+    {
+        $this->initParsed();
+        return $this->parsed["embed_params"][$key];
     }
     public function getEmbedParams()
     {

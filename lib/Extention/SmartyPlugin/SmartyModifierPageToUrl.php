@@ -9,15 +9,12 @@ class SmartyModifierPageToUrl
     /**
      * PageからURLを得る
      */
-    public function callback ($page, $url_params=array(), $anchor=null)
+    public function callback ($page_id, $query_params=array(), $anchor=null)
     {
-        if (preg_match('!^\.(.*)$!', $page, $match)) {
-            $request_page_id = app()->http->getServedRequest()->getUri()->getPageId();
-            $part = explode(".", $request_page_id, 2);
-            $page = $part[0].".".($match[1] ?: $part[1]);
-        }
-        $uri = app()->http->getServedRequest()->getUri()
-            ->getPageAction()->getController()->uri("id://".$page, $url_params, $anchor)->withoutAuthorityInWebroot();
+        $request_uri = app()->http->getServedRequest()->getUri();
+        $page_id = $request_uri->getPageAction()->getController()->resolveRelativePageId($page_id);
+        $uri = $request_uri->getWebroot()->uri(array("page_id"=>$page_id), $query_params, $anchor)
+            ->withoutAuthorityInWebroot();
         return "".$uri;
     }
 }
