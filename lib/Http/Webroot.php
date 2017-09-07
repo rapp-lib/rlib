@@ -68,11 +68,10 @@ class Webroot
     public function updateByRequest ($docroot_dir, $request_uri)
     {
         if ( ! $this->getBaseUri()->getAuthority() && $request_uri) {
-            $this->base_uri = $this->base_uri
-                ->withHost($request_uri->getHost())
-                ->withPort($request_uri->getPort() ?: 80)
-                ->withScheme($request_uri->getScheme())
-                ->withUserInfo($request_uri->getUserInfo());
+            if ($request_uri->getHost()) $this->base_uri = $this->base_uri->withHost($request_uri->getHost());
+            if ($request_uri->getPort()) $this->base_uri = $this->base_uri->withPort($request_uri->getPort());
+            if ($request_uri->getScheme()) $this->base_uri = $this->base_uri->withScheme($request_uri->getScheme());
+            if ($request_uri->getUserInfo()) $this->base_uri = $this->base_uri->withUserInfo($request_uri->getUserInfo());
         }
         if ( ! $this->config["base_dir"] && $docroot_dir) {
             $this->config["base_dir"] = $docroot_dir.$this->base_uri->getPath();
