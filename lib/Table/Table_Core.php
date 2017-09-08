@@ -414,16 +414,14 @@ class Table_Core
     public function selectSummary ($summary_field, $key_col_name, $key_col_name_sub=false)
     {
         if ($key_col_name_sub === false) {
-            return $this->fields(array("summary"=>$summary_field, "key"=>$key_col_name))
+            return $this->fields(array("summary"=>$summary_field, $key_col_name))
                 ->groupBy($key_col_name)->select()
-                ->getHashedBy("key", "summary");
+                ->getHashedBy($key_col_name, "summary");
         } else {
             return $this->fields(array(
-                "summary" => $summary_field,
-                "key" => $key_col_name,
-                "key_sub" => $key_col_name_sub))
+                "summary" => $summary_field, $key_col_name, $key_col_name_sub))
                 ->groupBy($key_col_name)->groupBy($key_col_name_sub)->select()
-                ->getHasedBy("key", "key_sub", "summary");
+                ->getHashedBy($key_col_name, $key_col_name_sub, "summary");
         }
     }
 

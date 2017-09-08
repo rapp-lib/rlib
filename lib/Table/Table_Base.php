@@ -239,11 +239,11 @@ class Table_Base extends Table_Core
         $hashed_result = array();
         foreach ($result as $key => $record) {
             if ($col_name_sub === false) {
-                $hashed_result[$key] = $record[$col_name];
+                $hashed_result[$key] = array_get($record,$col_name);
             } elseif ($col_name_sub_ex === false) {
-                $hashed_result[$record[$col_name]] = $record[$col_name_sub];
+                $hashed_result[array_get($record,$col_name)] = array_get($record,$col_name_sub);
             } else {
-                $hashed_result[$record[$col_name]][$record[$col_name_sub]] = $record[$col_name_sub_ex];
+                $hashed_result[array_get($record,$col_name)][array_get($record,$col_name_sub)] = array_get($record,$col_name_sub_ex);
             }
         }
         return $hashed_result;
@@ -289,11 +289,16 @@ class Table_Base extends Table_Core
         $assoc_value_col = $assoc["value_col"];
         $assoc_single = (boolean)$assoc["single"];
         $assoc_join = $assoc["join"];
+        // $assoc_belongs_to = $assoc["belongs_to"];
         // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
         if ( ! isset($assoc_fkey)) {
             $table_name = $this->getAppTableName();
             $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
         }
+        // // assoc.tableにもfkeyの設定がなければ、tableのfkey_forを参照
+        // if ($assoc_belongs_to && ! isset($assoc_fkey)) {
+        //     $assoc_fkey = $this->getColNameByAttr("fkey_for", $assoc_table_name);
+        // }
         // 深度と循環参照の確認処理
         $assoc_depth = $this->getAttr("assoc_depth") !== null ? $this->getAttr("assoc_depth") : 2;
         $assoc_stack = (array)$this->getAttr("assoc_stack");
