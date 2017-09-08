@@ -69,15 +69,15 @@ class Table_Base extends Table_Core
      * @hook chain
      * JOIN句の設定 JOIN先テーブル側が持つ外部キーでJOIN
      */
-    public function chain_joinHasMany ($table, $fkey=null, $type="LEFT")
-    {
-        if (is_string($table)) $table = table($table);
-        // fkeyの設定がなければ、tableのfkey_forを参照
-        if ( ! isset($fkey)) $fkey = $table->getColNameByAttr("fkey_for", $this->getAppTableName());
-        $on = $this->getQueryTableName().".".$this->getIdColName()
-            ."=".$table->getQueryTableName().".".$fkey;
-        $this->chain_join($table, $on, $type);
-    }
+    // public function chain_joinHasMany ($table, $fkey=null, $type="LEFT")
+    // {
+    //     if (is_string($table)) $table = table($table);
+    //     // fkeyの設定がなければ、tableのfkey_forを参照
+    //     if ( ! isset($fkey)) $fkey = $table->getColNameByAttr("fkey_for", $this->getAppTableName());
+    //     $on = $this->getQueryTableName().".".$this->getIdColName()
+    //         ."=".$table->getQueryTableName().".".$fkey;
+    //     $this->chain_join($table, $on, $type);
+    // }
     /**
      * @hook chain
      * GROUP_BY句の設定
