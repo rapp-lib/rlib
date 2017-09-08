@@ -227,7 +227,7 @@ class Table_Base extends Table_Core
     public function result_mergeBy ($result, $merge_col_name, $values, $key_col_name=false)
     {
         if ($key_col_name===false) $key_col_name = $this->getIdColName();
-        foreach ($result as $record) $record[$merge_col_name] = $values[$record[$key_col_name]];
+        foreach ($result as $record) $record[$merge_col_name] = $values[$record->getColValue($key_col_name)];
         return $result;
     }
     /**
@@ -237,13 +237,16 @@ class Table_Base extends Table_Core
     public function result_getHashedBy ($result, $col_name, $col_name_sub=false, $col_name_sub_ex=false)
     {
         $hashed_result = array();
-        foreach ($result as $key => $record) {
+        foreach ($result as $record) {
             if ($col_name_sub === false) {
-                $hashed_result[$key] = array_get($record,$col_name);
+                $hashed_result[] = $record->getColValue($col_name);
             } elseif ($col_name_sub_ex === false) {
-                $hashed_result[array_get($record,$col_name)] = array_get($record,$col_name_sub);
+                $hashed_result[$record->getColValue($col_name)]
+                    = $record->getColValue($col_name_sub);
             } else {
-                $hashed_result[array_get($record,$col_name)][array_get($record,$col_name_sub)] = array_get($record,$col_name_sub_ex);
+                $hashed_result[$record->getColValue($col_name)]
+                    [$record->getColValue($col_name_sub)]
+                    = $record->getColValue($col_name_sub_ex);
             }
         }
         return $hashed_result;
@@ -255,9 +258,9 @@ class Table_Base extends Table_Core
     public function result_getMappedBy ($result, $col_name, $col_name_sub=false)
     {
         $mapped_result = array();
-        foreach ($result as $key => $record) {
-            if ($col_name_sub === false) $mapped_result[$record[$col_name]] = $record;
-            else $mapped_result[$record[$col_name][$col_name_sub]] = $record;
+        foreach ($result as $record) {
+            if ($col_name_sub === false) $mapped_result[$record->getColValue($col_name)] = $record;
+            else $mapped_result[$record->getColValue($col_name)][$record->getColValue($col_name_sub)] = $record;
         }
         return $mapped_result;
     }
@@ -270,9 +273,10 @@ class Table_Base extends Table_Core
         $grouped_result = array();
         foreach ($result as $key => $record) {
             if ($col_name_sub === false) {
-                $grouped_result[$record[$col_name]][$key] = $record;
+                $grouped_result[$record->getColValue($col_name)][] = $record;
             } else {
-                $grouped_result[$record[$col_name][$col_name_sub]][$key] = $record;
+                $grouped_result[$record->getColValue($col_name)]
+                    [$record->getColValue($col_name_sub)][]= $record;
             }
         }
         return $grouped_result;

@@ -365,6 +365,16 @@ class Table_Core
     {
         return $this->result;
     }
+    /**
+     * @hook record
+     * カラムの値の取得
+     */
+    public function record_getColValue ($record, $col_name)
+    {
+        if (isset($record[$col_name])) return $record[$col_name];
+        if (count($parts = explode(".",$col_name))==2) return $record[$parts[0]][$parts[1]];
+        return null;
+    }
 
 // -- SELECT文の発行
 

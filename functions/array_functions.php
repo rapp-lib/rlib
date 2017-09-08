@@ -91,7 +91,7 @@
         $key_parts = explode(".",$key);
         $key_last = array_pop($key_parts);
         foreach ($key_parts as $key_part) {
-            if ( ! is_arraylike($ref)) {
+            if ( ! is_array($ref)) {
                 return null;
             }
             $ref = & $ref[$key_part];
