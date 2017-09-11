@@ -227,7 +227,7 @@ class Table_Base extends Table_Core
     public function result_mergeBy ($result, $merge_col_name, $values, $key_col_name=false)
     {
         if ($key_col_name===false) $key_col_name = $this->getIdColName();
-        foreach ($result as $record) $result[$merge_col_name] = $values[$result[$key_col_name]];
+        foreach ($result as $record) $record[$merge_col_name] = $values[$record[$key_col_name]];
         return $result;
     }
     /**
@@ -295,7 +295,7 @@ class Table_Base extends Table_Core
             $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
         }
         // 深度と循環参照の確認処理
-        $assoc_depth = $this->getAttr("assoc_depth") !== null ? $this->getAttr("assoc_depth") : 1;
+        $assoc_depth = $this->getAttr("assoc_depth") !== null ? $this->getAttr("assoc_depth") : 2;
         $assoc_stack = (array)$this->getAttr("assoc_stack");
         $assoc_identity = $this->getDefTableName().".".$col_name;
         if (in_array($assoc_identity, $assoc_stack)) return false;
@@ -317,7 +317,7 @@ class Table_Base extends Table_Core
         // joinの指定があればJOINを接続
         if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
         // singleの指定があれば1レコードに制限
-        if ($assoc_single) $table->limit(1);
+        if (count($ids) < 2 && $assoc_single) $table->limit(1);
         $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
         // 主テーブルのResultに関連づける
         foreach ($this->result as $i => $record) {
@@ -720,22 +720,24 @@ class Table_Base extends Table_Core
             // singleの指定があれば削除対象の1レコード目を更新対象とする
             if ($assoc_single) {
                 $record = array($assoc_fkey=>$id, $assoc_value_col=>current($values));
+                foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
                 if ($delete_assoc_ids) {
                     $record[$assoc_id_col] = current($delete_assoc_ids);
                     unset($delete_assoc_ids[key($delete_assoc_ids)]);
                 }
                 table($assoc_table_name)->save($record);
                 $values = array();
-            }
-            foreach ((array)$values as $value) {
-                // 入力値が登録済みであれば、削除対象から除外
-                if (isset($delete_assoc_ids[$value])) {
-                    unset($delete_assoc_ids[$value]);
-                // 入力値が未登録であれば、新規登録
-                } else {
-                    $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
-                    foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                    table($assoc_table_name)->save($record);
+            } else {
+                foreach ((array)$values as $value) {
+                    // 入力値が登録済みであれば、削除対象から除外
+                    if (isset($delete_assoc_ids[$value])) {
+                        unset($delete_assoc_ids[$value]);
+                    // 入力値が未登録であれば、新規登録
+                    } else {
+                        $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
+                        foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
+                        table($assoc_table_name)->save($record);
+                    }
                 }
             }
             // 削除
