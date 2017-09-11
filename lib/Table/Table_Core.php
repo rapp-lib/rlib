@@ -416,7 +416,7 @@ class Table_Core
         if ($key_col_name_sub === false) {
             return $this->fields(array("summary"=>$summary_field, "key_col_name"=>$key_col_name))
                 ->groupBy($key_col_name)->select()
-                ->getHasedBy("key_col_name", "summary");
+                ->getHashedBy("key_col_name", "summary");
         } else {
             return $this->fields(array(
                 "summary" => $summary_field,
@@ -558,7 +558,7 @@ class Table_Core
         }
         // on_afterWrite_*を呼び出す
         if ($type=="insert" || $type=="update") {
-            $this->callListenerMethod("afterWrite",array($record));
+            $this->callListenerMethod("afterWrite",array());
         }
         return $this->result;
     }

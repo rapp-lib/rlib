@@ -337,6 +337,23 @@ class Table_Base extends Table_Core
 // -- 基本的なon_*の定義
 
     /**
+     * @hook on_write
+     * トランザクションの開始
+     */
+    protected function on_write_beginTrunsaction_50 ()
+    {
+        $this->getConnection()->begin();
+    }
+    /**
+     * @hook on_write
+     * トランザクションの開始
+     */
+    protected function on_afterWrite_commitTrunsaction_950 ()
+    {
+        $this->getConnection()->commit();
+    }
+
+    /**
      * @hook on_fetch
      * ハッシュされたパスワードを関連づける
      */
@@ -869,7 +886,7 @@ class Table_Base extends Table_Core
 // -- 基本的なID生成ルールの定義
 
     /**
-     * ランダム文字列で生成
+     * ランダム文字列からIDを生成
      */
     protected function generator_randString ($col_name)
     {
@@ -879,6 +896,18 @@ class Table_Base extends Table_Core
         $value = "";
         for ($i=0; $i<$length; $i++) $value .= $chars[array_rand($chars)];
         return $value;
+    }
+    /**
+     * id_initの値からIDを生成
+     */
+    protected function generator_idInit ($col_name)
+    {
+        $col_def = $this->getColDef($col_name);
+        $id_init_col_name = $col_def["id_init_col"] ?: "id_init";
+        if (null !== $id_init = $this->query["values"][$id_init_col_name]) {
+            $this->query["values"][$this->getIdColName()] = $id_init;
+            unset($this->query["values"][$id_init_col_name]);
+        }
     }
 
 // -- 基本的な認証処理の定義

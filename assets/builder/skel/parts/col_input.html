@@ -60,8 +60,8 @@
         <?=""?>
 <?php else: /* elseif type==="assoc" */ ?>
 {{input name="<?=$input_name?>" type="<?=$col->getAttr("type")?>"<?=""?>
-<? if ($enum_set = $col->getEnumSet()): ?> enum="<?=$enum_set->getFullName()?>"<?php endif; ?>
-<? if ($col->getAttr("type")=="password"): ?> autocomplete="new-password"<?php endif; ?>
+<?php if ($enum_set = $col->getEnumSet()): ?> enum="<?=$enum_set->getFullName()?>"<?php endif; ?>
+<?php if ($col->getAttr("type")=="password"): ?> autocomplete="new-password"<?php endif; ?>
 }}<?=""?>
-<? if ($col->getAttr("type")=="file"): ?>{{if <?=$var_name?>.<?=$name?>}}<span> <a href="{{<?=$var_name?>.<?=$name?>}}" target="_blank" class="uploaded">ファイル</a> <a href="javascript:void(0);" onclick="$(this).parent().parent().find('input.uploaded').val('');$(this).parent().hide();">削除</a></span>{{/if}}<?php endif; ?>
+<?php if ($col->getAttr("type")=="file"): ?>{{if <?=$var_name?>.<?=$name?>}}<span> <a href="{{<?=$var_name?>.<?=$name?>}}" target="_blank" class="uploaded">ファイル</a> <a href="javascript:void(0);" onclick="$(this).parent().parent().find('input.uploaded').val('');$(this).parent().hide();">削除</a></span>{{/if}}<?php endif; ?>
 <?php endif; /* if type==="assoc" && def.assoc.single */ ?>
