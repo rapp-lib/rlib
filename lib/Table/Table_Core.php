@@ -423,7 +423,7 @@ class Table_Core
                 "key" => $key_col_name,
                 "key_sub" => $key_col_name_sub))
                 ->groupBy($key_col_name)->groupBy($key_col_name_sub)->select()
-                ->getHasedBy("key", "key_sub", "summary");
+                ->getHashedBy("key", "key_sub", "summary");
         }
     }
 
