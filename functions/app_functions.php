@@ -38,7 +38,7 @@
      */
     function redirect ($url, $params=array(), $anchor=null)
     {
-        $uri = app()->http->getServedRequest()->getWebroot()->uri($url, $params, $anchor);
+        $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri($url, $params, $anchor);
         return app()->http->response("redirect", "".$uri);
     }
     /**

@@ -99,7 +99,7 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
             if ($elm.attr("type")=="date") {
                 $elm.val(yyyy+"-"+mm+"-"+dd);
             } else {
-                $elm.val(yyyy+"-"+mm+"-"+dd+" "+hh+":"+ii+":"+ss);
+                $elm.val(yyyy+"-"+mm+"-"+dd+"T"+hh+":"+ii+":"+ss);
             }
         } else {
             $elm.val("");
