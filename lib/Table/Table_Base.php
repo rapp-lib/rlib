@@ -464,18 +464,39 @@ class Table_Base extends Table_Core
     }
     /**
      * @hook on_insert
-     * INSERT時のID生成ルールを対応づける
+     * ランダム文字列からIDを生成
      */
-    protected function on_insert_attachGenerator ()
+    protected function on_insert_generatorRandString ()
     {
-        $col_name = $this->getColNameByAttr("generator");
-        $col_def = $this->getColDef($col_name);
-        $value = $this->query->getValue($col_name);
-        if (isset($value) || ! $col_def["generator"]) {
+        if ($col_name = $this->getColNameByAttr("generator", "randString")) {
+            if ($this->query->getValue($col_name) !== null) return false;
+            $col_def = $this->getColDef($col_name);
+            $length = $col_def["length"] ?: 32;
+            $chars = str_split('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+            $value = "";
+            for ($i=0; $i<$length; $i++) $value .= $chars[array_rand($chars)];
+            $this->query->setValue($col_name, $value);
+        } else {
             return false;
         }
-        $value = call_user_func(array($this, "generator_".$col_def["generator"]), $col_name);
-        $this->query->setValue($col_name, $value);
+    }
+    /**
+     * @hook on_write
+     * id_initの値からIDを生成
+     */
+    protected function on_write_generatorIdInit ($col_name)
+    {
+        if ($col_name = $this->getColNameByAttr("generator", "idInit")) {
+            $col_def = $this->getColDef($col_name);
+            $id_init_col_name = $col_def["id_init_col"] ?: "id_init";
+            $value = $this->query["values"][$id_init_col_name];
+            unset($this->query["values"][$id_init_col_name]);
+            if ($this->query->getType() == "update") return true;
+            if ($this->query->getValue($col_name) !== null) return true;
+            $this->query->setValue($col_name, $value);
+        } else {
+            return false;
+        }
     }
 
 // -- on_* ストレージ型変換 write+200/read-200
@@ -520,17 +541,21 @@ class Table_Base extends Table_Core
      */
     protected function on_write_geometryType_700 ()
     {
+        $result = false;
         foreach ($this->getColNamesByAttr("type", "geometry") as $col_name) {
             $value = $this->query->getValue($col_name);
             if (isset($value)) {
                 if (preg_match('!\d+(\.\d+)?\s*,\s*\d+(\.\d+)?!', $value, $match)) {
                     $this->query->removeValue($col_name);
                     $this->query->setValue($col_name."=", 'POINT('.$match[0].')');
+                    $result = true;
                 } else {
                     $this->query->setValue($col_name, null);
+                    $result = true;
                 }
             }
         }
+        return $result;
     }
     /**
      * @hook on_fetch
@@ -883,33 +908,6 @@ class Table_Base extends Table_Core
         }
         $this->query->setOffset(($value-1)*$volume);
         $this->query->setLimit($volume);
-    }
-
-// -- 基本的なID生成ルールの定義
-
-    /**
-     * ランダム文字列からIDを生成
-     */
-    protected function generator_randString ($col_name)
-    {
-        $col_def = $this->getColDef($col_name);
-        $length = $col_def["length"] ?: 32;
-        $chars = str_split('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-        $value = "";
-        for ($i=0; $i<$length; $i++) $value .= $chars[array_rand($chars)];
-        return $value;
-    }
-    /**
-     * id_initの値からIDを生成
-     */
-    protected function generator_idInit ($col_name)
-    {
-        $col_def = $this->getColDef($col_name);
-        $id_init_col_name = $col_def["id_init_col"] ?: "id_init";
-        if (null !== $id_init = $this->query["values"][$id_init_col_name]) {
-            $this->query["values"][$this->getIdColName()] = $id_init;
-            unset($this->query["values"][$id_init_col_name]);
-        }
     }
 
 // -- 基本的な認証処理の定義

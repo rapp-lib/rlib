@@ -203,6 +203,8 @@ class HttpController implements FormRepositry
             }
             $vars = $this->getVars();
             $vars["forms"] = $this->forms;
+            $vars["input"] = $this->input;
+            $vars["request"] = $this->request;
             $html = app()->view($file, $vars);
             return app()->http->response("html", $html);
         }

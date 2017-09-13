@@ -139,12 +139,11 @@ class ValidateRuleLoader
      */
     public static function callbackDuplecate ($validator, $value, $rule)
     {
-        if ( ! strlen($value)) {
-            return false;
-        }
-        $rule["table"];
-        $rule["col_name"];
-        $rule["id_col_name"];
+        if ( ! strlen($value))  return false;
+        $q = table($rule["table"]);
+        $q = $q->findBy($rule["col_name"], $value);
+        if ($rule["id_field_name"]) $q = $q->findByBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue("id_field_name"));
+        if ( ! $q->selectOne()) return false;
         return array("message"=>"既に登録されています");
     }
     /**

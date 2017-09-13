@@ -641,7 +641,7 @@ class Table_Core
         // 全て
         $hooks[] = "any";
         // 呼び出す
-        foreach ($hooks as $hook) $this->callListenerMethod($hook,array());
+        $this->callListenerMethod($hooks,array());
     }
     /**
      * on hookメソッドを呼び出す
