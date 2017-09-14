@@ -25,7 +25,7 @@ $(function(){
         if (current == "" && default_key == key) {
             classes.push("selected");
             classes.push(key_desc ? "desc" : "asc");
-            link = "";
+            link = key_reverse;
         // 選択されている場合
         } else if (current == key) {
             classes.push("selected");
@@ -42,6 +42,8 @@ $(function(){
             classes.push(key_desc ? "desc" : "asc");
             link = key;
         }
+        // デフォルト選択はリンク上には表示しない
+        if (default_key == link) link = "";
         var url = base_url;
         if (link) url += (base_url.match('\\?') ? "&" : "?")+param_name+"="+link;
         if ($toggle.prop("tagName")=="A") $toggle.attr("href", url);
