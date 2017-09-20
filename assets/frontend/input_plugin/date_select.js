@@ -76,6 +76,15 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
                     bind_elms[i].val(bind_elms[i].find("option").eq(1).attr("value"));
                 }
             }
+            // 年月日の選択の日付正規化
+            if (bind_elms["year"].val() && bind_elms["month"].val() && bind_elms["day"].val()) {
+                var check_date = new Date(bind_elms["year"].val(),bind_elms["month"].val()-1,bind_elms["day"].val());
+                if (check_date.getDate() != bind_elms["day"].val()) {
+                    var last_date_of_month = new Date(bind_elms["year"].val(),bind_elms["month"].val()-1+1,0);
+                    bind_elms["month"].val(last_date_of_month.getMonth() + 1);
+                    bind_elms["day"].val(last_date_of_month.getDate());
+                }
+            }
         }
         var values = {
             year : 1970,
