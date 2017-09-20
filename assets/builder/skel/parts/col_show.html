@@ -2,7 +2,7 @@
     $var_name = $o["var_name"] ?: '$t';
     $name = $col->getName();
 ?>
-<? if ($col->getAttr("type")=="assoc"): ?>
+<?php if ($col->getAttr("type")=="assoc"): ?>
 <?="\n"?>
                     {{foreach <?=$var_name?>.<?=$name?> as $key=>$item}}
                         <table class="tbl_admin detail">

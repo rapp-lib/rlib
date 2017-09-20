@@ -68,6 +68,19 @@ class Router
         }
         return array();
     }
+    public function filterEmbedParamsFromQueryParams ($page_id, & $query_params)
+    {
+        // RouteからPatternを取得
+        $route = $this->getRouteByPageId($page_id);
+        // embed_paramsを置き換える
+        $page_path = $route["pattern"];
+        $embed_params = array();
+        $page_path = preg_replace_callback('!\{([^:]+)(?::([^\}]+))?\}!', function($match)use( & $embed_params, & $query_params){
+            $embed_params[$match[1]] = $query_params[$match[1]];
+            unset($query_params[$match[1]]);
+        }, $page_path);
+        return $embed_params;
+    }
     public function buildUriStringByPageId ($page_id, $embed_params=array())
     {
         // RouteからPatternを取得

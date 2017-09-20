@@ -566,7 +566,7 @@ class Table_Core
         }
         // on_afterWrite_*を呼び出す
         if ($type=="insert" || $type=="update") {
-            $this->callListenerMethod("afterWrite",array($record));
+            $this->callListenerMethod("afterWrite",array());
         }
         return $this->result;
     }
@@ -649,7 +649,7 @@ class Table_Core
         // 全て
         $hooks[] = "any";
         // 呼び出す
-        foreach ($hooks as $hook) $this->callListenerMethod($hook,array());
+        $this->callListenerMethod($hooks,array());
     }
     /**
      * on hookメソッドを呼び出す

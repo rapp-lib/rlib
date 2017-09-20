@@ -284,9 +284,9 @@ class FormContainer extends ArrayObject
             } elseif (isset($this->def["search_page"])) {
                 $attrs["action"] = "id://".$this->def["search_page"];
             }
+            $attrs["action"] = "".app()->http->getServedRequest()->getUri()
+                ->getPageAction()->getController()->uri($attrs["action"])->withoutAuthorityInWebroot();
         }
-        $attrs["action"] = app()->http->getServedRequest()->getUri()
-            ->getPageAction()->getController()->uri($attrs["action"])->withoutAuthorityInWebroot();
         return tag("form",$attrs,$content);
     }
 

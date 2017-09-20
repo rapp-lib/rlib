@@ -115,6 +115,9 @@
     $asset->registerJsUrl("input_plugin.show_uploaded_file", $url.'/input_plugin/show_uploaded_file.js')
         ->required("InputPluginRegistry")
         ->required("config.current_webroot_url");
+    $asset->registerJsUrl("input_plugin.ckeditor", $url.'/input_plugin/ckeditor.js')
+        ->required("InputPluginRegistry")
+        ->required("ckeditor");
 
     // config
     $asset->register("config.current_webroot_url", 'window.current_webroot_url = "'.app()->http->getServedRequest()->getUri()->getWebroot()->getBaseUri().'";', "js_code");

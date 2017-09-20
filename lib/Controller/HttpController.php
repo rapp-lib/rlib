@@ -44,13 +44,23 @@ class HttpController implements FormRepositry
     {
         return app()->http->response("redirect", $this->uri($uri, $query_params, $fragment));
     }
+    public function resolveRelativePageId ($page_id)
+    {
+        // 相対page_idの解決
+        if (preg_match('!^\.([^\?\.]+)?$!', $page_id, $match)) {
+            $page_id = $this->controller_name.".".($match[1] ?: $this->action_name);
+        }
+        return $page_id;
+    }
     public function uri ($uri, $query_params=array(), $fragment=null)
     {
         // 相対page_idの解決
-        if (is_string($uri) && preg_match('!^id://\.([^\?]+)?(\?.*)?$!', $uri, $match)) {
+        if (is_string($uri) && preg_match('!^id://([^\?]+)$!', $uri, $match)) {
             $page_id = $match[1];
-            $embed_params = $match[2] ? parse_str($match[2]) : array();
-            $uri = "id://".$this->controller_name.".".($match[1] ?: $this->action_name).$match[2];
+            $uri = array("page_id"=>$page_id);
+        }
+        if (is_array($uri) && isset($uri["page_id"])) {
+            $uri["page_id"] = $this->resolveRelativePageId($uri["page_id"]);
         }
         return $this->webroot->uri($uri, $query_params, $fragment);
     }
@@ -193,6 +203,8 @@ class HttpController implements FormRepositry
             }
             $vars = $this->getVars();
             $vars["forms"] = $this->forms;
+            $vars["input"] = $this->input;
+            $vars["request"] = $this->request;
             $html = app()->view($file, $vars);
             return app()->http->response("html", $html);
         }

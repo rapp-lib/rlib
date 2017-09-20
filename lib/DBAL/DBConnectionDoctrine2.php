@@ -3,6 +3,7 @@ namespace R\Lib\DBAL;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Exception\DriverException;
 use PDO;
 use PDOStatement;
 use R\Lib\Util\Cli;
@@ -154,15 +155,22 @@ class DBConnectionDoctrine2 implements DBConnection
     }
     private function analyzeSql($st, $params)
     {
-        if ($this->config["driver"]==="pdo_mysql") {
-            if ( ! preg_match('!^SELECT\s!is',$st)) return;
-            $result = $this->getDS()->query("EXPLAIN ".$st);
-            $explain = $result->fetchAll(\PDO::FETCH_ASSOC);
-            $analyzed = SQLAnalyzer::analyzeMysqlExplain($explain, $st, $params);
-            if ($analyzed) foreach ($analyzed["hint"] as $hint) {
-                report_warning("SQL Warning : ".$hint[0], $hint[1]);
+        try {
+            if ($params["elapsed_ms"] && $params["elapsed_ms"]>5000) {
+                report_warning("SQL Warning : Slow SQL tooks ".(round($params["elapsed_ms"]/1000,1)." sec").".", array("statement"=>$st));
             }
-            return $params;
+            if ($this->config["driver"]==="pdo_mysql") {
+                if ( ! preg_match('!^SELECT\s!is',$st)) return;
+                $result = $this->getDS()->query("EXPLAIN ".$st);
+                $explain = $result->fetchAll(\PDO::FETCH_ASSOC);
+                $analyzed = SQLAnalyzer::analyzeMysqlExplain($explain, $st, $params);
+                if ($analyzed) foreach ($analyzed["hint"] as $hint) {
+                    report_warning("SQL Warning : ".$hint[0], $hint[1]);
+                }
+            }
+        } catch (DriverException $e) {
+            report_warning("SQL Warning : EXPLAIN Failed.", array("statement"=>$st));
         }
+        return $params;
     }
 }
