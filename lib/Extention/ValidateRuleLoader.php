@@ -135,16 +135,24 @@ class ValidateRuleLoader
      * 重複チェック
      *  table : （必須）テーブル名
      *  col_name : （必須）カラム名
-     *  id_col_name : IDカラム名
+     *  id_field_name : IDフィールド名
      */
-    public static function callbackDuplecate ($validator, $value, $rule)
+    public static function callbackDuplicate ($validator, $value, $rule)
     {
         if ( ! strlen($value))  return false;
         $q = table($rule["table"]);
         $q = $q->findBy($rule["col_name"], $value);
-        if ($rule["id_field_name"]) $q = $q->findByBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue("id_field_name"));
+        if ($rule["id_field_name"]) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue("id_field_name"));
         if ( ! $q->selectOne()) return false;
         return array("message"=>"既に登録されています");
+    }
+    /**
+     * @deprecated
+     * 実装初期のスペルミスのフォールバック
+     */
+    public static function callbackDuplecate ($validator, $value, $rule)
+    {
+        return static::callbackDuplicate($validator, $value, $rule);
     }
     /**
      * 同一入力チェック
