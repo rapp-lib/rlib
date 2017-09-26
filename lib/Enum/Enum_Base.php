@@ -39,7 +39,7 @@ class Enum_Base extends ArrayObject
             $this[$offset] = call_user_func(array($this, $method_name),$offset);
             return;
         }
-        $this->initValues();
+        $this->initValues(array($offset));
     }
 
     /**

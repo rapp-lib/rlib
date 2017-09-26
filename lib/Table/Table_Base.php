@@ -493,7 +493,7 @@ class Table_Base extends Table_Core
      * @hook on_write
      * id_initの値からIDを生成
      */
-    protected function on_write_generatorIdInit ($col_name)
+    protected function on_write_generatorIdInit ()
     {
         if ($col_name = $this->getColNameByAttr("generator", "idInit")) {
             $col_def = $this->getColDef($col_name);

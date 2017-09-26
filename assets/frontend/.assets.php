@@ -118,6 +118,8 @@
     $asset->registerJsUrl("input_plugin.ckeditor", $url.'/input_plugin/ckeditor.js')
         ->required("InputPluginRegistry")
         ->required("ckeditor");
+    $asset->registerJsUrl("input_plugin.sync_select", $url.'/input_plugin/sync_select.js')
+        ->required("InputPluginRegistry");
 
     // config
     $asset->register("config.current_webroot_url", 'window.current_webroot_url = "'.app()->http->getServedRequest()->getUri()->getWebroot()->getBaseUri().'";', "js_code");

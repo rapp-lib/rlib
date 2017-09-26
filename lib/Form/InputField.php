@@ -73,6 +73,26 @@ class InputField
                     );
                 }
             }
+        } elseif ($init_values = $this->attrs["values"]) {
+            foreach ($init_values as $k=>$v) {
+                $selected = in_array($k,$values);
+                $options[] = array(
+                    "selected" => $selected,
+                    "checked" => $selected,
+                    "value" => $k,
+                    "label" => $v,
+                );
+            }
+        } elseif ($values) {
+            foreach ($values as $k) {
+                $selected = in_array($k,$values);
+                $options[] = array(
+                    "selected" => $selected,
+                    "checked" => $selected,
+                    "value" => $k,
+                    "label" => "",
+                );
+            }
         }
         return $options;
     }

@@ -58,7 +58,7 @@ class UserLoginDriver
      */
     public function getPriv($role)
     {
-        return $this->getLoginProvider($role)->getPriv($role);
+        return $this->getLoginProvider($role)->getPriv();
     }
     /**
      * 指定ロールに権限を設定
