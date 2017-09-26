@@ -601,7 +601,7 @@ class Table_Core
                     $sub_query_statement = $query["joins"][$k][0]->buildQuery("select");
                     if ($sub_query->getGroup()) {
                         //TODO: GroupBy付きのJOINでも異なるDB間でJOINできるようにする
-                        $query["joins"][$k][0] = "(".$sub_query_statement.")";
+                        $query["joins"][$k][0] = array("(".$sub_query_statement.")", $sub_query->getTableName());
                     } else {
                         $table_name = $sub_query->getTable();
                         // 異なるDB間でのJOIN時にはDBNAME付きのTable名とする
