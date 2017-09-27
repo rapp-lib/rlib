@@ -927,10 +927,14 @@ class Table_Base extends Table_Core
      */
     public function authenticate ($params)
     {
+        $result = false;
         if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
-            $t = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->selectOne();
-            return $t ? (array)$t : false;
+            $result = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->selectOne();
         }
-        return false;
+        if ($result && $col_name = $this->getColNameByAttr("login_date")) {
+            $id = $result[$this->getIdColName()];
+            $this->createTable()->updateById($id, array($col_name=>date("Y/m/d H:i:s")));
+        }
+        return $result ? (array)$result : false;
     }
 }
