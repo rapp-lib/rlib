@@ -11,7 +11,7 @@ class Query extends ArrayObject
         // FROM/INTO句に指定される実テーブル名
         "table" => array(),
         // AS句で指定されるテーブルの別名、Hydrate時にも参照される
-        "alias" => array(),
+        // "alias" => array(),
         // JOIN句
         "joins" => array(),
         // SELECT構文の各SQL句
@@ -203,6 +203,14 @@ class Query extends ArrayObject
     public function getTableName ()
     {
         return is_array($this["table"]) ? $this["table"][1] : $this["table"];
+    }
+    /**
+     * @setter
+     */
+    public function setAlias ($alias)
+    {
+        if (is_array($this["table"])) $this["table"][1] = $alias;
+        else $this["table"] = array($table, $alias);
     }
     /**
      * @setter

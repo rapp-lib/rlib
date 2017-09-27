@@ -12,20 +12,29 @@ class DBSchemaDoctrine2
         // Doctrine2ベースでの実行準備
         $db = new DBConnectionDoctrine2($ds_name, app()->config("db.connection.".$ds_name));
         $doctrine = $db->getDoctrineConnection();
-        // Tableクラスの定義取得
-        $table_defs = app()->table->collectTableDefs($table_dirs);
-        $class_schema = self::getSchemaFromTableDefs($table_defs);
         // DB上の定義取得
         $db_schema = $doctrine->getSchemaManager()->createSchema();
+        // Tableクラスの定義取得
+        $table_defs = app()->table->collectTableDefs($table_dirs);
+        $class_schema = self::getSchemaFromTableDefs($table_defs, $db_schema);
         // 差分抽出
         return $class_schema->getMigrateFromSql($db_schema, $doctrine->getDatabasePlatform());
     }
     /**
      * Table定義からSchemaを作成する
      */
-    public static function getSchemaFromTableDefs($defs)
+    public static function getSchemaFromTableDefs($defs, $db_schema)
     {
-        $schema = new Schema;
+        // Class上の定義を反映しない指定がある場合、DB上の定義をコピー
+        $ignore_tables = array();
+        foreach ($defs as $i=>$def) {
+            if ($def["ignore_schema"]) {
+                if ($db_schema->hasTable($def["table_name"])) $ignore_tables[] = $db_schema->getTable($def["table_name"]);
+                unset($defs[$i]);
+            }
+        }
+
+        $schema = new Schema($ignore_tables);
         foreach ($defs as $def) {
             $table = $schema->createTable($def["table_name"]);
             $id_col_names = array();
