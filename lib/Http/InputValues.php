@@ -15,7 +15,7 @@ class InputValues extends \ArrayObject
         self::mergeRecursive($values, (array)$server_request->getParsedBody());
         self::mergeRecursive($values, (array)$server_request->getUri()->getEmbedParams());
         self::mergeRecursive($values, (array)$server_request->getUploadedFiles());
-        self::sanitizeRecursive($values);
+        //self::sanitizeRecursive($values);
         $this->exchangeArray($values);
     }
     private static function sanitizeRecursive ( & $arr)

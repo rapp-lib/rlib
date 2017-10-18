@@ -81,3 +81,8 @@
         $mailer = new \R\Lib\Util\MailHandler();
         return $mailer->load($template_filename, $vars)->send();
     }
+    function tag ($name, $attrs=null, $content=null)
+    {
+        return \R\Lib\Util\HtmlBuilder::build($name, $attrs, $content);
+    }
+

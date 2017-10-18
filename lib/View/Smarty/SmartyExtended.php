@@ -19,6 +19,7 @@ class SmartyExtended extends SmartyBC
         $this->use_include_path = false;
         $this->php_handling = self::PHP_ALLOW;
         $this->allow_php_templates = true;
+        $this->escape_html = true;
         // プラグイン読み込み設定
         $this->registerDefaultPluginHandler(array($this,"pluginHandler"));
         // 関数名と衝突するプラグインの事前登録
@@ -27,9 +28,7 @@ class SmartyExtended extends SmartyBC
         $cache_dir = constant("R_APP_ROOT_DIR").'/tmp/smarty_cache/';
         $this->setCacheDir($cache_dir);
         $this->setCompileDir($cache_dir);
-        if ( ! file_exists($cache_dir)) {
-            mkdir($cache_dir,0775,true);
-        }
+        if ( ! file_exists($cache_dir)) mkdir($cache_dir,0775,true);
     }
     /**
      * Smarty::registerDefaultPluginHandlerに登録するメソッド

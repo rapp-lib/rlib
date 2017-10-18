@@ -1,6 +1,17 @@
 <?php
     if ( ! $asset) { return; }
 
+    $defs = array(
+        "jquery:3.2.1"=>array("https://code.jquery.com/jquery-3.2.1.slim.min.js"),
+        "lodash:4.17.4"=>array("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+        "axios:0.16.2"=>array("https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.min.js"),
+        "ckeditor:4.6.0"=>array("//cdn.ckeditor.com/4.6.0/standard/ckeditor.js"),
+    );
+    foreach ($defs as $def) {
+        $resource = $asset->registerJsUrl($def[0]);
+        if (is_array($def[1])) foreach ($def[1] as $dep) $resource->required($dep);
+    }
+
     // jquery
     $asset->registerJsUrl("jquery:1.10.2", '//code.jquery.com/jquery-1.10.2.min.js');
     $asset->registerJsUrl("jquery:2.2.4", '//code.jquery.com/jquery-2.2.4.min.js');
@@ -26,7 +37,6 @@
     $asset->registerCssUrl("nicEdit-css:0.9", $url.'/nicEdit.css');
 
     // ckeditor
-    $asset->registerJsUrl("ckeditor:4.6.0", "//cdn.ckeditor.com/4.6.0/standard/ckeditor.js");
     $asset->registerJsUrl("ckeditor-autoload:4.6.0", $url."/ckeditor.autoload/ckeditor.autoload.js")
         ->required("ckeditor:4.6.0");
 

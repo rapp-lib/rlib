@@ -14,6 +14,7 @@
         "zendframework/zend-session": "~2.5.0",
         "symfony/event-dispatcher": "~2.0",
         "danbruce/fast-route": "^0.6.0",
+        "airmanbzh/php-html-generator": "^1.0.0",
         "rapp-lib/zend-diactoros": "dev-master",
         "rapp-lib/middleman": "dev-master"
     },
