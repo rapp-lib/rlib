@@ -29,7 +29,7 @@
             }
             // CSVファイルを開く
             $csv_file = app()->file->getFileByUri($this->forms["entry_csv"]["csv_file"])->getSource();
-            $csv = csv_open($csv_file, "r", $this->csv_setting);
+            $csv = csv_open($csv_file, "r", self::$csv_setting);
             // DBへの登録処理
             app()->db()->begin();
             while ($t=$csv->readLine()) table("<?=$table->getName()?>")->save($t);

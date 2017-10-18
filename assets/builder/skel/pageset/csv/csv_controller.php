@@ -1,7 +1,7 @@
     /**
      * CSV設定
      */
-    protected $csv_setting = array(
+    protected static $csv_setting = array(
         "ignore_empty_line" => true,
         "sanitize" => true,
         "rows" => array(
@@ -41,7 +41,7 @@
         $this->forms["search"]->restore();
         $ts = $this->forms["search"]->search()->removePagenation()->select();
         // CSVファイルの書き込み
-        $csv = csv_open("php://temp", "w", $this->csv_setting);
+        $csv = csv_open("php://temp", "w", self::$csv_setting);
         $csv->writeLines($ts);
         // データ出力
         return app()->http->response("stream", $csv->getHandle(), array("headers"=>array(
