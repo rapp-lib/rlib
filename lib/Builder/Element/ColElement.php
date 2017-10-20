@@ -45,7 +45,6 @@ class ColElement extends Element_Base
     {
         $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
         $def = array();
-        $def["label"] = $this->getLabel();
         if ($this->getAttr("type")=="file") {
             $def["storage"] = "public";
         }
