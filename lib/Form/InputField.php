@@ -38,7 +38,7 @@ class InputField
     /**
      * 選択肢の構成要素を取得
      */
-    public function getOptions ($group=null)
+    public function getOptions ()
     {
         $values = array();
         if (isset($this->field_value)) {
@@ -48,8 +48,7 @@ class InputField
         }
         $options = array();
         if ($enum_name = $this->attrs["enum"]) {
-            $parent_key = $group ? $group : false;
-            foreach (app()->enum($enum_name,$parent_key) as $k=>$v) {
+            foreach (app()->enum[$enum_name] as $k=>$v) {
                 $selected = in_array($k,$values);
                 $options[] = array(
                     "selected" => $selected,
@@ -57,21 +56,6 @@ class InputField
                     "value" => $k,
                     "label" => $v,
                 );
-            }
-        // @deprecated 旧Listから値を取得
-        } elseif ($list_name = $this->attrs["options"]) {
-            $class = "\\".str_camelize($list_name)."List";
-            if (class_exists($class)) {
-                $instance = new $class();
-                foreach ($instance->options($group) as $k=>$v) {
-                    $selected = in_array($k,$values);
-                    $options[] = array(
-                        "selected" => $selected,
-                        "checked" => $selected,
-                        "value" => $k,
-                        "label" => $v,
-                    );
-                }
             }
         } elseif ($init_values = $this->attrs["values"]) {
             foreach ($init_values as $k=>$v) {

@@ -35,15 +35,14 @@ class CsvfilterLoader
         }
         // 空白要素の無視
         if ( ! strlen($value)) return $value;
-        $enum = app()->enum($filter["enum"]);
         // CSV読み込み時
         if ($mode == "r") {
-            $enum->initValues();
-            $enum_reverse = array_flip((array)$enum);
+            $enum_reverse = array();
+            foreach (app()->enum[$filter["enum"]] as $k=>$v) $enum_reverse[$v] = $k;
             return $enum_reverse[$value];
         // CSV書き込み時
         } else {
-            return $enum[$value];
+            return app()->enum[$filter["enum"]][$value];
         }
     }
 }

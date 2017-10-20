@@ -24,7 +24,7 @@ class ConfigBasedApplication implements Container
             "view" => 'R\Lib\View\SmartyViewFactory',
             "console" => 'R\Lib\Console\ConsoleDriver',
             "builder" => 'R\Lib\Builder\WebappBuilder',
-            "enum" => 'R\Lib\Enum\EnumFactory',
+            "enum" => 'R\Lib\Enum\EnumRepositry',
             "asset" => 'R\Lib\Asset\AssetManager',
             "extention" => 'R\Lib\Core\Provider\ExtentionLoader',
         ),

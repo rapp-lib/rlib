@@ -7,8 +7,8 @@
         "axios:0.16.2"=>array("https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.min.js"),
         "ckeditor:4.6.0"=>array("//cdn.ckeditor.com/4.6.0/standard/ckeditor.js"),
     );
-    foreach ($defs as $def) {
-        $resource = $asset->registerJsUrl($def[0]);
+    foreach ($defs as $module_name => $def) {
+        $resource = $asset->registerJsUrl($module_name, $def[0]);
         if (is_array($def[1])) foreach ($def[1] as $dep) $resource->required($dep);
     }
 
