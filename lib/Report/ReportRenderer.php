@@ -5,6 +5,25 @@ use Monolog\Logger;
 class ReportRenderer
 {
     /**
+     * 複数のRecordをまとめてテキストに変換
+     */
+    public static function renderAll($records, $format)
+    {
+        // 出力件数の制限
+        $count = count($records);
+        $limit = 100;
+        if ($count > $limit) {
+            $records = array_slice($records,0,$limit/2)+array_slice($records,-$limit/2);
+            $records[] = array(
+                "message" => "Report表示件数が多すぎるので".($count-$limit)."件中略しました",
+                "level" => Logger::WARNING,
+            );
+        }
+        $res = "";
+        foreach ($records as $record) $res .= self::render($record, $format);
+        return $res;
+    }
+    /**
      * Recordをテキストに変換
      */
     public static function render($record, $format)

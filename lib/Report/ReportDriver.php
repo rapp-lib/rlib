@@ -62,9 +62,9 @@ class ReportDriver
     {
         if (app()->debug->getDebugLevel() && $this->flushable) {
             if (php_sapi_name()!=="cli") {
-                foreach ((array)app()->session("Report_Logging")->buffer as $record) {
-                    print ReportRenderer::render($record, "html");
-                }
+                // Session BufferからリストアしてHTMLとして表示
+                $records = (array)app()->session("Report_Logging")->buffer;
+                print ReportRenderer::renderAll($records, "html");
                 app()->session("Report_Logging")->buffer = array();
             }
         }
