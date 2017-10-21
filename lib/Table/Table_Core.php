@@ -404,9 +404,10 @@ class Table_Core
         $this->execQuery("select");
         $record = $this->result->fetch();
         if (count($this->result->fetchAll()) > 1) {
-            report_warning("複数Record取得して最初の1件のみを結果とします",array(
+            report_warning("selectOneで複数件取得する処理は値を返しません",array(
                 "table" => $this,
             ));
+            return null;
         }
         return $record;
     }
