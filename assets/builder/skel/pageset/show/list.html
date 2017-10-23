@@ -1,13 +1,13 @@
 {{form action="."|page_to_url form=$forms.search}}
     <div class="ad_btn clearfix">
-        <table class="tbl_admin search">
+        <table class="tbl_admin">
             <tr>
                 <th>フリーワード検索</th>
                 <td>{{input name="freeword" type="text" size="40" class="input-text"}}</td>
             </tr>
         </table>
-        <a href="javascript:void(0);" onclick="$(this).parents('form').trigger('submit');" class="search"><i class="fa fa-search"></i>検索</a>
         <a href="{{$forms.search->getSearchPageUrl()}}" class="search">リセット</a>
+        <button type="submit" class="search">検索</button>
     </div>
 {{/form}}
 
