@@ -5,13 +5,6 @@ use ArrayAccess;
 
 class EnumRepositry implements ArrayAccess
 {
-    public function invoke ($name)
-    {
-        return $this->offsetGet($name);
-    }
-
-// --
-
     private $value_repos = array();
 
     public function offsetExists($key)

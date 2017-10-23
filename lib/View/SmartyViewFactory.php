@@ -2,11 +2,10 @@
 namespace R\Lib\View;
 
 use R\Lib\View\Smarty\SmartyExtended;
-use R\Lib\Core\Contract\InvokableProvider;
 
-class SmartyViewFactory implements InvokableProvider
+class SmartyViewFactory
 {
-    public function invoke ($template_file, $vars)
+    public function __invoke ($template_file, $vars)
     {
         return $this->fetch($template_file, $vars);
     }

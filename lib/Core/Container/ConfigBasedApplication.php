@@ -1,13 +1,13 @@
 <?php
 namespace R\Lib\Core\Container;
 
-use R\Lib\Core\Contract\Container;
-
-class ConfigBasedApplication implements Container
+class ConfigBasedApplication
 {
     protected $bind_config = array(
         "provider" => array(
-            // 4.x
+            // 4.1
+            "enum" => 'R\Lib\Enum\EnumRepositry',
+            // 4.0
             "config" => 'R\Lib\Core\Config',
             "env" => 'R\Lib\Core\Env',
             "debug" => 'R\Lib\Core\Debug',
@@ -24,11 +24,8 @@ class ConfigBasedApplication implements Container
             "view" => 'R\Lib\View\SmartyViewFactory',
             "console" => 'R\Lib\Console\ConsoleDriver',
             "builder" => 'R\Lib\Builder\WebappBuilder',
-            "enum" => 'R\Lib\Enum\EnumRepositry',
             "asset" => 'R\Lib\Asset\AssetManager',
             "extention" => 'R\Lib\Core\Provider\ExtentionLoader',
-        ),
-        "contract" => array(
         ),
     );
     public function __construct ($bind_config=array())
@@ -146,7 +143,7 @@ class ConfigBasedApplication implements Container
             $invoke_method_name = "invoke";
         }
         if ( ! method_exists($provider,$invoke_method_name)) {
-            report_error("Provider::__invokeの定義がありません",array(
+            report_error("__invokeの定義がありません",array(
                 "provider_name" => $provider_name,
                 "class" => get_class($provider),
             ));

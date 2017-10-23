@@ -1,12 +1,11 @@
 <?php
 namespace R\Lib\Builder;
 
-use R\Lib\Core\Contract\InvokableProvider;
 use R\Lib\Builder\Element\SchemaElement;
 
 class WebappBuilder extends SchemaElement implements InvokableProvider
 {
-    public function invoke ($config)
+    public function __invoke ($config)
     {
         return new WebappBuilder($config);
     }

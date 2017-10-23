@@ -1,9 +1,8 @@
 <?php
 namespace R\Lib\Http;
-use R\Lib\Core\Contract\Provider;
 use Psr\Http\Message\ServerRequestInterface;
 
-class HttpDriver implements Provider
+class HttpDriver
 {
     protected $served_request = null;
     public function serve ($webroot_name, $deligate, $request=array())

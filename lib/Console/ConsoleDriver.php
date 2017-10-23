@@ -1,10 +1,9 @@
 <?php
 namespace R\Lib\Console;
 
-use R\Lib\Core\Contract\Provider;
 use ArrayObject;
 
-class ConsoleDriver extends ArrayObject implements Provider
+class ConsoleDriver extends ArrayObject
 {
     /**
      * アクセスされたパラメータによりCommandのactionを実行

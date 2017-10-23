@@ -1,11 +1,9 @@
 <?php
 namespace R\Lib\Core\Provider;
 
-use R\Lib\Core\Contract\InvokableProvider;
-
 class ExtentionLoader
 {
-    public function invoke ($group, $name)
+    public function __invoke ($group, $name)
     {
         return $this->getExtention($group, $name);
     }
