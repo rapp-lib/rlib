@@ -96,7 +96,8 @@ class Validator
             }
         }
         // ValidateRuleExtentionを呼び出す
-        $error = call_user_func_array(extention("ValidateRule",$rule["type"]), array($this, $value, $rule));
+        $callback = \R\Lib\Extention\ValidateRuleLoader::getCallback($rule["type"]);
+        $error = call_user_func_array($callback, array($this, $value, $rule));
         // エラーがなければ終了
         if ( ! $error) return;
         // エラーの設定

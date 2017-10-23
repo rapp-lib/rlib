@@ -23,7 +23,8 @@ class SmartyExtended extends SmartyBC
         // プラグイン読み込み設定
         $this->registerDefaultPluginHandler(array($this,"pluginHandler"));
         // 関数名と衝突するプラグインの事前登録
-        $this->registerPlugin("modifier","date",extention("SmartyPlugin", "modifier.date"));
+        $callback = \R\Lib\Extention\SmartyPluginLoader::getCallback("modifier.date");
+        $this->registerPlugin("modifier","date",$callback);
         // キャッシュ/コンパイル済みデータ保存先設定
         $cache_dir = constant("R_APP_ROOT_DIR").'/tmp/smarty_cache/';
         $this->setCacheDir($cache_dir);
@@ -36,12 +37,10 @@ class SmartyExtended extends SmartyBC
      */
     public function pluginHandler ($name, $type, $template, &$callback, &$script, &$cacheable)
     {
-        $extention = extention("SmartyPlugin", $type.".".$name);
-        if (is_callable($extention)) {
-            $callback = $extention;
-            return true;
-        }
-        return false;
+        $ext = \R\Lib\Extention\SmartyPluginLoader::getCallback($type.".".$name);
+        if ( ! is_callable($ext)) return false;
+        $callback = $ext;
+        return true;
     }
 
 // --

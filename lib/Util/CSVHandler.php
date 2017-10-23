@@ -210,7 +210,10 @@ class CSVHandler
             if ( ! $filter["target"]) $filter["target"] = array_keys($csv_data);
             if ( ! is_array($filter["target"])) $filter["target"] = array($filter["target"]);
             $module = $filter["filter"];
-            if ( ! is_callable($module)) $module = extention("csvfilter", $filter["filter"]);
+
+            if ( ! is_callable($module)) {
+                $module = \R\Lib\Extention\CsvfilterLoader::getCallback($filter["filter"]);
+            }
             foreach ($filter["target"] as $target) {
                 $csv_data[$target] = call_user_func($module, $csv_data[$target], $mode, $filter, $csv_data);
             }
