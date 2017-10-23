@@ -346,23 +346,6 @@ class Table_Base extends Table_Core
 // -- 基本的なon_*の定義
 
     /**
-     * @hook on_write
-     * トランザクションの開始
-     */
-    protected function on_write_beginTrunsaction_50 ()
-    {
-        $this->getConnection()->begin();
-    }
-    /**
-     * @hook on_write
-     * トランザクションの開始
-     */
-    protected function on_afterWrite_commitTrunsaction_950 ()
-    {
-        $this->getConnection()->commit();
-    }
-
-    /**
      * @hook on_fetch
      * ハッシュされたパスワードを関連づける
      */

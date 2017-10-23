@@ -58,6 +58,15 @@ class Table_Core
      * totalに対応するPager
      */
     private $pager = null;
+    /**
+     * このTable処理内でのTransaction処理状態
+     */
+    private $in_transaction = null;
+    /**
+     * クエリ発行時のTransactionの自動Begin/Commit設定
+     */
+    protected static $auto_begin = true;
+    protected static $auto_commit = true;
 
     /**
      * @override
@@ -502,6 +511,15 @@ class Table_Core
      */
     public function begin ()
     {
+        if ($this->in_transaction==="begin") return true;
+        elseif ($this->in_transaction!==null) {
+            report_warning("Transactionは開始済みです",array(
+                "table" => $this,
+                "in_transaction" => $this->in_transaction,
+            ));
+            return false;
+        }
+        $this->in_transaction = "begin";
         return $this->getConnection()->begin();
     }
     /**
@@ -509,6 +527,14 @@ class Table_Core
      */
     public function commit ()
     {
+        if ($this->in_transaction!=="begin") {
+            report_warning("Commit可能なTransactionはありません",array(
+                "table" => $this,
+                "in_transaction" => $this->in_transaction,
+            ));
+            return false;
+        }
+        $this->in_transaction = "commit";
         return $this->getConnection()->commit();
     }
     /**
@@ -516,6 +542,14 @@ class Table_Core
      */
     public function rollback ()
     {
+        if ($this->in_transaction!=="begin") {
+            report_warning("Rollback可能なTransactionはありません",array(
+                "table" => $this,
+                "in_transaction" => $this->in_transaction,
+            ));
+            return false;
+        }
+        $this->in_transaction = "rollback";
         return $this->getConnection()->rollback();
     }
 
@@ -551,9 +585,9 @@ class Table_Core
     public function execQuery ($type=null)
     {
         // 実行済みであれば結果を返す
-        if ($this->result) {
-            return $this->result;
-        }
+        if ($this->result) return $this->result;
+        // Trunsactionの自動開始
+        if (static::$auto_begin && $this->in_transaction===null) $this->begin();
         // Query組み立ての仕上げ処理
         $statement = $this->buildQuery($type);
         // SQLの実行
@@ -569,6 +603,8 @@ class Table_Core
         if ($type=="insert" || $type=="update") {
             $this->callListenerMethod("afterWrite",array());
         }
+        // Trunsactionの自動完了
+        if (static::$auto_commit && $this->in_transaction==="begin") $this->commit();
         return $this->result;
     }
 
