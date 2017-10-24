@@ -3,12 +3,18 @@ namespace R\Lib\View;
 
 class ViewFactory
 {
+    protected $instances = array();
     public function __invoke ($template_file, $vars=array(), $options=array())
     {
-        return $this->fetch($template_file, $vars, $options);
+        return $this->getView()->fetch($template_file, $vars, $options);
     }
-    public function fetch ($template_file, $vars=array(), $options=array())
+    public function getView ($name="default")
     {
-        return View_Smarty::fetch($template_file, $vars, $options);
+        if ( ! $this->instances[$name]) {
+            $class = app()->config("view.driver.".$name.".class");
+            if ( ! $class) $class = 'R\App\View\View_App';
+            $this->instances[$name] = new $class();
+        }
+        return $this->instances[$name];
     }
 }

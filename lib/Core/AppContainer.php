@@ -29,22 +29,39 @@ class AppContainer
     public function __construct ($providers=array())
     {
         foreach ($providers as $k=>$v) $this->providers[$k] = $v;
+        app_set($this);
     }
-    public function __call ($provider_name, $args)
+    public function getProvider ($provider_name)
     {
-        $callback = array($this->getProvider($provider_name), "__invoke");
-        return call_user_func_array($callback, $args);
+        if ( ! $this->instances[$provider_name]) {
+            // providerインスタンスの生成
+            $class = $this->providers[$provider_name];
+            if ( ! $class || ! class_exists($class)) {
+                report_error("providerクラスが定義されていません",array(
+                    "provider_name" => $provider_name,
+                    "class" => $class,
+                ));
+            }
+            $this->instances[$provider_name] = new $class();
+            // __mountedの呼び出し
+            if (method_exists($this->instances[$provider_name], "__mounted")) {
+                call_user_func(array($this->instances[$provider_name], "__mounted"), $this);
+            }
+        }
+        return $this->instances[$provider_name];
     }
     public function __get ($provider_name)
     {
         return $this->getProvider($provider_name);
     }
-    public function getProvider ($provider_name)
+    public function __call ($provider_name, $args)
     {
-        if ( ! $this->instances[$provider_name]) {
-            $class = $this->providers[$provider_name];
-            $this->instances[$provider_name] = new $class();
+        // __invokeの呼び出し
+        if ( ! method_exists($this->getProvider($provider_name), "__invoke")) {
+            report_error("__invokeが定義されていません",array(
+                "provider_name" => $provider_name,
+            ));
         }
-        return $this->instances[$provider_name];
+        return call_user_func_array(array($this->getProvider($provider_name), "__invoke"), $args);
     }
 }
