@@ -3,7 +3,7 @@ namespace R\Lib\Builder;
 
 use R\Lib\Builder\Element\SchemaElement;
 
-class WebappBuilder extends SchemaElement implements InvokableProvider
+class WebappBuilder extends SchemaElement
 {
     public function __invoke ($config)
     {
