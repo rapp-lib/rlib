@@ -490,6 +490,24 @@ class Table_Base extends Table_Core
             return false;
         }
     }
+    /**
+     * @hook on_getBlankCol
+     * enumの値を取得
+     */
+    protected function on_getBlankCol_enumValue ($record, $col_name)
+    {
+        if (preg_match('!^([^:]+):enum(?::(?:([^\.]+)\.)?([^\.]+))?$!', $col_name, $match)) {
+            list(,$base_col_name, $repo_name, $values_name) = $match;
+            $repo_name = $repo_name ?: $this->getAppTableName();
+            $values_name = $values_name ?: $base_col_name;
+            $enum = app()->enum[$repo_name.".".$values_name];
+            $keys = $this->result->getHashedBy($base_col_name);
+            $enum->retreive($keys);
+            foreach ($this->result as $record_a) {
+                $record_a[$col_name] = $enum[$record_a[$base_col_name]];
+            }
+        }
+    }
 
 // -- on_* ストレージ型変換 write+200/read-200
 

@@ -680,8 +680,14 @@ class Table_Core
      */
     public function beforeGetRecordValue ($record, $col_name)
     {
-        if ( ! isset($record[$col_name])) {
+        if ( ! array_key_exists($col_name, $record)) {
             $this->callListenerMethod("getBlankCol", array($record, $col_name));
+        }
+        if ( ! array_key_exists($col_name, $record)) {
+            report_warning("対象のRecordカラムに値が設定されていません",array(
+                "record" => $record,
+                "col_name" => $col_name,
+            ));
         }
     }
     /**
