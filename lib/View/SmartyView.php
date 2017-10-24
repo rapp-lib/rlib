@@ -3,7 +3,7 @@ namespace R\Lib\View;
 
 use \SmartyBC;
 
-class View_Smarty
+class SmartyView
 {
     public function fetch ($template_file, $vars=array(), $options=array())
     {
