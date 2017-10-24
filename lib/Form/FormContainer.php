@@ -293,10 +293,8 @@ class FormContainer extends ArrayObject
     /**
      * InputFieldを取得
      */
-    public function getInputField ($name_attr, $attrs=array())
+    public function getInputField ($attrs)
     {
-        $attrs["name"] = $name_attr;
-
         $field_value = null;
         $name_attr = $attrs["name"];
         $field_name = str_replace(array("[","]"),array(".",""),$name_attr);

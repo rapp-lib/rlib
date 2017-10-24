@@ -9,19 +9,24 @@ class SmartyFunctionInput
     /**
      * @overload
      */
-    public static function callback ($params, $smarty_template)
+    public static function callback ($attrs, $smarty)
     {
         // FormContainerによるタグ生成
-        $attrs = $params;
-        if ($form = $attrs["form"] ? $attrs["form"] : $smarty_template->getCurrentForm()) {
-            unset($attrs["form"]);
-            $input_field = $form->getInputField($attrs["name"], $attrs);
+        $form = $attrs["form"];
+        $assign = $attrs["assign"];
+        unset($attrs["form"], $attrs["assign"]);
+        if ( ! $form) foreach ($smarty->smarty->_cache['_tag_stack'] as $block) {
+            if ($block[0] === "form" && $block[1]["form"]) $form = $block[1]["form"];
+        }
+        if ( ! $form) {
+            report_error("{{input}}は{{form}}内でのみ有効です", array("attrs"=>$attrs));
+        }
+        $input_field = $form->getInputField($attrs);
+        if ($assign) {
             // assignが指定されている場合、分解したHTMLを変数としてアサイン
-            if ($attrs["assign"]) {
-                $smarty_template->assign($params["assign"], $input_field);
-            } else {
-                return $input_field->getHtml();
-            }
+            $smarty->assign($assign, $input_field);
+        } else {
+            return $input_field->getHtml();
         }
     }
 }

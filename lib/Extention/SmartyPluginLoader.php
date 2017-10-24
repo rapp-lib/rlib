@@ -19,4 +19,15 @@ class SmartyPluginLoader
         }
         return true;
     }
+    /**
+     * Smarty::registerDefaultPluginHandlerに登録するメソッド
+     * プラグイン読み込み処理
+     */
+    public static function pluginHandler ($name, $type, $template, &$callback, &$script, &$cacheable)
+    {
+        $ext = \R\Lib\Extention\SmartyPluginLoader::getCallback($type.".".$name);
+        if ( ! is_callable($ext)) return false;
+        $callback = $ext;
+        return true;
+    }
 }
