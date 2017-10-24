@@ -9,7 +9,6 @@ use ArrayObject;
 class Result extends ArrayObject
 {
     protected $table;
-
     /**
      * @override
      */
@@ -17,7 +16,6 @@ class Result extends ArrayObject
     {
         $this->table = $table;
     }
-
     /**
      * @override
      */
@@ -27,5 +25,13 @@ class Result extends ArrayObject
         array_unshift($args,$this);
         $result_method_name = "result_".$method_name;
         return call_user_func_array(array($this->table,$result_method_name),$args);
+    }
+    /**
+     * @override
+     */
+    public function offsetGet ($key)
+    {
+        $this->table->beforeGetResultValue($key);
+        return parent::offsetGet($key);
     }
 }

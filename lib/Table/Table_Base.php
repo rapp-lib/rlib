@@ -628,14 +628,14 @@ class Table_Base extends Table_Core
         return $this->assoc_fields ? true : false;
     }
     /**
-     * assoc処理 fetch完了後
+     * assoc処理 未初期化のRecord値の取得時
      */
-    protected function on_fetchEnd_assoc ()
+    protected function on_getBlankCol_assoc ($record, $col_name)
     {
-        foreach ((array)$this->assoc_fields as $col_name) {
-            $this->callAssocHookMethod("assoc_fetchEnd", $col_name);
+        if (in_array($col_name, (array)$this->assoc_fields)) {
+            $this->callAssocHookMethod("assoc_getBlankCol", $col_name);
+            return true;
         }
-        return $this->assoc_fields ? true : false;
     }
     /**
      * assoc処理 insert/updateの発行前
@@ -689,7 +689,7 @@ class Table_Base extends Table_Core
      *          singleの指定があれば、既存1レコード目を一致させて更新する
      *          extra_valuesの指定があれば絞り込みと、値の設定に使用する
      */
-    protected function assoc_fetchEnd_hasMany ($col_name)
+    protected function assoc_getBlankCol_hasMany ($col_name)
     {
         $this->result->mergeAssoc($col_name, static::$cols[$col_name]["assoc"]);
     }

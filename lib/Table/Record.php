@@ -9,7 +9,6 @@ use ArrayObject;
 class Record extends ArrayObject
 {
     protected $table = null;
-
     /**
      * @override
      */
@@ -17,7 +16,6 @@ class Record extends ArrayObject
     {
         $this->table = $table;
     }
-
     /**
      * @override
      */
@@ -27,5 +25,13 @@ class Record extends ArrayObject
         array_unshift($args,$this);
         $record_method_name = "record_".$method_name;
         return call_user_func_array(array($this->table,$record_method_name),$args);
+    }
+    /**
+     * @override
+     */
+    public function offsetGet ($key)
+    {
+        $this->table->beforeGetRecordValue($this, $key);
+        return parent::offsetGet($key);
     }
 }

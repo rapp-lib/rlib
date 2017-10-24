@@ -670,6 +670,21 @@ class Table_Core
 // -- hookメソッド呼び出し関連処理
 
     /**
+     * Result上の値の読み込み前処理
+     */
+    public function beforeGetResultValue ($index)
+    {
+    }
+    /**
+     * Record上の値の読み込み前処理
+     */
+    public function beforeGetRecordValue ($record, $col_name)
+    {
+        if ( ! isset($record[$col_name])) {
+            $this->callListenerMethod("getBlankCol", array($record, $col_name));
+        }
+    }
+    /**
      * buildQuery上で必要になるon_*_*処理をまとめて呼び出す
      */
     private function callBuildQueryMethods ()
