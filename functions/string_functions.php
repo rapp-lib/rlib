@@ -1,22 +1,19 @@
 <?php
 
-    /**
-     *
-     */
     function str_camelize ($str)
     {
         return str_replace(' ','',ucwords(str_replace('_', ' ', $str)));
     }
-    /**
-     *
-     */
     function str_underscore ($str)
     {
         return strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $str));
     }
-    /**
-     * ランダム文字列の生成
-     */
+    function str_date ($string, $format="Y/m/d")
+    {
+        if ( ! strlen($string)) return "";
+        $date = new \DateTime($string);
+        return $date->format($format);
+    }
     function rand_string ($length=8, $seed=null)
     {
         $charmap = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

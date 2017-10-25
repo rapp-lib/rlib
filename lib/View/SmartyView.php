@@ -36,7 +36,7 @@ class SmartyView
         // プラグイン読み込み設定
         $smarty->registerDefaultPluginHandler(array($this,"pluginHandler"));
         // 関数名と衝突するプラグインの事前登録
-        $smarty->registerPlugin("modifier", "date", get_class($this)."::smarty_modifier_date");
+        $smarty->registerPlugin("modifier", "date", "str_date");
         // キャッシュ/コンパイル済みデータ保存先設定
         $cache_dir = constant("R_APP_ROOT_DIR").'/tmp/smarty_cache/';
         $smarty->setCacheDir($cache_dir);
@@ -64,12 +64,6 @@ class SmartyView
 
 // -- 基本処理プラグイン
 
-    public static function smarty_modifier_date ($string ,$format="Y/m/d")
-    {
-        if ( ! strlen($string)) return "";
-        $date = new \DateTime($string);
-        return $date->format($format);
-    }
     public static function smarty_modifier_trunc ($value, $length, $append="...")
     {
         if (mb_strlen($value,"UTF-8")>$length) $value = mb_substr($value,0,$length,"UTF-8").$append;

@@ -12,7 +12,13 @@
 --<?="\n"?>
 <#?php endforeach; ?><?=""?>
 <?php elseif ($enum_set = $col->getEnumSet()): /* if type=="assoc" */ ?>
-<#?=app()->enum("<?=$enum_set->getFullName()?>")->offsetGet(<?=$var_name?>["<?=$name?>"])?><#?="\n"?><?=""?>
-<?php else: /* elseif type=="enum_set" */ ?>
+<#?=app()->enum["<?=$enum_set->getFullName()?>"][<?=$var_name?>["<?=$name?>"]]?><#?="\n"?><?=""?>
+<?php elseif ($col->getAttr("type")=="file"): /* if type=="assoc" */ ?>
+<#?=app()->http->getServedRequest()->getUri()->getWebroot()->uri(<?=$var_name?>["<?=$name?>"])?><#?="\n"?><?=""?>
+<?php elseif ($col->getAttr("type")=="date"): /* if type=="assoc" */ ?>
+str_date(<?=$var_name?>["<?=$name?>"], "Y/m/d");<#?="\n"?><?=""?>
+<?php elseif ($col->getAttr("type")=="datetime"): /* if type=="assoc" */ ?>
+str_date(<?=$var_name?>["<?=$name?>"], "Y/m/d H:i");<#?="\n"?><?=""?>
+<?php else: /* if type=="assoc" */ ?>
 <#?=<?=$var_name?>["<?=$name?>"]?><#?="\n"?><?=""?>
 <?php endif; /* if type=="assoc" */ ?>
