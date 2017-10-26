@@ -44,13 +44,9 @@ class HttpController implements FormRepositry
     {
         return app()->http->response("redirect", $this->uri($uri, $query_params, $fragment));
     }
-    public function resolveRelativePageId ($page_id)
+    public function response ($type, $data=null)
     {
-        // 相対page_idの解決
-        if (preg_match('!^\.([^\?\.]+)?$!', $page_id, $match)) {
-            $page_id = $this->controller_name.".".($match[1] ?: $this->action_name);
-        }
-        return $page_id;
+        return app()->http->response($type, $data);
     }
     public function uri ($uri, $query_params=array(), $fragment=null)
     {
@@ -63,6 +59,14 @@ class HttpController implements FormRepositry
             $uri["page_id"] = $this->resolveRelativePageId($uri["page_id"]);
         }
         return $this->webroot->uri($uri, $query_params, $fragment);
+    }
+    public function resolveRelativePageId ($page_id)
+    {
+        // 相対page_idの解決
+        if (preg_match('!^\.([^\?\.]+)?$!', $page_id, $match)) {
+            $page_id = $this->controller_name.".".($match[1] ?: $this->action_name);
+        }
+        return $page_id;
     }
     /**
      * act_*の実行
@@ -190,29 +194,17 @@ class HttpController implements FormRepositry
         $this->input = $request->getAttribute(InputValues::ATTRIBUTE_INDEX);
         // 処理呼び出し
         $response = $this->execAct();
-        if ($response) {
-            return $response;
-        }
+        if ($response) return $response;
+        // Responseを返さない場合、Viewで処理
         $file = $request->getUri()->getPageFile();
-        if (preg_match('!\.json$!',$file)) {
-            $data = $this->getVars();
-            return app()->http->response("json", $data);
-        } else {
-            if ( ! is_file($file)) {
-                return app()->http->response("notfound");
-            }
-            $vars = $this->getVars();
-            $vars["forms"] = $this->forms;
-            $vars["input"] = $this->input;
-            $vars["request"] = $this->request;
-            $vars["enum"] = app()->enum;
-            $html = app()->view()->fetch($file, $vars);
-            return app()->http->response("html", $html);
-        }
-        report_error("処理を行いましたが応答を構築できません",array(
-            "file" => $file,
-            "uri" => $uri,
-        ));
+        if ( ! is_file($file)) return app()->http->response("notfound");
+        $vars = $this->getVars();
+        $vars["forms"] = $this->forms;
+        $vars["input"] = $this->input;
+        $vars["request"] = $this->request;
+        $vars["enum"] = app()->enum;
+        $html = app()->view()->fetch($file, $vars);
+        return app()->http->response("html", $html);
     }
     /**
      * inc_*の実行
