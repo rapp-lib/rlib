@@ -24,10 +24,10 @@ class PageElement extends Element_Base
         $path = "/".str_replace('_','/',$this->getController()->getName())."/".$this->getName().".html";
         if (preg_match('!/index/index\.html$!',$path)) {
             $path = preg_replace('!/index/index\.html$!','/',$path);
-        } elseif (preg_match('!/index\.html$!',$path)) {
-            $path = preg_replace('!/index\.html$!','/',$path);
         } elseif (preg_match('!/index/index_static\.html$!',$path)) {
             $path = preg_replace('!/index/index_static\.html$!','/{FILE:.+}',$path);
+        } elseif ($this->getController()->getIndexPage()===$this) {
+            $path = preg_replace('!/[^/\.]+\.html$!','/',$path);
         }
         return $path;
     }
