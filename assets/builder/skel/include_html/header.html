@@ -3,26 +3,18 @@
 <head>
 <meta charset="utf-8"/>
 
-<title>{{$page_title}} | SITE</title>
+<title>{{$page_title}} | WEB</title>
 <meta name="keywords" content="{{$page_keywords}}"/>
 <meta name="description" content="{{$page_description}}"/>
 
-{{asset required="app.adm.common-js" buffer="script"}}
-{{asset required="app.adm.base-css" buffer="css"}}
-{{asset flush=["css","script"] state="head.end"}}
+{{script require=["app.common"]}}{{/script}}
+<link href="{{'/.assets/css/adm-base.css'|path_to_url}}" rel="stylesheet" type="text/css"/>
 </head>
 <body>
-{{asset flush="html" state="body.start"}}
 
 <header class="mmb">
     <div class="con">
         <h1><a href="{{'/'|path_to_url}}" id="logo">&nbsp;</a></h1>
-        <!--
-        <span>&nbsp;</span>
-        <div class="btn">
-            <div id="btn_logout"><a href="#">ログアウト</a></div>
-        </div>
-        -->
     </div>
 </header><!--/mmb-->
 

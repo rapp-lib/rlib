@@ -206,7 +206,7 @@ class HttpController implements FormRepositry
             $vars["input"] = $this->input;
             $vars["request"] = $this->request;
             $vars["enum"] = app()->enum;
-            $html = app()->view($file, $vars);
+            $html = app()->view()->fetch($file, $vars);
             return app()->http->response("html", $html);
         }
         report_error("処理を行いましたが応答を構築できません",array(

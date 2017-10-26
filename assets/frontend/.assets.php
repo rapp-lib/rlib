@@ -1,135 +1,31 @@
 <?php
-    if ( ! $asset) { return; }
-
-    $defs = array(
-        "jquery:3.2.1"=>array("https://code.jquery.com/jquery-3.2.1.slim.min.js"),
-        "lodash:4.17.4"=>array("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
-        "axios:0.16.2"=>array("https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.min.js"),
-        "ckeditor:4.6.0"=>array("//cdn.ckeditor.com/4.6.0/standard/ckeditor.js"),
+    return array(
+        "ext" => array(
+            "jquery" => array("//code.jquery.com/jquery-3.2.1.slim.min.js"),
+            "lodash" => array("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+            "underscore" => array("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+            //"underscore" => array('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js'),
+            "axios" => array("https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.min.js"),
+            "ckeditor" => array("//cdn.ckeditor.com/4.6.0/standard/ckeditor.js"),
+        ),
+        "local" => array(
+            "util.append-style" => array('util/append-style.js'),
+            // rui
+            "rui.show-errors" => array('rui.show-errors/rui.show-errors.js', array("jquery")),
+            "rui.mi" => array('mi-3.0/jquery.mi.js', array("jquery", "underscore", "InputPluginRegistry")),
+            "rui.sort" => array('rui.sort/sort.js', array("jquery")),
+            "rui.zip" => array('ZipCoder/ZipCoder.js', array("jquery")),
+            // rui.viframe
+            "rui.viframe" => array('jquery.viframe/jquery.viframe.js', array("jquery", "InputPluginRegistry")),
+            "rui.vifupload" => array('jquery.viframe/jquery.vifupload.js', array("rui.viframe")),
+            "rui.vifhistory" => array('jquery.viframe/jquery.vifhistory.js', array("rui.viframe")),
+            // input_plugin
+            "InputPluginRegistry" => array('input_plugin/InputPluginRegistry.js', array("jquery")),
+            "input_plugin.zero_option" => array('input_plugin/zero_option.js', array("jquery", "InputPluginRegistry")),
+            "input_plugin.split_text" => array('input_plugin/split_text.js', array("jquery", "InputPluginRegistry")),
+            "input_plugin.date_select" => array('input_plugin/date_select.js', array("jquery", "InputPluginRegistry")),
+            "input_plugin.radio_set_first" => array('input_plugin/radio_set_first.js', array("jquery", "InputPluginRegistry")),
+            "input_plugin.ckeditor" => array('input_plugin/ckeditor.js', array("jquery", "ckeditor", "InputPluginRegistry")),
+            "input_plugin.sync_select" => array('input_plugin/sync_select.js', array("jquery", "InputPluginRegistry")),
+        ),
     );
-    foreach ($defs as $module_name => $def) {
-        $resource = $asset->registerJsUrl($module_name, $def[0]);
-        if (is_array($def[1])) foreach ($def[1] as $dep) $resource->required($dep);
-    }
-
-    // jquery
-    $asset->registerJsUrl("jquery:1.10.2", '//code.jquery.com/jquery-1.10.2.min.js');
-    $asset->registerJsUrl("jquery:2.2.4", '//code.jquery.com/jquery-2.2.4.min.js');
-
-    // underscore
-    $asset->registerJsUrl("underscore:1.6.0", '//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js');
-
-    // jquery.datepick
-    $asset->registerJsUrl("jquery.datepick", $url.'/jquery.datepick/jquery.datepick.min.js')
-        ->required("jquery")
-        ->required("jquery.datepick-ja")
-        ->required("jquery.datepick-css");
-    $asset->registerCssUrl("jquery.datepick-css", $url.'/jquery.datepick/jquery.datepick.css');
-    $asset->registerJsUrl("jquery.datepick-ja", $url.'/jquery.datepick/jquery.datepick-ja.js');
-
-    // jquery.colorbox
-    $asset->registerCssUrl("jquery.colorbox:1.6,4", '//cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/i18n/jquery.colorbox-ja.js');
-
-    // nicEdit @deprecated
-    $asset->registerJsUrl("nicEdit:0.9.24", '//cdn.jsdelivr.net/nicedit/0.9r24/nicEdit.js');
-    $asset->registerJsUrl("nicEdit:0.9", $url.'/nicEdit.js')
-        ->required("nicEdit-css");
-    $asset->registerCssUrl("nicEdit-css:0.9", $url.'/nicEdit.css');
-
-    // ckeditor
-    $asset->registerJsUrl("ckeditor-autoload:4.6.0", $url."/ckeditor.autoload/ckeditor.autoload.js")
-        ->required("ckeditor:4.6.0");
-
-    // rui.require
-    $asset->registerJsUrl("rui.require", $url.'/rui.require/rui.js');
-
-    // rui.ajaxr
-    $asset->registerJsUrl("rui.ajaxr", $url.'/jquery.ajaxr/jquery.ajaxr.js')
-        ->required("jquery");
-
-    // rui.mi
-    $asset->registerJsUrl("rui.mi:3.0.0", $url.'/mi-3.0/jquery.mi.js')
-        ->required("jquery")
-        ->required("underscore")
-        ->required("InputPluginRegistry");
-    $asset->registerJsUrl("rui.mi:2.0.0", $url.'/jquery.mi/jquery.mi.js')
-        ->required("jquery")
-        ->required("underscore");
-    $asset->registerJsUrl("rui.mi:1.0.0", $url.'/rui.mi/index.js')
-        ->required("jquery");
-
-    // rui.wysiwyg
-    $asset->registerJsUrl("rui.wysiwyg", $url.'/rui.wysiwyg/index.js')
-        ->required("jquery")
-        ->required("nicEdit");
-
-    // rui.sort
-    $asset->registerJsUrl("rui.sort:1.0.0", $url.'/rui.sort/sort.js')
-        ->required("jquery");
-
-    // rui.zip
-    $asset->registerJsUrl("rui.zip:1.0.0", $url.'/rui.zip/index.js')
-        ->required("jquery");
-    $asset->registerJsUrl("rui.zip:2.0.0", $url.'/ZipCoder/ZipCoder.js')
-        ->required("jquery");
-
-    // rui.syncselect
-    $asset->registerJsUrl("rui.syncselect", $url.'/rui.syncselect/index.js')
-        ->required("jquery");
-
-    // rui.synchro
-    $asset->registerJsUrl("rui.synchro", $url.'/Synchro/Synchro.js')
-        ->required("jquery");
-
-    // rui.viframe
-    $asset->registerJsUrl("rui.viframe", $url.'/jquery.viframe/jquery.viframe.js')
-        ->required("jquery");
-    $asset->registerJsUrl("rui.vifupload", $url.'/jquery.viframe/jquery.vifupload.js')
-        ->required("rui.viframe");
-    $asset->registerJsUrl("rui.vifhistory", $url.'/jquery.viframe/jquery.vifhistory.js')
-        ->required("rui.viframe");
-
-    // rui.japcal
-    $asset->registerJsUrl("rui.japcal", $url.'/rui.japcal/index.js')
-        ->required("jquery");
-
-    // rui.datefix
-    $asset->registerJsUrl("rui.datefix", $url.'/rui.datefix/index.js')
-        ->required("rui.require")
-        ->required("jquery");
-
-    // rui.popup
-    $asset->registerJsUrl("rui.popup", $url.'/rui.popup/index.js')
-        ->required("rui.require")
-        ->required("jquery");
-
-    // rui.datepick
-    $asset->registerJsUrl("rui.datepick", $url.'/jquery.datepick/index.js')
-        ->required("jquery.datepick");
-
-    // rui.show-erors
-    $asset->registerJsUrl("rui.show-errors", $url.'/rui.show-errors/rui.show-errors.js')
-        ->required("jquery");
-
-    // input_plugin
-    $asset->registerJsUrl("InputPluginRegistry", $url.'/input_plugin/InputPluginRegistry.js')
-        ->required("jquery");
-    $asset->registerJsUrl("input_plugin.zero_option", $url.'/input_plugin/zero_option.js')
-        ->required("InputPluginRegistry");
-    $asset->registerJsUrl("input_plugin.split_text", $url.'/input_plugin/split_text.js')
-        ->required("InputPluginRegistry");
-    $asset->registerJsUrl("input_plugin.date_select", $url.'/input_plugin/date_select.js')
-        ->required("InputPluginRegistry");
-    $asset->registerJsUrl("input_plugin.radio_set_first", $url.'/input_plugin/radio_set_first.js')
-        ->required("InputPluginRegistry");
-    $asset->registerJsUrl("input_plugin.show_uploaded_file", $url.'/input_plugin/show_uploaded_file.js')
-        ->required("InputPluginRegistry")
-        ->required("config.current_webroot_url");
-    $asset->registerJsUrl("input_plugin.ckeditor", $url.'/input_plugin/ckeditor.js')
-        ->required("InputPluginRegistry")
-        ->required("ckeditor");
-    $asset->registerJsUrl("input_plugin.sync_select", $url.'/input_plugin/sync_select.js')
-        ->required("InputPluginRegistry");
-
-    // config
-    $asset->register("config.current_webroot_url", 'window.current_webroot_url = "'.app()->http->getServedRequest()->getUri()->getWebroot()->getBaseUri().'";', "js_code");

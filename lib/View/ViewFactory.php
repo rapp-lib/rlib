@@ -4,9 +4,9 @@ namespace R\Lib\View;
 class ViewFactory
 {
     protected $instances = array();
-    public function __invoke ($template_file, $vars=array(), $options=array())
+    public function __invoke ($name="default")
     {
-        return $this->getView()->fetch($template_file, $vars, $options);
+        return $this->getView($name);
     }
     public function getView ($name="default")
     {

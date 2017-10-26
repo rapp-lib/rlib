@@ -92,8 +92,9 @@ class InputField
             unset($attrs["plugins"]);
             $attrs["data-rui-plugins"] = json_encode($plugins);
             // 必要なプラグインの読み込み
-            $assets = app()->http->getServedRequest()->getUri()->getWebroot()->getAssets();
-            foreach ($plugins as $plugin_name => $plugin_params) $assets->required('input_plugin.'.$plugin_name);
+            foreach ($plugins as $plugin_name => $plugin_params) {
+                app()->view()->getAssets()->load('input_plugin.'.$plugin_name);
+            }
         }
         // type=selectであれば選択肢構築
         if ($this->attrs["type"]=="select") {

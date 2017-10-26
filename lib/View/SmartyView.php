@@ -20,6 +20,9 @@ class SmartyView
         $smarty->assign((array)$vars);
         return $smarty->fetch($template_file);
     }
+
+// -- Smarty
+
     /**
      * SmartyオブジェクトのFactory
      */
@@ -60,6 +63,20 @@ class SmartyView
             return true;
         }
         return false;
+    }
+
+// -- Asset
+
+    protected $assets = null;
+    protected $repo_path = "path://.assets";
+    public function getAssets ()
+    {
+        if ( ! $this->assets) {
+            $this->assets = new FrontAssets();
+            $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri($this->repo_path);
+            $this->assets->addRepo($uri);
+        }
+        return $this->assets;
     }
 
 // -- 基本処理プラグイン
@@ -163,7 +180,7 @@ class SmartyView
 
 // -- URL解決プラグイン
 
-    public function smarty_modifier_page_to_url ($page_id, $query_params=array(), $anchor=null)
+    public static function smarty_modifier_page_to_url ($page_id, $query_params=array(), $anchor=null)
     {
         $request_uri = app()->http->getServedRequest()->getUri();
         $page_id = $request_uri->getPageAction()->getController()->resolveRelativePageId($page_id);
@@ -171,24 +188,41 @@ class SmartyView
             ->withoutAuthorityInWebroot();
         return "".$uri;
     }
-    public function smarty_modifier_path_to_url ($path, $url_params=array(), $anchor=null)
+    public static function smarty_modifier_path_to_url ($path, $url_params=array(), $anchor=null)
     {
         $uri = app()->http->getServedRequest()->getUri()
-            ->getPageAction()->getController()->uri("path://".$path, $url_params, $anchor)->withoutAuthorityInWebroot();
+            ->getPageAction()->getController()->uri("path://".$path, $url_params, $anchor)
+            ->withoutAuthorityInWebroot();
         return "".$uri;
     }
 
 // -- 認証解決プラグイン
 
-    public function smarty_modifier_url_to_priv_req ($uri)
+    public static function smarty_modifier_url_to_priv_req ($uri)
     {
         $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri($uri);
         $priv_req = $uri->getPageAuth()->getPrivReq();
         return $priv_req;
     }
-    public function smarty_modifier_check_user_priv ($priv_req, $role=null)
+    public static function smarty_modifier_check_user_priv ($priv_req, $role=null)
     {
         $role = isset($role) ? $role : app()->user->getCurrentRole();
         return app()->user->checkCurrentPriv($role, $priv_req);
+    }
+
+// -- FrontAsset処理プラグイン
+
+    public static function smarty_block_script ($attrs, $content, $smarty, &$repeat)
+    {
+        if ( ! $repeat) {
+            if ($attrs["require"]) app()->view()->getAssets()->load($attrs["require"]);
+            if ($attrs["src"]) app()->view()->getAssets()->scriptUri($attrs["src"]);
+            if ($attrs["loaded"]) app()->view()->getAssets()->loaded($attrs["loaded"]);
+            if (strlen($content)) app()->view()->getAssets()->script($content);
+        }
+    }
+    public static function smarty_function_render_assets ($attrs, $smarty)
+    {
+        return app()->view()->getAssets()->render(array("clear"=>true));
     }
 }
