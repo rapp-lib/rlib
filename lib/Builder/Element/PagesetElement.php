@@ -15,7 +15,17 @@ class PagesetElement extends Element_Base
         // Mail登録
         if ($this->getAttr("use_mail")) {
             $controller_name = $this->getParent()->getName();
-            $this->children["mail"][$controller_name] = new MailElement($controller_name, array(), $this);
+            // 管理者通知メール
+            $this->children["mail"][] = new MailElement($controller_name.".admin", array(
+                "type" => "admin",
+            ), $this);
+            // 自動返信メール
+            if ($mail_col = $this->getParent()->getTable()->getColByAttr("def.mail")) {
+                $this->children["mail"][] = new MailElement($controller_name.".reply", array(
+                    "type" => "reply",
+                    "mail_col_name" => $mail_col->getName(),
+                ), $this);
+            }
         }
     }
     public function getTemplateEntry ()
@@ -32,6 +42,11 @@ class PagesetElement extends Element_Base
     public function getMails ()
     {
         return (array)$this->children["mail"];
+    }
+    public function getMailByType ($type)
+    {
+        foreach ($this->getMails() as $mail) if ($mail->getAttr("type")===$type) return $mail;
+        return null;
     }
     /**
      * @getter Page

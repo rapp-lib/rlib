@@ -75,10 +75,14 @@
 <?php else: ?>
             $t = $this->forms["entry"]->getValues();
 <?php endif; ?>
-<?php foreach ($pageset->getMails() as $mail): ?>
-            // メールの送信
+<?php if ($mail = $pageset->getMailByType("admin")): ?>
+            // 管理者通知メールの送信
             send_mail("<?=$mail->getTemplateFile()?>", array("t"=>$t));
-<?php endforeach; ?>
+<?php endif; ?>
+<?php if ($mail = $pageset->getMailByType("reply")): ?>
+            // 自動返信メールの送信
+            send_mail("<?=$mail->getTemplateFile()?>", array("t"=>$t));
+<?php endif; ?>
             $this->forms["entry"]->clear();
         }
 <?php if ($pageset->getAttr("skip_complete")): ?>

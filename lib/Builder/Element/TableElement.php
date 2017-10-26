@@ -52,42 +52,36 @@ class TableElement extends Element_Base
     {
         return $this->children["col"][$col_name];
     }
-    /**
-     * IDのColを取得
-     */
-    public function getIdCol ()
-    {
-        foreach ($this->getCols() as $col) {
-            if ($col->getAttr("def.id")) {
-                return $col;
-            }
-        }
-        report_error("TableにIDカラムがありません",array(
-            "table" => $this,
-        ));
-        return null;
-    }
-    public function getInputCols ()
+    public function getColsByAttr ($attr)
     {
         $cols = array();
         foreach ($this->getCols() as $col) {
-            if ($col->getAttr("type")) $cols[] = $col;
+            if ($col->getAttr($attr)) $cols[] = $col;
         }
         return $cols;
     }
+    public function getColByAttr ($attr)
+    {
+        $cols = $this->getColsByAttr($attr);
+        return $cols ? $cols[0] : null;
+    }
+    public function getIdCol ()
+    {
+        $id_col = $this->getColByAttr("def.id");
+        if ( ! $id_col) report_error("TableにIDカラムがありません",array("table"=>$this));
+        return $id_col;
+    }
+    public function getInputCols ()
+    {
+        return $this->getColsByAttr("type");
+    }
     public function getOrdCol ()
     {
-        foreach ($this->getCols() as $col) {
-            if ($col->getAttr("def.ord")) return $col;
-        }
-        return null;
+        return $this->getColByAttr("def.ord");
     }
     public function getLabelCol ()
     {
-        foreach ($this->getInputCols() as $col) {
-            return $col;
-        }
-        return $this->getIdCol();
+        return $this->getColByAttr("type") ?: $this->getIdCol();
     }
     public function getIndexes ()
     {
