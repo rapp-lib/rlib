@@ -12,7 +12,7 @@
 {{/form}}
 
 <a id="table-sort" data-sort-base-url='{{$forms.search->getSearchPageUrl(["p"=>0, "sort"=>""])}}' data-sort-current="{{$forms.search.sort}}" data-sort-param-name="sort" data-sort-default="<?=$table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName()?>"></a>
-{{asset required=["rui.sort"]}}
+{{script require=["rui.sort"]}}{{/script}}
 
 <div class="ad_btn clearfix">
 <?php if ($pageset = $controller->getPagesetByType("form")): ?>

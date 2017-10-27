@@ -66,37 +66,8 @@ class Validator
         $this->currentRule = $rule;
         // 評価条件設定
         if (isset($rule["if"]) && ! $this->stConds($rule["if"])) return;
-        // 旧評価条件設定
-        if (isset($rule["if_target"])) {
-            if (is_string($rule["if_target"])) {
-                $if_value = $this->getValue($rule["if_target"]);
-                if (isset($rule["if_value"])) {
-                    if ( ! is_array($rule["if_value"])) {
-                        if ($if_value != $rule["if_value"]) {
-                            return;
-                        }
-                    }
-                } elseif (isset($rule["if_value_contains"])) {
-                    if (is_array($if_value)) {
-                        if (array_search($rule["if_value_contains"], $if_value)===false) {
-                            return;
-                        }
-                    } else {
-                        return;
-                    }
-                } elseif (isset($rule["if_value_is"])) {
-                    if ($rule["if_value_is"]=="blank" && strlen($if_value)) {
-                        return;
-                    }
-                } else {
-                    if ( ! strlen($if_value)) {
-                        return;
-                    }
-                }
-            }
-        }
         // ValidateRuleExtentionを呼び出す
-        $callback = \R\Lib\Extention\ValidateRuleLoader::getCallback($rule["type"]);
+        $callback = ValidateRuleLoader::getCallback($rule["type"]);
         $error = call_user_func_array($callback, array($this, $value, $rule));
         // エラーがなければ終了
         if ( ! $error) return;

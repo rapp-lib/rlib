@@ -5,14 +5,14 @@
         <p class="errmsg">{{$forms.entry->getFieldLabel($error["field_name"])}} : {{$error["message"]}}</p>
     {{/foreach}}
     *}}
-    {{code type="js" required=["jquery:*","app.show-errors"]}}
+    {{script require=["jquery", "app.show-errors"]}}
         $(function(){
             showErrors({
                 errors: {{$forms.entry->getErrors()|json_encode}},
                 $form: $("form.form-entry")
             });
         });
-    {{/code}}
+    {{/script}}
 {{/if}}
 
 {{form action='.'|page_to_url enctype="multipart/form-data" method="post" form=$forms.entry class="form-entry"}}

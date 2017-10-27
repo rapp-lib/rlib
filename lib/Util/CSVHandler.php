@@ -32,14 +32,9 @@ class CSVHandler
         if ($this->options["filters"]) ksort($this->options["filters"]);
         $this->options["data_charset"] = $this->options["data_charset"] ?: "UTF-8";
         $this->options["file_charset"] = $this->options["file_charset"] ?: "SJIS-WIN";
-        $this->options["sanitize"] = (boolean)$this->options["sanitize"];
         $this->options["ignore_empty_line"] = (boolean)$this->options["ignore_empty_line"];
         $this->options["escape_all"] = (boolean)$this->options["escape_all"];
         // 標準filterの登録
-        if ($this->options["sanitize"]) {
-            array_unshift($this->options["filters"],
-                array(null, array($this, "filterSanitize"), "ignore_skip"=>true));
-        }
         if ($this->options["data_charset"] != $this->options["file_charset"]) {
             array_unshift($this->options["filters"],
                 array(null, array($this, "filterConvertCharset"), "ignore_skip"=>true));
@@ -212,22 +207,11 @@ class CSVHandler
             $module = $filter["filter"];
 
             if ( ! is_callable($module)) {
-                $module = \R\Lib\Extention\CsvfilterLoader::getCallback($filter["filter"]);
+                $module = CSVFilterLoader::getCallback($filter["filter"]);
             }
             foreach ($filter["target"] as $target) {
                 $csv_data[$target] = call_user_func($module, $csv_data[$target], $mode, $filter, $csv_data);
             }
-        }
-    }
-    private function filterSanitize ($value, $mode, $filter, $csv_data)
-    {
-        // 入出力サニタイズ処理
-        // CSV読み込み時
-        if ($mode == "r") {
-            return htmlspecialchars($value, ENT_QUOTES);
-        // CSV書き込み時
-        } else {
-            return htmlspecialchars_decode($value, ENT_QUOTES);
         }
     }
     private function filterConvertCharset ($value, $mode, $filter, $csv_data)
@@ -239,6 +223,51 @@ class CSVHandler
         // CSV書き込み時
         } else {
             return mb_convert_encoding($value, $this->options["file_charset"], $this->options["data_charset"]);
+        }
+    }
+}
+class CSVFilterLoader
+{
+    public static function getCallback ($name)
+    {
+        $class_name = get_class();
+        $callback_method = "callback".str_camelize($name);
+        if (method_exists($class_name,$callback_method)) {
+            return array($class_name,$callback_method);
+        }
+    }
+    // 分解/結合
+    public static function callbackExplode ($value, $mode, $filter, $csv_data)
+    {
+        $filter["delim"] = $filter["delim"] ?: ",";
+        // CSV読み込み時
+        if ($mode == "r") {
+            return explode($filter["delim"], $value);
+        // CSV書き込み時
+        } else {
+            return implode($filter["delim"], $value);
+        }
+    }
+    // 指定のenumに変換
+    public static function callbackEnumValue ($value, $mode, $filter, $csv_data)
+    {
+        // 配列であれば各要素を処理
+        if (is_array($value)) {
+            foreach ($value as & $v) {
+                $v = self::callbackEnumValue($v, $mode, $filter, $csv_data);
+            }
+            return $value;
+        }
+        // 空白要素の無視
+        if ( ! strlen($value)) return $value;
+        // CSV読み込み時
+        if ($mode == "r") {
+            $enum_reverse = array();
+            foreach (app()->enum[$filter["enum"]] as $k=>$v) $enum_reverse[$v] = $k;
+            return $enum_reverse[$value];
+        // CSV書き込み時
+        } else {
+            return app()->enum[$filter["enum"]][$value];
         }
     }
 }

@@ -3,7 +3,6 @@
      */
     protected static $csv_setting = array(
         "ignore_empty_line" => true,
-        "sanitize" => true,
         "rows" => array(
             "<?=$table->getIdCol()->getName()?>" => "#ID",
 <?php foreach ($controller->getInputCols() as $col): ?>

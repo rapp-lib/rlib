@@ -52,11 +52,6 @@ class SmartyView
      */
     public function pluginHandler ($name, $type, $template, &$callback, &$script, &$cacheable)
     {
-        $callback_tmp = \R\Lib\Extention\SmartyPluginLoader::getCallback($type.".".$name);
-        if (is_callable($callback_tmp)) {
-            $callback = $callback_tmp;
-            return true;
-        }
         $callback_tmp = get_class($this)."::smarty_".$type."_".$name;
         if (is_callable($callback_tmp)) {
             $callback = $callback_tmp;
