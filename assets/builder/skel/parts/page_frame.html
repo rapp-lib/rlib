@@ -1,7 +1,7 @@
 <?php $controller = $page->getParent()->getParent(); ?>
 <?php $role = $controller->getRole(); ?>
 {{assign "page_title" "<?=$page->getTitle()?>"}}
-{{inc route="<?=$role->getHeaderPath()?>"}}
+{{inc path="<?=$role->getHeaderPath()?>"}}
 <div class="right">
 <h2 class="admin_h2">{{$page_title}}<span></span></h2>
 <?php /* ログイン画面用
@@ -12,4 +12,4 @@
 <?=$page->getInnerSource()?><?="\n"?>
 
 </div>
-{{inc route="<?=$role->getFooterPath()?>"}}
+{{inc path="<?=$role->getFooterPath()?>"}}

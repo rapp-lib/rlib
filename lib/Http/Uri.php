@@ -5,7 +5,9 @@ use Psr\Http\Message\UriInterface;
 class Uri extends \Zend\Diactoros\Uri
 {
     protected $webroot;
-    protected $parsed;
+    protected $parsed = null;
+    protected $page_controller = null;
+    protected $page_auth = null;
     public function __construct ($webroot, $uri, $query_params=array(), $fragment="")
     {
         // Webrootの設定
@@ -52,12 +54,8 @@ class Uri extends \Zend\Diactoros\Uri
         return $this;
     }
 
-// --
+// -- uri解析結果取得
 
-    public function getWebroot()
-    {
-        return $this->webroot;
-    }
     public function getPageId()
     {
         $this->initParsed();
@@ -88,22 +86,6 @@ class Uri extends \Zend\Diactoros\Uri
         $this->initParsed();
         return $this->parsed["route"];
     }
-    public function getPageAction()
-    {
-        $this->initParsed();
-        if ( ! $this->parsed["page_action"]) {
-            $this->parsed["page_action"] = new PageAction($this);
-        }
-        return $this->parsed["page_action"];
-    }
-    public function getPageAuth()
-    {
-        $this->initParsed();
-        if ( ! $this->parsed["page_auth"]) {
-            $this->parsed["page_auth"] = new PageAuth($this);
-        }
-        return $this->parsed["page_auth"];
-    }
     private function initParsed()
     {
         if ( ! isset($this->parsed)) {
@@ -113,11 +95,58 @@ class Uri extends \Zend\Diactoros\Uri
 
 // --
 
+    public function getWebroot()
+    {
+        return $this->webroot;
+    }
+    public function getPageController()
+    {
+        if ( ! $this->page_controller) {
+            $page_id = $this->getPageId();
+            if ( ! $page_id) {
+                report_error("URLに対応するPageIDがありません", array("uri"=>$this));
+            }
+            list($controller_name,) = explode('.', $page_id, 2);
+            $controller_class = 'R\App\Controller\\'.str_camelize($controller_name).'Controller';
+            if ( ! class_exists($controller_class)) {
+                report_error("PageIDに対応するControllerがありません", array("page_id"=>$page_id));
+            }
+            $this->page_controller = new $controller_class($this);
+        }
+        return $this->page_controller;
+    }
+    public function getPageView ()
+    {
+        $route = $this->getRoute();
+        return app()->view($route["view"] ?: "default");
+    }
+    public function getPageAuth()
+    {
+        if ( ! $this->page_auth) {
+            $this->page_auth = new PageAuth($this);
+        }
+        return $this->page_auth;
+    }
+    public function getRelativeUri($uri, $query_params=array(), $fragment="")
+    {
+        // 相対page_idの解決
+        if (is_string($uri) && preg_match('!^id://([^\?]+)$!', $uri, $match)) {
+            $uri = array("page_id"=>$match[1]);
+        }
+        if (is_array($uri) && preg_match('!^\.([^\?\.]+)?$!', $uri["page_id"], $match)) {
+            list($c, $a) = explode(".", $this->getPageId(), 2);
+            $uri["page_id"] = $c.".".($match[1] ?: $a);
+        }
+        return new Uri($this->webroot, $uri, $query_params, $fragment);
+    }
+
+// -- static実装
+
     public static function mergeQueryParams($uri, $query_params=array(), $fragment="")
     {
         $uri = new \Zend\Diactoros\Uri("".$uri);
         parse_str($uri->getQuery(), $uri_query_params);
-        $query_params = array_merge((array)$uri_query_params, $query_params);
+        $query_params = array_merge((array)$uri_query_params, (array)$query_params);
         self::normalizeQueryParamRecursive($query_params);
         $fragment = strlen($fragment) ? $fragment : $uri->getFragment();
         return self::buildUriString($uri->getScheme(), $uri->getAuthority(), $uri->getPath(),
@@ -125,29 +154,20 @@ class Uri extends \Zend\Diactoros\Uri
     }
     private static function normalizeQueryParamRecursive( & $arr)
     {
+        foreach ($arr as & $v) if (is_array($v)) self::normalizeQueryParamRecursive($v);
         ksort($arr);
     }
     public static function buildUriString($scheme, $authority, $path, $query, $fragment)
     {
         $uri = '';
-        if (! empty($scheme)) {
-            $uri .= sprintf('%s://', $scheme);
-        }
-        if (! empty($authority)) {
-            $uri .= $authority;
-        }
+        if ( ! empty($scheme)) $uri .= sprintf('%s://', $scheme);
+        if ( ! empty($authority)) $uri .= $authority;
         if ($path) {
-            if (empty($path) || '/' !== substr($path, 0, 1)) {
-                $path = '/' . $path;
-            }
+            if (empty($path) || '/' !== substr($path, 0, 1)) $path = '/' . $path;
             $uri .= $path;
         }
-        if ($query) {
-            $uri .= sprintf('?%s', $query);
-        }
-        if ($fragment) {
-            $uri .= sprintf('#%s', $fragment);
-        }
+        if ($query) $uri .= sprintf('?%s', $query);
+        if ($fragment) $uri .= sprintf('#%s', $fragment);
         return $uri;
     }
 

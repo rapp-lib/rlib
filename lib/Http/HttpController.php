@@ -5,56 +5,30 @@ use R\Lib\Http\InputValues;
 
 class HttpController implements FormRepositry
 {
-    protected $controller_name;
-    protected $action_name;
-    protected $webroot;
-    protected $forms;
+    protected $uri;
     protected $vars = array();
+    protected $forms = null;
     protected $request = null;
     protected $input = array();
 
-    public function __construct ($controller_name, $action_name)
+    public function __construct ($uri)
     {
-        $this->controller_name = $controller_name;
-        $this->action_name = $action_name;
-        $this->webroot = app()->http->getWebrootByPageId($controller_name.".".$action_name);
-        // Formを収集して展開
-        $this->forms = app()->form->addRepositry($this);
-    }
-    public function getVars ()
-    {
-        return $this->vars;
-    }
-    public function resolveRelativePageId ($page_id)
-    {
-        // 相対page_idの解決
-        if (preg_match('!^\.([^\?\.]+)?$!', $page_id, $match)) {
-            $page_id = $this->controller_name.".".($match[1] ?: $this->action_name);
-        }
-        return $page_id;
+        $this->uri = $uri;
     }
 
 // -- act実装向け機能
 
-    public function redirect ($uri, $query_params=array(), $fragment=null)
+    protected function redirect ($uri, $query_params=array(), $fragment=null)
     {
         return app()->http->response("redirect", $this->uri($uri, $query_params, $fragment));
     }
-    public function response ($type, $data=null)
+    protected function response ($type, $data=null)
     {
         return app()->http->response($type, $data);
     }
-    public function uri ($uri, $query_params=array(), $fragment=null)
+    protected function uri ($uri, $query_params=array(), $fragment=null)
     {
-        // 相対page_idの解決
-        if (is_string($uri) && preg_match('!^id://([^\?]+)$!', $uri, $match)) {
-            $page_id = $match[1];
-            $uri = array("page_id"=>$page_id);
-        }
-        if (is_array($uri) && isset($uri["page_id"])) {
-            $uri["page_id"] = $this->resolveRelativePageId($uri["page_id"]);
-        }
-        return $this->webroot->uri($uri, $query_params, $fragment);
+        return $this->uri->getRelativeUri($uri, $query_params, $fragment);
     }
 
 // -- Form系実装
@@ -114,70 +88,44 @@ class HttpController implements FormRepositry
 
 // -- Http系実装
 
-    /**
-     * act_*の実行
-     */
-    public static function getControllerAction ($page_id)
+    public function run ($request)
     {
-        list($controller_name, $action_name) = explode('.', $page_id, 2);
-        $controller_class = 'R\App\Controller\\'.str_camelize($controller_name).'Controller';
-        if ( ! class_exists($controller_class)) {
-            return null;
+        $result = $this->invokeAction($request);
+        if ( ! $result["has_action"]) {
+            report_warning("URLに対応するActionがありません",array("uri"=>$this->uri));
         }
-        return new $controller_class($controller_name, $action_name);
-    }
-    /**
-     * act_*の実行
-     * lib/Http/PageAction.php
-     */
-    public function execAct2 ($request)
-    {
-        // 入力
-        $this->request = $request;
-        $this->input = $request->getAttribute(InputValues::ATTRIBUTE_INDEX);
-        // 処理呼び出し
-        $response = $this->execAct();
-        if ($response) return $response;
-        // Responseを返さない場合、Viewで処理
-        $file = $request->getUri()->getPageFile();
+        // ResponseがあればHTMLを処理せず応答
+        if ($result["response"]) return $result["response"];
+        $file = $this->uri->getPageFile();
+        // HTMLファイルがなければ404応答
         if ( ! is_file($file)) return app()->http->response("notfound");
-        $vars = $this->getVars();
+        // varsの組み立て
+        $vars = $this->vars;
         $vars["forms"] = $this->forms;
         $vars["input"] = $this->input;
         $vars["request"] = $this->request;
         $vars["enum"] = app()->enum;
-        $html = app()->view()->fetch($file, $vars);
+        // HTMLファイルを応答
+        $route = $this->uri->getRoute();
+        $view = app()->view($route["view"] ?: "default");
+        $html = $view->fetch($file, $vars);
         return app()->http->response("html", $html);
     }
-    public function execAct ($args=array())
+    public function invokeAction ($request)
     {
-        $action_method_name = "act_".$this->action_name;
-        if ( ! method_exists($this, $action_method_name)) {
-            report_warning("Page設定に対応するActionがありません",array(
-                "action_method" => get_class($this)."::".$action_method_name,
-            ));
-            return null;
-        }
-        return call_user_func_array(array($this,$action_method_name), $args);
-    }
-    /**
-     * inc_*の実行
-     * lib/Http/PageAction
-     */
-    public function execInc2 ($request)
-    {
+        $result = array();
         // 入力
         $this->request = $request;
         $this->input = $request->getAttribute(InputValues::ATTRIBUTE_INDEX);
-        $this->execInc();
-        return $this->getVars();
-    }
-    public function execInc ($args=array())
-    {
-        $action_method_name = "inc_".$this->action_name;
-        if ( ! method_exists($this, $action_method_name)) {
-            return null;
+        $this->forms = app()->form->addRepositry($this);
+        list(,$action_name) = explode('.', $this->uri->getPageId(), 2);
+        // 処理呼び出し
+        $action_method_name = "act_".$action_name;
+        if (method_exists($this, $action_method_name)) {
+            $result["has_action"] = true;
+            $result["response"] = call_user_func(array($this, $action_method_name));
         }
-        return call_user_func_array(array($this,$action_method_name), $args);
+        $result["vars"] = $this->vars;
+        return $result;
     }
 }

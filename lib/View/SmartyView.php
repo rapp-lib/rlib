@@ -152,52 +152,45 @@ class SmartyView
     public static function smarty_function_inc ($params, $smarty)
     {
         $uri = $params["uri"];
-        if ( ! $uri && $params["route"]) $uri = "path://".$params["route"];
         if ( ! $uri && $params["path"]) $uri = "path://".$params["path"];
         if ( ! $uri && $params["page"]) $uri = "id://".$params["page"];
+        // actの呼び出し
         $request = app()->http->getServedRequest();
-        $uri = $request->getUri()->getWebroot()->uri($uri);
-        // Routeに対応する処理の実行
-        $vars = $uri->getPageAction()->runInternal($request);
-        $request_file = $uri->getPageFile();
-        if ( ! file_exists($request_file)) {
-            report_warning("incタグの対象となるテンプレートファイルがありません",array(
-                "request_file" => $request_file,
+        $uri = $request->getUri()->getRelativeUri($uri);
+        $result = $uri->getPageController()->invokeAction($request);
+        $file = $uri->getPageFile();
+        if ( ! is_file($file)) {
+            report_warning("incタグの対象となるファイルがありません",array(
+                "file" => $file,
                 "uri" => $uri,
             ));
-            return;
         }
-        // テンプレートの読み込み
-        $smarty_clone = clone($smarty);
-        $smarty_clone->assign($vars);
-        return $smarty_clone->fetch($request_file);
+        $smarty->assign((array)$result["vars"]);
+        return $smarty->fetch($file);
     }
 
 // -- URL解決プラグイン
 
     public static function smarty_modifier_page_to_url ($page_id, $query_params=array(), $anchor=null)
     {
-        $request_uri = app()->http->getServedRequest()->getUri();
-        $page_id = $request_uri->getPageAction()->getController()->resolveRelativePageId($page_id);
-        $uri = $request_uri->getWebroot()->uri(array("page_id"=>$page_id), $query_params, $anchor)
+        return "".app()->http->getServedRequest()->getUri()
+            ->getRelativeUri("id://".$page_id, $query_params, $anchor)
             ->withoutAuthorityInWebroot();
-        return "".$uri;
     }
     public static function smarty_modifier_path_to_url ($path, $url_params=array(), $anchor=null)
     {
-        $uri = app()->http->getServedRequest()->getUri()
-            ->getPageAction()->getController()->uri("path://".$path, $url_params, $anchor)
+        return "".app()->http->getServedRequest()->getUri()
+            ->getRelativeUri("path://".$path, $query_params, $anchor)
             ->withoutAuthorityInWebroot();
-        return "".$uri;
     }
 
 // -- 認証解決プラグイン
 
     public static function smarty_modifier_url_to_priv_req ($uri)
     {
-        $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri($uri);
-        $priv_req = $uri->getPageAuth()->getPrivReq();
-        return $priv_req;
+        return app()->http->getServedRequest()->getUri()
+            ->getWebroot()->uri($uri)
+            ->getPageAuth()->getPrivReq();
     }
     public static function smarty_modifier_check_user_priv ($priv_req, $role=null)
     {
@@ -205,7 +198,7 @@ class SmartyView
         return app()->user->checkCurrentPriv($role, $priv_req);
     }
 
-// -- FrontAsset処理プラグイン
+// -- Assets処理プラグイン
 
     public static function smarty_block_script ($attrs, $content, $smarty, &$repeat)
     {

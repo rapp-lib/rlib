@@ -285,7 +285,8 @@ class FormContainer extends ArrayObject
                 $attrs["action"] = "id://".$this->def["search_page"];
             }
             $attrs["action"] = "".app()->http->getServedRequest()->getUri()
-                ->getPageAction()->getController()->uri($attrs["action"])->withoutAuthorityInWebroot();
+                ->getRelativeUri($attrs["action"])
+                ->withoutAuthorityInWebroot();
         }
         return tag("form",$attrs,$content);
     }
@@ -472,7 +473,8 @@ class FormContainer extends ArrayObject
             }
         }
         $uri = app()->http->getServedRequest()->getUri()
-            ->getPageAction()->getController()->uri("id://".$this->def["search_page"], $params);
+            ->getRelativeUri("id://".$this->def["search_page"], $params)
+            ->withoutAuthority();
         return $uri;
     }
 
