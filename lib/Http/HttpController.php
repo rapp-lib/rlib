@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\Controller;
+namespace R\Lib\Http;
 use R\Lib\Form\FormRepositry;
 use R\Lib\Http\InputValues;
 
@@ -12,18 +12,7 @@ class HttpController implements FormRepositry
     protected $vars = array();
     protected $request = null;
     protected $input = array();
-    /**
-     * FormRepositry経由で読み込まれるフォームの定義
-     */
-    protected static $defs = null;
-    /**
-     * 認証設定
-     */
-    protected static $access_as = null;
-    protected static $priv_required = false;
-    /**
-     * 初期化
-     */
+
     public function __construct ($controller_name, $action_name)
     {
         $this->controller_name = $controller_name;
@@ -32,14 +21,21 @@ class HttpController implements FormRepositry
         // Formを収集して展開
         $this->forms = app()->form->addRepositry($this);
     }
-    /**
-     * @getter
-     * 設定された変数の取得
-     */
     public function getVars ()
     {
         return $this->vars;
     }
+    public function resolveRelativePageId ($page_id)
+    {
+        // 相対page_idの解決
+        if (preg_match('!^\.([^\?\.]+)?$!', $page_id, $match)) {
+            $page_id = $this->controller_name.".".($match[1] ?: $this->action_name);
+        }
+        return $page_id;
+    }
+
+// -- act実装向け機能
+
     public function redirect ($uri, $query_params=array(), $fragment=null)
     {
         return app()->http->response("redirect", $this->uri($uri, $query_params, $fragment));
@@ -60,39 +56,13 @@ class HttpController implements FormRepositry
         }
         return $this->webroot->uri($uri, $query_params, $fragment);
     }
-    public function resolveRelativePageId ($page_id)
-    {
-        // 相対page_idの解決
-        if (preg_match('!^\.([^\?\.]+)?$!', $page_id, $match)) {
-            $page_id = $this->controller_name.".".($match[1] ?: $this->action_name);
-        }
-        return $page_id;
-    }
+
+// -- Form系実装
+
     /**
-     * act_*の実行
+     * FormRepositry経由で読み込まれるフォームの定義
      */
-    public function execAct ($args=array())
-    {
-        $action_method_name = "act_".$this->action_name;
-        if ( ! method_exists($this, $action_method_name)) {
-            report_warning("Page設定に対応するActionがありません",array(
-                "action_method" => get_class($this)."::".$action_method_name,
-            ));
-            return null;
-        }
-        return call_user_func_array(array($this,$action_method_name), $args);
-    }
-    /**
-     * inc_*の実行
-     */
-    public function execInc ($args=array())
-    {
-        $action_method_name = "inc_".$this->action_name;
-        if ( ! method_exists($this, $action_method_name)) {
-            return null;
-        }
-        return call_user_func_array(array($this,$action_method_name), $args);
-    }
+    protected static $defs = null;
     /**
      * @implements R\Lib\Form\FormRepositry
      */
@@ -141,34 +111,6 @@ class HttpController implements FormRepositry
             "form_name" => $form_name,
         ));
     }
-    /**
-     * @implements R\Lib\Auth\Authenticator
-     */
-    public static function getAuthenticate ()
-    {
-        $authenticate = array();
-        if (static::$access_as) {
-            $authenticate["access_as"] =static::$access_as;
-        }
-        if (static::$access_as) {
-            $authenticate["priv_required"] =static::$priv_required;
-        }
-        return $authenticate;
-    }
-    /**
-     *
-     */
-    public function getAccessRoleName ()
-    {
-        return static::$access_as;
-    }
-    /**
-     *
-     */
-    public function getPrivRequired ()
-    {
-        return static::$priv_required;
-    }
 
 // -- Http系実装
 
@@ -186,6 +128,7 @@ class HttpController implements FormRepositry
     }
     /**
      * act_*の実行
+     * lib/Http/PageAction.php
      */
     public function execAct2 ($request)
     {
@@ -206,8 +149,20 @@ class HttpController implements FormRepositry
         $html = app()->view()->fetch($file, $vars);
         return app()->http->response("html", $html);
     }
+    public function execAct ($args=array())
+    {
+        $action_method_name = "act_".$this->action_name;
+        if ( ! method_exists($this, $action_method_name)) {
+            report_warning("Page設定に対応するActionがありません",array(
+                "action_method" => get_class($this)."::".$action_method_name,
+            ));
+            return null;
+        }
+        return call_user_func_array(array($this,$action_method_name), $args);
+    }
     /**
      * inc_*の実行
+     * lib/Http/PageAction
      */
     public function execInc2 ($request)
     {
@@ -216,5 +171,13 @@ class HttpController implements FormRepositry
         $this->input = $request->getAttribute(InputValues::ATTRIBUTE_INDEX);
         $this->execInc();
         return $this->getVars();
+    }
+    public function execInc ($args=array())
+    {
+        $action_method_name = "inc_".$this->action_name;
+        if ( ! method_exists($this, $action_method_name)) {
+            return null;
+        }
+        return call_user_func_array(array($this,$action_method_name), $args);
     }
 }

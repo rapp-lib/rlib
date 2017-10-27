@@ -1,6 +1,5 @@
 <?php
 namespace R\Lib\Http;
-use \R\Lib\Controller\HttpController;
 
 class PageAction
 {
