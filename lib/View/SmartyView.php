@@ -59,6 +59,16 @@ class SmartyView
         }
         return false;
     }
+    /**
+     * Smartyプラグイン内で上位のBlock要素の属性パラメータを取得する
+     */
+    public static function getClosestBlock ($smarty, $tag_name)
+    {
+        foreach ($smarty->smarty->_cache['_tag_stack'] as $block) {
+            if ($block[0] === $tag_name) return $block[1];
+        }
+        return null;
+    }
 
 // -- Asset
 
@@ -86,19 +96,22 @@ class SmartyView
 
     public static function smarty_block_form ($attrs, $content, $smarty_template, $repeat)
     {
+        // 開タグでは処理しない
+        if ($repeat) return;
         $form = $attrs["form"];
         unset($attrs["form"]);
         if ( ! $form) report_error("formの指定は必須です");
-        // 閉タグでHTML出力
-        if ( ! $repeat) return $form->getFormHtml($attrs, $content);
+        $html = $form->getFormHtml($attrs, $content);
+        return $html;
     }
     public static function smarty_function_input ($attrs, $smarty)
     {
         $form = $attrs["form"];
         $assign = $attrs["assign"];
         unset($attrs["form"], $attrs["assign"]);
-        if ( ! $form) foreach ($smarty->smarty->_cache['_tag_stack'] as $block) {
-            if ($block[0] === "form" && $block[1]["form"]) $form = $block[1]["form"];
+        if ( ! $form) {
+            $form_attrs = self::getClosestBlock($smarty, "form");
+            if ($form_attrs["form"]) $form = $form_attrs["form"];
         }
         if ( ! $form) report_error("{{input}}は{{form}}内でのみ有効です", array("attrs"=>$attrs));
         $input_field = $form->getInputField($attrs);
@@ -119,7 +132,8 @@ class SmartyView
         // 初回の開くタグの処理
         if ($repeat===true) {
             // Keysの初期化
-            $form = $smarty->getCurrentForm();
+            $form_attrs = self::getClosestBlock($smarty, "form");
+            $form = $form_attrs["form"];
             $tag["keys"] = array();
             if ($length) $tag["keys"] = range(0,$length-1);
             elseif (isset($form[$fieldset_name])) $tag["keys"] = array_keys((array)$form[$fieldset_name]);
