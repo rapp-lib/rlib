@@ -165,13 +165,22 @@ class SmartyView
 
     public static function smarty_function_inc ($params, $smarty)
     {
+        // URLの解決
         $uri = $params["uri"];
+        if ( ! $uri && $params["route"]) $uri = "path://".$params["route"];
         if ( ! $uri && $params["path"]) $uri = "path://".$params["path"];
         if ( ! $uri && $params["page"]) $uri = "id://".$params["page"];
-        // actの呼び出し
         $request = app()->http->getServedRequest();
         $uri = $request->getUri()->getRelativeUri($uri);
+        // actの呼び出し
+        if ( ! $uri->getPageId()) {
+            report_warning("incタグの対象となるURLに対応するPageIDがありません",array(
+                "uri" => $uri,
+            ));
+        }
         $result = $uri->getPageController()->invokeAction($request);
+        // テンプレートのFetch
+        $smarty_sub = clone($smarty);
         $file = $uri->getPageFile();
         if ( ! is_file($file)) {
             report_warning("incタグの対象となるファイルがありません",array(
@@ -179,8 +188,8 @@ class SmartyView
                 "uri" => $uri,
             ));
         }
-        $smarty->assign((array)$result["vars"]);
-        return $smarty->fetch($file);
+        $smarty_sub->assign((array)$result["vars"]);
+        return $smarty_sub->fetch($file);
     }
 
 // -- URL解決プラグイン

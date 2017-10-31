@@ -13,7 +13,7 @@ class FrontAssets
     {
         if ($repo_uri instanceof \R\Lib\Http\Uri) {
             $base_dir = $repo_uri->getPageFile();
-            $base_uri = dirname("".$repo_uri);
+            $base_uri = "".$repo_uri->withoutAuthorityInWebroot();
         } elseif (is_array($repo_uri)) {
             $base_dir = $repo_uri["dir"];
             $base_uri = $repo_uri["uri"];
