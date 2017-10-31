@@ -172,13 +172,6 @@ class SmartyView
         if ( ! $uri && $params["page"]) $uri = "id://".$params["page"];
         $request = app()->http->getServedRequest();
         $uri = $request->getUri()->getRelativeUri($uri);
-        // actの呼び出し
-        if ( ! $uri->getPageId()) {
-            report_warning("incタグの対象となるURLに対応するPageIDがありません",array(
-                "uri" => $uri,
-            ));
-        }
-        $result = $uri->getPageController()->invokeAction($request);
         // テンプレートのFetch
         $smarty_sub = clone($smarty);
         $file = $uri->getPageFile();
@@ -188,7 +181,11 @@ class SmartyView
                 "uri" => $uri,
             ));
         }
-        $smarty_sub->assign((array)$result["vars"]);
+        // actの呼び出し
+        if ($uri->getPageId()) {
+            $result = $uri->getPageController()->invokeAction($request);
+            $smarty_sub->assign((array)$result["vars"]);
+        }
         return $smarty_sub->fetch($file);
     }
 
