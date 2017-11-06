@@ -1,4 +1,4 @@
-<table class="tbl_admin detail">
+<table class="tbl detail">
 <?php foreach ($controller->getInputCols() as $col): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
@@ -6,7 +6,9 @@
     </tr>
 <?php endforeach; ?>
 </table>
-<div class="ad_btn">
-    <a href='{{"<?=$pageset->getPageByType("form")->getLocalPage()?>"|page_to_url|url:["back"=>1]}}' class="rBtn">戻る</a>
-    <a href='{{"<?=$pageset->getPageByType("complete")->getLocalPage()?>"|page_to_url}}' class="sBtn">登録</a>
+<div class="btn-area">
+    <a href='{{"<?=$pageset->getPageByType("form")->getLocalPage()?>"|page_to_url|url:["back"=>1]}}' class="back-btn">戻る</a>
+    <div class="right clearfix">
+        <a href='{{"<?=$pageset->getPageByType("complete")->getLocalPage()?>"|page_to_url}}' class="primary-btn">登録</a>
+    </div>
 </div>
