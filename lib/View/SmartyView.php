@@ -103,6 +103,13 @@ class SmartyView
         if (mb_strlen($value,"UTF-8")>$length) $value = mb_substr($value,0,$length,"UTF-8").$append;
         return $value;
     }
+    public static function smarty_modifier_map ($values, $array, $glue=false)
+    {
+        if ( ! $values) $values = array();
+        $res = array();
+        foreach ($values as $v) if (isset($array[$v])) $res = $array[$v];
+        return $glue===false ? $res : implode($glue, $res);
+    }
 
 // -- フォーム構築プラグイン
 
