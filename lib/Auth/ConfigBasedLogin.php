@@ -60,7 +60,8 @@ class ConfigBasedLogin
         $priv = $this->getPriv();
         if ($priv_req && ! $priv) {
             if ($login_request_uri = $this->config["login_request_uri"]) {
-                $uri = $request->getUri()->getWebroot()->uri($login_request_uri);
+                $uri = $request->getUri()->getWebroot()->uri($login_request_uri,
+                    array("redirect"=>"".$request->getUri()->withoutAuthorityInWebroot()));
                 return app()->http->response("redirect", $uri);
             }
             return app()->http->response("forbidden");

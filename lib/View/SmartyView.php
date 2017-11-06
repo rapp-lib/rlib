@@ -69,6 +69,18 @@ class SmartyView
         }
         return null;
     }
+    /**
+     * Path、Page文字列をURLに変換する
+     */
+    protected static function convertLooseUri ($string)
+    {
+        $request_uri = app()->http->getServedRequest()->getUri();
+        if (is_string($uri)) {
+            if (preg_match('!^([\w\d]+)?\.[\w\d]+!', $uri)) $uri = "id://".$uri;
+            return $request_uri->getRelativeUri($uri);
+        }
+        return $request_uri->getRelativeUri();
+    }
 
 // -- Asset
 
@@ -206,16 +218,18 @@ class SmartyView
 
 // -- 認証解決プラグイン
 
-    public static function smarty_modifier_url_to_priv_req ($uri)
+    public static function smarty_modifier_is_accessible ($uri)
     {
-        return app()->http->getServedRequest()->getUri()
-            ->getWebroot()->uri($uri)
-            ->getPageAuth()->getPrivReq();
+        if (is_string($uri) && preg_match('!^([\w\d]+)?\.[\w\d]+!', $uri)) $uri = "id://".$uri;
+        $page_auth = app()->http->getServedRequest()->getUri()
+            ->getRelativeUri($uri)->getPageAuth();
+        return app()->user->checkCurrentPriv($page_auth->getRole(), $page_auth->getPrivReq());
     }
-    public static function smarty_modifier_check_user_priv ($priv_req, $role=null)
+    public static function smarty_modifier_get_priv ($priv_req, $role=null)
     {
-        $role = isset($role) ? $role : app()->user->getCurrentRole();
-        return app()->user->checkCurrentPriv($role, $priv_req);
+        if ( ! $role) $role = app()->http->getServedRequest()->getUri()->getPageAuth()->getRole();
+        $priv = app()->user->getCurrentPriv($role);
+        return $priv[$priv_req];
     }
 
 // -- Assets処理プラグイン

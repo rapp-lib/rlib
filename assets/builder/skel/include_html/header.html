@@ -23,16 +23,29 @@
     <h2>Menu</h2>
     <dl>
 <?php foreach ($role->getAccessibleControllers() as $menu_controller): ?>
-        <dt><a href='{{"<?=$menu_controller->getIndexPage()->getFullPage()?>"|page_to_url}}'><?=$menu_controller->getLabel()?></a></dt>
+<?php   if ($menu_controller->getAttr("type")==="login"): ?>
+<?php       $login_page = $menu_controller->getPagesetByType("login")->getPageByType("login"); ?>
+<?php       $exit_page = $menu_controller->getPagesetByType("login")->getPageByType("exit"); ?>
+        {{if "id"|get_priv:"<?=$menu_controller->getRole()->getName()?>"}}
+            <dt><a href='{{"<?=$exit_page->getFullPage()?>"|page_to_url}}'>ログアウト</a></dt>
+        {{else}}
+            <dt><a href='{{"<?=$login_page->getFullPage()?>"|page_to_url}}'>ログイン</a></dt>
+        {{/if}}
+<?php   else: ?>
+<?php       $index_page = $menu_controller->getIndexPage(); ?>
+        {{if "<?=$index_page->getFullPage()?>"|is_accessible}}
+            <dt><a href='{{"<?=$index_page->getFullPage()?>"|page_to_url}}'><?=$index_page->getLabel()?></a></dt>
+        {{/if}}
+<?php   endif; ?>
 <?php endforeach; ?>
     </dl>
     <dl>
 <?php foreach ($role->getSchema()->getRoles() as $role_others): ?>
-<?php if ($role_others->getName() != $role->getName()): ?>
-<?php if ($menu_controller = $role_others->getLoginController()): ?>
+<?php   if ($role_others->getName() != $role->getName()): ?>
+<?php       if ($menu_controller = $role_others->getIndexController()): ?>
         <dt><a href='{{"<?=$menu_controller->getIndexPage()->getFullPage()?>"|page_to_url}}'><?=$menu_controller->getLabel()?></a></dt>
-<?php endif; ?>
-<?php endif; ?>
+<?php       endif; ?>
+<?php   endif; ?>
 <?php endforeach; ?>
     </dl>
 </nav><!--/.main-menu-->

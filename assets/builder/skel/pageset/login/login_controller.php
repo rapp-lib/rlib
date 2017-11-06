@@ -30,7 +30,7 @@
             }
         // 転送先の設定
         } elseif ($redirect = $this->input["redirect"]) {
-            $this->forms["login"]["redirect"] = htmlspecialchars_decode($redirect);
+            $this->forms["login"]["redirect"] = $redirect;
         }
     }
 <?=$pageset->getPageByType("exit")->getMethodDecSource()?>
