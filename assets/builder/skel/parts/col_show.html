@@ -20,6 +20,8 @@
 {{if <?=$var_name?>.<?=$name?>}}<a href="{{<?=$var_name?>.<?=$name?>}}" target="_blank">ファイル</a>{{/if}}<?=""?>
 <?php elseif ($enum_set = $col->getEnumSet()): /* if type=="assoc" */ ?>
 {{$enum["<?=$enum_set->getFullName()?>"][<?=$var_name?>.<?=$name?>]}}<?=""?>
+<?php elseif ($col->getAttr("type")=="password"): /* if type=="assoc" */ ?>
+********
 <?php else: /* if type=="assoc" */ ?>
 {{<?=$var_name?>.<?=$name?>
 <?php if ($col->getAttr("type")=="date"): ?>|date:"Y/m/d"<?php endif; ?>

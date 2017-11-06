@@ -1,13 +1,13 @@
 {{if $forms.entry_csv->getErrors()}}
     <div class="errmsg">※入力エラーがあります</div>
-    {{code type="js" required=["jquery:*","app.show-errors"]}}
+    {{script require=["jquery", "app.show-errors"]}}
         $(function(){
             showErrors({
-                errors: {{$forms.entry_csv->getErrors()|json_encode}},
-                $form: $("form.form-entry_csv")
+                errors: {{$forms.entry->getErrors()|json_encode}},
+                $form: $("form.form-entry")
             });
         });
-    {{/code}}
+    {{/script}}
 {{/if}}
 
 {{form action='.'|page_to_url enctype="multipart/form-data" method="post" form=$forms.entry_csv class="form-entry_csv"}}

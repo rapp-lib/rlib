@@ -56,12 +56,13 @@
 <?=$pageset->getPageByType("confirm")->getMethodDecSource()?>
     {
         $this->forms["entry"]->restore();
-<?php if ($pageset->getAttr("skip_confirm")): ?>
-        return $this->redirect("id://<?=$pageset->getPageByType("complete")->getLocalPage()?>");
-<?php elseif ($table->hasDef()): ?>
+<?php if ($table->hasDef()): ?>
         $this->vars["t"] = $this->forms["entry"]->getRecord();
 <?php else: ?>
         $this->vars["t"] = $this->forms["entry"]->getValues();
+<?php endif; ?>
+<?php if ($pageset->getAttr("skip_confirm")): ?>
+        return $this->redirect("id://<?=$pageset->getPageByType("complete")->getLocalPage()?>");
 <?php endif; ?>
     }
 <?=$pageset->getPageByType("complete")->getMethodDecSource()?>
