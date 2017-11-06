@@ -13,6 +13,7 @@ class ConfigBasedLogin
     {
         if ($this->config["persist"]=="session") {
             app()->session("Auth_LoginSession_".$this->role)->priv = $priv;
+            app()->session->regenerateId(true);
         }
     }
     public function getPriv()

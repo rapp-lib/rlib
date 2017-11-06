@@ -23,7 +23,7 @@
 {{<?=$var_name?>.<?=$name?>|map:$enum["<?=$enum_set->getFullName()?>":" "]}}<?=""?>
 <?php   else: /* if type=="checklist" */ ?>
 {{$enum["<?=$enum_set->getFullName()?>"][<?=$var_name?>.<?=$name?>]}}<?=""?>
-<?php   endif: /* if type=="checklist" */ ?>
+<?php   endif; /* if type=="checklist" */ ?>
 <?php elseif ($col->getAttr("type")=="password"): /* if type=="assoc" */ ?>
 ********
 <?php else: /* if type=="assoc" */ ?>

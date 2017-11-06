@@ -44,7 +44,7 @@ class ColElement extends Element_Base
     public function getEntryFormFieldDefSource ($o=array())
     {
         $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
-        $def = array();
+        $def = array("label"=>$this->getAttr("label"));
         if ($this->getAttr("type")=="file") {
             $def["storage"] = "public";
         }
