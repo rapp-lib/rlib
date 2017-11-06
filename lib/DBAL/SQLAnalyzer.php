@@ -11,7 +11,7 @@ class SQLAnalyzer
             $is_few_rows = $t["rows"] < 1000;
             $is_seq_scan = $t["type"] == "ALL";
             $is_index_seq_scan = $t["type"] == "index";
-            $is_no_possible_keys = ! $t["possible_keys"];
+            $is_no_possible_keys = ! $t["possible_keys"] && ! $t["key"];
             $is_dep_sq = $t["select_type"] == "DEPENDENT SUBQUERY";
             $is_seq_join = in_array("Using join buffer", $t["Extra"]);
             $is_using_where = in_array("Using where", $t["Extra"]);
