@@ -1,4 +1,4 @@
-<table class="tbl_admin detail">
+<table class="tbl detail">
 <?php foreach ($controller->getInputCols() as $col): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
@@ -6,6 +6,6 @@
     </tr>
 <?php endforeach; ?>
 </table>
-<div class="ad_btn">
-    <a href='{{"<?=$pageset->getIndexPage()->getLocalPage($page)?>"|page_to_url:["back"=>1]}}' class="button rBtn">戻る</a>
+<div class="btn-area">
+    <a href='{{"<?=$pageset->getIndexPage()->getLocalPage($page)?>"|page_to_url:["back"=>1]}}' class="back-btn">戻る</a>
 </div>

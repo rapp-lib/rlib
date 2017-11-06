@@ -8,7 +8,7 @@
     {{script require=["jquery", "app.show-errors"]}}
         $(function(){
             showErrors({
-                errors: {{$forms.entry->getErrors()|json_encode}},
+                errors: {{$forms.entry->getErrors()|json_encode nofilter}},
                 $form: $("form.form-entry")
             });
         });
@@ -19,16 +19,18 @@
 <?php if ($controller->getAttr("type")==="master"): ?>
 {{input name="id" type="hidden"}}
 <?php endif; ?>
-<table class="tbl_admin detail">
+<table class="tbl detail">
 <?php foreach ($controller->getInputCols() as $col): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
-        <td class="inputBlock"><?=$col->getInputSource(array("is_edit"=>$controller->getAttr("type")==="master"))?></td>
+        <td class="input-block"><?=$col->getInputSource(array("is_edit"=>$controller->getAttr("type")==="master"))?></td>
     </tr>
 <?php endforeach; /* foreach as $col */ ?>
 </table>
-<div class="ad_btn">
-    <a href='{{"<?=$pageset->getBackPage()->getFullPage($page)?>"|page_to_url:["back"=>1]}}' class="rBtn">戻る</a>
-    <button type="submit" class="sBtn">確認</button>
+<div class="btn-area">
+    <a href='{{"<?=$pageset->getBackPage()->getFullPage($page)?>"|page_to_url:["back"=>1]}}' class="back-btn">戻る</a>
+    <div class="right clearfix">
+        <button type="submit" class="primary-btn">確認</button>
+    </div>
 </div>
 {{/form}}

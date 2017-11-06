@@ -1,31 +1,32 @@
 <!--
 {{form action="."|page_to_url form=$forms.search}}
-    <div class="ad_btn clearfix">
-        <table class="tbl_admin">
-            <tr>
-                <th>フリーワード検索</th>
-                <td>{{input name="freeword" type="text" size="40" class="input-text"}}</td>
-            </tr>
-        </table>
-        <a href="{{$forms.search->getSearchPageUrl()}}" class="search">リセット</a>
-        <button type="submit" class="search">検索</button>
+    <table class="tbl detail">
+        <tr>
+            <th>フリーワード検索</th>
+            <td>{{input name="freeword" type="text" size="40" class="input-text"}}</td>
+        </tr>
+    </table>
+    <div class="btn-area clearfix">
+        <div class="right clearfix">
+            <a href="{{$forms.search->getSearchPageUrl()}}" class="reset-btn">リセット</a>
+            <button type="submit" class="search-btn">検索</button>
+        </div>
     </div>
 {{/form}}
 -->
 
-<a id="table-sort" data-sort-base-url='{{$forms.search->getSearchPageUrl(["p"=>0, "sort"=>""])}}' data-sort-current="{{$forms.search.sort}}" data-sort-param-name="sort" data-sort-default="<?=$table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName()?>"></a>
-{{script require=["rui.sort"]}}{{/script}}
-
-<div class="ad_btn clearfix">
+<div class="btn-area">
 <?php if ($pageset = $controller->getPagesetByType("form")): ?>
-    <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="create">新規登録</a>
+    <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="create-btn">新規登録</a>
 <?php endif; ?>
+    <div class="right clearfix">
 <?php if ($pageset = $controller->getPagesetByType("csv")): ?>
-    <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="export">CSVダウンロード</a>
+        <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="export-btn">CSVダウンロード</a>
 <?php endif; ?>
 <?php if ($pageset = $controller->getPagesetByType("import")): ?>
-    <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="import">一括登録</a>
+        <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="import-btn">一括登録</a>
 <?php endif; ?>
+    </div>
 </div>
 
 {{if count($ts)==0}}
@@ -34,7 +35,10 @@
 
 {{else}}{{* 0件ではない場合 *}}
 
-<table class="tbl_admin list">
+<a id="table-sort" data-sort-base-url='{{$forms.search->getSearchPageUrl(["p"=>0, "sort"=>""])}}' data-sort-current="{{$forms.search.sort}}" data-sort-param-name="sort" data-sort-default="<?=$table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName()?>"></a>
+{{script require=["rui.sort"]}}{{/script}}
+
+<table class="tbl list">
     <tr>
 <?php foreach ($controller->getListCols() as $col): ?>
         <th><?=$col->getLabel()?></th>
@@ -48,12 +52,12 @@
 <?php endforeach; ?>
         <td>
 <?php if ($pageset = $controller->getPagesetByType("form")): ?>
-            <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="edit">編集</a>
+            <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="list-btn">編集</a>
 <?php else: ?>
-            <a href='{{"<?=$page->getParent()->getPageByType("detail")->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}'>詳細</a>
+            <a href='{{"<?=$page->getParent()->getPageByType("detail")->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="list-btn">詳細</a>
 <?php endif; ?>
 <?php if ($pageset = $controller->getPagesetByType("delete")): ?>
-            <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="delete" onclick="return confirm('削除します');">削除</a>
+            <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="list-btn" onclick="return confirm('削除します');">削除</a>
 <?php endif; ?>
         </td>
     </tr>
@@ -61,7 +65,7 @@
 </table>
 
 {{if $p = $ts->getPager()}}
-    <div class="pager">
+<div class="pager">
     <p>全{{$p->get("count")}}件中 {{$p->get("current_volume")}}件を表示</p>
     <ul class="clearfix">
     {{if $p->getPage('prev')}}
@@ -78,7 +82,7 @@
         <li class="next"><a href="{{$forms.search->getSearchPageUrl(['p'=>$p->getPage('next')])}}">&gt;</a></li>
     {{/if}}
     </ul>
-    </div>
+</div>
 {{/if}}
 
 {{/if}}{{* /0件ではない場合 *}}

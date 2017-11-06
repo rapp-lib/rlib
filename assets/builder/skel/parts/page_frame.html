@@ -2,14 +2,9 @@
 <?php $role = $controller->getRole(); ?>
 {{assign "page_title" "<?=$page->getTitle()?>"}}
 {{inc path="<?=$role->getHeaderPath()?>"}}
-<div class="right">
-<h2 class="admin_h2">{{$page_title}}<span></span></h2>
-<?php /* ログイン画面用
-    <div id="main">
-    <h2 class="h2_login"><?=$c["label"]?></h2>
-*/ ?>
+
+<h1 class="page-title">{{$page_title}}</h1>
 
 <?=$page->getInnerSource()?><?="\n"?>
 
-</div>
 {{inc path="<?=$role->getFooterPath()?>"}}
