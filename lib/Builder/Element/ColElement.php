@@ -70,9 +70,8 @@ class ColElement extends Element_Base
         $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
         $rules = array();
         foreach ((array)$this->getAttr("rules") as $type=>$params) {
-            if ($type==="required") {
-                if ($params) $rules[] = $name;
-            } else {
+            if ($type==="required" && $params===true) $rules[] = $name;
+            else {
                 $rules[] = array_merge(array($name, $type), (array)$params);
             }
         }

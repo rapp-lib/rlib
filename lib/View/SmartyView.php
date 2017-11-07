@@ -138,7 +138,7 @@ class SmartyView
         if ($assign) $smarty->assign($assign, $input_field);
         else return $input_field->getHtml();
     }
-    public static function smarty_block_input_field_set ($attrs, $content, $smarty, &$repeat)
+    public static function smarty_block_input_fieldset ($attrs, $content, $smarty, &$repeat)
     {
         $fieldset_name = $attrs["name"];
         $tmpl = $attrs["tmpl"] ?: null; // tmplに登録する際のkeyの値

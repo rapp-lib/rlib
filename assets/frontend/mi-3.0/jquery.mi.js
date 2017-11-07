@@ -22,7 +22,7 @@ window.MiHandler = function ($mi)
             this(o,$mi);
         });
         // テンプレートの取り込み
-        o.config.tmpl = _.template($mi.find(".mi-tmpl").eq(0).html());
+        o.config.tmpl = $mi.find(".mi-tmpl").eq(0).html();
         // パラメータの取得
         o.config.minItems = $mi.attr("data-minItems") || 0;
         o.config.maxItems = $mi.attr("data-maxItems") || 9999;
@@ -89,7 +89,7 @@ window.MiHandler = function ($mi)
             return;
         }
         // テンプレートHTMLにIDを設定して新しい要素を生成
-        var $item = $(o.config.tmpl({ id : o.getNextId() }));
+        var $item = $(o.config.tmpl.replace(/\$\{id\}/g,o.getNextId()));
         o.initItem($item);
         if ($anchorItem) {
             $anchorItem.after($item);
