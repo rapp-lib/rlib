@@ -65,9 +65,7 @@ class FormContainer extends ArrayObject
     public function getTmpStorageName ()
     {
         if ( ! isset($this->def["tmp_storage_name"])) {
-            report_warning("Formの構成にtmp_storage_nameがありません",array(
-                "def" => $this->def,
-            ));
+            report_warning("Formの構成にtmp_storage_nameがありません",array("def"=>$this->def));
         }
         return $this->def["tmp_storage_name"];
     }
@@ -385,6 +383,10 @@ class FormContainer extends ArrayObject
             ));
         }
         return table($this->def["table"]);
+    }
+    public function getTableWithValues ()
+    {
+        return $this->getTable()->values((array)$this->getRecord());
     }
 
     /**
@@ -727,6 +729,7 @@ class FormContainer extends ArrayObject
             "form_name" => $this->def["form_name"],
             "tmp_storage_name" => $this->def["tmp_storage_name"],
             "values" => $this->getValues(),
+            "def" => $this->def,
         );
     }
 }

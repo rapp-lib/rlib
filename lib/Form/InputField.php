@@ -168,9 +168,6 @@ class InputField
                 unset($attrs["checked"]);
             }
             $this->html = tag("input",$attrs);
-        // type=passwordであれば、入力値を戻さない
-        } elseif ($this->attrs["type"]=="password") {
-            $this->html = tag("input",$attrs);
         // type=dateであれば、入力値の形式を日付型に整形
         } elseif ($this->attrs["type"]=="date") {
             $attrs["value"] = isset($this->field_value) ? $this->field_value : $attrs["value"];

@@ -11,15 +11,19 @@ class Table_Base extends Table_Core
 
     /**
      * @hook chain
+     * Insert/Update文のValues部を設定する
+     */
+    public function chain_values ($values)
+    {
+        $this->query->setValues($values);
+    }
+    /**
+     * @hook chain
      * Select文のField部を指定する
      */
-    public function chain_fields ($col_name, $col_name_sub=false)
+    public function chain_fields ($fields)
     {
-        if ($col_name_sub === false) {
-            $this->query->addField($col_name);
-        } else {
-            $this->query->addField($col_name, $col_name_sub);
-        }
+        $this->query->setFields($fields);
     }
     /**
      * @hook chain
@@ -65,19 +69,6 @@ class Table_Base extends Table_Core
             ."=".$table->getQueryTableName().".".$table->getIdColName();
         $this->chain_join($table, $on, $type);
     }
-    /**
-     * @hook chain
-     * JOIN句の設定 JOIN先テーブル側が持つ外部キーでJOIN
-     */
-    // public function chain_joinHasMany ($table, $fkey=null, $type="LEFT")
-    // {
-    //     if (is_string($table)) $table = table($table);
-    //     // fkeyの設定がなければ、tableのfkey_forを参照
-    //     if ( ! isset($fkey)) $fkey = $table->getColNameByAttr("fkey_for", $this->getAppTableName());
-    //     $on = $this->getQueryTableName().".".$this->getIdColName()
-    //         ."=".$table->getQueryTableName().".".$fkey;
-    //     $this->chain_join($table, $on, $type);
-    // }
     /**
      * @hook chain
      * GROUP_BY句の設定
@@ -428,14 +419,27 @@ class Table_Base extends Table_Core
      * @hook on_write
      * 認証が必要な領域でのテーブル操作について、認証中のアカウントのIDを上書きする
      */
-    protected function on_write_forOwner ()
+    protected function on_write_ownedBy ()
     {
-        if ($col_name = $this->getColNameByAttr("owner_role")) {
-            $owner_role = static::$cols[$col_name]["owner_role"];
-            if ($owner_id = app()->user->id($owner_role)) {
-                $this->query->setValue($col_name, $owner_id);
-                return true;
-            }
+        // 認証用の問い合わせ時には制御を行わない
+        if ($this->getAttr("for_auth")) return false;
+        // fkey_for_roleで所定のRoleが指定されており、ログイン中であればValuesに条件を加える
+        $restricted_role = $this->getAttr("owned_by");
+        $current_role = app()->user->getCurrentRole();
+        $col_name = $this->getColNameByAttr("fkey_for_role", $restricted_role ?: $current_role);
+        $owner_id = app()->user->id($restricted_role ?: $current_role);
+        if ($col_name && $owner_id) {
+            $this->query->setValue($col_name, $owner_id);
+            return true;
+        }
+        // owned_byで明示的に制御の指定がある場合は、制御が動作しない場合はFatalエラーとする
+        if ($restricted_role && ! $owner_id) {
+            report_error("owned_byのrole指定が不正です",array(
+                "owned_by_role" => $restricted_role,
+                "fkey_for_role_col_name" => $col_name,
+                "owner_id" => $owner_id,
+                "current_role" => $current_role,
+            ));
         }
         return false;
     }
@@ -443,14 +447,27 @@ class Table_Base extends Table_Core
      * @hook on_read
      * 認証が必要な領域でのテーブル操作について、認証中のアカウントのIDを上書きする
      */
-    protected function on_read_forOwner ()
+    protected function on_read_ownedBy ()
     {
-        if ($col_name = $this->getColNameByAttr("owner_role")) {
-            $owner_role = static::$cols[$col_name]["owner_role"];
-            if ($owner_id = app()->user->id($owner_role)) {
-                $this->query->where($this->getQueryTableName().".".$col_name, $owner_id);
-                return true;
-            }
+        // 認証用の問い合わせ時には制御を行わない
+        if ($this->getAttr("for_auth")) return false;
+        // fkey_for_roleで所定のRoleが指定されており、ログイン中であればWhereに条件を加える
+        $restricted_role = $this->getAttr("owned_by");
+        $current_role = app()->user->getCurrentRole();
+        $col_name = $this->getColNameByAttr("fkey_for_role", $restricted_role ?: $current_role);
+        $owner_id = app()->user->id($restricted_role ?: $current_role);
+        if ($col_name && $owner_id) {
+            $this->query->where($this->getQueryTableName().".".$col_name, $owner_id);
+            return true;
+        }
+        // owned_byで明示的に制御の指定がある場合は、制御が動作しない場合はFatalエラーとする
+        if ($restricted_role && ! $owner_id) {
+            report_error("owned_byのrole指定が不正です",array(
+                "owned_by_role" => $restricted_role,
+                "fkey_for_role_col_name" => $col_name,
+                "owner_id" => $owner_id,
+                "current_role" => $current_role,
+            ));
         }
         return false;
     }
@@ -929,12 +946,13 @@ class Table_Base extends Table_Core
     public function authenticate ($params)
     {
         $result = false;
+        $this->setAttr("for_auth");
         if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
             $result = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->selectOne();
         }
         if ($result && $col_name = $this->getColNameByAttr("login_date")) {
-            $id = $result[$this->getIdColName()];
-            $this->createTable()->updateById($id, array($col_name=>date("Y/m/d H:i:s")));
+            $this->createTable()->setAttr("for_auth")
+                ->updateById($result[$this->getIdColName()], array($col_name=>date("Y/m/d H:i:s")));
         }
         return $result ? (array)$result : false;
     }

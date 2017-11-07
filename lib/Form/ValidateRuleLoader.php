@@ -144,17 +144,9 @@ class ValidateRuleLoader
         if ( ! strlen($value))  return false;
         $q = table($rule["table"]);
         $q = $q->findBy($rule["col_name"], $value);
-        if ($rule["id_field_name"]) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue("id_field_name"));
+        if ($rule["id_field"]) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue("id_field"));
         if ( ! $q->selectOne()) return false;
         return array("message"=>"既に登録されています");
-    }
-    /**
-     * @deprecated
-     * 実装初期のスペルミスのフォールバック
-     */
-    public static function callbackDuplecate ($validator, $value, $rule)
-    {
-        return static::callbackDuplicate($validator, $value, $rule);
     }
     /**
      * 同一入力チェック
@@ -162,13 +154,9 @@ class ValidateRuleLoader
      */
     public static function callbackConfirm ($validator, $value, $rule)
     {
-        if ( ! strlen($value)) {
-            return false;
-        }
-        $target_value = $validator->getValue($rule["target"]);
-        if ($target_value==$value) {
-            return false;
-        }
+        if ( ! strlen($value)) return false;
+        $target_value = $validator->getValue($rule["target_field"]);
+        if ($target_value==$value) return false;
         return array("message"=>"入力された値が異なっています");
     }
     /**

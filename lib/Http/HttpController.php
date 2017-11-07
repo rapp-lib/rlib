@@ -28,7 +28,7 @@ class HttpController implements FormRepositry
     }
     protected function uri ($uri, $query_params=array(), $fragment=null)
     {
-        return $this->uri->getRelativeUri($uri, $query_params, $fragment);
+        return $this->uri->getRelativeUri($uri, $query_params, $fragment)->withToken();
     }
 
 // -- Form系実装
