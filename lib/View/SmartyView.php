@@ -214,13 +214,13 @@ class SmartyView
     {
         return "".app()->http->getServedRequest()->getUri()
             ->getRelativeUri("id://".$page_id, $query_params, $anchor)
-            ->withoutAuthorityInWebroot();
+            ->withToken()->withoutAuthorityInWebroot();
     }
     public static function smarty_modifier_path_to_url ($path, $url_params=array(), $anchor=null)
     {
         return "".app()->http->getServedRequest()->getUri()
             ->getRelativeUri("path://".$path, $query_params, $anchor)
-            ->withoutAuthorityInWebroot();
+            ->withToken()->withoutAuthorityInWebroot();
     }
 
 // -- 認証解決プラグイン

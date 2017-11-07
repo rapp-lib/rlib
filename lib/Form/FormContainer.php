@@ -186,24 +186,24 @@ class FormContainer extends ArrayObject
     public function receive ($input)
     {
         if ( ! isset($this->received)) {
+            // csrf_checkの指定があればCSRF対策キーを確認する
+            if ($this->def["csrf_check"]) {
+                if ($input[app()->security->getCsrfTokenName()] != app()->security->getCsrfToken()) {
+                    return $this->received = false;
+                }
+            }
             $form_param_name = "_f";
             $form_name = $this->getFormName();
-            // csrf_checkの指定があればCSRF対策キーを確認する
-            if ($this->def["csrf_check"] && $input["_csrf_token"]!=md5(session_id())) {
-                $this->received = false;
             // form_param_nameに自分のform_nameが設定されていれば受け取り状態
-            } elseif ($this->def["receive_all"] || ($form_name && $input[$form_param_name]==$form_name)) {
+            if ($this->def["receive_all"] || ($form_name && $input[$form_param_name]==$form_name)) {
                 foreach ($input as $k => $v) {
-                    if ($k==$form_param_name || $k=="_csrf_token") {
-                        continue;
-                    }
+                    if ($k==$form_param_name || $k=="__token") continue;
                     $values[$k] = $v;
                 }
                 $this->setInputValues($values);
-                $this->received = true;
-            } else {
-                $this->received = false;
+                return $this->received = true;
             }
+            return $this->received = false;
         }
         return $this->received;
     }
@@ -273,8 +273,8 @@ class FormContainer extends ArrayObject
         if ($this->def["csrf_check"]) {
             $content .= tag("input",array(
                 "type" => "hidden",
-                "name" => "_csrf_token",
-                "value" => md5(session_id()),
+                "name" => app()->security->getCsrfTokenName(),
+                "value" => app()->security->getCsrfToken(),
             ));
         }
         // form_page/search_pageでactionのURLを補完

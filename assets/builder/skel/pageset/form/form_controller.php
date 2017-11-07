@@ -3,6 +3,7 @@
      */
     protected static $form_entry = array(
         "form_page" => "<?=$pageset->getPageByType("form")->getFullPage()?>",
+        "csrf_check" => true,
 <?php if ($table->hasDef()): ?>
         "table" => "<?=$table->getName()?>",
 <?php endif; ?>

@@ -2,7 +2,7 @@
      * CSVアップロードフォーム
      */
     protected static $form_entry_csv = array(
-        "auto_restore" => true,
+        "csrf_check" => true,
         "fields" => array(
             "csv_file" => array("storage" => "tmp"),
         ),
@@ -12,6 +12,7 @@
     );
 <?=$pageset->getPageByType("import")->getMethodDecSource()?>
     {
+        $this->forms["entry"]->restore();
         if ($this->forms["entry_csv"]->receive($this->input)) {
             if ($this->forms["entry_csv"]->isValid()) {
                 $this->forms["entry_csv"]->save();
@@ -23,6 +24,7 @@
     }
 <?=$pageset->getPageByType("complete")->getMethodDecSource()?>
     {
+        $this->forms["entry"]->restore();
         if ( ! $this->forms["entry_csv"]->isEmpty()) {
             if ( ! $this->forms["entry_csv"]->isValid()) {
                 return $this->redirect("id://<?=$pageset->getPageByType("import")->getLocalPage()?>", array("back"=>"1"));
