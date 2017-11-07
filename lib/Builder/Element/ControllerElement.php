@@ -116,6 +116,10 @@ class ControllerElement extends Element_Base
     public function getListCols ()
     {
         $cols = $this->getInputCols();
+        $cols = array_filter($cols, function($col){
+            return ! in_array($col->getAttr("type"),array(
+                "assoc", "password", "textarea", "checklist", "checkbox", "file"));
+        });
         $cols = array_slice($cols,0,5);
         return $cols;
     }
