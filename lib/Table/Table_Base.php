@@ -538,6 +538,27 @@ class Table_Base extends Table_Core
             foreach ($this->result as $record_a) {
                 $record_a[$col_name] = $enum[$record_a[$base_col_name]];
             }
+            return true;
+        }
+        return false;
+    }
+    /**
+     * @hook on_getBlankCol
+     * retreiveメソッドが定義されていたら参照する
+     */
+    protected function on_getBlankCol_retreive ($record, $col_name)
+    {
+        // メソッドの探索
+        $method_name = "retreive_col".str_camelize($col_name);
+        if ( ! method_exists($this, $method_name)) return false;
+        // idsを引数に呼び出し
+        $ids = $this->result->getHashedBy($this->getIdColName());
+        $values = call_user_func(array($this,$method_name), $ids);
+        // 結果を統合する
+        $this->result->mergeBy($col_name, $values);
+        // 値の設定漏れがあった場合はnullで埋める
+        foreach ($this->result as $a_record) {
+            if ( ! isset($a_record[$col_name])) $a_record[$col_name] = null;
         }
     }
 
@@ -620,10 +641,6 @@ class Table_Base extends Table_Core
      */
     private $assoc_values = null;
     /**
-     * assoc指定されたFieldに対応するFields
-     */
-    private $assoc_fields = null;
-    /**
      * assoc hook処理の呼び出し
      */
     protected function callAssocHookMethod ($method_name, $col_name, $args=array())
@@ -635,54 +652,11 @@ class Table_Base extends Table_Core
         return call_user_func_array(array($this, $method_name), $args);
     }
     /**
-     * assoc処理 selectの発行前
-     */
-    protected function on_select_assoc ()
-    {
-        // Select対象となっているcol_nameの特定
-        $fields = (array)$this->query->getFields();
-        if ( ! $fields) $fields = array("*");
-        $col_names = array();
-        foreach ($fields as $i => $col_name) {
-            if ( ! is_numeric($i)) $col_name = $i;
-            if ($col_name == "*") {
-                foreach (static::$cols as $def_col_name  => $def_col) {
-                    if ( ! static::$cols[$col_name]["assoc"]["except"]) {
-                        $col_names[$def_col_name] = $def_col_name;
-                    }
-                }
-            } else {
-                $col_names[$col_name] = $col_name;
-            }
-        }
-        $this->assoc_fields = array();
-        foreach ($col_names as $col_name) {
-            if (static::$cols[$col_name]["assoc"]) {
-                // fields→assoc_fieldsに項目を移動
-                $this->query->removeField($col_name);
-                $this->assoc_fields[] = $col_name;
-                // assoc処理の呼び出し
-                $this->callAssocHookMethod("assoc_select", $col_name);
-            }
-        }
-        return $this->assoc_fields ? true : false;
-    }
-    /**
-     * assoc処理 各レコードfetch後
-     */
-    protected function on_fetch_assoc ($record)
-    {
-        foreach ((array)$this->assoc_fields as $col_name) {
-            $this->callAssocHookMethod("assoc_fetch", $col_name);
-        }
-        return $this->assoc_fields ? true : false;
-    }
-    /**
      * assoc処理 未初期化のRecord値の取得時
      */
     protected function on_getBlankCol_assoc ($record, $col_name)
     {
-        if (in_array($col_name, (array)$this->assoc_fields)) {
+        if (static::$cols[$col_name]["assoc"]) {
             $this->callAssocHookMethod("assoc_getBlankCol", $col_name);
             return true;
         }
@@ -709,8 +683,8 @@ class Table_Base extends Table_Core
      */
     protected function on_afterWrite_assoc ()
     {
-        foreach ((array)$this->assoc_values as $col_name => $values) {
-            $this->callAssocHookMethod("assoc_afterWrite", $col_name, array($values));
+        foreach ((array)$this->assoc_values as $col_name => $value) {
+            $this->callAssocHookMethod("assoc_afterWrite", $col_name, array($value));
         }
         return $this->assoc_values ? true : false;
     }

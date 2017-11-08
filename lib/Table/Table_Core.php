@@ -442,6 +442,14 @@ class Table_Core
         return $this->selectOne($fields);
     }
     /**
+     * 件数のみ取得するSELECT文を発行
+     */
+    public function selectCount ()
+    {
+        $record = $this->fields(array("count"=>"COUNT(*)"))->selectOne();
+        return (int)$record["count"];
+    }
+    /**
      * 集計を行って結果を取得
      */
     public function selectSummary ($summary_field, $key_col_name, $key_col_name_sub=false)
