@@ -14,7 +14,8 @@ class MailHandler
         $this->mailer = new \PHPMailer;
         $this->mailer->CharSet = "UTF-8";
         $this->mailer->Encoding = "base64";
-        $this->template_dir = app()->config("mail.template_dir") ?: constant("R_APP_ROOT_DIR")."/mail";
+        $this->template_dir = constant("R_APP_ROOT_DIR")."/mail";
+        $this->template_dir = app()->i18n->getLocalizedFile($this->template_dir);
     }
     public function assign ($name, $value=null)
     {

@@ -37,7 +37,7 @@ class ValidateRuleLoader
         } else {
             if (strlen($value)) return false;
         }
-        return array("message"=>"必ず入力して下さい");
+        return array("message"=>__("必ず入力して下さい"));
     }
     /**
      * 形式チェック
@@ -58,7 +58,7 @@ class ValidateRuleLoader
         // regexの指定があれば正規表現を上書き
         if ($rule["regex"]) $regex = $rule["regex"];
         if (preg_match($regex,$value)) return false;
-        return array("message"=>$message);
+        return array("message"=>__($message));
     }
     /**
      * 範囲チェック
@@ -78,15 +78,15 @@ class ValidateRuleLoader
         }
         if (isset($min) && isset($max)) {
             if ($min >= $value || $max <= $value) {
-                return array("message"=>":min以上:max以下で入力して下さい", "params"=>$params);
+                return array("message"=>__(":min以上:max以下で入力して下さい", $params));
             }
         } elseif (isset($min)) {
             if ($min >= $value) {
-                return array("message"=>":min以上で入力して下さい", "params"=>$params);
+                return array("message"=>__(":min以上で入力して下さい", $params));
             }
         } elseif (isset($max)) {
             if ($max <= $value) {
-                return array("message"=>":max以下で入力して下さい", "params"=>$params);
+                return array("message"=>__(":max以下で入力して下さい", $params));
             }
         }
         return false;
@@ -107,17 +107,17 @@ class ValidateRuleLoader
         $length =mb_strlen(str_replace("\r\n", "\n", $value),"UTF-8");
         if (isset($min) && isset($max)) {
             if ($min==$max && $min!=$length) {
-                return array("message"=>":min文字で入力してください", "params"=>$params);
+                return array("message"=>__(":min文字で入力してください", $params));
             } elseif ($min >= $length || $max <= $length) {
-                return array("message"=>":min文字以上:max文字以内で入力してください", "params"=>$params);
+                return array("message"=>__(":min文字以上:max文字以内で入力してください", $params));
             }
         } elseif (isset($min)) {
             if ($min >= $length) {
-                return array("message"=>":min文字以上で入力してください", "params"=>$params);
+                return array("message"=>__(":min文字以上で入力してください", $params));
             }
         } elseif (isset($max)) {
             if ($max <= $length) {
-                return array("message"=>":max文字以内で入力してください", "params"=>$params);
+                return array("message"=>__(":max文字以内で入力してください", $params));
             }
         }
         return false;
@@ -135,7 +135,7 @@ class ValidateRuleLoader
         $q = $q->findBy($rule["col_name"], $value);
         if ($rule["id_field"]) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue($rule["id_field"]));
         if (count($q->select())==0) return false;
-        return array("message"=>"既に登録されています");
+        return array("message"=>__("既に登録されています"));
     }
     /**
      * 同一入力チェック
@@ -146,7 +146,7 @@ class ValidateRuleLoader
         if ( ! strlen($value)) return false;
         $target_value = $validator->getValue($rule["target_field"]);
         if ($target_value==$value) return false;
-        return array("message"=>"入力された値が異なっています");
+        return array("message"=>__("入力された値が異なっています"));
     }
     /**
      * ファイルアップロードのエラーチェック
@@ -164,16 +164,16 @@ class ValidateRuleLoader
             $result = false;
         // 値: 3; アップロードされたファイルは一部のみしかアップロードされていません。
         } elseif ($error == UPLOAD_ERR_PARTIAL) {
-            $result = array("message"=>"ファイルのアップロードが完了しませんでした");
+            $result = array("message"=>__("ファイルのアップロードが完了しませんでした"));
         // 値: 1; アップロードされたファイルは、php.ini の upload_max_filesize ディレクティブの値を超えています。
         // 値: 2; アップロードされたファイルは、HTML フォームで指定された MAX_FILE_SIZE を超えています。
         } elseif ($error == UPLOAD_ERR_INI_SIZE || $error == UPLOAD_ERR_FORM_SIZE) {
-            $result = array("message"=>"ファイルサイズが制限容量オーバーです");
+            $result = array("message"=>__("ファイルサイズが制限容量オーバーです"));
         // 値: 6; テンポラリフォルダがありません。
         // 値: 7; ディスクへの書き込みに失敗しました。
         // 値: 8; PHP の拡張モジュールがファイルのアップロードを中止しました。
         } elseif ($error > 4) {
-            $result = array("message"=>"ファイルが正しくアップロードできませんでした");
+            $result = array("message"=>__("ファイルが正しくアップロードできませんでした"));
         } else {
             report_warning("ファイルアップロードで原因不明のエラーがありました",array(
                 "value" => $value,

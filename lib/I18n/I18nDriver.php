@@ -22,7 +22,7 @@ class I18nDriver
     {
         $prefix_ptn = preg_quote('\?R\App\\','!');
         if (preg_match('!^('.$prefix_ptn.')(.+)$!', $class, $match)) {
-            $localized_class = $match[1].'Lang\\'.str_camelize($this->locale).'\\'.$match[2];
+            $localized_class = $match[1].'Locale\\'.str_camelize($this->locale).'\\'.$match[2];
             if (class_exists($localized_class)) return $localized_class;
         }
         return $class;
@@ -31,7 +31,7 @@ class I18nDriver
     {
         $prefix_ptn = preg_quote(constant("R_APP_ROOT_DIR"),'/!');
         if (preg_match('!^('.$prefix_ptn.')(.+)$!', $file, $match)) {
-            $localized_file = $match[1].'lang/'.$this->locale.'/'.$match[2];
+            $localized_file = $match[1].'locale/'.$this->locale.'/'.$match[2];
             if (file_exists($localized_file)) return $localized_file;
         }
         return $file;
@@ -43,14 +43,14 @@ class I18nDriver
     /**
      * メッセージの取得
      */
-    public function getMessage ($key, $values=array(), $lang=null)
+    public function getMessage ($key, $values=array(), $locale=null)
     {
-        $lang = $lang ?: $this->locale;
-        if ( ! isset($this->messages[$lang])) {
-            $data_file = constant("R_APP_ROOT_DIR")."/lang/".$lang."/message.php";
-            $this->messages[$lang] = file_exists($app_data_dir) ? include($data_file) : array();
+        $locale = $locale ?: $this->locale;
+        if ( ! isset($this->messages[$locale])) {
+            $data_file = constant("R_APP_ROOT_DIR")."/locale/".$locale."/message.php";
+            $this->messages[$locale] = file_exists($data_file) ? include($data_file) : array();
         }
-        $message = $this->messages[$lang][$key];
+        $message = $this->messages[$locale][$key];
         if ( ! isset($message)) $message = $key;
         if (is_string($message)) {
             foreach ($values as $k=>$v) $message = str_replace(':'.$k, $v, $message);

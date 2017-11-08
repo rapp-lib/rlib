@@ -26,9 +26,9 @@
     /**
      * @alias
      */
-    function __ ($key, $values=array(), $lang=null)
+    function __ ($key, $values=array(), $locale=null)
     {
-        return app()->i18n->getMessage($key, $values, $lang);
+        return app()->i18n->getMessage($key, $values, $locale);
     }
 
 // -- Webroot
