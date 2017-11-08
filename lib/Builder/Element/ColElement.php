@@ -44,10 +44,10 @@ class ColElement extends Element_Base
     public function getEntryFormFieldDefSource ($o=array())
     {
         $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
-        $def = array("label"=>$this->getAttr("label"));
-        if ($this->getAttr("type")=="file") {
-            $def["storage"] = "public";
-        }
+        $def = array();
+        $def["label"] = $this->getAttr("label");
+        if ( ! $this->hasColDef()) $def["col"] = false;
+        if ($this->getAttr("type")=="file") $def["storage"] = "public";
         return '            '.$this->stringifyValue($name, $def).','."\n";
     }
     /**
@@ -55,6 +55,7 @@ class ColElement extends Element_Base
      */
     public function getColDefSource ($o=array())
     {
+        if ( ! $this->hasColDef()) return;
         $def = (array)$this->getAttr("def");
         $def["comment"] = $this->getAttr("label");
         if ($this->getAttr("type")=="checklist" && $def["type"]=="text" && ! $def["format"]) {
@@ -70,9 +71,8 @@ class ColElement extends Element_Base
         $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
         $rules = array();
         foreach ((array)$this->getAttr("rules") as $type=>$params) {
-            if ($type==="required") {
-                if ($params) $rules[] = $name;
-            } else {
+            if ($type==="required" && $params===true) $rules[] = $name;
+            else {
                 $rules[] = array_merge(array($name, $type), (array)$params);
             }
         }
@@ -87,6 +87,13 @@ class ColElement extends Element_Base
     {
         $table_name = $this->getAttr("def.assoc.table");
         return $table_name ? $this->getSchema()->getTableByName($table_name) : null;
+    }
+    /**
+     * Table上にColを持つかどうか、Colがない＝Form上のFieldのみ
+     */
+    public function hasColDef ()
+    {
+        return ! $this->getAttr("nodef");
     }
     private function stringifyValue($k, $v)
     {

@@ -63,7 +63,6 @@ class FrontAssets
     }
     public function render ($o=array())
     {
-        report($this->buffer);
         $html = "<!-- assets-loading -->"."\n";
         foreach ($this->buffer as $data) {
             if ($data["type"]=="js_uri") $html .= tag('script',array("src"=>$data["uri"]),"");

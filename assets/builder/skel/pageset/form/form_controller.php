@@ -3,6 +3,7 @@
      */
     protected static $form_entry = array(
         "form_page" => "<?=$pageset->getPageByType("form")->getFullPage()?>",
+        "csrf_check" => true,
 <?php if ($table->hasDef()): ?>
         "table" => "<?=$table->getName()?>",
 <?php endif; ?>
@@ -47,10 +48,13 @@
                 $this->forms["entry"]->save();
                 return $this->redirect("id://<?=$pageset->getPageByType("confirm")->getLocalPage()?>");
             }
-        } elseif ($id = $this->input["id"]) {
-            $this->forms["entry"]->init($id);
         } elseif ( ! $this->input["back"]) {
             $this->forms["entry"]->clear();
+            if ($id = $this->input["id"]) {
+                $t = $this->forms["entry"]->getTable()->selectById($id);
+                if ( ! $t) return $this->response("notfound");
+                $this->forms["entry"]->setRecord($t);
+            }
         }
     }
 <?=$pageset->getPageByType("confirm")->getMethodDecSource()?>
@@ -71,8 +75,7 @@
         if ( ! $this->forms["entry"]->isEmpty()) {
 <?php if ($table->hasDef()): ?>
             // 登録
-            $t = $this->forms["entry"]->getRecord();
-            $t->save();
+            $t = $this->forms["entry"]->getTableWithValues()->save()->getSavedRecord();
 <?php else: ?>
             $t = $this->forms["entry"]->getValues();
 <?php endif; ?>

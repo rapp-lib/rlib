@@ -25,7 +25,7 @@
 {{$enum["<?=$enum_set->getFullName()?>"][<?=$var_name?>.<?=$name?>]}}<?=""?>
 <?php   endif; /* if type=="checklist" */ ?>
 <?php elseif ($col->getAttr("type")=="password"): /* if type=="assoc" */ ?>
-********
+********<?=""?>
 <?php else: /* if type=="assoc" */ ?>
 {{<?=$var_name?>.<?=$name?>
 <?php if ($col->getAttr("type")=="date"): ?>|date:"Y/m/d"<?php endif; ?>

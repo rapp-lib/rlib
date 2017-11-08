@@ -6,6 +6,7 @@ class AppContainer
     protected $instances = array();
     protected $providers = array(
         // 4.1
+        "security" => 'R\Lib\Core\Security',
         "enum" => 'R\Lib\Enum\EnumRepositry',
         "view" => 'R\Lib\View\ViewFactory',
         // 4.0
@@ -24,7 +25,6 @@ class AppContainer
         "form" => 'R\Lib\Form\FormFactory',
         "console" => 'R\Lib\Console\ConsoleDriver',
         "builder" => 'R\Lib\Builder\WebappBuilder',
-        "asset" => 'R\Lib\Asset\AssetManager',
     );
     public function __construct ($providers=array())
     {

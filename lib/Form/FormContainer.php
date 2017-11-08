@@ -65,9 +65,7 @@ class FormContainer extends ArrayObject
     public function getTmpStorageName ()
     {
         if ( ! isset($this->def["tmp_storage_name"])) {
-            report_warning("Formの構成にtmp_storage_nameがありません",array(
-                "def" => $this->def,
-            ));
+            report_warning("Formの構成にtmp_storage_nameがありません",array("def"=>$this->def));
         }
         return $this->def["tmp_storage_name"];
     }
@@ -186,24 +184,24 @@ class FormContainer extends ArrayObject
     public function receive ($input)
     {
         if ( ! isset($this->received)) {
+            // csrf_checkの指定があればCSRF対策キーを確認する
+            if ($this->def["csrf_check"]) {
+                if ($input[app()->security->getCsrfTokenName()] != app()->security->getCsrfToken()) {
+                    return $this->received = false;
+                }
+            }
             $form_param_name = "_f";
             $form_name = $this->getFormName();
-            // csrf_checkの指定があればCSRF対策キーを確認する
-            if ($this->def["csrf_check"] && $input["_csrf_token"]!=md5(session_id())) {
-                $this->received = false;
             // form_param_nameに自分のform_nameが設定されていれば受け取り状態
-            } elseif ($this->def["receive_all"] || ($form_name && $input[$form_param_name]==$form_name)) {
+            if ($this->def["receive_all"] || ($form_name && $input[$form_param_name]==$form_name)) {
                 foreach ($input as $k => $v) {
-                    if ($k==$form_param_name || $k=="_csrf_token") {
-                        continue;
-                    }
+                    if ($k==$form_param_name || $k=="__token") continue;
                     $values[$k] = $v;
                 }
                 $this->setInputValues($values);
-                $this->received = true;
-            } else {
-                $this->received = false;
+                return $this->received = true;
             }
+            return $this->received = false;
         }
         return $this->received;
     }
@@ -273,8 +271,8 @@ class FormContainer extends ArrayObject
         if ($this->def["csrf_check"]) {
             $content .= tag("input",array(
                 "type" => "hidden",
-                "name" => "_csrf_token",
-                "value" => md5(session_id()),
+                "name" => app()->security->getCsrfTokenName(),
+                "value" => app()->security->getCsrfToken(),
             ));
         }
         // form_page/search_pageでactionのURLを補完
@@ -385,6 +383,10 @@ class FormContainer extends ArrayObject
             ));
         }
         return table($this->def["table"]);
+    }
+    public function getTableWithValues ()
+    {
+        return $this->getTable()->values((array)$this->getRecord());
     }
 
     /**
@@ -546,6 +548,7 @@ class FormContainer extends ArrayObject
                 }
             // fieldset型の場合2階層下の要素を処理
             } elseif ($field_def["type"]=="fieldset") {
+                $values = array();
                 // fieldsetの添え字を取得
                 if ($is_record_to_values) {
                     $fieldset_indexes = array_keys((array)$record[$col_name]);
@@ -557,23 +560,23 @@ class FormContainer extends ArrayObject
                     foreach ((array)$field_def["child_field_names"] as $child_field_name) {
                         $child_field_def = $this->def["fields"][$child_field_name];
                         // colがfalseであれば削除
-                        if ($child_field_def["col"]===false) {
-                            continue;
-                        }
+                        if ($child_field_def["col"]===false) continue;
                         $item_name = $child_field_def["item_name"];
                         $child_col_name = $child_field_def["col"];
                         $child_table_name = $child_field_def["table"];
                         //TODO: テーブル定義の確認
                         // 値を登録
                         if ($is_record_to_values) {
-                            $this[$field_name][$fieldset_index][$item_name]
+                            $values[$fieldset_index][$item_name]
                                 = $record[$col_name][$fieldset_index][$child_col_name];
                         } else {
-                            $record[$col_name][$fieldset_index][$child_col_name]
+                            $values[$fieldset_index][$child_col_name]
                                 = $this[$field_name][$fieldset_index][$item_name];
                         }
                     }
                 }
+                if ($is_record_to_values) $this[$field_name] = $values;
+                else $record[$col_name] = $values;
             // 下層を処理しない型の処理
             } else {
                 //TODO: テーブル定義の確認
@@ -726,6 +729,7 @@ class FormContainer extends ArrayObject
             "form_name" => $this->def["form_name"],
             "tmp_storage_name" => $this->def["tmp_storage_name"],
             "values" => $this->getValues(),
+            "def" => $this->def,
         );
     }
 }

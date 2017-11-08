@@ -53,6 +53,14 @@ class Uri extends \Zend\Diactoros\Uri
         }
         return $this;
     }
+    public function withToken()
+    {
+        if ($this->getRouteParam("csrf_check")===true) {
+            return new Uri($this->webroot,$this,array(
+                app()->security->getCsrfTokenName()=>app()->security->getCsrfToken()));
+        }
+        return $this;
+    }
 
 // -- uri解析結果取得
 
@@ -85,6 +93,11 @@ class Uri extends \Zend\Diactoros\Uri
     {
         $this->initParsed();
         return $this->parsed["route"];
+    }
+    public function getRouteParam($key)
+    {
+        $this->initParsed();
+        return $this->parsed["route"][$key];
     }
     private function initParsed()
     {

@@ -31,7 +31,7 @@ class Result extends ArrayObject
      */
     public function offsetGet ($key)
     {
-        $this->table->beforeGetResultValue($key);
+        if ( ! $this->offsetExists($key)) $this->table->beforeGetResultValue($this, $key);
         return parent::offsetGet($key);
     }
 }

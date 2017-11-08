@@ -323,6 +323,20 @@ class Table_Core
         while ($result->fetch() !== false);
         return $result;
     }
+    /**
+     * @hook result
+     * save処理対象のRecordを取得
+     */
+    public function result_getSavedRecord ($result)
+    {
+        if ($this->query->getType()=="update") {
+            $id_col_name = $this->getIdColName();
+            $id = $this->query->getWhere($id_col_name);
+        } elseif ($this->query->getType()=="insert") {
+            $id = $this->result->getLastInsertId();
+        }
+        return $id ? $this->createTable()->selectById($id) : null;
+    }
 
 // -- recordに対するHook
 
@@ -336,13 +350,12 @@ class Table_Core
         $query_table_name = $this->getQueryTableName();
         // QueryのFROMとなったテーブル以外の値は階層を下げてHydrate
         foreach ((array)$data as $table_name => $values) {
+            $table_data = array();
             foreach ((array)$values as $col_name => $value) {
-                if ($query_table_name == $table_name) {
-                    $record[$col_name] = $value;
-                } else {
-                    $record[$table_name][$col_name] = $value;
-                }
+                if ($query_table_name == $table_name) $record[$col_name] = $value;
+                else $table_data[$col_name] = $value;
             }
+            if ($query_table_name != $table_name) $record[$table_name] = $table_data;
         }
     }
     /**
@@ -351,7 +364,7 @@ class Table_Core
      */
     public function record_save ($record)
     {
-        $values =(array)$record;
+        $values = (array)$record;
         // IDが指定されていれば削除してIDを条件に指定する
         $id_col_name = $this->getIdColName();
         $id = $values[$id_col_name];
@@ -376,7 +389,7 @@ class Table_Core
     }
     /**
      * @hook record
-     * カラムの値の取得
+     * カラムの値の取得（"テーブル名.カラム名"の様式解決）
      */
     public function record_getColValue ($record, $col_name)
     {
@@ -680,15 +693,7 @@ class Table_Core
      */
     public function beforeGetRecordValue ($record, $col_name)
     {
-        if ( ! array_key_exists($col_name, $record)) {
-            $this->callListenerMethod("getBlankCol", array($record, $col_name));
-        }
-        if ( ! array_key_exists($col_name, $record)) {
-            report_warning("対象のRecordカラムに値が設定されていません",array(
-                "record" => $record,
-                "col_name" => $col_name,
-            ));
-        }
+        $this->callListenerMethod("getBlankCol", array($record, $col_name));
     }
     /**
      * buildQuery上で必要になるon_*_*処理をまとめて呼び出す
