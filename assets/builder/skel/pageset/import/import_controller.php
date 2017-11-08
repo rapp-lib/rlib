@@ -12,19 +12,19 @@
     );
 <?=$pageset->getPageByType("import")->getMethodDecSource()?>
     {
-        $this->forms["entry"]->restore();
+        $this->forms["entry_csv"]->restore();
         if ($this->forms["entry_csv"]->receive($this->input)) {
             if ($this->forms["entry_csv"]->isValid()) {
                 $this->forms["entry_csv"]->save();
                 return $this->redirect("id://<?=$pageset->getPageByType("complete")->getLocalPage()?>");
             }
         } elseif ( ! $this->input["back"]) {
-            $this->forms["entry"]->clear();
+            $this->forms["entry_csv"]->clear();
         }
     }
 <?=$pageset->getPageByType("complete")->getMethodDecSource()?>
     {
-        $this->forms["entry"]->restore();
+        $this->forms["entry_csv"]->restore();
         if ( ! $this->forms["entry_csv"]->isEmpty()) {
             if ( ! $this->forms["entry_csv"]->isValid()) {
                 return $this->redirect("id://<?=$pageset->getPageByType("import")->getLocalPage()?>", array("back"=>"1"));
