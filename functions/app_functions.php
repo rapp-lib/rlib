@@ -26,15 +26,16 @@
     /**
      * @alias
      */
-    function extention ($extention_group, $extention_name)
+    function __ ($key, $values=array(), $lang=null)
     {
-        return app()->extention($extention_group, $extention_name);
+        return app()->i18n->getMessage($key, $values, $lang);
     }
 
 // -- Webroot
 
     /**
      * 転送リクエストの作成
+     * @deprecated
      */
     function redirect ($url, $params=array(), $anchor=null)
     {

@@ -19,13 +19,13 @@ class ValidateRuleLoader
     private static $format_enable =array(
         "regex" => array(null, "正しい形式で入力してください"),
         "mail" => array('!^([a-z0-9_]|\-|\.|\+)+@(([a-z0-9_]|\-)+\.)+[a-z]{2,6}$!', "正しいメールアドレスを入力してください"),
-        "tel" => array('!^\d[\d-]+\d$!', "半角数字(ハイフンあり可)で入力してください"),
-        "zip" => array('!^\d\d\d-?\d\d\d\d\d?$!', "半角数字(ハイフンあり可)で入力してください"),
+        "tel" => array('!^\d[\d-]+\d$!', "半角数字(ハイフンあり可)で電話番号を入力してください"),
+        "zip" => array('!^\d\d\d-?\d\d\d\d\d?$!', "半角数字(ハイフンあり可)で郵便番号を入力してください"),
         "alphabet" => array('!^[a-zA-Z]+$!', "半角英字のみで入力してください"),
         "number" => array('!^\d+$!', "半角数字のみで入力してください"),
         "alphanum" => array('!^[a-zA-Z0-9]+$!', "半角英数字のみで入力してください"),
         "kana" => array('!^(ア|イ|ウ|エ|オ|カ|キ|ク|ケ|コ|サ|シ|ス|セ|ソ|タ|チ|ツ|テ|ト|ナ|ニ|ヌ|ネ|ノ|ハ|ヒ|フ|ヘ|ホ|マ|ミ|ム|メ|モ|ヤ|ユ|ヨ|ラ|リ|ル|レ|ロ|ワ|ヲ|ン|ァ|ィ|ゥ|ェ|ォ|ッ|ャ|ュ|ョ|ー|ガ|ギ|グ|ゲ|ゴ|ザ|ジ|ズ|ゼ|ゾ|ダ|ヂ|ヅ|デ|ド|バ|ビ|ブ|ベ|ボ|パ|ピ|プ|ペ|ポ|ヴ| |　|・)*$!u', "全角カナのみで入力してください"),
-        "date" => array('!^(\d+)[/-]+(\d+)[/-](\d+)$!', "正しい日付を入力してください"),
+        "date" => array('!^(\d+)[/-]+(\d+)[/-](\d+)$!', "YYYY/MM/DD形式で正しい日付を入力してください"),
     );
     /**
      * 必須チェック
@@ -33,14 +33,9 @@ class ValidateRuleLoader
     public static function callbackRequired ($validator, $value, $rule)
     {
         if (is_array($value)) {
-            if (count($value) > 0) {
-                return false;
-            }
-            return false;
+            if (count($value) > 0) return false;
         } else {
-            if (strlen($value)) {
-                return false;
-            }
+            if (strlen($value)) return false;
         }
         return array("message"=>"必ず入力して下さい");
     }
@@ -51,9 +46,7 @@ class ValidateRuleLoader
      */
     public static function callbackFormat ($validator, $value, $rule)
     {
-        if ( ! strlen($value)) {
-            return false;
-        }
+        if ( ! strlen($value)) return false;
         // パラメータチェック
         if ( ! isset(self::$format_enable[$rule["format"]])) {
             report_error("パラメータの指定が不正です",array(
@@ -63,12 +56,8 @@ class ValidateRuleLoader
         }
         list($regex, $message) = self::$format_enable[$rule["format"]];
         // regexの指定があれば正規表現を上書き
-        if ($rule["regex"]) {
-            $regex = $rule["regex"];
-        }
-        if (preg_match($regex,$value)) {
-            return false;
-        }
+        if ($rule["regex"]) $regex = $rule["regex"];
+        if (preg_match($regex,$value)) return false;
         return array("message"=>$message);
     }
     /**
@@ -78,27 +67,26 @@ class ValidateRuleLoader
      */
     public static function callbackRange ($validator, $value, $rule)
     {
-        if ( ! strlen($value)) {
-            return false;
-        }
+        if ( ! strlen($value)) return false;
         $min = $rule["min"];
         $max = $rule["max"];
+        $params = array("min"=>$min, "max"=>$max);
         if ($rule["date"]) {
             if (isset($min)) { $min = strtotime($min); }
             if (isset($max)) { $max = strtotime($max); }
             if (isset($value)) { $value = strtotime($value); }
         }
         if (isset($min) && isset($max)) {
-            if ($min > $value || $max < $value) {
-                return array("message"=>"正しい値を入力して下さい");
+            if ($min >= $value || $max <= $value) {
+                return array("message"=>":min以上:max以下で入力して下さい", "params"=>$params);
             }
         } elseif (isset($min)) {
-            if ($min > $value) {
-                return array("message"=>"正しい値を入力して下さい");
+            if ($min >= $value) {
+                return array("message"=>":min以上で入力して下さい", "params"=>$params);
             }
         } elseif (isset($max)) {
-            if ($max < $value) {
-                return array("message"=>"正しい値を入力して下さい");
+            if ($max <= $value) {
+                return array("message"=>":max以下で入力して下さい", "params"=>$params);
             }
         }
         return false;
@@ -115,20 +103,21 @@ class ValidateRuleLoader
         }
         $min = $rule["min"];
         $max = $rule["max"];
+        $params = array("min"=>$min, "max"=>$max);
         $length =mb_strlen(str_replace("\r\n", "\n", $value),"UTF-8");
         if (isset($min) && isset($max)) {
-            if ($min==$max && $min!=$kength) {
-                return array("message"=>$min."文字で入力してください");
-            } elseif ($min > $length || $max < $length) {
-                return array("message"=>$min."文字以上".$max."文字以内で入力してください");
+            if ($min==$max && $min!=$length) {
+                return array("message"=>":min文字で入力してください", "params"=>$params);
+            } elseif ($min >= $length || $max <= $length) {
+                return array("message"=>":min文字以上:max文字以内で入力してください", "params"=>$params);
             }
         } elseif (isset($min)) {
-            if ($min > $length) {
-                return array("message"=>$min."文字以上で入力してください");
+            if ($min >= $length) {
+                return array("message"=>":min文字以上で入力してください", "params"=>$params);
             }
         } elseif (isset($max)) {
-            if ($max < $length) {
-                return array("message"=>$max."文字以内で入力してください");
+            if ($max <= $length) {
+                return array("message"=>":max文字以内で入力してください", "params"=>$params);
             }
         }
         return false;
@@ -164,12 +153,8 @@ class ValidateRuleLoader
      */
     public static function callbackValidFile ($validator, $value, $rule)
     {
-        if (is_string($value) && ! strlen($value)) {
-            return false;
-        }
-        if ( ! $value instanceof \Psr\Http\Message\UploadedFileInterface) {
-            return false;
-        }
+        if (is_string($value) && ! strlen($value)) return false;
+        if ( ! $value instanceof \Psr\Http\Message\UploadedFileInterface) return false;
         $error = $value->getError();
         // 値: 4; ファイルはアップロードされませんでした。
         if ($error  == UPLOAD_ERR_NO_FILE) {

@@ -6,6 +6,7 @@ class AppContainer
     protected $instances = array();
     protected $providers = array(
         // 4.1
+        "i18n" => 'R\Lib\I18n\I18nDriver',
         "security" => 'R\Lib\Core\Security',
         "enum" => 'R\Lib\Enum\EnumRepositry',
         "view" => 'R\Lib\View\ViewFactory',
