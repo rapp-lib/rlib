@@ -144,8 +144,8 @@ class ValidateRuleLoader
         if ( ! strlen($value))  return false;
         $q = table($rule["table"]);
         $q = $q->findBy($rule["col_name"], $value);
-        if ($rule["id_field"]) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue("id_field"));
-        if ( ! $q->selectOne()) return false;
+        if ($rule["id_field"]) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue($rule["id_field"]));
+        if (count($q->select())==0) return false;
         return array("message"=>"既に登録されています");
     }
     /**
