@@ -20,11 +20,13 @@ class PagesetElement extends Element_Base
                 "type" => "admin",
             ), $this);
             // 自動返信メール
-            if ($mail_col = $this->getParent()->getTable()->getColByAttr("def.mail")) {
-                $this->children["mail"][] = new MailElement($controller_name.".reply", array(
-                    "type" => "reply",
-                    "mail_col_name" => $mail_col->getName(),
-                ), $this);
+            if ($this->getParent()->getTable()) {
+                if ($mail_col = $this->getParent()->getTable()->getColByAttr("def.mail")) {
+                    $this->children["mail"][] = new MailElement($controller_name.".reply", array(
+                        "type" => "reply",
+                        "mail_col_name" => $mail_col->getName(),
+                    ), $this);
+                }
             }
         }
     }
