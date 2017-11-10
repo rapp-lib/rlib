@@ -44,6 +44,18 @@ class FormContainer extends ArrayObject
         }
     }
 
+    /**
+     * フロント利用向けにFormの状態情報を取得
+     */
+    public function exportState ()
+    {
+        return array(
+            "errors" => $this->errors,
+            "values" => $this->values,
+            "rules" => $this->def["rules"],
+        );
+    }
+
 // -- 必須構成情報の取得
 
     /**

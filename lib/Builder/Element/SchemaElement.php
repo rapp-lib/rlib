@@ -33,7 +33,7 @@ class SchemaElement extends Element_Base
         }
     }
     /**
-     * @getter Roles
+     * @override
      */
     public function getSchema ()
     {
