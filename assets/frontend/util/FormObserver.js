@@ -39,7 +39,6 @@ window.FormObserver = function ($form, state, o) {
     };
     self.fieldNameIsMatch = function(field_name_ptn, field_name){
         field_name = field_name.replace(/^([^\.]+)\.([^\.]+)\.([^\.]+)$/,'$1.*.$3');
-        console.log([field_name,field_name_ptn]);
         return field_name == field_name_ptn;
     };
 
