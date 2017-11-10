@@ -11,9 +11,10 @@
             "jquery.balloon" => array("//cdn.jsdelivr.net/npm/jquery-balloon-js@1.1.2/jquery.balloon.min.js"),
         ),
         "local" => array(
-            "util.append-style" => array('util/append-style.js'),
+            "util.appendStyle" => array('util/appendStyle.js'),
             "util.DOMChangeListener" => array('util/DOMChangeListener.js', array("jquery")),
-            "util.FormObserver" => array('util/FormObserver.js', array("jquery", "util.DOMChangeListener")),
+            "util.FormObserver" => array('util/FormObserver.js', array("jquery", "util.DOMChangeListener", "util.FormValidator")),
+            "util.FormValidator" => array('util/FormValidator.js', array("jquery")),
             // rui
             "rui.show-errors" => array('rui.show-errors/rui.show-errors.js', array("jquery")),
             "rui.mi" => array('mi-3.0/jquery.mi.js', array("jquery", "InputPluginRegistry")),

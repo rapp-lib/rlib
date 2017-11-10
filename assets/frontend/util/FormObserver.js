@@ -4,44 +4,98 @@ window.FormObserver = function ($form, state, o) {
     self.$form = $form;
     self.state = state || {};
     self.o = o || {};
+    self.field_names = self.state.field_names || [];
     self.rules = self.state.rules || [];
     self.errors = self.state.errors || [];
-    // フォームにエラー定義を表示する
-    self.applyRules = function(){
-        // ルールを表示する
-        for (var i in self.rules) {
-            var item = self.rules[i];
-            var $input = self.findInputByFieldName(item.field_name);
-            if (self.o.apply_rule_callback) self.o.apply_rule_callback($input, item);
-        }
+    self.refresh_callback = self.o.refresh_callback || function(self, $input, rules, errors){};
+
+    self.getValidator = function(){
+        if ( ! self.validator) self.validator = new FormValidator(self);
+        return self.validator;
     };
-    // フォームにエラー定義を表示する
-    self.applyErrors = function(){
-        // エラーを表示する
-        for (var i in self.errors) {
-            var item = self.errors[i];
-            var $input = self.findInputByFieldName(item.field_name);
-            if (self.o.apply_error_callback) self.o.apply_error_callback($input, item);
-        }
+    self.className = function(string){
+        return string.replace(/[^\w\d-_]/g, '-');
     };
-    // field_nameに対応するinput要素を取得
-    self.findInputByFieldName = function(field_name){
+
+// -- field_nameから情報を取得
+
+    self.getInputSelector = function(field_name){
         var parts = field_name.split(".");
-        var selector = "_dummy_";
+        var selector = null;
         if (parts.length==1) selector = '[name="'+parts[0]+'"]';
         else if (parts.length==2) selector = '[name="'+parts[0]+"["+parts[1]+"]"+'"]';
         else if (parts.length==3) {
             if (parts[1]=="*") selector = '[name^="'+parts[0]+"["+'"][name$="'+"]["+parts[2]+"]"+'"]';
             else selector = '[name="'+parts[0]+"["+parts[1]+"]["+parts[2]+"]"+'"]';
         }
-        return self.$form.find(selector);
+        return selector;
     };
-    // 初期化
+    self.getInputElement = function(field_name){
+        var selector = self.getInputSelector(field_name);
+        return $(selector) || $("__dummy");
+    };
+    self.getInputValue = function(field_name){
+        return self.getInputElement(field_name).val();
+    };
+    self.fieldNameIsMatch = function(field_name_ptn, field_name){
+        field_name = field_name.replace(/^([^\.]+)\.([^\.]+)\.([^\.]+)$/,'$1.*.$3');
+        console.log([field_name,field_name_ptn]);
+        return field_name == field_name_ptn;
+    };
+
+// -- input要素から情報を取得する
+
+    self.getFieldNameByElement = function($input){
+        return $input.attr('name').replace(/\[/g,'.').replace(/\]/g,'');
+    };
+    self.getRulesByElement = function($input){
+        var field_name = self.getFieldNameByElement($input);
+        var rules = [];
+        for (var i in self.rules) {
+            if (self.fieldNameIsMatch(self.rules[i].field_name, field_name)) rules.push(self.rules[i]);
+        }
+        return rules;
+    };
+    self.getErrorsByElement = function($input){
+        var field_name = self.getFieldNameByElement($input);
+        var errors = [];
+        for (var i in self.errors) {
+            if (self.fieldNameIsMatch(self.errors[i].field_name, field_name)) errors.push(self.errors[i]);
+        }
+        return errors;
+    };
+
+// -- 更新制御
+
+    // 表示の更新
+    self.refresh = function(){
+        for (var i in self.field_names) {
+            var $inputs = self.getInputElement(self.field_names[i]);
+            $inputs.each(function(){
+                var $input = $(this);
+                var errors = self.getErrorsByElement($input);
+                var rules = self.getRulesByElement($input);
+                self.refresh_callback(self, $input, rules, errors);
+            });
+        }
+    };
+
+    // 更新処理の初期登録
     self.init = function(){
-        self.applyErrors();
-        self.applyRules();
+        // 初期更新
+        self.refresh();
+        // 入力時の更新
+        for (var i in self.field_names) {
+            var selector = self.getInputSelector(self.field_names[i]);
+            self.$form.on('change blur', selector, function(){
+                var $input = $(this);
+                $input.addClass("changed");
+                self.refresh();
+            });
+        }
+        // DOM追加時の更新
         new DOMChangeListener(self.$form, "insert", function($form, nodes){
-            self.applyRules();
+            self.refresh();
         });
     };
     self.init();
