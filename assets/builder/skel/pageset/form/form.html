@@ -1,19 +1,12 @@
 {{if $forms.entry->getErrors()}}
     <div class="errmsg">※入力エラーがあります</div>
-    {{*
-    {{foreach $forms.entry->getErrors() as $error}}
-        <p class="errmsg">{{$forms.entry->getFieldLabel($error["field_name"])}} : {{$error["message"]}}</p>
-    {{/foreach}}
-    *}}
-    {{script require=["jquery", "app.show-errors"]}}
-        $(function(){
-            showErrors({
-                errors: {{$forms.entry->getErrors()|json_encode nofilter}},
-                $form: $("form.form-entry")
-            });
-        });
-    {{/script}}
 {{/if}}
+{{script require=["app.observe-form"]}}
+    $(function(){
+        var state = {{$forms.entry->exportState()|json_encode nofilter}};
+        var form = observeForm($("form.form-entry"), state);
+    });
+{{/script}}
 
 {{form action='.'|page_to_url enctype="multipart/form-data" method="post" form=$forms.entry class="form-entry"}}
 <?php if ($controller->getAttr("type")==="master"): ?>
