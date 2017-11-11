@@ -33,9 +33,13 @@
         {{/if}}
 <?php   else: ?>
 <?php       $index_page = $menu_controller->getIndexPage(); ?>
+<?php       if ($role->getName() == "guest"): ?>
+        <dt><a href='{{"<?=$index_page->getFullPage()?>"|page_to_url}}'><?=$index_page->getLabel()?></a></dt>
+<?php       else: ?>
         {{if "<?=$index_page->getFullPage()?>"|is_accessible}}
             <dt><a href='{{"<?=$index_page->getFullPage()?>"|page_to_url}}'><?=$index_page->getLabel()?></a></dt>
         {{/if}}
+<?php       endif ?>
 <?php   endif; ?>
 <?php endforeach; ?>
     </dl>

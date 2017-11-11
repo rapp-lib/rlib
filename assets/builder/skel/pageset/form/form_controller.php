@@ -8,7 +8,7 @@
         "table" => "<?=$table->getName()?>",
 <?php endif; ?>
         "fields" => array(
-<?php if ($controller->getAttr("type")==="master"): ?>
+<?php if ($controller->getAttr("type")==="master" || $controller->isAccountMyPage()): ?>
             "id",
 <?php endif; ?>
 <?php foreach ($controller->getInputCols() as $col): ?>
@@ -53,6 +53,7 @@
 <?php if ($controller->isAccountMyPage()): ?>
             $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectById($id);
             $this->forms["entry"]->setRecord($t);
+            $this->forms["entry"]["id"] = "myself";
 <?php else: ?>
             if ($id = $this->input["id"]) {
                 $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectById($id);

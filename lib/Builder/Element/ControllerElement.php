@@ -14,12 +14,11 @@ class ControllerElement extends Element_Base
             $pagesets[] = array("type"=>"index");
         } elseif ($this->getAttr("type") == "login") {
             $pagesets[] = array("type"=>"login");
-            if ($this->getAttr("use_reminder")) {
-                $pagesets[] = array("type"=>"reminder");
-            }
+        } elseif ($this->getAttr("type") == "reminder") {
+            $pagesets[] = array("type"=>"reminder");
         } elseif ($this->getAttr("type") == "form") {
             $pagesets[] = array("type"=>"form",
-                "use_mail"=>$this->getFlagAttr("use_mail",true),
+                "use_mail"=>$this->getFlagAttr("use_mail",false),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", false),
                 "skip_complete"=>$this->getFlagAttr("skip_complete", false));
             if ($this->getFlagAttr("use_mailcheck", false)) {
@@ -27,6 +26,9 @@ class ControllerElement extends Element_Base
             }
         } elseif ($this->getAttr("type") == "show") {
             $pagesets[] = array("type"=>"show");
+            if ($this->getFlagAttr("use_csv", false)) {
+                $pagesets[] = array("type"=>"csv");
+            }
         } elseif ($this->getAttr("type") == "master") {
             $pagesets[] = array("type"=>"show");
             $pagesets[] = array("type"=>"form",
@@ -104,11 +106,17 @@ class ControllerElement extends Element_Base
      */
     public function getInputCols ()
     {
-        $cols = array();
-        foreach ($this->getTable()->getInputCols() as $col) {
-            $cols[] = $col;
+        $cols = $this->getTable()->getInputCols();
+        // use_atによるフィルタリング
+        $filtered_cols = array();
+        foreach ($cols as $i => $col) {
+            if (is_array($use_at = $col->getAttr("use_at"))) {
+                foreach ($use_at as $controller_name) {
+                    if ($controller_name == $this->getName()) $filtered_cols[] = $col;
+                }
+            }
         }
-        return $cols;
+        return $filtered_cols ?: $cols;
     }
     /**
      * 一覧画面に表示するColの取得
@@ -150,31 +158,27 @@ class ControllerElement extends Element_Base
         }
         return null;
     }
+
+// -- マイページ機能用
+
     /**
      * Tableのクエリ組み立てChainへの追加分を返す
      */
     public function getTableChain ($type)
     {
         $append = "";
-        if ($this->getAttr("is_mypage")) {
+        if ($this->getFlagAttr("is_mypage")) {
             if ($type=="find") $append .= '->findMine()';
             else if ($type=="save") $append .= '->setMine()';
         }
         return $append;
     }
     /**
-     * Enum参照Filterへの追加分を返す
-     */
-    public function getEnumFilter ($enum_set)
-    {
-        return "";
-    }
-    /**
      * アカウント自身を対象としたControllerであるかどうかを返す
      */
     public function isAccountMyPage ()
     {
-        if ($this->getAttr("is_mypage") && $this->getRole()) {
+        if ($this->getFlagAttr("is_mypage") && $this->getRole()) {
             if ($role_table = $this->getRole()->getAuthTable()) {
                 return $this->getTable()->getName() == $role_table->getName();
             }
