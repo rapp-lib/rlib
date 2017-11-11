@@ -150,4 +150,35 @@ class ControllerElement extends Element_Base
         }
         return null;
     }
+    /**
+     * Tableのクエリ組み立てChainへの追加分を返す
+     */
+    public function getTableChain ($type)
+    {
+        $append = "";
+        if ($this->getAttr("is_mypage")) {
+            if ($type=="find") $append .= '->findMine()';
+            else if ($type=="save") $append .= '->setMine()';
+        }
+        return $append;
+    }
+    /**
+     * Enum参照Filterへの追加分を返す
+     */
+    public function getEnumFilter ($enum_set)
+    {
+        return "";
+    }
+    /**
+     * アカウント自身を対象としたControllerであるかどうかを返す
+     */
+    public function isAccountMyPage ()
+    {
+        if ($this->getAttr("is_mypage") && $this->getRole()) {
+            if ($role_table = $this->getRole()->getAuthTable()) {
+                return $this->getTable()->getName() == $role_table->getName();
+            }
+        }
+        return false;
+    }
 }

@@ -151,6 +151,53 @@ class Table_Base extends Table_Core
     }
     /**
      * @hook chain
+     * 現在のRoleのTableに対して所有関係があることを条件として指定する
+     */
+    public function chain_findMine ()
+    {
+        $role = $role ?: app()->user->getCurrentRole();
+        $user_id = app()->user->id($role);
+        $role_table_name = app()->user->getAuthTable($role);
+        if ( ! $role_table_name) {
+            report_error("Roleに対応するTableがありません", array("role"=>$role));
+        }
+        $col_name = $role_table_name == $this->getAppTableName()
+            ? $this->getIdColName() : $this->getColNameByAttr("fkey_for", $role_table_name);
+        if ( ! $col_name) {
+            report_error("RoleのTableに対する所有関係を示すキーの設定がありません",
+                array("role_tabel"=>$role_table_name, "table"=>$this));
+        }
+
+        // ログイン中でなければ何も取得しない
+        if ( ! $user_id) return $this->findNothing();
+        $this->query->where($this->getQueryTableName().".".$col_name, $user_id);
+    }
+    /**
+     * @hook chain
+     * 現在のRoleのTableに対して所有関係があることをValuesに設定する
+     */
+    public function chain_setMine ()
+    {
+        $role = $role ?: app()->user->getCurrentRole();
+        $user_id = app()->user->id($role);
+        $role_table_name = app()->user->getAuthTable($role);
+        if ( ! $role_table_name) {
+            report_error("Roleに対応するTableがありません", array("role"=>$role));
+        }
+        $col_name = $role_table_name == $this->getAppTableName()
+            ? $this->getIdColName() : $this->getColNameByAttr("fkey_for", $role_table_name);
+        if ( ! $col_name) {
+            report_error("RoleのTableに対する所有関係を示すキーの設定がありません",
+                array("role_tabel"=>$role_table_name, "table"=>$this));
+        }
+
+        if ( ! $user_id) {
+            report_error("非ログイン中のsetMineの呼び出しは不正です", array("table"=>$this));
+        }
+        $this->query->setValue($col_name, $user_id);
+    }
+    /**
+     * @hook chain
      * 絞り込み結果を空にする
      */
     public function chain_findNothing ()
@@ -429,62 +476,6 @@ class Table_Base extends Table_Core
         } else {
             return false;
         }
-    }
-    /**
-     * @hook on_write
-     * 認証が必要な領域でのテーブル操作について、認証中のアカウントのIDを上書きする
-     */
-    protected function on_write_ownedBy ()
-    {
-        // 認証用の問い合わせ時には制御を行わない
-        if ($this->getAttr("for_auth")) return false;
-        // fkey_for_roleで所定のRoleが指定されており、ログイン中であればValuesに条件を加える
-        $restricted_role = $this->getAttr("owned_by");
-        $current_role = app()->user->getCurrentRole();
-        $col_name = $this->getColNameByAttr("fkey_for_role", $restricted_role ?: $current_role);
-        $owner_id = app()->user->id($restricted_role ?: $current_role);
-        if ($col_name && $owner_id) {
-            $this->query->setValue($col_name, $owner_id);
-            return true;
-        }
-        // owned_byで明示的に制御の指定がある場合は、制御が動作しない場合はFatalエラーとする
-        if ($restricted_role && ! $owner_id) {
-            report_error("owned_byのrole指定が不正です",array(
-                "owned_by_role" => $restricted_role,
-                "fkey_for_role_col_name" => $col_name,
-                "owner_id" => $owner_id,
-                "current_role" => $current_role,
-            ));
-        }
-        return false;
-    }
-    /**
-     * @hook on_read
-     * 認証が必要な領域でのテーブル操作について、認証中のアカウントのIDを上書きする
-     */
-    protected function on_read_ownedBy ()
-    {
-        // 認証用の問い合わせ時には制御を行わない
-        if ($this->getAttr("for_auth")) return false;
-        // fkey_for_roleで所定のRoleが指定されており、ログイン中であればWhereに条件を加える
-        $restricted_role = $this->getAttr("owned_by");
-        $current_role = app()->user->getCurrentRole();
-        $col_name = $this->getColNameByAttr("fkey_for_role", $restricted_role ?: $current_role);
-        $owner_id = app()->user->id($restricted_role ?: $current_role);
-        if ($col_name && $owner_id) {
-            $this->query->where($this->getQueryTableName().".".$col_name, $owner_id);
-            return true;
-        }
-        // owned_byで明示的に制御の指定がある場合は、制御が動作しない場合はFatalエラーとする
-        if ($restricted_role && ! $owner_id) {
-            report_error("owned_byのrole指定が不正です",array(
-                "owned_by_role" => $restricted_role,
-                "fkey_for_role_col_name" => $col_name,
-                "owner_id" => $owner_id,
-                "current_role" => $current_role,
-            ));
-        }
-        return false;
     }
     /**
      * @hook on_insert
@@ -935,13 +926,12 @@ class Table_Base extends Table_Core
     public function authenticate ($params)
     {
         $result = false;
-        $this->setAttr("for_auth");
         if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
             $result = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->selectOne();
         }
         if ($result && $col_name = $this->getColNameByAttr("login_date")) {
-            $this->createTable()->setAttr("for_auth")
-                ->updateById($result[$this->getIdColName()], array($col_name=>date("Y/m/d H:i:s")));
+            $this->createTable()->updateById($result[$this->getIdColName()],
+                array($col_name=>date("Y/m/d H:i:s")));
         }
         return $result ? (array)$result : false;
     }

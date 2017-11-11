@@ -76,6 +76,13 @@ class UserLoginDriver
         return $this->getLoginProvider($role)->checkPriv($priv_req);
     }
     /**
+     * 認証制御に対応するTableの取得
+     */
+    public function getAuthTable($role)
+    {
+        return $this->getLoginProvider($role)->getAuthTable();
+    }
+    /**
      * 認証試行を行って得られた権限を取得
      * ロールへの権限設定、切り替えは行わない
      */

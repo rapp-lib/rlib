@@ -17,6 +17,10 @@ class GuestLogin
     {
         return false;
     }
+    public function getAuthTable()
+    {
+        return null;
+    }
     public function authenticate($params)
     {
         return false;

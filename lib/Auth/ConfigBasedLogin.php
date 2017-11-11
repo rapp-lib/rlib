@@ -71,4 +71,8 @@ class ConfigBasedLogin
         }
         return $next($request);
     }
+    public function getAuthTable()
+    {
+        return $this->config["auth_table"];
+    }
 }

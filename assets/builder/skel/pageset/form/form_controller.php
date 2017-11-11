@@ -50,11 +50,16 @@
             }
         } elseif ( ! $this->input["back"]) {
             $this->forms["entry"]->clear();
+<?php if ($controller->isAccountMyPage()): ?>
+            $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectById($id);
+            $this->forms["entry"]->setRecord($t);
+<?php else: ?>
             if ($id = $this->input["id"]) {
-                $t = $this->forms["entry"]->getTable()->selectById($id);
+                $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectById($id);
                 if ( ! $t) return $this->response("notfound");
                 $this->forms["entry"]->setRecord($t);
             }
+<?php endif; ?>
         }
     }
 <?=$pageset->getPageByType("confirm")->getMethodDecSource()?>
@@ -75,7 +80,12 @@
         if ( ! $this->forms["entry"]->isEmpty()) {
 <?php if ($table->hasDef()): ?>
             // 登録
-            $t = $this->forms["entry"]->getTableWithValues()->save()->getSavedRecord();
+<?php   if ($controller->isAccountMyPage()): ?>
+            $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("find")?>->updateAll();
+            $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
+<?php   else: ?>
+            $t = $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("save")?>->save()->getSavedRecord();
+<?php   endif; ?>
 <?php else: ?>
             $t = $this->forms["entry"]->getValues();
 <?php endif; ?>
