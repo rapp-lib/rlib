@@ -51,7 +51,7 @@
         } elseif ( ! $this->input["back"]) {
             $this->forms["entry"]->clear();
 <?php if ($controller->isAccountMyPage()): ?>
-            $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectById($id);
+            $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
             $this->forms["entry"]->setRecord($t);
             $this->forms["entry"]["id"] = "myself";
 <?php else: ?>
@@ -82,7 +82,7 @@
 <?php if ($table->hasDef()): ?>
             // 登録
 <?php   if ($controller->isAccountMyPage()): ?>
-            $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("find")?>->updateAll();
+            $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("find")?><?=$controller->getTableChain("save")?>->updateAll();
             $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
 <?php   else: ?>
             $t = $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("save")?>->save()->getSavedRecord();

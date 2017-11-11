@@ -155,7 +155,7 @@ class Table_Base extends Table_Core
      */
     public function chain_findMine ()
     {
-        $role = $role ?: app()->user->getCurrentRole();
+        $role = app()->user->getCurrentRole();
         $user_id = app()->user->id($role);
         $role_table_name = app()->user->getAuthTable($role);
         if ( ! $role_table_name) {
@@ -178,7 +178,7 @@ class Table_Base extends Table_Core
      */
     public function chain_setMine ()
     {
-        $role = $role ?: app()->user->getCurrentRole();
+        $role = app()->user->getCurrentRole();
         $user_id = app()->user->id($role);
         $role_table_name = app()->user->getAuthTable($role);
         if ( ! $role_table_name) {
