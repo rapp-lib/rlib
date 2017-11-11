@@ -129,7 +129,7 @@ window.FormValidator = function (fo) {
         return self.is_array(value) ? value.length : 0;
     };
     self.strlen = function (value) {
-        return (""+value).length;
+        return self.isset(value) ? (""+value).length : 0;
     };
 };
 window.FormValidateRuleLoader = {
