@@ -19,7 +19,8 @@ class FrontAssets
             $base_uri = $repo_uri["uri"];
         }
         $repo = include($base_dir."/.assets.php");
-        foreach ((array)$repo["inc"] as $path) {
+        if ( ! $repo["import"] && $repo["inc"]) $repo["import"] = $repo["inc"];
+        foreach ((array)$repo["import"] as $path) {
             $this->addRepo(array("uri"=>$base_uri."/".$path, "dir"=>$base_dir."/".$path));
         }
         foreach ((array)$repo["ext"] as $mod_name=>$ext) {

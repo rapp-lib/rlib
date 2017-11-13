@@ -3,10 +3,6 @@ namespace R\Lib\Auth;
 
 class UserLoginDriver
 {
-    public function __invoke($role)
-    {
-        return $this->id($role);
-    }
     /**
      * 現在のロール、明示的に切り替えない限りロールはguest
      */
