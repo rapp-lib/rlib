@@ -50,8 +50,8 @@ class FormContainer extends ArrayObject
     public function exportState ()
     {
         return array(
+            "field_names" => array_keys($this->def["fields"]),
             "errors" => $this->errors,
-            "values" => $this->values,
             "rules" => $this->def["rules"],
         );
     }

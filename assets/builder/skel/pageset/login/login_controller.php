@@ -16,13 +16,12 @@
         if ($this->forms["login"]->receive($this->input)) {
             if ($this->forms["login"]->isValid()) {
                 // ログイン処理
-                $priv = app()->user->authenticate("<?=$controller->getRole()->getName()?>", array(
+                $result = app()->user->authenticate("<?=$controller->getRole()->getName()?>", array(
                     "type" => "idpw",
                     "login_id" => $this->forms["login"]["login_id"],
                     "login_pw" => $this->forms["login"]["login_pw"],
                 ));
-                if ($priv) {
-                    app()->user->setPriv("<?=$controller->getRole()->getName()?>",$priv);
+                if ($result) {
                     return $this->redirect($this->forms["login"]["redirect"] ?: "id://<?=$controller->getRole()->getIndexController()->getIndexPage()->getFullPage($pageset->getPageByType("login"))?>");
                 } else {
                     $this->vars["login_error"] = true;

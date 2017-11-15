@@ -8,7 +8,7 @@
         "table" => "<?=$table->getName()?>",
 <?php endif; ?>
         "fields" => array(
-<?php if ($controller->getAttr("type")==="master"): ?>
+<?php if ($controller->getAttr("type")==="master" || $controller->isAccountMyPage()): ?>
             "id",
 <?php endif; ?>
 <?php foreach ($controller->getInputCols() as $col): ?>
@@ -50,11 +50,17 @@
             }
         } elseif ( ! $this->input["back"]) {
             $this->forms["entry"]->clear();
+<?php if ($controller->isAccountMyPage()): ?>
+            $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
+            $this->forms["entry"]->setRecord($t);
+            $this->forms["entry"]["id"] = "myself";
+<?php else: ?>
             if ($id = $this->input["id"]) {
-                $t = $this->forms["entry"]->getTable()->selectById($id);
+                $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectById($id);
                 if ( ! $t) return $this->response("notfound");
                 $this->forms["entry"]->setRecord($t);
             }
+<?php endif; ?>
         }
     }
 <?=$pageset->getPageByType("confirm")->getMethodDecSource()?>
@@ -75,7 +81,12 @@
         if ( ! $this->forms["entry"]->isEmpty()) {
 <?php if ($table->hasDef()): ?>
             // 登録
-            $t = $this->forms["entry"]->getTableWithValues()->save()->getSavedRecord();
+<?php   if ($controller->isAccountMyPage()): ?>
+            $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("find")?><?=$controller->getTableChain("save")?>->updateAll();
+            $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
+<?php   else: ?>
+            $t = $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("save")?>->save()->getSavedRecord();
+<?php   endif; ?>
 <?php else: ?>
             $t = $this->forms["entry"]->getValues();
 <?php endif; ?>

@@ -18,10 +18,10 @@
         } elseif ($this->forms["search"]->receive($this->input)) {
             $this->forms["search"]->save();
         }
-        $this->vars["ts"] = $this->forms["search"]->search()->select();
+        $this->vars["ts"] = $this->forms["search"]->search()<?=$controller->getTableChain("find")?>->select();
     }
 <?=$pageset->getPageByType("detail")->getMethodDecSource()?>
     {
-        $this->vars["t"] = table("<?=$table->getName()?>")->selectById($this->input["id"]);
+        $this->vars["t"] = table("<?=$table->getName()?>")<?=$controller->getTableChain("find")?>->selectById($this->input["id"]);
         if ( ! $this->vars["t"]) return $this->response("notfound");
     }

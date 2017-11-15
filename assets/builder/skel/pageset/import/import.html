@@ -1,10 +1,10 @@
 {{if $forms.entry_csv->getErrors()}}
     <div class="errmsg">※入力エラーがあります</div>
 {{/if}}
-{{script require=["app.observe-form"]}}
+{{script require=["app.observeForm"]}}
     $(function(){
         var state = {{$forms.entry_csv->exportState()|json_encode nofilter}};
-        var form = observeForm($("form.form-entry_csv"), state);
+        var form = observeForm($("form.form-entry_csv"), state, "admin");
     });
 {{/script}}
 

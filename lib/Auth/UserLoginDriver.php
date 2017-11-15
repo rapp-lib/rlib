@@ -3,10 +3,6 @@ namespace R\Lib\Auth;
 
 class UserLoginDriver
 {
-    public function __invoke($role)
-    {
-        return $this->id($role);
-    }
     /**
      * 現在のロール、明示的に切り替えない限りロールはguest
      */
@@ -74,6 +70,13 @@ class UserLoginDriver
     public function checkPriv($role, $priv_req)
     {
         return $this->getLoginProvider($role)->checkPriv($priv_req);
+    }
+    /**
+     * 認証制御に対応するTableの取得
+     */
+    public function getAuthTable($role)
+    {
+        return $this->getLoginProvider($role)->getAuthTable();
     }
     /**
      * 認証試行を行って得られた権限を取得

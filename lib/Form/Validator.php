@@ -26,10 +26,10 @@ class Validator
     }
     public function getSiblingValue ($name)
     {
-        $field_parts = explode('.', $this->currentRule["field_name"]);
+        $field_parts = explode('.', $this->current_rule["field_name"]);
         if (count($field_parts)==1) return $this->values[$name];
         elseif (count($field_parts)==2) return $this->values[$field_parts[0]][$name];
-        elseif (count($field_parts)==3) return $this->values[$field_parts[0]][$this->currentRule["fieldset_index"]][$name];
+        elseif (count($field_parts)==3) return $this->values[$field_parts[0]][$this->current_rule["fieldset_index"]][$name];
         return null;
     }
     private function applyRules ($rules)
@@ -63,7 +63,7 @@ class Validator
      */
     private function applyRule ($value, $rule)
     {
-        $this->currentRule = $rule;
+        $this->current_rule = $rule;
         // 評価条件設定
         if (isset($rule["if"]) && ! $this->stConds($rule["if"])) return;
         // ValidateRuleExtentionを呼び出す
