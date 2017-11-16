@@ -117,7 +117,8 @@ class Router
         $routes = array();
         foreach ($grouped as $row) {
             if (is_string($row[0])) {
-                $route = array_merge((array)$route_config, (array)$row[2]);
+                $route = (array)$route_config;
+                foreach ((array)$row[2] as $k=>$v) array_add($route, $k, $v);
                 $route["page_id"] = $row[0];
                 $route["pattern"] = $base_path.$row[1];
                 $routes[] = $route;

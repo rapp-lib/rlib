@@ -99,9 +99,10 @@
                 "pages.reset.template_file" => $dir."/pageset/reminder/reset.html",
                 "pages.complete.template_file" => $dir."/pageset/reminder/complete.html",
                 "pages.reminder.label" => null,
-                "pages.send.label" => "送信",
-                "pages.reset.label" => "リセット",
-                "pages.complete.label" => "完了",
+                "pages.send.label" => "URL通知",
+                "pages.reset.label" => "パスワード入力",
+                "pages.complete.label" => "パスワード更新完了",
+                "mail_template.template_file" => $dir."/pageset/reminder/mail_template.php",
             ),
             "show" => array(
                 "index_page" => "list",

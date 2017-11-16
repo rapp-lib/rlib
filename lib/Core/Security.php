@@ -14,11 +14,18 @@ class Security
         return md5($string);
     }
     /**
+     * 乱数のハッシュ値の作成
+     */
+    public function getRandHash ()
+    {
+        return $this->hash(time().mt_rand());
+    }
+    /**
      * CSRFトークンの取得
      */
     public function getCsrfToken ()
     {
-        return self::hash(app()->session->getId());
+        return $this->hash(app()->session->getId());
     }
     /**
      * CSRFトークンパラメータ名の取得

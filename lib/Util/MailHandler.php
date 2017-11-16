@@ -27,7 +27,7 @@ class MailHandler
         $this->assign($assign);
         ob_start();
         try {
-            extract($this->vars, EXTR_REFS);
+            //extract($this->vars, EXTR_REFS);
             $mail = $this;
             include($this->template_dir."/".$template_filename);
         } catch (\Exception $e) {

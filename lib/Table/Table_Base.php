@@ -132,72 +132,6 @@ class Table_Base extends Table_Core
     }
     /**
      * @hook chain
-     * ログインID/PWを条件に指定する
-     */
-    public function chain_findByLoginIdPw ($login_id, $login_pw)
-    {
-        $login_id_col_name = $this->getColNameByAttr("login_id");
-        $login_pw_col_name = $this->getColNameByAttr("login_pw");
-        if ( ! $login_id_col_name || ! $login_pw_col_name) {
-            report_error("login_id,login_pwカラムがありません",array(
-                "table" => $this,
-            ));
-        }
-        if (static::$cols[$login_pw_col_name]["hash_pw"]) {
-            $login_pw = md5($login_pw);
-        }
-        $this->query->where($this->getQueryTableName().".".$login_id_col_name, (string)$login_id);
-        $this->query->where($this->getQueryTableName().".".$login_pw_col_name, (string)$login_pw);
-    }
-    /**
-     * @hook chain
-     * 現在のRoleのTableに対して所有関係があることを条件として指定する
-     */
-    public function chain_findMine ()
-    {
-        $role = app()->user->getCurrentRole();
-        $user_id = app()->user->id($role);
-        $role_table_name = app()->user->getAuthTable($role);
-        if ( ! $role_table_name) {
-            report_error("Roleに対応するTableがありません", array("role"=>$role));
-        }
-        $col_name = $role_table_name == $this->getAppTableName()
-            ? $this->getIdColName() : $this->getColNameByAttr("fkey_for", $role_table_name);
-        if ( ! $col_name) {
-            report_error("RoleのTableに対する所有関係を示すキーの設定がありません",
-                array("role_tabel"=>$role_table_name, "table"=>$this));
-        }
-
-        // ログイン中でなければ何も取得しない
-        if ( ! $user_id) return $this->findNothing();
-        $this->query->where($this->getQueryTableName().".".$col_name, $user_id);
-    }
-    /**
-     * @hook chain
-     * 現在のRoleのTableに対して所有関係があることをValuesに設定する
-     */
-    public function chain_setMine ()
-    {
-        $role = app()->user->getCurrentRole();
-        $user_id = app()->user->id($role);
-        $role_table_name = app()->user->getAuthTable($role);
-        if ( ! $role_table_name) {
-            report_error("Roleに対応するTableがありません", array("role"=>$role));
-        }
-        $col_name = $role_table_name == $this->getAppTableName()
-            ? $this->getIdColName() : $this->getColNameByAttr("fkey_for", $role_table_name);
-        if ( ! $col_name) {
-            report_error("RoleのTableに対する所有関係を示すキーの設定がありません",
-                array("role_tabel"=>$role_table_name, "table"=>$this));
-        }
-
-        if ( ! $user_id) {
-            report_error("非ログイン中のsetMineの呼び出しは不正です", array("table"=>$this));
-        }
-        $this->query->setValue($col_name, $user_id);
-    }
-    /**
-     * @hook chain
      * 絞り込み結果を空にする
      */
     public function chain_findNothing ()
@@ -396,7 +330,7 @@ class Table_Base extends Table_Core
         }
     }
 
-// -- 基本的なon_*の定義
+// -- on_* 基本的な定義
 
     /**
      * @hook on_fetch
@@ -516,6 +450,7 @@ class Table_Base extends Table_Core
     /**
      * @hook on_getBlankCol
      * enumの値を取得
+     * @deprecated retreiveを定義して使うべき
      */
     protected function on_getBlankCol_enumValue ($record, $col_name)
     {
@@ -625,7 +560,7 @@ class Table_Base extends Table_Core
         }
     }
 
-// -- assoc hookを呼び出すためのon hookの定義
+// -- on_* assoc仮想カラム処理 write+0/read-0
 
     /**
      * assoc指定されたFeieldに対応するValues
@@ -934,5 +869,71 @@ class Table_Base extends Table_Core
                 array($col_name=>date("Y/m/d H:i:s")));
         }
         return $result ? (array)$result : false;
+    }
+    /**
+     * @hook chain
+     * ログインID/PWを条件に指定する
+     */
+    public function chain_findByLoginIdPw ($login_id, $login_pw)
+    {
+        $login_id_col_name = $this->getColNameByAttr("login_id");
+        $login_pw_col_name = $this->getColNameByAttr("login_pw");
+        if ( ! $login_id_col_name || ! $login_pw_col_name) {
+            report_error("login_id,login_pwカラムがありません",array(
+                "table" => $this,
+            ));
+        }
+        if (static::$cols[$login_pw_col_name]["hash_pw"]) {
+            $login_pw = md5($login_pw);
+        }
+        $this->query->where($this->getQueryTableName().".".$login_id_col_name, (string)$login_id);
+        $this->query->where($this->getQueryTableName().".".$login_pw_col_name, (string)$login_pw);
+    }
+    /**
+     * @hook chain
+     * 現在のRoleのTableに対して所有関係があることを条件として指定する
+     */
+    public function chain_findMine ()
+    {
+        $role = app()->user->getCurrentRole();
+        $user_id = app()->user->id($role);
+        $role_table_name = app()->user->getAuthTable($role);
+        if ( ! $role_table_name) {
+            report_error("Roleに対応するTableがありません", array("role"=>$role));
+        }
+        $col_name = $role_table_name == $this->getAppTableName()
+            ? $this->getIdColName() : $this->getColNameByAttr("fkey_for", $role_table_name);
+        if ( ! $col_name) {
+            report_error("RoleのTableに対する所有関係を示すキーの設定がありません",
+                array("role_tabel"=>$role_table_name, "table"=>$this));
+        }
+
+        // ログイン中でなければ何も取得しない
+        if ( ! $user_id) return $this->findNothing();
+        $this->query->where($this->getQueryTableName().".".$col_name, $user_id);
+    }
+    /**
+     * @hook chain
+     * 現在のRoleのTableに対して所有関係があることをValuesに設定する
+     */
+    public function chain_setMine ()
+    {
+        $role = app()->user->getCurrentRole();
+        $user_id = app()->user->id($role);
+        $role_table_name = app()->user->getAuthTable($role);
+        if ( ! $role_table_name) {
+            report_error("Roleに対応するTableがありません", array("role"=>$role));
+        }
+        $col_name = $role_table_name == $this->getAppTableName()
+            ? $this->getIdColName() : $this->getColNameByAttr("fkey_for", $role_table_name);
+        if ( ! $col_name) {
+            report_error("RoleのTableに対する所有関係を示すキーの設定がありません",
+                array("role_tabel"=>$role_table_name, "table"=>$this));
+        }
+
+        if ( ! $user_id) {
+            report_error("非ログイン中のsetMineの呼び出しは不正です", array("table"=>$this));
+        }
+        $this->query->setValue($col_name, $user_id);
     }
 }

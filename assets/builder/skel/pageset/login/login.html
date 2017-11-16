@@ -1,20 +1,24 @@
 <p>IDとパスワードを入力し、 ログインしてください。</p>
 
 {{if $login_error}}
-<p class="errmsg">※IDまたはパスワードに誤りがあります。</p>
+    <p class="errmsg">※IDまたはパスワードに誤りがあります。</p>
 {{/if}}
 
 {{form action="."|page_to_url method="post" form=$forms.login}}
-    {{input type="hidden" name="redirect"}}
-    <div class="mini-form">
-        <dl>
-            <dt>ID</dt>
-            <dd>{{input type="text" name="login_id" autocomplete="off"}}</dd>
-            <dt>パスワード</dt>
-            <dd>{{input type="password" name="login_pw" autocomplete="off"}}</dd>
-        </dl>
-        <div class="btn-area">
-            <button type="submit" class="primary-btn">ログイン</button>
-        </div>
+{{input type="hidden" name="redirect"}}
+<div class="mini-form">
+    <dl>
+        <dt>ID</dt>
+        <dd>{{input type="text" name="login_id" autocomplete="off"}}</dd>
+        <dt>パスワード</dt>
+        <dd>{{input type="password" name="login_pw" autocomplete="off"}}</dd>
+    </dl>
+    <div class="btn-area">
+        <button type="submit" class="primary-btn">ログイン</button>
     </div>
+</div>
 {{/form}}
+
+<?php if ($reminder_controller = $role->getReminderController()): ?>
+<p>パスワードをお忘れの方は <a href='{{"<?=$reminder_controller->getIndexPage()->getFullPage()?>"|page_to_url}}'>こちら</a></p>
+<?php endif; ?>

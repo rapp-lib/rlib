@@ -138,6 +138,19 @@ class ValidateRuleLoader
         return array("message"=>__("既に登録されています"));
     }
     /**
+     * 登録チェック
+     *  table : （必須）テーブル名
+     *  col_name : （必須）カラム名
+     */
+    public static function callbackRegistered ($validator, $value, $rule)
+    {
+        if ( ! strlen($value))  return false;
+        $q = table($rule["table"]);
+        $q = $q->findBy($rule["col_name"], $value);
+        if (count($q->select())==1) return false;
+        return array("message"=>__("登録されていません"));
+    }
+    /**
      * 同一入力チェック
      *  target : （必須）対象のField名
      */

@@ -21,9 +21,6 @@ class ControllerElement extends Element_Base
                 "use_mail"=>$this->getFlagAttr("use_mail",false),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", false),
                 "skip_complete"=>$this->getFlagAttr("skip_complete", false));
-            if ($this->getFlagAttr("use_mailcheck", false)) {
-                $pagesets[] = array("type"=>"mailcheck");
-            }
         } elseif ($this->getAttr("type") == "show") {
             $pagesets[] = array("type"=>"show");
             if ($this->getFlagAttr("use_csv", false)) {

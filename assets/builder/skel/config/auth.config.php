@@ -33,17 +33,18 @@
                     return true;
                 },
                 "refresh_priv" => function($priv){
-                    // 強制ログアウト
-                    if ( ! $priv["ts_logout"]) $priv["ts_logout"] = time();
-                    if ($priv["ts_logout"] < time() - 2*60*60) return null;
-                    $priv["ts_logout"] = time();
+                    if ($priv) {
+                        // 強制ログアウト
+                        if ($priv["ts_logout"] && $priv["ts_logout"] < time() - 2*60*60) return null;
+                        $priv["ts_logout"] = time();
 <?php if ($role->getAuthTable()): ?>
-                    // 権限情報の更新
-                    if ( ! $priv["ts_refresh"]) $priv["ts_refresh"] = time();
-                    if ($priv["ts_refresh"] < time() - 60*60) {
-                        return table("Staff")->selectById($priv["id"]);
-                    }
+                        // 権限情報の更新
+                        if ( ! $priv["ts_refresh"]) $priv["ts_refresh"] = time();
+                        if ($priv["ts_refresh"] < time() - 60*60) {
+                            return table("Staff")->selectById($priv["id"]);
+                        }
 <?php endif;?>
+                    }
                     return $priv;
                 },
             ),

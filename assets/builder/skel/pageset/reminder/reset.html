@@ -1,0 +1,38 @@
+{{if $cred_data.mail}}
+    <p class="errmsg">※URLが無効です</p>
+{{else}}
+
+{{if $forms.reset->getErrors()}}
+    <p class="errmsg">※入力エラーがあります</p>
+{{/if}}
+{{script require=["app.observeForm"]}}
+    $(function(){
+        var state = {{$forms.reset->exportState()|json_encode nofilter}};
+        var form = observeForm($("form.form-reset"), state, "admin");
+    });
+{{/script}}
+
+{{form action='.'|page_to_url enctype="multipart/form-data" method="post" form=$forms.reset class="form-reset"}}
+{{input name="cred" type="hidden"}}
+<table class="tbl detail">
+    <tr>
+        <th>メール</th>
+        <td class="input-block">{{$cred_data.mail}}</td>
+    </tr>
+    <tr>
+        <th>パスワード</th>
+        <td class="input-block">{{input name="login_pw" type="password" autocomplete="new-password" class="w-full"}}</td>
+    </tr>
+    <tr>
+        <th>パスワード確認</th>
+        <td class="input-block">{{input name="login_pw_confirm" type="password" autocomplete="new-password" class="w-full"}}</td>
+    </tr>
+</table>
+<div class="btn-area">
+    <div class="right clearfix">
+        <button type="submit" class="primary-btn">確認</button>
+    </div>
+</div>
+{{/form}}
+
+{{/if}}

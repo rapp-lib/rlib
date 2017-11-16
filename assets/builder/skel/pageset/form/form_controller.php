@@ -42,19 +42,24 @@
     );
 <?=$pageset->getPageByType("form")->getMethodDecSource()?>
     {
-        $this->forms["entry"]->restore();
         if ($this->forms["entry"]->receive($this->input)) {
             if ($this->forms["entry"]->isValid()) {
                 $this->forms["entry"]->save();
+<?php if ($pageset->getAttr("skip_confirm")): ?>
+                return $this->redirect("id://<?=$pageset->getPageByType("complete")->getLocalPage()?>");
+<?php else: ?>
                 return $this->redirect("id://<?=$pageset->getPageByType("confirm")->getLocalPage()?>");
+<?php endif; ?>
             }
-        } elseif ( ! $this->input["back"]) {
+        } elseif ($this->input["back"]) {
+            $this->forms["entry"]->restore();
+        } else {
             $this->forms["entry"]->clear();
 <?php if ($controller->isAccountMyPage()): ?>
             $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
             $this->forms["entry"]->setRecord($t);
             $this->forms["entry"]["id"] = "myself";
-<?php else: ?>
+<?php elseif ($controller->getPagesetByType("show")): ?>
             if ($id = $this->input["id"]) {
                 $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectById($id);
                 if ( ! $t) return $this->response("notfound");
@@ -71,9 +76,7 @@
 <?php else: ?>
         $this->vars["t"] = $this->forms["entry"]->getValues();
 <?php endif; ?>
-<?php if ($pageset->getAttr("skip_confirm")): ?>
         return $this->redirect("id://<?=$pageset->getPageByType("complete")->getLocalPage()?>");
-<?php endif; ?>
     }
 <?=$pageset->getPageByType("complete")->getMethodDecSource()?>
     {

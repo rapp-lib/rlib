@@ -52,20 +52,16 @@ class ConfigBasedLogin
     public function firewall($request, $next)
     {
         $priv_req = $request->getUri()->getPageAuth()->getPrivReq();
-        $priv = $this->getPriv();
-        if ($priv_req && ! $priv) {
+        if ($callback = $this->config["refresh_priv"]) {
+            $this->setPriv(call_user_func($callback, $this->getPriv()));
+        }
+        if ( ! $this->checkPriv($priv_req)) {
             if ($login_request_uri = $this->config["login_request_uri"]) {
                 $uri = $request->getUri()->getWebroot()->uri($login_request_uri,
                     array("redirect"=>"".$request->getUri()->withoutAuthorityInWebroot()));
                 return app()->http->response("redirect", $uri);
             }
             return app()->http->response("forbidden");
-        } elseif ( ! $this->checkPriv($priv_req)) {
-            return app()->http->response("forbidden");
-        }
-        if ($priv && $callback = $this->config["refresh_priv"]) {
-            $priv = call_user_func($callback, $priv);
-            $this->setPriv($priv);
         }
         return $next($request);
     }

@@ -13,8 +13,8 @@ class PagesetElement extends Element_Base
             $this->children["page"][$page_name] = new PageElement($page_name, $page_attrs, $this);
         }
         // Mail登録
+        $controller_name = $this->getParent()->getName();
         if ($this->getAttr("use_mail")) {
-            $controller_name = $this->getParent()->getName();
             // 管理者通知メール
             $this->children["mail"][] = new MailElement($controller_name.".admin", array(
                 "type" => "admin",
@@ -28,6 +28,13 @@ class PagesetElement extends Element_Base
                     ), $this);
                 }
             }
+        }
+        if ($this->getAttr("type") == "reminder") {
+            // URL通知メール
+            $this->children["mail"][] = new MailElement($controller_name.".mailcheck", array(
+                "type" => "mailcheck",
+                "mail_col_name" => "mail",
+            ), $this);
         }
     }
     public function getTemplateEntry ()
