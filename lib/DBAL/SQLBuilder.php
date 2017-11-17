@@ -28,7 +28,7 @@ class SQLBuilder
     {
         return "UPDATE ".$this->stTable($q["table"])
             ." SET ".$this->stSet($q["values"])
-            .$this->stWhere($q["where"], "WHERE");
+            .$this->stWhere($q["where"], " WHERE ");
     }
     public function stInsert($q)
     {
@@ -100,7 +100,7 @@ class SQLBuilder
 // -- UPDATE文固有の表現
     public function stSet(array $xs)
     {
-        return $this->mapJoin($xs, function($self,$k,$v){ return $self->stName($k)." = ".$self->stValue($v, $k); }, " , ");
+        return $this->mapJoin($xs, function($self,$k,$v){ return $self->stName($k)." = ".$self->stValue($v); }, " , ");
     }
 // -- 共通の表現
     public function stTable($x)

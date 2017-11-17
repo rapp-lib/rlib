@@ -91,7 +91,7 @@ class ReportDriver
     /**
      * 例外のロギング
      */
-    public function logException(\Exception $e)
+    public function logException($e)
     {
         if ( ! $e instanceof HandlableError) {
             $e = ReportRenderer::createHandlableError(array("exception"=>$e));

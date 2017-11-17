@@ -353,7 +353,7 @@ class Table_Base extends Table_Core
             foreach ($col_names as $col_name) {
                 $value = $record[$col_name];
                 if (strlen($value)) {
-                    $record[$col_name] = (array)json_decode($record[$col_name]);
+                    $record[$col_name] = (array)json_decode($record[$col_name], true);
                 }
             }
         } else {
