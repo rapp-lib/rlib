@@ -46,6 +46,10 @@ class SchemaElement extends Element_Base
     {
         return (array)$this->children["controller"];
     }
+    public function getControllerByName ($name)
+    {
+        return $this->children["controller"][$name];
+    }
     /**
      * @getter Table
      */

@@ -155,6 +155,24 @@ class ControllerElement extends Element_Base
         }
         return null;
     }
+    /**
+     * リンク先情報の取得
+     */
+    public function getLinks ()
+    {
+        $links = array();
+        foreach ((array)$this->getAttr("link_to") as $controller_name) {
+            $link = array();
+            $link["controller"] = $this->getSchema()->getControllerByName($controller_name);
+            // 外部キーによる関係を探す
+            if ($this->getTable() && $link["controller"]->getTable()) {
+                $link["fkey_col"] = $link["controller"]->getTable()
+                    ->getColByAttr("def.fkey_for", $this->getTable()->getName());
+            }
+            $links[] = $link;
+        }
+        return $links;
+    }
 
 // -- マイページ機能用
 

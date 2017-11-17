@@ -52,17 +52,19 @@ class TableElement extends Element_Base
     {
         return $this->children["col"][$col_name];
     }
-    public function getColsByAttr ($attr)
+    public function getColsByAttr ($attr, $attr_value=true)
     {
         $cols = array();
         foreach ($this->getCols() as $col) {
-            if ($col->getAttr($attr)) $cols[] = $col;
+            if ($value = $col->getAttr($attr)) {
+                if ($attr_value===true || $value==$attr_value) $cols[] = $col;
+            }
         }
         return $cols;
     }
-    public function getColByAttr ($attr)
+    public function getColByAttr ($attr, $attr_value=true)
     {
-        $cols = $this->getColsByAttr($attr);
+        $cols = $this->getColsByAttr($attr, $attr_value);
         return $cols ? $cols[0] : null;
     }
     public function getIdCol ()

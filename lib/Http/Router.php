@@ -98,6 +98,11 @@ class Router
         $page_path = preg_replace('!\[\[\]]!', '', $page_path);
         // [...]外の置き換え漏れは''で置き換える
         $page_path = preg_replace('!@@EMBED@@!', '', $page_path);
+        if ( ! strlen($page_path)) {
+            report_warning("PageIDに対応するURIが構築できません", array(
+                "page_id"=>$page_id,
+            ));
+        }
         // base_uriをつける
         return $this->buildUriStringByPagePath($page_path);
     }
