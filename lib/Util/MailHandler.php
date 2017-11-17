@@ -15,7 +15,6 @@ class MailHandler
         $this->mailer->CharSet = "UTF-8";
         $this->mailer->Encoding = "base64";
         $this->template_dir = constant("R_APP_ROOT_DIR")."/mail";
-        $this->template_dir = app()->i18n->getLocalizedFile($this->template_dir);
     }
     public function assign ($name, $value=null)
     {
@@ -24,12 +23,13 @@ class MailHandler
     }
     public function load ($template_filename, $assign=array())
     {
+        $template_file = $this->template_dir."/".$template_filename;
+        $template_file = app()->i18n->getLocalizedFile($template_file);
         $this->assign($assign);
         ob_start();
         try {
-            //extract($this->vars, EXTR_REFS);
             $mail = $this;
-            include($this->template_dir."/".$template_filename);
+            include($template_file);
         } catch (\Exception $e) {
             ob_end_clean();
             throw $e;

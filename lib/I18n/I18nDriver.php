@@ -20,8 +20,7 @@ class I18nDriver
 
     public function getLocalizedClass ($class)
     {
-        $prefix_ptn = preg_quote('\?R\App\\','!');
-        if (preg_match('!^('.$prefix_ptn.')(.+)$!', $class, $match)) {
+        if (preg_match('!^(\\\?R\\\App\\\)(.+)$!', $class, $match)) {
             $localized_class = $match[1].'Locale\\'.str_camelize($this->locale).'\\'.$match[2];
             if (class_exists($localized_class)) return $localized_class;
         }
@@ -29,9 +28,9 @@ class I18nDriver
     }
     public function getLocalizedFile ($file)
     {
-        $prefix_ptn = preg_quote(constant("R_APP_ROOT_DIR"),'/!');
+        $prefix_ptn = preg_quote(constant("R_APP_ROOT_DIR"),'!');
         if (preg_match('!^('.$prefix_ptn.')(.+)$!', $file, $match)) {
-            $localized_file = $match[1].'locale/'.$this->locale.'/'.$match[2];
+            $localized_file = $match[1].'/locale/'.$this->locale.'/'.$match[2];
             if (file_exists($localized_file)) return $localized_file;
         }
         return $file;
