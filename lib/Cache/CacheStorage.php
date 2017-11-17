@@ -25,18 +25,24 @@ class CacheStorage
     {
         return $this->ds;
     }
+    /**
+     * 有効期限の取得
+     */
+    public function getTTL ()
+    {
+        return $this->cache_config["adapter"]["options"]["ttl"];
+    }
 
-// -- ObjectStorage機能
+// -- CredStorage
 
     /**
-     * Credentialの発行
+     * Credの発行
      */
-    public function createCred ($cred_data, $options=array())
+    public function createCred ($data)
     {
-        $data = array("cred_data" => $cred_data, "options" => $options);
-        $cred = app()->security->hash(serialize($data));
+        $cred = app()->security->getRandHash();
         $this->setItem($cred, $data);
-        report_info("[CacheStorage] Credentialを作成しました", array(
+        report_info("Cred Created", array(
             "cred" => $cred,
             "data" => $data,
             "cache_storage" => $this,
@@ -44,44 +50,39 @@ class CacheStorage
         return $cred;
     }
     /**
-     * Credentialの解決
+     * Credentialの読み込み
      */
-    public function resolveCred ($cred)
+    public function readCred ($cred)
     {
         $data = $cred ? $this->getItem($cred) : null;
         if ( ! $data) {
-            report_warning("[CacheStorage] Credentialの登録がありません", array(
+            report_warning("Cred Read Failur, NotFound", array(
                 "cred" => $cred,
                 "cache_storage" => $this,
             ));
             return null;
         }
-        if ($data["options"]["expire"] && $data["options"]["expire"] < time()) {
-            report_warning("[CacheStorage] Credentialの有効期限切れが切れています", array(
-                "cred" => $cred,
-                "expire" => date("Y/m/d/ H:i", $data["options"]["expire"]),
-                "data" => $data,
-                "cache_storage" => $this,
-            ));
-            return null;
-        }
-        report_info("[CacheStorage] Credentialを解決しました", array(
+        report_info("Storage Read", array(
             "cred" => $cred,
-            "cred_data" => $cred_data,
+            "data" => $data,
             "cache_storage" => $this,
         ));
-        return $data["cred_data"];
+        return $data;
     }
     /**
      * Credentialの削除
      */
     public function dropCred ($cred)
     {
+        report_info("Cred Dropped", array(
+            "cred" => $cred,
+            "cache_storage" => $this,
+        ));
         $this->removeItem($cred);
     }
 
-    public function __report()
+    public function __report ()
     {
-        return array("config"=>$this->cache_config);
+        return array("ds_name"=>$this->cache_config["ds_name"]);
     }
 }

@@ -16,6 +16,7 @@ class CacheDriver
     {
         if ( ! $this->storages[$ds_name]) {
             $cache_config = app()->config("cache.connection.".$ds_name);
+            $cache_config["ds_name"] = $ds_name;
             $this->storages[$ds_name] = new CacheStorage($cache_config);
         }
         return $this->storages[$ds_name];

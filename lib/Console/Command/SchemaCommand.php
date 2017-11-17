@@ -8,24 +8,27 @@ class SchemaCommand extends \R\Lib\Console\Command
     {
         $apply = isset($this->console["apply"]);
         $ds_name = $this->console["ds"] ?: "default";
+        // 差分の取得
         $sqls = DBSchemaDoctrine2::getMigrateSql($ds_name, array(constant("R_APP_ROOT_DIR")."/app/Table"));
-        if ($sqls) {
-            foreach ($sqls as $sql) app()->console->output($sql.";\n\n");
-            // 差分の適応
-            if ($apply) {
-                $dump_dir = constant("R_APP_ROOT_DIR")."/tmp/dump";
-                if ( ! file_exists($dump_dir)) mkdir($dump_dir, 0775);
-                $dump_filename = $dump_dir."/".$ds_name.date("_Ymd-His").".sql.gz";
-                $dump_result = app()->db($ds_name)->dumpData($dump_filename);
-                if ( ! $dump_result) {
-                    report_error("DBのダンプデータが作成できませんでした", array(
-                        "dump_filename" => $dump_filename,
-                    ));
-                }
-                app()->console->output("* Backup: ".$dump_filename."\n\n");
-                app()->console->output("* Apply"."\n\n");
-                app()->db($ds_name)->exec(implode('; ', $sqls));
+        // 差分の表示
+        $config = app()->config("db.connection.".$ds_name);
+        app()->console->output("-- ".count($sqls)
+            ." differences from ".$config["dbname"]." on ".$config["host"]."\n\n");
+        foreach ($sqls as $sql) app()->console->output($sql.";\n\n");
+        // 差分の適応
+        if ($sqls && $apply) {
+            $dump_dir = constant("R_APP_ROOT_DIR")."/tmp/dump";
+            if ( ! file_exists($dump_dir)) mkdir($dump_dir, 0775);
+            $dump_filename = $dump_dir."/".$ds_name.date("_Ymd-His").".sql.gz";
+            $dump_result = app()->db($ds_name)->dumpData($dump_filename);
+            if ( ! $dump_result) {
+                report_error("DBのダンプデータが作成できませんでした", array(
+                    "dump_filename" => $dump_filename,
+                ));
             }
+            app()->console->output("-- Backup: ".$dump_filename."\n\n");
+            app()->console->output("-- Apply"."\n\n");
+            app()->db($ds_name)->exec(implode('; ', $sqls));
         }
     }
 }

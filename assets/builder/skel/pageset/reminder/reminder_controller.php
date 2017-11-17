@@ -27,10 +27,10 @@
     {
         $this->forms["entry"]->restore();
         if ( ! $this->forms["entry"]->isEmpty()) {
-            // Credentialの発行
+            // Credの発行
             $t = (array)$this->forms["entry"];
-            $expire = time() + 7200;
-            $cred = app()->cache("cred")->createCred($t, array("expire"=>$expire));
+            $cred = app()->cache("cred")->createCred($t);
+            $expire = app()->cache("cred")->getTTL();
             // URL通知メールの送信
             $uri = $this->uri("id://<?=$pageset->getPageByType("reset")->getLocalPage()?>", array("cred"=>$cred));
 <?php if ($mail = $pageset->getMailByType("mailcheck")): ?>
@@ -67,15 +67,15 @@
             $this->forms["reset"]->clear();
             $this->forms["reset"]["cred"] = $this->input["cred"];
         }
-        $this->vars["cred_data"] = app()->cache("cred")->resolveCred($this->forms["reset"]["cred"]);
+        $this->vars["cred_data"] = app()->cache("cred")->readCred($this->forms["reset"]["cred"]);
     }
 <?=$pageset->getPageByType("complete")->getMethodDecSource()?>
     {
         $this->forms["reset"]->restore();
         if ( ! $this->forms["reset"]->isEmpty()) {
-            // Credentialの解決
+            // Credの解決
             $cred = $this->forms["reset"]["cred"];
-            $cred_data = app()->cache("cred")->resolveCred($cred);
+            $cred_data = app()->cache("cred")->readCred($cred);
             // パスワードの更新
             $t = table("<?=$table->getName()?>")->findBy("<?=$table->getColByAttr("def.mail")->getName()?>", $cred_data["mail"])->selectOne();
             table("Staff")->updateById($t["id"], array(

@@ -18,7 +18,7 @@ class Security
      */
     public function getRandHash ()
     {
-        return $this->hash(time().mt_rand());
+        return $this->hash(mt_rand());
     }
     /**
      * CSRFトークンの取得
