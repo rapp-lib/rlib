@@ -30,11 +30,11 @@
             // Credの発行
             $t = (array)$this->forms["entry"];
             $cred = app()->cache("cred")->createCred($t);
-            $expire = app()->cache("cred")->getTTL();
+            $ttl = app()->cache("cred")->getTTL();
             // URL通知メールの送信
             $uri = $this->uri("id://<?=$pageset->getPageByType("reset")->getLocalPage()?>", array("cred"=>$cred));
 <?php if ($mail = $pageset->getMailByType("mailcheck")): ?>
-            send_mail("<?=$mail->getTemplateFile()?>", array("t"=>$t, "uri"=>$uri, "expire"=>$expire));
+            send_mail("<?=$mail->getTemplateFile()?>", array("t"=>$t, "uri"=>$uri, "ttl"=>$ttl));
 <?php endif; ?>
             $this->forms["entry"]->clear();
         }

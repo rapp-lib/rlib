@@ -5,8 +5,8 @@
 
 <#?=$mail->vars["uri"]?><#?="\n"?>
 
-<#?php if ($mail->vars["expire"]): ?>
-※有効期限 <#?=date("Y/m/d H:i", $mail->vars["expire"])?> まで<#?="\n"?>
+<#?php if ($mail->vars["ttl"]): ?>
+※有効期限 <#?=date("Y/m/d H:i", time() + $mail->vars["ttl"])?> まで<#?="\n"?>
 <#?php endif; ?>
 
 <#?php $mail->load("inc/<?=$mail->getAttr("type")?>_footer.php"); ?>

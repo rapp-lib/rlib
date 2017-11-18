@@ -83,7 +83,7 @@ class TableElement extends Element_Base
     }
     public function getLabelCol ()
     {
-        return $this->getColByAttr("type") ?: $this->getIdCol();
+        return $this->getColByAttr("type", "text") ?: $this->getIdCol();
     }
     public function getIndexes ()
     {

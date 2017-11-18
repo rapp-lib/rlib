@@ -66,7 +66,15 @@
                 $this->forms["entry"]->setRecord($t);
             }
 <?php endif; ?>
+<?php if ($get_param = $controller->getGetparam()): ?>
+            if ( ! $this->forms["entry"]["<?=$get_param["field_name"]?>"]) {
+                $this->forms["entry"]["<?=$get_param["field_name"]?>"] = $this->input["<?=$get_param["field_name"]?>"];
+            }
+<?php endif; ?>
         }
+<?php if ($get_param = $controller->getGetparam()): ?>
+        if ( ! $this->forms["entry"]["<?=$get_param["field_name"]?>"]) return $this->response("notfound");
+<?php endif; ?>
     }
 <?=$pageset->getPageByType("confirm")->getMethodDecSource()?>
     {

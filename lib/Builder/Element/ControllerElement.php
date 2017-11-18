@@ -173,6 +173,23 @@ class ControllerElement extends Element_Base
         }
         return $links;
     }
+    /**
+     * GETパラメータ情報の取得
+     */
+    public function getGetParam ()
+    {
+        $get_param = array();
+        $get_param["field_name"] = $this->getAttr("get_param");
+        if ( ! $get_param["field_name"]) return null;
+        if ($table = $this->getTable()) {
+            foreach ($table->getCols() as $col) {
+                if ($col->getName() == $get_param["field_name"]) {
+                    $get_param["col"] = $col;
+                }
+            }
+        }
+        return $get_param;
+    }
 
 // -- マイページ機能用
 

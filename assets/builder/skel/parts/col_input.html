@@ -1,10 +1,11 @@
 <?php
     $var_name = $o["var_name"] ?: '$forms.entry';
     $name = $col->getName();
+    $input_type = $o["type"] ?: $col->getAttr("type");
     $input_name = $o["name_parent"] ? $o["name_parent"]."[".$name."]" : $name;
     $is_edit = $o["is_edit"];
 ?>
-<?php if ($col->getAttr("type")==="assoc" && $col->getAttr("def.assoc.single")): ?>
+<?php if ($input_type==="assoc" && $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>
             {{input_fieldset name="<?=$name?>" key="key" assign="fieldset" length=1}}
 <?php   if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
@@ -24,7 +25,7 @@
             {{/input_fieldset}}
             {{foreach $fieldset.items as $item}}{{$item nofilter}}{{/foreach}}
         <?=""?>
-<?php elseif ($col->getAttr("type")==="assoc" && ! $col->getAttr("def.assoc.single")): ?>
+<?php elseif ($input_type==="assoc" && ! $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>
             <div class="mi" data-minItems="0" data-maxItems="20">
                 {{input_fieldset name="<?=$name?>" tmpl="${id}" key="key" assign="fieldset"}}
@@ -39,7 +40,8 @@
 <?php   endif; /* if $assoc_ord_col */ ?>
                         <table class="tbl detail">
 <?php   foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
-<?php       if ($assoc_col->getAttr("type")==="assoc") continue; ?>
+<?php       if ($assoc_col->getAttr("type")==="assoc"): continue; ?>
+<?php       endif; ?>
                         <tr>
                             <th><?=$assoc_col->getLabel()?></th>
                             <td class="input-block"><?=$assoc_col->getInputSource(array("name_parent"=>$name.'[$key]', "var_name"=>$var_name.".".$name.'[$key]'))?></td>
@@ -59,10 +61,10 @@
             {{script require="rui.mi"}}{{/script}}
         <?=""?>
 <?php else: /* elseif type==="assoc" */ ?>
-{{input name="<?=$input_name?>" type="<?=$col->getAttr("type")?>"<?=""?>
+{{input name="<?=$input_name?>" type="<?=$input_type?>"<?=""?>
 <?php if ($enum_set = $col->getEnumSet()): ?> enum="<?=$enum_set->getFullName()?>"<?php endif; ?>
-<?php if ($col->getAttr("type")=="password"): ?> autocomplete="new-password"<?php endif; ?>
-<?php if (in_array($col->getAttr("type"),array("text","password"))): ?> class="w-full"<?php endif; ?>
+<?php if ($input_type=="password"): ?> autocomplete="new-password"<?php endif; ?>
+<?php if (in_array($input_type,array("text","password"))): ?> class="w-full"<?php endif; ?>
 }}<?=""?>
-<?php if ($col->getAttr("type")=="file"): ?>{{if <?=$var_name?>.<?=$name?>}}<span> <a href="{{<?=$var_name?>.<?=$name?>}}" target="_blank" class="uploaded">ファイル</a> <a href="javascript:void(0);" onclick="$(this).parent().parent().find('input.uploaded').val('');$(this).parent().hide();">削除</a></span>{{/if}}<?php endif; ?>
+<?php if ($input_type=="file"): ?>{{if <?=$var_name?>.<?=$name?>}}<span> <a href="{{<?=$var_name?>.<?=$name?>}}" target="_blank" class="uploaded">ファイル</a> <a href="javascript:void(0);" onclick="$(this).parent().parent().find('input.uploaded').val('');$(this).parent().hide();">削除</a></span>{{/if}}<?php endif; ?>
 <?php endif; /* if type==="assoc" && def.assoc.single */ ?>
