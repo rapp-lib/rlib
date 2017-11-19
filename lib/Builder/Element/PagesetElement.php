@@ -123,9 +123,9 @@ class PagesetElement extends Element_Base
         if ($this != ($index_pageset = $controller->getIndexPageset())) {
             return $index_pageset->getIndexPage();
         }
-        // Linkで参照されている場合は参照元
-        if ($linked_controller = $controller->getLinkedController()) {
-            return $linked_controller->getIndexPage();
+        // Linkで参照されている場合は先頭の参照元
+        if ($links = $controller->getLinkFrom()) {
+            return $links[0]["controller"]->getIndexPage();
         }
         // その他の場合はRoleのIndexを参照
         return $this->getController()->getRole()->getIndexController()->getIndexPage();

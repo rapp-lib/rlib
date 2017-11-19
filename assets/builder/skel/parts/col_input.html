@@ -3,7 +3,7 @@
     $name = $col->getName();
     $input_type = $o["type"] ?: $col->getAttr("type");
     $input_name = $o["name_parent"] ? $o["name_parent"]."[".$name."]" : $name;
-    $is_edit = $o["is_edit"];
+    $is_master = $o["is_master"];
 ?>
 <?php if ($input_type==="assoc" && $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>
@@ -30,7 +30,7 @@
             <div class="mi" data-minItems="0" data-maxItems="20">
                 {{input_fieldset name="<?=$name?>" tmpl="${id}" key="key" assign="fieldset"}}
                     <div class="mi-item" data-itemId="{{$key}}">
-<?php   if ($is_edit): ?>
+<?php   if ($is_master): ?>
                         {{input type="hidden" name="<?=$name?>[$key][<?=$col->getAssocTable()->getIdCol()->getName()?>]"}}
 <?php   endif; ?>
 <?php   if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>

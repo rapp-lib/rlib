@@ -9,7 +9,7 @@
 {{/script}}
 
 {{form action='.'|page_to_url enctype="multipart/form-data" method="post" form=$forms.entry class="form-entry"}}
-<?php if ($controller->getAttr("type")==="master" || $controller->isAccountMyPage()): ?>
+<?php if ($pageset->getAttr("is_master") || $controller->isAccountMyPage()): ?>
 {{input name="id" type="hidden"}}
 <?php endif; ?>
 <table class="tbl detail">
@@ -19,7 +19,7 @@
 <?php   if ($param_field = $pageset->getParamFieldByCol($col)): ?>
         <td><?=$col->getInputSource(array("type"=>"hidden"))?><?=$col->getShowSource(array("var_name"=>'$forms.entry'))?></td>
 <?php   else: ?>
-        <td><?=$col->getInputSource(array("is_edit"=>$controller->getAttr("type")==="master"))?></td>
+        <td><?=$col->getInputSource(array("is_master"=>$pageset->getAttr("is_master")))?></td>
 <?php   endif; ?>
     </tr>
 <?php endforeach; /* foreach as $col */ ?>

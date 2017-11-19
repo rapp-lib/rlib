@@ -8,13 +8,13 @@
         "table" => "<?=$table->getName()?>",
 <?php endif; ?>
         "fields" => array(
-<?php if ($controller->getAttr("type")==="master" || $controller->isAccountMyPage()): ?>
+<?php if ($pageset->getAttr("is_master") || $controller->isAccountMyPage()): ?>
             "id",
 <?php endif; ?>
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?=$col->getEntryFormFieldDefSource()?>
 <?php   if ($col->getAttr("type")==="assoc"): ?>
-<?php       if ($controller->getAttr("type")==="master" && ! $col->getAttr("def.assoc.single")): ?>
+<?php       if ($pageset->getAttr("is_master") && ! $col->getAttr("def.assoc.single")): ?>
             "<?=$col->getName()?>.*.<?=$col->getAssocTable()->getIdCol()->getName()?>",
 <?php       endif; ?>
 <?php       if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>

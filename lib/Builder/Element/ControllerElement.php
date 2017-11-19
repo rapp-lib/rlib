@@ -176,23 +176,25 @@ class ControllerElement extends Element_Base
     {
         return $this->getIndexPageset()->getIndexPage();
     }
+
+// -- リンク参照機能
+
     /**
      * リンク先情報の取得
      */
-    public function getLinks ()
+    public function getLinkTo ()
     {
         $links = array();
         foreach ((array)$this->getAttr("link_to") as $controller_name) {
             $link = array();
             $link["controller"] = $this->getSchema()->getControllerByName($controller_name);
             if ($this->getTable() && $link["controller"]->getTable()) {
-                // 外部キーによる関係を探す
-                $link["fkey_col"] = $link["controller"]->getTable()
+                // キーによる関係を探す
+                $fkey_col = $link["controller"]->getTable()
                     ->getColByAttr("def.fkey_for", $this->getTable()->getName());
                 // 主キー、または関係ないTableの場合は主キーをパラメータとして渡す
-                if ( ! $link["fkey_col"]) {
-                    $link["fkey_col"] = $link["controller"]->getTable()->getColByAttr("def.id");
-                }
+                $id_col = $link["controller"]->getTable()->getColByAttr("def.id")->getName();
+                $link["param_field"] = $fkey_col ? $fkey_col->getName() : $id_col->getName();
             }
             $links[] = $link;
         }
@@ -201,18 +203,22 @@ class ControllerElement extends Element_Base
     /**
      * リンク参照元情報の取得
      */
-    public function getLinkedController ()
+    public function getLinkFrom ()
     {
-        // 参照元としては、最初の1件目のみ有効
+        $links = array();
         foreach ($this->getSchema()->getControllers() as $controller) {
-            foreach ($controller->getLinks() as $link) {
-                if ($link["controller"] == $this) return $controller;
+            foreach ($controller->getLinkTo() as $link) {
+                if ($link["controller"] == $this) {
+                    $link = clone($link);
+                    $link["controller"] = $controller;
+                    $links[] = $link;
+                }
             }
         }
-        return null;
+        return $links;
     }
 
-// -- マイページ機能用
+// -- マイページ機能
 
     /**
      * Tableのクエリ組み立てChainへの追加分を返す
