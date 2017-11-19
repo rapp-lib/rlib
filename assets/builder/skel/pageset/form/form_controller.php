@@ -66,15 +66,17 @@
                 $this->forms["entry"]->setRecord($t);
             }
 <?php endif; ?>
-<?php if ($get_param = $controller->getGetparam()): ?>
-            if ( ! $this->forms["entry"]["<?=$get_param["field_name"]?>"]) {
-                $this->forms["entry"]["<?=$get_param["field_name"]?>"] = $this->input["<?=$get_param["field_name"]?>"];
+<?php foreach ($pageset->getParamFields() as $param_field): ?>
+            if ( ! $this->forms["entry"]["<?=$param_field["field_name"]?>"]) {
+                $this->forms["entry"]["<?=$param_field["field_name"]?>"] = $this->input["<?=$param_field["field_name"]?>"];
             }
-<?php endif; ?>
+<?php endforeach; ?>
         }
-<?php if ($get_param = $controller->getGetparam()): ?>
-        if ( ! $this->forms["entry"]["<?=$get_param["field_name"]?>"]) return $this->response("badrequest");
-<?php endif; ?>
+<?php foreach ($pageset->getParamFields() as $param_field): ?>
+<?php   if ($param_field["required"]): ?>
+        if ( ! $this->forms["entry"]["<?=$param_field["field_name"]?>"]) return $this->response("badrequest");
+<?php   endif; ?>
+<?php endforeach; ?>
     }
 <?=$pageset->getPageByType("confirm")->getMethodDecSource()?>
     {

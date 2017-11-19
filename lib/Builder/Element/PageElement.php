@@ -13,10 +13,12 @@ class PageElement extends Element_Base
     }
     public function getTitle ()
     {
+        //TODO:固有の名称を生成すべき
         return $this->getController()->getLabel();
     }
     public function getLabel ()
     {
+        //TODO:固有の名称を生成すべき
         return $this->getParent()->getLabel();
     }
     public function getPath ()

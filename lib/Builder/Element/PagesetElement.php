@@ -5,6 +5,13 @@ class PagesetElement extends Element_Base
 {
     public function init ()
     {
+        $table = $this->getController()->getTable();
+        if ($this->getPagesetTemplateConfig("use_table") && ! $table) {
+            report_error("Tableの指定が必須です",array(
+                "controller" => $this->getController(),
+                "pageset" => $this,
+            ));
+        }
         // Page登録
         $page_configs = (array)$this->getSchema()->getConfig($this->getTemplateEntry().".pages");
         foreach ($page_configs as $page_type => $page_config) {
@@ -37,13 +44,30 @@ class PagesetElement extends Element_Base
             ), $this);
         }
     }
+    public function getPagesetTemplateConfig ($key)
+    {
+        return $this->getSchema()->getConfig("pageset.".$this->getAttr("type").".".$key);
+    }
     public function getTemplateEntry ()
     {
         return "pageset.".$this->getAttr("type");
     }
     public function getLabel ()
     {
+        //TODO:固有の名称を生成すべき
         return $this->getParent()->getLabel();
+    }
+    /**
+     * パラメータとして受け付けるField情報の取得
+     */
+    public function getParamFields ()
+    {
+        return $this->getAttr("param_fields") ?: array();
+    }
+    public function getParamFieldByCol ($col)
+    {
+        $param_fields = $this->getParamFields();
+        return $param_fields[$col->getName()] ?: null;
     }
     /**
      * @getter Mail

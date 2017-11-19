@@ -75,6 +75,7 @@
         ),
         "pageset" => array(
             "index" => array(
+                "use_table" => false,
                 "index_page" => "index",
                 "controller.template_file" => $dir."/pageset/index/index_controller.php",
                 "pages.index.template_file" => $dir."/pageset/index/index.html",
@@ -82,6 +83,7 @@
                 "pages.index.label" => null,
             ),
             "login" => array(
+                "use_table" => false,
                 "index_page" => "login",
                 "controller.template_file" => $dir."/pageset/login/login_controller.php",
                 "pages.login.template_file" => $dir."/pageset/login/login.html",
@@ -89,6 +91,7 @@
                 "pages.login.label" => null,
             ),
             "reminder" => array(
+                "use_table" => true,
                 "index_page" => "reminder",
                 "controller.template_file" => $dir."/pageset/reminder/reminder_controller.php",
                 "pages.reminder.template_file" => $dir."/pageset/reminder/reminder.html",
@@ -102,6 +105,7 @@
                 "mail_template.template_file" => $dir."/pageset/reminder/mail_template.php",
             ),
             "show" => array(
+                "use_table" => true,
                 "index_page" => "list",
                 "controller.template_file" => $dir."/pageset/show/show_controller.php",
                 "pages.list.template_file" => $dir."/pageset/show/list.html",
@@ -109,13 +113,22 @@
                 "pages.list.label" => "一覧",
                 "pages.detail.label" => "詳細",
             ),
+            "list" => array(
+                "use_table" => true,
+                "index_page" => "list",
+                "controller.template_file" => $dir."/pageset/list/list_controller.php",
+                "pages.list.template_file" => $dir."/pageset/list/list.html",
+                "pages.list.label" => "一覧",
+            ),
             "detail" => array(
+                "use_table" => true,
                 "index_page" => "detail",
                 "controller.template_file" => $dir."/pageset/detail/detail_controller.php",
                 "pages.detail.template_file" => $dir."/pageset/detail/detail.html",
                 "pages.detail.label" => "詳細",
             ),
             "form" => array(
+                "use_table" => true,
                 "index_page" => "form",
                 "controller.template_file" => $dir."/pageset/form/form_controller.php",
                 "pages.form.template_file" => $dir."/pageset/form/form.html",
@@ -127,16 +140,19 @@
                 "mail_template.template_file" => $dir."/pageset/form/mail_template.php",
             ),
             "delete" => array(
+                "use_table" => true,
                 "index_page" => "delete",
                 "controller.template_file" => $dir."/pageset/delete/delete_controller.php",
                 "pages.delete.template_file" => null,// $dir."/pageset/delete/delete.html",
             ),
             "csv" => array(
+                "use_table" => true,
                 "index_page" => "download",
                 "controller.template_file" => $dir."/pageset/csv/csv_controller.php",
                 "pages.download.template_file" => null,// $dir."/pageset/csv/download.html",
             ),
             "import" => array(
+                "use_table" => true,
                 "index_page" => "import",
                 "controller.template_file" => $dir."/pageset/import/import_controller.php",
                 "pages.import.template_file" => $dir."/pageset/import/import.html",

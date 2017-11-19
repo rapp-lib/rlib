@@ -16,7 +16,7 @@
 <?php foreach ($controller->getInputCols() as $col): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
-<?php   if (($get_param = $controller->getGetparam()) && $get_param["field_name"]==$col->getName()): ?>
+<?php   if ($param_field = $pageset->getParamFieldByCol($col)): ?>
         <td><?=$col->getInputSource(array("type"=>"hidden"))?><?=$col->getShowSource(array("var_name"=>'$forms.entry'))?></td>
 <?php   else: ?>
         <td><?=$col->getInputSource(array("is_edit"=>$controller->getAttr("type")==="master"))?></td>

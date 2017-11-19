@@ -1,0 +1,11 @@
+<table class="tbl detail">
+<?php foreach ($controller->getInputCols() as $col): ?>
+    <tr>
+        <th><?=$col->getLabel()?></th>
+        <td><?=$col->getShowSource()?></td>
+    </tr>
+<?php endforeach; ?>
+</table>
+<div class="btn-area">
+    <a href='{{"<?=$pageset->getBackPage()->getFullPage($page)?>"|page_to_url:["back"=>1]}}' class="back-btn">戻る</a>
+</div>

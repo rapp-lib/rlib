@@ -14,26 +14,44 @@ class ControllerElement extends Element_Base
             $pagesets[] = array("type"=>"index");
         } elseif ($this->getAttr("type") == "login") {
             $pagesets[] = array("type"=>"login");
-        } elseif ($this->getAttr("type") == "reminder") {
-            $pagesets[] = array("type"=>"reminder");
+            if ($this->getFlagAttr("use_reminder", false)) {
+                $pagesets[] = array("type"=>"reminder");
+            }
         } elseif ($this->getAttr("type") == "form") {
             $pagesets[] = array("type"=>"form",
+                "param_fields"=>$this->getFlagAttr("param_fields",array()),
                 "use_mail"=>$this->getFlagAttr("use_mail",false),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", false),
                 "skip_complete"=>$this->getFlagAttr("skip_complete", false));
-        } elseif ($this->getAttr("type") == "show") {
-            $pagesets[] = array("type"=>"show");
+        } elseif ($this->getAttr("type") == "list") {
+            $pagesets[] = array("type"=>"list",
+                "param_fields"=>$this->getFlagAttr("param_fields",array()));
+            if ($this->getFlagAttr("use_detail", true)) {
+                $pagesets[] = array("type"=>"detail");
+            }
+        } elseif ($this->getAttr("type") == "detail") {
+            $pagesets[] = array("type"=>"detail",
+                "param_fields"=>$this->getFlagAttr("param_fields",array()));
         } elseif ($this->getAttr("type") == "master") {
-            $pagesets[] = array("type"=>"show");
+            $pagesets[] = array("type"=>"list",
+                "param_fields"=>$this->getFlagAttr("param_fields",array()));
             $pagesets[] = array("type"=>"form",
+                "param_fields"=>$this->getFlagAttr("param_fields",array()),
                 "use_mail"=>$this->getFlagAttr("use_mail",false),
+                "is_master"=>$this->getFlagAttr("is_master",true),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", true),
                 "skip_complete"=>$this->getFlagAttr("skip_complete", true));
-            $pagesets[] = array("type"=>"delete");
+            if ($this->getFlagAttr("use_detail", false)) {
+                $pagesets[] = array("type"=>"detail");
+            }
+            if ($this->getFlagAttr("use_delete", true)) {
+                $pagesets[] = array("type"=>"delete");
+            }
             if ($this->getFlagAttr("use_csv", false)) {
                 $pagesets[] = array("type"=>"csv");
                 if ($this->getFlagAttr("use_import", false)) {
-                    $pagesets[] = array("type"=>"import");
+                    $pagesets[] = array("type"=>"import",
+                        "param_fields"=>$this->getFlagAttr("param_fields",array()));
                 }
             }
         }
@@ -188,23 +206,6 @@ class ControllerElement extends Element_Base
             }
         }
         return null;
-    }
-    /**
-     * GETパラメータ情報の取得
-     */
-    public function getGetParam ()
-    {
-        $get_param = array();
-        $get_param["field_name"] = $this->getAttr("get_param");
-        if ( ! $get_param["field_name"]) return null;
-        if ($table = $this->getTable()) {
-            foreach ($table->getCols() as $col) {
-                if ($col->getName() == $get_param["field_name"]) {
-                    $get_param["col"] = $col;
-                }
-            }
-        }
-        return $get_param;
     }
 
 // -- マイページ機能用
