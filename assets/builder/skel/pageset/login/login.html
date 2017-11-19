@@ -20,5 +20,5 @@
 {{/form}}
 
 <?php if ($reminder_controller = $role->getReminderController()): ?>
-<p>パスワードをお忘れの方は <a href='{{"<?=$reminder_controller->getIndexPage()->getFullPage()?>"|page_to_url}}'>こちら</a></p>
+<p>パスワードをお忘れの方は <a href='{{"<?=$reminder_controller->getIndexPage()->getFullPage($page)?>"|page_to_url}}'>こちら</a></p>
 <?php endif; ?>

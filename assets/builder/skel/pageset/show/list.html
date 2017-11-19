@@ -21,20 +21,20 @@
 *}}
 
 <div class="btn-area">
-<?php if ($pageset = $controller->getPagesetByType("form")): ?>
-    <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url<?=$url_param ? ":[".$url_param."]" : ""?>}}' class="create-btn">新規登録</a>
+<?php if ($a_pageset = $controller->getPagesetByType("form")): ?>
+    <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url<?=$url_param ? ":[".$url_param."]" : ""?>}}' class="create-btn">新規登録</a>
 <?php endif; ?>
     <div class="right clearfix">
 <?php foreach ($controller->getLinks() as $link): ?>
 <?php   if ( ! $link["fkey_col"]): ?>
-        <a href='{{"<?=$link["controller"]->getIndexPage()->getFullPage()?>"|page_to_url}}' class="link-btn"><?=$link["controller"]->getLabel()?></a>
+        <a href='{{"<?=$link["controller"]->getIndexPage()->getFullPage($page)?>"|page_to_url}}' class="link-btn"><?=$link["controller"]->getLabel()?></a>
 <?php   endif; ?>
 <?php endforeach; ?>
-<?php if ($pageset = $controller->getPagesetByType("csv")): ?>
-        <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url}}' class="export-btn">CSVダウンロード</a>
+<?php if ($a_pageset = $controller->getPagesetByType("csv")): ?>
+        <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url}}' class="export-btn">CSVダウンロード</a>
 <?php endif; ?>
-<?php if ($pageset = $controller->getPagesetByType("import")): ?>
-        <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url<?=$url_param ? ":[".$url_param."]" : ""?>}}' class="import-btn">一括登録</a>
+<?php if ($a_pageset = $controller->getPagesetByType("import")): ?>
+        <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url<?=$url_param ? ":[".$url_param."]" : ""?>}}' class="import-btn">一括登録</a>
 <?php endif; ?>
     </div>
 </div>
@@ -63,17 +63,17 @@
         <td><?=$col->getShowSource()?></td>
 <?php endforeach; ?>
         <td>
-<?php if ($pageset = $controller->getPagesetByType("form")): ?>
-            <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id<?=$url_param ? " ,".$url_param : ""?>]}}' class="list-btn">編集</a>
+<?php if ($a_pageset = $controller->getPagesetByType("form")): ?>
+            <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url:["id"=>$t.id<?=$url_param ? " ,".$url_param : ""?>]}}' class="list-btn">編集</a>
 <?php else: ?>
             <a href='{{"<?=$page->getParent()->getPageByType("detail")->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="list-btn">詳細</a>
 <?php endif; ?>
-<?php if ($pageset = $controller->getPagesetByType("delete")): ?>
-            <a href='{{"<?=$pageset->getIndexPage()->getLocalPage()?>"|page_to_url:["id"=>$t.id]}}' class="list-btn" onclick="return confirm('削除します');">削除</a>
+<?php if ($a_pageset = $controller->getPagesetByType("delete")): ?>
+            <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url:["id"=>$t.id]}}' class="list-btn" onclick="return confirm('削除します');">削除</a>
 <?php endif; ?>
 <?php foreach ($controller->getLinks() as $link): ?>
 <?php   if ($link["fkey_col"]): ?>
-            <a href='{{"<?=$link["controller"]->getIndexPage()->getFullPage()?>"|page_to_url:["<?=$link["fkey_col"]->getName()?>"=>$t.id]}}' class="list-btn"><?=$link["controller"]->getLabel()?></a>
+            <a href='{{"<?=$link["controller"]->getIndexPage()->getFullPage($page)?>"|page_to_url:["<?=$link["fkey_col"]->getName()?>"=>$t.id]}}' class="list-btn"><?=$link["controller"]->getLabel()?></a>
 <?php   endif; ?>
 <?php endforeach; ?>
         </td>

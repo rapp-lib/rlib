@@ -40,5 +40,5 @@
             app()->db()->commit();
             $this->forms["entry_csv"]->clear();
         }
-        return $this->redirect("id://<?=$controller->getIndexPage()->getLocalPage()?>", array("back"=>"1"));
+        return $this->redirect("id://<?=$pageset->getBackPage()->getFullPage($pageset->getPageByType("complete"))?>", array("back"=>"1"));
     }

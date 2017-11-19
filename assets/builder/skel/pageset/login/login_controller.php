@@ -37,5 +37,5 @@
         // ログアウト処理
         app()->user->setPriv("<?=$controller->getRole()->getName()?>",false);
         // ログアウト後の転送処理
-        return $this->redirect("id://<?=$controller->getIndexPage()->getFullPage($pageset->getPageByType("exit"))?>");
+        return $this->redirect("id://<?=$pageset->getPageByType("login")->getLocalPage()?>");
     }

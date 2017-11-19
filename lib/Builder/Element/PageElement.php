@@ -51,6 +51,9 @@ class PageElement extends Element_Base
         }
         return $this->getController()->getName().".".$this->getName();
     }
+    /**
+     * @deprecated getFullPage
+     */
     public function getLocalPage ()
     {
         return ".".$this->getName();
