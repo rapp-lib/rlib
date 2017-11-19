@@ -29,9 +29,10 @@ class RoleElement extends Element_Base
      */
     public function getIndexController ()
     {
-        foreach ($this->getAccessibleControllers() as $controller) {
-            if ($controller->getAttr("type") != "login") {
-                return $controller;
+        $controllers = $this->getAccessibleControllers();
+        foreach (array("index","master","show","form","login") as $type) {
+            foreach ($controllers as $controller) {
+                if ($controller->getAttr("type") == $type) return $controller;
             }
         }
         return null;
@@ -70,6 +71,17 @@ class RoleElement extends Element_Base
             if ($controller->getRole()->getName() == $this->getName()) {
                 $controllers[] = $controller;
             }
+        }
+        return $controllers;
+    }
+    /**
+     * どこからもLinkで参照されていない最上位のControllerを取得する
+     */
+    public function getTopLevelControllers ()
+    {
+        $controllers = array();
+        foreach ($this->getAccessibleControllers() as $controller) {
+            if ( ! $controller->getLinkedController()) $controllers[] = $controller;
         }
         return $controllers;
     }

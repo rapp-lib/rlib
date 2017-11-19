@@ -1,7 +1,0 @@
-<?php if ($controller->getLinks()): ?>
-<div class="btn-area">
-<?php   foreach ($controller->getLinks() as $link): ?>
-        <a href='{{"<?=$link["controller"]->getIndexPage()->getFullPage()?>"|page_to_url}}' class="link-btn"><?=$link["controller"]->getLabel()?></a>
-<?php   endforeach; ?>
-</div>
-<?php endif; ?>

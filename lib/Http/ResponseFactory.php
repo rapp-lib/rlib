@@ -27,6 +27,8 @@ class ResponseFactory
             return new EmptyResponse(404, $headers);
         } elseif ($type==="forbidden") {
             return new EmptyResponse(403, $headers);
+        } elseif ($type==="badrequest") {
+            return new EmptyResponse(400, $headers);
         } elseif ($type==="readfile") {
             $stream = new Stream($data, 'r');
             return new Response($stream, $params["status"]?:200, $headers);

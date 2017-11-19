@@ -79,18 +79,29 @@ class PagesetElement extends Element_Base
     }
     public function getIndexPage ()
     {
-        //TODO: 1番目のPageが取得されてしまうので、制御を加える
+        // Pagesetの設定でindex_pageに指定されているもの
         foreach ($this->getPages() as $page) {
-            return $page;
+            if ($page->getName() == $this->getAttr("index_page")) return $page;
         }
         return null;
     }
     public function getBackPage ()
     {
-        $parent_index_page = $this->getController()->getIndexPage();
-        if ($parent_index_page->getParent() != $this) {
-            return $parent_index_page;
+        $controller = $this->getController();
+        // ReminderであればLogin
+        if ($this->getAttr("type")=="reminder") {
+            $login_controller = $controller->getRole()->getLoginController();
+            if ($login_controller) return $login_controller->getIndexPage();
         }
+        // ControllerのIndexではない場合（Master内のForm等）はControllerのIndex
+        if ($this != ($index_pageset = $controller->getIndexPageset())) {
+            return $index_pageset->getIndexPage();
+        }
+        // Linkで参照されている場合は参照元
+        if ($linked_controller = $controller->getLinkedController()) {
+            return $linked_controller->getIndexPage();
+        }
+        // その他の場合はRoleのIndexを参照
         return $this->getController()->getRole()->getIndexController()->getIndexPage();
     }
     /**

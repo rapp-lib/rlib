@@ -23,9 +23,6 @@ class ControllerElement extends Element_Base
                 "skip_complete"=>$this->getFlagAttr("skip_complete", false));
         } elseif ($this->getAttr("type") == "show") {
             $pagesets[] = array("type"=>"show");
-            if ($this->getFlagAttr("use_csv", false)) {
-                $pagesets[] = array("type"=>"csv");
-            }
         } elseif ($this->getAttr("type") == "master") {
             $pagesets[] = array("type"=>"show");
             $pagesets[] = array("type"=>"form",
@@ -43,7 +40,8 @@ class ControllerElement extends Element_Base
         // Pagesetの登録
         foreach ($pagesets as $pageset_attrs) {
             $pageset_name = $pageset_attrs["type"];
-            $this->children["pageset"][$pageset_name] = new PagesetElement($pageset_name, $pageset_attrs, $this);
+            $this->children["pageset"][$pageset_name]
+                = new PagesetElement($pageset_name, $pageset_attrs, $this);
         }
     }
     /**
@@ -145,15 +143,20 @@ class ControllerElement extends Element_Base
         return null;
     }
     /**
+     * @getter Pageset
+     */
+    public function getIndexPageset ()
+    {
+        // 一番はじめに追加されたPagesetを返す
+        foreach ($this->getPagesets() as $pageset) return $pageset;
+        return null;
+    }
+    /**
      * @getter Page
      */
     public function getIndexPage ()
     {
-        //TODO: 1番目のPageが取得されてしまうので、制御を加える
-        foreach ($this->getPagesets() as $pageset) {
-            return $pageset->getIndexPage();
-        }
-        return null;
+        return $this->getIndexPageset()->getIndexPage();
     }
     /**
      * リンク先情報の取得
@@ -172,6 +175,19 @@ class ControllerElement extends Element_Base
             $links[] = $link;
         }
         return $links;
+    }
+    /**
+     * リンク参照元情報の取得
+     */
+    public function getLinkedController ()
+    {
+        // 参照元としては、最初の1件目のみ有効
+        foreach ($this->getSchema()->getControllers() as $controller) {
+            foreach ($controller->getLinks() as $link) {
+                if ($link["controller"] == $this) return $controller;
+            }
+        }
+        return null;
     }
     /**
      * GETパラメータ情報の取得

@@ -73,7 +73,7 @@
 <?php endif; ?>
         }
 <?php if ($get_param = $controller->getGetparam()): ?>
-        if ( ! $this->forms["entry"]["<?=$get_param["field_name"]?>"]) return $this->response("notfound");
+        if ( ! $this->forms["entry"]["<?=$get_param["field_name"]?>"]) return $this->response("badrequest");
 <?php endif; ?>
     }
 <?=$pageset->getPageByType("confirm")->getMethodDecSource()?>

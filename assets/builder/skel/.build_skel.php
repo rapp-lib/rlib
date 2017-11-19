@@ -123,12 +123,6 @@
                 "pages.complete.label" => "完了",
                 "mail_template.template_file" => $dir."/pageset/form/mail_template.php",
             ),
-            "mailcheck" => array(
-                "index_page" => "send",
-                "controller.template_file" => $dir."/pageset/mailcheck/mailcheck_controller.php",
-                "pages.send.template_file" => $dir."/pageset/mailcheck/send.html",
-                "pages.checked.template_file" => $dir."/pageset/mailcheck/checked.html",
-            ),
             "delete" => array(
                 "index_page" => "delete",
                 "controller.template_file" => $dir."/pageset/delete/delete_controller.php",
