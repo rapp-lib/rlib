@@ -37,8 +37,14 @@ window.FormObserver = function ($form, state, o) {
     self.getInputValue = function(field_name){
         return self.getInputElement(field_name).val();
     };
-    self.fieldNameIsMatch = function(field_name_ptn, field_name){
+    self.fieldNameIsMatchRule = function(field_name_ptn, field_name){
+        // Ruleの判定の場合は、入力側のfieldset_indexを無視する
         field_name = field_name.replace(/^([^\.]+)\.([^\.]+)\.([^\.]+)$/,'$1.*.$3');
+        return field_name == field_name_ptn;
+    };
+    self.fieldNameIsMatchError = function(field_name_ptn, field_name, fieldset_index){
+        // Errorの判定の場合は、パターン側にfieldset_indexを埋め込む
+        field_name_ptn = field_name_ptn.replace(/^([^\.]+)\.([^\.]+)\.([^\.]+)$/,'$1.'+fieldset_index+'.$3');
         return field_name == field_name_ptn;
     };
 
@@ -51,7 +57,7 @@ window.FormObserver = function ($form, state, o) {
         var field_name = self.getFieldNameByElement($input);
         var rules = [];
         for (var i in self.rules) {
-            if (self.fieldNameIsMatch(self.rules[i].field_name, field_name)) rules.push(self.rules[i]);
+            if (self.fieldNameIsMatchRule(self.rules[i].field_name, field_name)) rules.push(self.rules[i]);
         }
         return rules;
     };
@@ -59,7 +65,7 @@ window.FormObserver = function ($form, state, o) {
         var field_name = self.getFieldNameByElement($input);
         var errors = [];
         for (var i in self.errors) {
-            if (self.fieldNameIsMatch(self.errors[i].field_name, field_name)) errors.push(self.errors[i]);
+            if (self.fieldNameIsMatchError(self.errors[i].field_name, field_name, self.errors[i].fieldset_index)) errors.push(self.errors[i]);
         }
         return errors;
     };
