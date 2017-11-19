@@ -185,10 +185,14 @@ class ControllerElement extends Element_Base
         foreach ((array)$this->getAttr("link_to") as $controller_name) {
             $link = array();
             $link["controller"] = $this->getSchema()->getControllerByName($controller_name);
-            // 外部キーによる関係を探す
             if ($this->getTable() && $link["controller"]->getTable()) {
+                // 外部キーによる関係を探す
                 $link["fkey_col"] = $link["controller"]->getTable()
                     ->getColByAttr("def.fkey_for", $this->getTable()->getName());
+                // 主キー、または関係ないTableの場合は主キーをパラメータとして渡す
+                if ( ! $link["fkey_col"]) {
+                    $link["fkey_col"] = $link["controller"]->getTable()->getColByAttr("def.id");
+                }
             }
             $links[] = $link;
         }
