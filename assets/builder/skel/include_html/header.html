@@ -22,7 +22,7 @@
 <nav class="main-menu">
     <h2>Menu</h2>
     <dl>
-<?php foreach ($role->getAccessibleControllers() as $menu_controller): ?>
+<?php foreach ($role->getTopLevelControllers() as $menu_controller): ?>
 <?php   if ($menu_controller->getAttr("type")==="login"): ?>
 <?php       $login_page = $menu_controller->getPagesetByType("login")->getPageByType("login"); ?>
 <?php       $exit_page = $menu_controller->getPagesetByType("login")->getPageByType("exit"); ?>

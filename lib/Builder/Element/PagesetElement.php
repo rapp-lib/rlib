@@ -79,10 +79,12 @@ class PagesetElement extends Element_Base
     }
     public function getIndexPage ()
     {
-        // Pagesetの設定でindex_pageに指定されているもの
-        foreach ($this->getPages() as $page) {
-            if ($page->getName() == $this->getAttr("index_page")) return $page;
-        }
+        // TODO:Pagesetの設定でindex_pageに指定されているもの
+        // foreach ($this->getPages() as $page) {
+        //     if ($page->getName() == $this->getAttr("index_page")) return $page;
+        // }
+        // 一番はじめに登録されたもの
+        foreach ($this->getPages() as $page) return $page;
         return null;
     }
     public function getBackPage ()

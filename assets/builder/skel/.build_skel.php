@@ -44,9 +44,6 @@
                     // RoleControllerクラス
                     $role->getSchema()->fetch("classes.role_controller", array("role"=>$role),
                         "/app/Controller/".$role->getRoleControllerClassName().".php");
-                    // Roleクラス
-                    //$role->getSchema()->fetch("classes.role", array("role"=>$role),
-                    //    "/app/Role/".$role->getClassName().".php");
                 },
             ),
             "controller" => array(
@@ -109,7 +106,13 @@
                 "controller.template_file" => $dir."/pageset/show/show_controller.php",
                 "pages.list.template_file" => $dir."/pageset/show/list.html",
                 "pages.detail.template_file" => $dir."/pageset/show/detail.html",
-                "pages.list.label" => null,
+                "pages.list.label" => "一覧",
+                "pages.detail.label" => "詳細",
+            ),
+            "detail" => array(
+                "index_page" => "detail",
+                "controller.template_file" => $dir."/pageset/detail/detail_controller.php",
+                "pages.detail.template_file" => $dir."/pageset/detail/detail.html",
                 "pages.detail.label" => "詳細",
             ),
             "form" => array(
