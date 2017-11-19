@@ -62,7 +62,7 @@ class CacheStorage
             ));
             return null;
         }
-        report_info("Storage Read", array(
+        report_info("Cred Read", array(
             "cred" => $cred,
             "data" => $data,
             "cache_storage" => $this,

@@ -193,7 +193,7 @@ class ControllerElement extends Element_Base
                 $fkey_col = $link["controller"]->getTable()
                     ->getColByAttr("def.fkey_for", $this->getTable()->getName());
                 // 主キー、または関係ないTableの場合は主キーをパラメータとして渡す
-                $id_col = $link["controller"]->getTable()->getColByAttr("def.id")->getName();
+                $id_col = $link["controller"]->getTable()->getColByAttr("def.id");
                 $link["param_field"] = $fkey_col ? $fkey_col->getName() : $id_col->getName();
             }
             $links[] = $link;
@@ -209,7 +209,6 @@ class ControllerElement extends Element_Base
         foreach ($this->getSchema()->getControllers() as $controller) {
             foreach ($controller->getLinkTo() as $link) {
                 if ($link["controller"] == $this) {
-                    $link = clone($link);
                     $link["controller"] = $controller;
                     $links[] = $link;
                 }

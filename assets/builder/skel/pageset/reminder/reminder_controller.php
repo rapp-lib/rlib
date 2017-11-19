@@ -61,7 +61,7 @@
         if ($this->forms["reset"]->receive($this->input)) {
             if ($this->forms["reset"]->isValid()) {
                 $this->forms["reset"]->save();
-                return $this->redirect("id://.reminder_complete");
+                return $this->redirect("id://<?=$pageset->getPageByType("complete")->getLocalPage()?>");
             }
         } else {
             $this->forms["reset"]->clear();

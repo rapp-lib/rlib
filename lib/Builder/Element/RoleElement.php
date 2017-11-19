@@ -50,18 +50,6 @@ class RoleElement extends Element_Base
         return null;
     }
     /**
-     * リマインダーControllerの取得
-     */
-    public function getReminderController ()
-    {
-        foreach ($this->getAccessibleControllers() as $controller) {
-            if ($controller->getAttr("type") == "reminder") {
-                return $controller;
-            }
-        }
-        return null;
-    }
-    /**
      * アクセス可能なControllerを取得する
      */
     public function getAccessibleControllers ()
