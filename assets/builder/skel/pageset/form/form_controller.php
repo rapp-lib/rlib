@@ -59,7 +59,7 @@
             $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
             $this->forms["entry"]->setRecord($t);
             $this->forms["entry"]["id"] = "myself";
-<?php elseif ($controller->getPagesetByType("show")): ?>
+<?php elseif ($pageset->getAttr("is_master")): ?>
             if ($id = $this->input["id"]) {
                 $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectById($id);
                 if ( ! $t) return $this->response("notfound");

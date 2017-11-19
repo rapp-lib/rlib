@@ -62,7 +62,9 @@ class PagesetElement extends Element_Base
      */
     public function getParamFields ()
     {
-        return $this->getAttr("param_fields") ?: array();
+        $param_fields = $this->getAttr("param_fields") ?: array();
+        foreach ($param_fields as $field_name => & $param_field) $param_field["field_name"] = $field_name;
+        return $param_fields;
     }
     public function getParamFieldByCol ($col)
     {

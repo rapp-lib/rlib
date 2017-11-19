@@ -32,6 +32,8 @@ class ControllerElement extends Element_Base
         } elseif ($this->getAttr("type") == "detail") {
             $pagesets[] = array("type"=>"detail",
                 "param_fields"=>$this->getFlagAttr("param_fields",array()));
+        } elseif ($this->getAttr("type") == "delete") {
+            $pagesets[] = array("type"=>"delete");
         } elseif ($this->getAttr("type") == "master") {
             $pagesets[] = array("type"=>"list",
                 "param_fields"=>$this->getFlagAttr("param_fields",array()));

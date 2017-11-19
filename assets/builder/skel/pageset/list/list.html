@@ -28,7 +28,7 @@
 <?php endif; ?>
     <div class="right clearfix">
 <?php foreach ($controller->getLinkTo() as $link): ?>
-<?php   if ( ! $link["fkey_col"]): ?>
+<?php   if ( ! $link["param_field"]): ?>
         <a href='{{"<?=$link["controller"]->getIndexPage()->getFullPage($page)?>"|page_to_url}}' class="link-btn"><?=$link["controller"]->getLabel()?></a>
 <?php   endif; ?>
 <?php endforeach; ?>
@@ -75,7 +75,7 @@
             <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url:["id"=>$t.id]}}' class="list-btn" onclick="return confirm('削除します');">削除</a>
 <?php endif; ?>
 <?php foreach ($controller->getLinkTo() as $link): ?>
-<?php   if ($link["fkey_col"]): ?>
+<?php   if ($link["param_field"]): ?>
             <a href='{{"<?=$link["controller"]->getIndexPage()->getFullPage($page)?>"|page_to_url:["<?=$link["param_field"]?>"=>$t.id]}}' class="list-btn"><?=$link["controller"]->getLabel()?></a>
 <?php   endif; ?>
 <?php endforeach; ?>
