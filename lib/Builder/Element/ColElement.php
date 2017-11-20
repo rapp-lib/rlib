@@ -68,16 +68,28 @@ class ColElement extends Element_Base
      */
     public function getRuleDefSource ($o=array())
     {
-        $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
+        $page = $o["page"];
+        $name = $this->getName();
+        if ($o["name_parent"]) $name = $o["name_parent"].".".$name;
+
         $rules = array();
         foreach ((array)$this->getAttr("rules") as $type=>$params) {
             if ($type==="required" && $params===true) $rules[] = $name;
-            else {
-                $rules[] = array_merge(array($name, $type), (array)$params);
-            }
+            else $rules[] = array_merge(array($name, $type), (array)$params);
+        }
+        // Enumの指定がある場合、正当性を検証するRuleを追加
+        if ($enum_set = $this->getEnumSet()) {
+            $rules[] = array($name, "enum", "enum"=>$enum_set->getFullName());
         }
         $source = "";
+        // Ruleの値を配列コードとして出力
         foreach ($rules as $rule) $source .= '            '.$this->stringifyValue(0, $rule).','."\n";
+        // assoc配下のRuleも出力
+        if ($this->getAttr("type")==="assoc") {
+            foreach ($this->getAssocTable()->getInputCols() as $assoc_col) {
+                $source .= $assoc_col->getRuleDefSource(array("page"=>$page, "name_parent"=>$name.".*"));
+            }
+        }
         return $source;
     }
     /**

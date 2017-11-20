@@ -30,13 +30,7 @@
         ),
         "rules" => array(
 <?php foreach ($controller->getInputCols() as $col): ?>
-<?php   if ($col->getAttr("type")==="assoc"): ?>
-<?php       foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
-<?=$assoc_col->getRuleDefSource(array("name_parent"=>$col->getName().".*"))?>
-<?php       endforeach; /* foreach as $assoc_col */ ?>
-<?php   else: /* if type=="assoc" */ ?>
-<?=$col->getRuleDefSource()?>
-<?php   endif; /* if type=="assoc" */ ?>
+<?=$col->getRuleDefSource(array("page"=>$page))?>
 <?php endforeach /* foreach as $col */ ?>
         ),
     );
