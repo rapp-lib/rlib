@@ -29,8 +29,9 @@ window.FormValidator = function (fo) {
         // 評価条件設定
         if ( ! self.checkRuleIf($rule)) return;
         // ValidateRuleExtentionを呼び出す
-        $callback = FormValidateRuleLoader.getCallback($rule["type"]);
-        $error = $callback(self, $value, $rule);
+        var $callback = FormValidateRuleLoader.getCallback($rule["type"]);
+        var $value = self.fo.getInputValue(field_name);
+        var $error = $callback(self, $value, $rule);
         // エラーがなければ終了
         if ( ! $error) return;
         // エラーの設定

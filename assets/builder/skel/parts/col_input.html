@@ -1,9 +1,15 @@
 <?php
+    $page = $o["page"];
+    if ( ! $page) {
+        report_error("col_input.htmlの読み込み時にはpageの指定が必須です", array("col"=>$col, "params"=>$o));
+    }
+    $pageset = $page->getParent();
+    $controller = $pageset->getParent();
+
     $var_name = $o["var_name"] ?: '$forms.entry';
     $name = $col->getName();
     $input_type = $o["type"] ?: $col->getAttr("type");
     $input_name = $o["name_parent"] ? $o["name_parent"]."[".$name."]" : $name;
-    $is_master = $o["is_master"];
 ?>
 <?php if ($input_type==="assoc" && $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>
@@ -18,7 +24,7 @@
 <?php       if ($assoc_col->getAttr("type")==="assoc") continue; ?>
                 <tr>
                     <th><?=$assoc_col->getLabel()?></th>
-                    <td class="input-block"><?=$assoc_col->getInputSource(array("name_parent"=>$name.'[$key]', "var_name"=>$var_name.".".$name.'[$key]'))?></td>
+                    <td class="input-block"><?=$assoc_col->getInputSource(array("page"=>$page, "name_parent"=>$name.'[$key]', "var_name"=>$var_name.".".$name.'[$key]'))?></td>
                 </tr>
 <?php   endforeach; /* foreach as $assoc_col */ ?>
                 </table>
@@ -30,7 +36,7 @@
             <div class="mi" data-minItems="0" data-maxItems="20">
                 {{input_fieldset name="<?=$name?>" tmpl="${id}" key="key" assign="fieldset"}}
                     <div class="mi-item" data-itemId="{{$key}}">
-<?php   if ($is_master): ?>
+<?php   if ($pageset->getAttr("is_master") || $controller->isAccountMyPage()): ?>
                         {{input type="hidden" name="<?=$name?>[$key][<?=$col->getAssocTable()->getIdCol()->getName()?>]"}}
 <?php   endif; ?>
 <?php   if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
@@ -44,7 +50,7 @@
 <?php       endif; ?>
                         <tr>
                             <th><?=$assoc_col->getLabel()?></th>
-                            <td class="input-block"><?=$assoc_col->getInputSource(array("name_parent"=>$name.'[$key]', "var_name"=>$var_name.".".$name.'[$key]'))?></td>
+                            <td class="input-block"><?=$assoc_col->getInputSource(array("page"=>$page, "name_parent"=>$name.'[$key]', "var_name"=>$var_name.".".$name.'[$key]'))?></td>
                         </tr>
 <?php   endforeach; /* foreach as $assoc_col */ ?>
                         <tr>
