@@ -93,13 +93,7 @@
         $this->forms["entry"]->restore();
         if ( ! $this->forms["entry"]->isEmpty()) {
 <?php if ($table->hasDef()): ?>
-            // 登録
-<?php   if ($controller->isAccountMyPage()): ?>
-            $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("find")?><?=$controller->getTableChain("save")?>->updateAll();
-            $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
-<?php   else: ?>
-            $t = $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("save")?>->save()->getSavedRecord();
-<?php   endif; ?>
+            $t = $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("save")?>->getSavedRecord();
 <?php else: ?>
             $t = $this->forms["entry"]->getValues();
 <?php endif; ?>

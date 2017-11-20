@@ -26,7 +26,7 @@ class ControllerElement extends Element_Base
         } elseif ($this->getAttr("type") == "list") {
             $pagesets[] = array("type"=>"list",
                 "param_fields"=>$this->getFlagAttr("param_fields",array()));
-            if ($this->getFlagAttr("use_detail", true)) {
+            if ($this->getFlagAttr("use_detail", false)) {
                 $pagesets[] = array("type"=>"detail");
             }
         } elseif ($this->getAttr("type") == "detail") {
@@ -147,6 +147,17 @@ class ControllerElement extends Element_Base
         return $cols;
     }
     /**
+     * メールに表示するColの取得
+     */
+    public function getMailCols ()
+    {
+        $cols = $this->getInputCols();
+        $cols = array_filter($cols, function($col){
+            return ! in_array($col->getAttr("type"),array("password"));
+        });
+        return $cols;
+    }
+    /**
      * @getter Pageset
      */
     public function getPagesets ()
@@ -227,9 +238,11 @@ class ControllerElement extends Element_Base
     public function getTableChain ($type)
     {
         $append = "";
-        if ($this->getFlagAttr("is_mypage")) {
-            if ($type=="find") $append .= '->findMine()';
-            else if ($type=="save") $append .= '->setMine()';
+        if ($type=="find") {
+            if ($this->getFlagAttr("is_mypage")) $append .= '->findMine()';
+        } elseif ($type=="save") {
+            if ($this->getFlagAttr("is_mypage")) $append .= '->saveMine()';
+            else $append .= '->save()';
         }
         return $append;
     }

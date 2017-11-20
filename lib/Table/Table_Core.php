@@ -16,10 +16,6 @@ class Table_Core
      */
     protected $result;
     /**
-     * 外部から設定できる属性値
-     */
-    protected $attrs;
-    /**
      * テーブルの定義
      */
     protected static $table_name = null;
@@ -75,7 +71,6 @@ class Table_Core
     {
         $this->query = new Query;
         $this->result = null;
-        $this->attrs = array();
 
         // テーブル名を関連づける
         $this->query->setDbname($this->getConnection()->getDbname());
@@ -278,9 +273,7 @@ class Table_Core
     public function result_fetch ($result)
     {
         // Fetch完了済みであれば処理しない
-        if ($this->fetch_done) {
-            return false;
-        }
+        if ($this->fetch_done) return false;
         // fetch実処理
         $data = $this->getConnection()->fetch($this->result_res);
         // 結果セットの残りがなければ完了済みとする
@@ -300,16 +293,8 @@ class Table_Core
         $record->hydrate($data);
 
         // マッピング
-        if ( ! $this->getAttr("no_mapping")) {
-            $id_col_name = $this->getColNameByAttr("id");
-            // ID列を取得していればIDでマッピング
-            if ($this->getAttr("mapping_by_id") && $id_col_name && isset($record[$id_col_name])) {
-                $result[$record[$id_col_name]] = $record;
-            // 指定が無ければ連番でマッピング
-            } else {
-                $result[] = $record;
-            }
-        }
+        $result[] = $record;
+
         // on_fetch_*を呼び出す
         $this->callListenerMethod("fetch",array($record));
         return $record;
@@ -769,27 +754,6 @@ class Table_Core
         return false;
     }
 
-// -- Attr操作
-
-    /**
-     * Attrに値を設定する
-     */
-    public function setAttr ($key, $value)
-    {
-        $this->attrs[$key] = $value;
-    }
-    /**
-     * Attrの値を取得する
-     */
-    public function getAttr ($key, $required=false)
-    {
-        $value = $this->attrs[$key];
-        if ($required && ! isset($value)) {
-            report_error("Attrの値が設定されていません",array("table"=>$this, "key"=>$key));
-        }
-        return $value;
-    }
-
 // -- その他
 
     /**
@@ -799,7 +763,6 @@ class Table_Core
     {
         return array(
             "query" => $this->query,
-            "attrs" => (array)$this->attrs,
             "history" => (array)$this->hook_history,
         );
     }

@@ -907,33 +907,47 @@ class Table_Base extends Table_Core
             report_error("RoleのTableに対する所有関係を示すキーの設定がありません",
                 array("role_tabel"=>$role_table_name, "table"=>$this));
         }
-
-        // ログイン中でなければ何も取得しない
-        if ( ! $user_id) return $this->findNothing();
-        $this->query->where($this->getQueryTableName().".".$col_name, $user_id);
+        if ($user_id) {
+            // ログイン中のIDを条件を追加する
+            $this->query->where($this->getQueryTableName().".".$col_name, $user_id);
+        } else {
+            // ログイン中でなければ何も取得しない
+            $this->findNothing();
+        }
     }
     /**
-     * @hook chain
-     * 現在のRoleのTableに対して所有関係があることをValuesに設定する
+     * 現在のRoleのTableに対して所有関係があることを前提にsaveを実行する
      */
-    public function chain_setMine ()
+    public function saveMine ()
     {
         $role = app()->user->getCurrentRole();
         $user_id = app()->user->id($role);
         $role_table_name = app()->user->getAuthTable($role);
+        $id_col_name = $this->getIdColName();
         if ( ! $role_table_name) {
             report_error("Roleに対応するTableがありません", array("role"=>$role));
         }
-        $col_name = $role_table_name == $this->getAppTableName()
-            ? $this->getIdColName() : $this->getColNameByAttr("fkey_for", $role_table_name);
-        if ( ! $col_name) {
+        if ( ! $user_id) {
+            report_error("非ログイン中のsaveMineの呼び出しは不正です", array("table"=>$this));
+        }
+        // Roleのテーブル自身である場合は、主キーを指定
+        if ($role_table_name == $this->getAppTableName()) {
+            $this->query->setValue($id_col_name, $user_id);
+        // 外部キーで参照されている場合
+        } elseif ($fkey_col_name = $this->getColNameByAttr("fkey_for", $role_table_name)) {
+            // Updateが発行される場合は、Whereを指定
+            if ($this->query->getValue($id_col_name)) {
+                $this->query->removeValue($fkey_col_name);
+                $this->query->addWhere($fkey_col_name, $user_id);
+            // Insertが発行される場合は、Valueに指定
+            } else {
+                $this->query->setValue($fkey_col_name, $user_id);
+            }
+        } else {
             report_error("RoleのTableに対する所有関係を示すキーの設定がありません",
                 array("role_tabel"=>$role_table_name, "table"=>$this));
         }
-
-        if ( ! $user_id) {
-            report_error("非ログイン中のsetMineの呼び出しは不正です", array("table"=>$this));
-        }
-        $this->query->setValue($col_name, $user_id);
+        // saveを呼び出す
+        return $this->save();
     }
 }
