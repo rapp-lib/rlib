@@ -30,7 +30,7 @@
         ),
         "rules" => array(
 <?php foreach ($controller->getInputCols() as $col): ?>
-<?=$col->getRuleDefSource(array("page"=>$page))?>
+<?=$col->getRuleDefSource(array("pageset"=>$pageset))?>
 <?php endforeach /* foreach as $col */ ?>
         ),
     );

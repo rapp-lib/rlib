@@ -68,16 +68,37 @@ class ColElement extends Element_Base
      */
     public function getRuleDefSource ($o=array())
     {
-        $page = $o["page"];
+        // pageに依存するパラメータの取得
+        $pageset = $o["pageset"];
+        if ( ! $pageset) {
+            report_error("RuleDefSourceのパラメータにはpagesetが必要です", array("col"=>$this, "params"=>$o));
+        }
+        $controller = $pageset->getParent();
+        // nameの設定
         $name = $this->getName();
         if ($o["name_parent"]) $name = $o["name_parent"].".".$name;
-
+        // rulesの読み込み
         $rules = array();
         foreach ((array)$this->getAttr("rules") as $type=>$params) {
+            if (is_array($params)) {
+                // 管理画面用の新規/編集共用フォーム
+                if ($pageset->getAttr("is_master")) { // is_master
+                    $id_col_name = $this->getParent()->getIdCol()->getName();
+                    if ($params["if_register"]) $params["if"][$id_col_name] = false;
+                    elseif ($params["if_edit"]) $params["if"][$id_col_name] = true;
+                // 自分の情報の編集ページのみeditあつかい
+                } elseif ($controller->isAccountMyPage()) { // is_edit
+                    if ($params["if_register"]) continue;
+                } else { // is_register
+                    if ($params["if_edit"]) continue;
+                }
+                unset($params["if_register"]);
+                unset($params["if_edit"]);
+            }
             if ($type==="required" && $params===true) $rules[] = $name;
             else $rules[] = array_merge(array($name, $type), (array)$params);
         }
-        // Enumの指定がある場合、正当性を検証するRuleを追加
+        // Enumの指定がある場合、正当性を検証するRuleを自動追加
         if ($enum_set = $this->getEnumSet()) {
             $rules[] = array($name, "enum", "enum"=>$enum_set->getFullName());
         }
@@ -87,7 +108,7 @@ class ColElement extends Element_Base
         // assoc配下のRuleも出力
         if ($this->getAttr("type")==="assoc") {
             foreach ($this->getAssocTable()->getInputCols() as $assoc_col) {
-                $source .= $assoc_col->getRuleDefSource(array("page"=>$page, "name_parent"=>$name.".*"));
+                $source .= $assoc_col->getRuleDefSource(array("pageset"=>$pageset, "name_parent"=>$name.".*"));
             }
         }
         return $source;
