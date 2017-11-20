@@ -6,7 +6,7 @@ class PagesetElement extends Element_Base
     public function init ()
     {
         $table = $this->getController()->getTable();
-        if ($this->getPagesetTemplateConfig("use_table") && ! $table) {
+        if ($this->getSkelConfig("use_table") && ! $table) {
             report_error("Tableの指定が必須です",array(
                 "controller" => $this->getController(),
                 "pageset" => $this,
@@ -44,18 +44,21 @@ class PagesetElement extends Element_Base
             ), $this);
         }
     }
-    public function getPagesetTemplateConfig ($key)
-    {
-        return $this->getSchema()->getConfig("pageset.".$this->getAttr("type").".".$key);
-    }
     public function getTemplateEntry ()
     {
         return "pageset.".$this->getAttr("type");
     }
-    public function getLabel ()
+    public function getSkelConfig ($key)
     {
-        //TODO:固有の名称を生成すべき
-        return $this->getParent()->getLabel();
+        return $this->getSchema()->getConfig($this->getTemplateEntry().".".$key);
+    }
+    public function getTitle ()
+    {
+        $title = $this->getParent()->getLabel();
+        if ($this->getParent()->getIndexPageset() !== $this) {
+            if ($label = $this->getSkelConfig("label")) $title .= " ".$label;
+        }
+        return $title;
     }
     /**
      * 複合的な属性を取得する

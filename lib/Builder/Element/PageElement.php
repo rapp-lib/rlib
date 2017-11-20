@@ -11,15 +11,17 @@ class PageElement extends Element_Base
     {
         return "pageset.".$this->getParent()->getAttr("type").".pages.".$this->getAttr("type");
     }
+    public function getSkelConfig ($key)
+    {
+        return $this->getSchema()->getConfig($this->getTemplateEntry().".".$key);
+    }
     public function getTitle ()
     {
-        //TODO:固有の名称を生成すべき
-        return $this->getController()->getLabel();
-    }
-    public function getLabel ()
-    {
-        //TODO:固有の名称を生成すべき
-        return $this->getParent()->getLabel();
+        $title = $this->getParent()->getTitle();
+        if ($this->getParent()->getIndexPage() !== $this) {
+            if ($label = $this->getSkelConfig("label")) $title .= " ".$label;
+        }
+        return $title;
     }
     public function getPath ()
     {

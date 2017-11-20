@@ -32,13 +32,6 @@ class ColElement extends Element_Base
         return $this->getSchema()->fetch("parts.col_show", array("col"=>$this, "o"=>$o));
     }
     /**
-     * メール表示用PHPソースの取得
-     */
-    public function getMailSource ($o=array())
-    {
-        return $this->getSchema()->fetch("parts.col_mail", array("col"=>$this, "o"=>$o));
-    }
-    /**
      * $form_entryの定義行の取得
      */
     public function getEntryFormFieldDefSource ($o=array())
@@ -49,6 +42,22 @@ class ColElement extends Element_Base
         if ( ! $this->hasColDef()) $def["col"] = false;
         if ($this->getAttr("type")=="file") $def["storage"] = "public";
         return '            '.$this->stringifyValue($name, $def).','."\n";
+    }
+    /**
+     * $form_searchの定義行の取得
+     */
+    public function getSearchFormFieldDefSource ($o=array())
+    {
+        $name = $this->getName();
+        $def = array("search"=>"where", "target_col"=>$name);
+        return '            '.$this->stringifyValue($name, $def).','."\n";
+    }
+    /**
+     * メール表示用PHPソースの取得
+     */
+    public function getMailSource ($o=array())
+    {
+        return $this->getSchema()->fetch("parts.col_mail", array("col"=>$this, "o"=>$o));
     }
     /**
      * $colsの定義行の取得
