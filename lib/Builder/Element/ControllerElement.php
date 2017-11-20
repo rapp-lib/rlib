@@ -162,6 +162,7 @@ class ControllerElement extends Element_Base
                 "assoc", "password", "textarea", "checklist", "checkbox", "file"));
         });
         $cols = array_slice($cols,0,5);
+        array_unshift($cols, $this->getTable()->getIdCol());
         return $cols;
     }
     /**

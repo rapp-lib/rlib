@@ -49,7 +49,9 @@ class ColElement extends Element_Base
     public function getSearchFormFieldDefSource ($o=array())
     {
         $name = $this->getName();
-        $def = array("search"=>"where", "target_col"=>$name);
+        $type = $o["type"] ?: "where";
+        if (in_array($this->getAttr("def.type"), array("text", "textarea"))) $type = "word";
+        $def = array("search"=>$type, "target_col"=>$name);
         return '            '.$this->stringifyValue($name, $def).','."\n";
     }
     /**

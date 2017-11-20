@@ -5,22 +5,32 @@
     }
     $url_param = implode(", ", $url_param);
 ?>
-{{*
+<?php if ( ! $controller->getSearchCols()): ?>{{*<?="\n"?><?php endif; ?>
 {{form action="."|page_to_url form=$forms.search}}
-    <table class="tbl detail">
-        <tr>
-            <th>フリーワード検索</th>
-            <td>{{input name="freeword" type="text" size="40" class="input-text"}}</td>
-        </tr>
-    </table>
-    <div class="btn-area clearfix">
-        <div class="right clearfix">
-            <a href="{{$forms.search->getSearchPageUrl()}}" class="reset-btn">リセット</a>
-            <button type="submit" class="search-btn">検索</button>
-        </div>
+<table class="tbl detail">
+<?php foreach ($controller->getInputCols() as $col): ?>
+<?php   if ($param_field = $pageset->getParamFieldByCol($col)): ?>
+    <tr>
+        <th><?=$col->getLabel()?></th>
+        <td><?=$col->getInputSource(array("page"=>$page, "type"=>"hidden"))?><?=$col->getShowSource(array("var_name"=>'$forms.search'))?></td>
+    </tr>
+<?php   endif; ?>
+<?php endforeach; ?>
+<?php foreach ($controller->getSearchCols() as $col): ?>
+    <tr>
+        <th><?=$col->getLabel()?></th>
+        <td><?=$col->getInputSource(array("page"=>$page))?></td>
+    </tr>
+<?php endforeach; ?>
+</table>
+<div class="btn-area clearfix">
+    <div class="right clearfix">
+        <a href="{{$forms.search->getSearchPageUrl()}}" class="reset-btn">リセット</a>
+        <button type="submit" class="search-btn">検索</button>
     </div>
+</div>
 {{/form}}
-*}}
+<?php if ( ! $controller->getSearchCols()): ?>*}}<?="\n"?><?php endif; ?>
 
 <div class="btn-area">
 <?php if ($a_pageset = $controller->getPagesetByType("form")): ?>
@@ -47,15 +57,17 @@
 
 {{else}}{{* 0件ではない場合 *}}
 
-{{*
 <a id="table-sort" data-sort-base-url='{{$forms.search->getSearchPageUrl(["p"=>0, "sort"=>""])}}' data-sort-current="{{$forms.search.sort}}" data-sort-param-name="sort" data-sort-default="<?=$table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName()?>"></a>
 {{script require=["rui.sort"]}}{{/script}}
-*}}
 
 <table class="tbl list">
     <tr>
 <?php foreach ($controller->getListCols() as $col): ?>
+<?php   if ($controller->isSortCol($col)): ?>
+        <th data-sort-toggle="<?=$col->getName()?>" data-sort-handle="#table-sort"><?=$col->getLabel()?></th>
+<?php   else: ?>
         <th><?=$col->getLabel()?></th>
+<?php   endif; ?>
 <?php endforeach; ?>
         <th>&nbsp;</th>
     </tr>
