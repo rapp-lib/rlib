@@ -301,6 +301,18 @@ class Table_Core
     }
     /**
      * @hook result
+     * selectNoFetchと組み合わせて使用する
+     * 常にResult上にRecordが1件のみとなるようにして、1結果レコードのFetch
+     */
+    public function result_fetchNoMap ($result)
+    {
+        foreach ($result as $i=>$record) unset($result[$i]);
+        $record = $result->fetch();
+        if ($record) $this->callListenerMethod("fetchEnd");
+        return $record;
+    }
+    /**
+     * @hook result
      * 全結果レコードのFetch
      */
     public function result_fetchAll ($result)
@@ -394,12 +406,11 @@ class Table_Core
         return $this->execQuery("select")->fetchAll();
     }
     /**
-     * SELECT文の発行 Fetch/マッピングを行わない
+     * SELECT文の発行 (Fetchを行わない)
      */
     public function selectNoFetch ($fields=array())
     {
         $this->query->addFields($fields);
-        $this->setAttr("no_mapping", true);
         return $this->execQuery("select");
     }
     /**
