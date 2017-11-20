@@ -8,13 +8,13 @@
         "table" => "<?=$table->getName()?>",
 <?php endif; ?>
         "fields" => array(
-<?php if ($pageset->getAttr("is_master") || $controller->isAccountMyPage()): ?>
-            "id",
+<?php if ($pageset->getFlg("is_master")): ?>
+            "<?=$table->getIdCol()->getName()?>",
 <?php endif; ?>
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?=$col->getEntryFormFieldDefSource()?>
 <?php   if ($col->getAttr("type")==="assoc"): ?>
-<?php       if (($pageset->getAttr("is_master") || $controller->isAccountMyPage()) && ! $col->getAttr("def.assoc.single")): ?>
+<?php       if ($pageset->getFlg("is_master") && ! $col->getAttr("def.assoc.single")): ?>
             "<?=$col->getName()?>.*.<?=$col->getAssocTable()->getIdCol()->getName()?>",
 <?php       endif; ?>
 <?php       if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
@@ -30,13 +30,7 @@
         ),
         "rules" => array(
 <?php foreach ($controller->getInputCols() as $col): ?>
-<?php   if ($col->getAttr("type")==="assoc"): ?>
-<?php       foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
-<?=$assoc_col->getRuleDefSource(array("name_parent"=>$col->getName().".*"))?>
-<?php       endforeach; /* foreach as $assoc_col */ ?>
-<?php   else: /* if type=="assoc" */ ?>
-<?=$col->getRuleDefSource()?>
-<?php   endif; /* if type=="assoc" */ ?>
+<?=$col->getRuleDefSource(array("pageset"=>$pageset))?>
 <?php endforeach /* foreach as $col */ ?>
         ),
     );
@@ -55,13 +49,13 @@
             $this->forms["entry"]->restore();
         } else {
             $this->forms["entry"]->clear();
-<?php if ($controller->isAccountMyPage()): ?>
-            $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
+<?php if ($pageset->getFlg("is_edit")): ?>
+            $t = $this->forms["entry"]->getTable()<?=$pageset->getTableChainSource("find")?>->selectOne();
             $this->forms["entry"]->setRecord($t);
-            $this->forms["entry"]["id"] = "myself";
-<?php elseif ($pageset->getAttr("is_master")): ?>
+            if ( ! $t) return $this->response("badrequest");
+<?php elseif ($pageset->getFlg("is_master")): ?>
             if ($id = $this->input["id"]) {
-                $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectById($id);
+                $t = $this->forms["entry"]->getTable()<?=$pageset->getTableChainSource("find")?>->selectById($id);
                 if ( ! $t) return $this->response("notfound");
                 $this->forms["entry"]->setRecord($t);
             }
@@ -93,13 +87,7 @@
         $this->forms["entry"]->restore();
         if ( ! $this->forms["entry"]->isEmpty()) {
 <?php if ($table->hasDef()): ?>
-            // 登録
-<?php   if ($controller->isAccountMyPage()): ?>
-            $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("find")?><?=$controller->getTableChain("save")?>->updateAll();
-            $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
-<?php   else: ?>
-            $t = $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("save")?>->save()->getSavedRecord();
-<?php   endif; ?>
+            $t = $this->forms["entry"]->getTableWithValues()<?=$pageset->getTableChainSource("save")?>->getSavedRecord();
 <?php else: ?>
             $t = $this->forms["entry"]->getValues();
 <?php endif; ?>

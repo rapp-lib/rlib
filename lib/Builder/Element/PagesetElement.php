@@ -6,7 +6,7 @@ class PagesetElement extends Element_Base
     public function init ()
     {
         $table = $this->getController()->getTable();
-        if ($this->getPagesetTemplateConfig("use_table") && ! $table) {
+        if ($this->getSkelConfig("use_table") && ! $table) {
             report_error("Tableの指定が必須です",array(
                 "controller" => $this->getController(),
                 "pageset" => $this,
@@ -44,18 +44,38 @@ class PagesetElement extends Element_Base
             ), $this);
         }
     }
-    public function getPagesetTemplateConfig ($key)
-    {
-        return $this->getSchema()->getConfig("pageset.".$this->getAttr("type").".".$key);
-    }
     public function getTemplateEntry ()
     {
         return "pageset.".$this->getAttr("type");
     }
-    public function getLabel ()
+    public function getSkelConfig ($key)
     {
-        //TODO:固有の名称を生成すべき
-        return $this->getParent()->getLabel();
+        return $this->getSchema()->getConfig($this->getTemplateEntry().".".$key);
+    }
+    public function getTitle ()
+    {
+        $title = $this->getParent()->getLabel();
+        if ($this->getParent()->getIndexPageset() !== $this) {
+            if ($label = $this->getSkelConfig("label")) $title .= " ".$label;
+        }
+        return $title;
+    }
+    /**
+     * 複合的な属性を取得する
+     */
+    public function getFlg ($flg)
+    {
+        $controller = $this->getParent();
+        if ($flg=="is_mypage") return $controller->getFlagAttr("is_mypage");
+        if ($flg=="is_master") return $this->getAttr("is_master");
+        if ($flg=="is_edit") {
+            if ($controller->getFlagAttr("is_mypage") && $controller->getRole()) {
+                if ($role_table = $controller->getRole()->getAuthTable()) {
+                    return $controller->getTable()->getName() == $role_table->getName();
+                }
+            }
+            return false;
+        }
     }
     /**
      * パラメータとして受け付けるField情報の取得
@@ -149,5 +169,19 @@ class PagesetElement extends Element_Base
         $table = $controller->getTable();
         return $this->getSchema()->fetch($this->getTemplateEntry().".controller", array(
             "pageset"=>$this, "controller"=>$controller, "role"=>$role, "table"=>$table));
+    }
+    /**
+     * Tableのクエリ組み立てChainのPHPコードを取得
+     */
+    public function getTableChainSource ($type)
+    {
+        $append = "";
+        if ($type=="find") {
+            if ($this->getFlg("is_mypage")) $append .= '->findMine()';
+        } elseif ($type=="save") {
+            if ($this->getFlg("is_mypage")) $append .= '->saveMine()';
+            else $append .= '->save()';
+        }
+        return $append;
     }
 }

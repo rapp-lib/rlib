@@ -21,17 +21,17 @@ class ControllerElement extends Element_Base
             $pagesets[] = array("type"=>"form",
                 "param_fields"=>$this->getFlagAttr("param_fields",array()),
                 "use_mail"=>$this->getFlagAttr("use_mail",false),
+                "is_master"=>$this->getFlagAttr("is_master",false),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", false),
                 "skip_complete"=>$this->getFlagAttr("skip_complete", false));
         } elseif ($this->getAttr("type") == "list") {
             $pagesets[] = array("type"=>"list",
                 "param_fields"=>$this->getFlagAttr("param_fields",array()));
-            if ($this->getFlagAttr("use_detail", true)) {
+            if ($this->getFlagAttr("use_detail", false)) {
                 $pagesets[] = array("type"=>"detail");
             }
         } elseif ($this->getAttr("type") == "detail") {
-            $pagesets[] = array("type"=>"detail",
-                "param_fields"=>$this->getFlagAttr("param_fields",array()));
+            $pagesets[] = array("type"=>"detail");
         } elseif ($this->getAttr("type") == "delete") {
             $pagesets[] = array("type"=>"delete");
         } elseif ($this->getAttr("type") == "master") {
@@ -134,6 +134,24 @@ class ControllerElement extends Element_Base
         return $filtered_cols ?: $cols;
     }
     /**
+     * 検索フォームに表示するColの取得
+     */
+    public function getSearchCols ()
+    {
+        $cols = array();
+        foreach ((array)$this->getAttr("search_fields") as $field_name) {
+            $cols[] = $this->getTable()->getColByName($field_name);
+        }
+        return $cols;
+    }
+    /**
+     * ソート対象にするColであるか判定
+     */
+    public function isSortCol ($col)
+    {
+        return in_array($col->getName(), (array)$this->getAttr("sort_fields"));
+    }
+    /**
      * 一覧画面に表示するColの取得
      */
     public function getListCols ()
@@ -144,6 +162,18 @@ class ControllerElement extends Element_Base
                 "assoc", "password", "textarea", "checklist", "checkbox", "file"));
         });
         $cols = array_slice($cols,0,5);
+        array_unshift($cols, $this->getTable()->getIdCol());
+        return $cols;
+    }
+    /**
+     * メールに表示するColの取得
+     */
+    public function getMailCols ()
+    {
+        $cols = $this->getInputCols();
+        $cols = array_filter($cols, function($col){
+            return ! in_array($col->getAttr("type"),array("password"));
+        });
         return $cols;
     }
     /**
@@ -217,32 +247,5 @@ class ControllerElement extends Element_Base
             }
         }
         return $links;
-    }
-
-// -- マイページ機能
-
-    /**
-     * Tableのクエリ組み立てChainへの追加分を返す
-     */
-    public function getTableChain ($type)
-    {
-        $append = "";
-        if ($this->getFlagAttr("is_mypage")) {
-            if ($type=="find") $append .= '->findMine()';
-            else if ($type=="save") $append .= '->setMine()';
-        }
-        return $append;
-    }
-    /**
-     * アカウント自身を対象としたControllerであるかどうかを返す
-     */
-    public function isAccountMyPage ()
-    {
-        if ($this->getFlagAttr("is_mypage") && $this->getRole()) {
-            if ($role_table = $this->getRole()->getAuthTable()) {
-                return $this->getTable()->getName() == $role_table->getName();
-            }
-        }
-        return false;
     }
 }

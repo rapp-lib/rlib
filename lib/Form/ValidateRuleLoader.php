@@ -162,6 +162,17 @@ class ValidateRuleLoader
         return array("message"=>__("入力された値が異なっています"));
     }
     /**
+     * Enum入力値チェック
+     *  enum : （必須）対象のEnum名
+     */
+    public static function callbackEnum ($validator, $value, $rule)
+    {
+        if ( ! strlen($value)) return false;
+        $label = app()->enum[$rule["enum"]][$value];
+        if (strlen($label)) return false;
+        return array("message"=>__("選択された値が不正です"));
+    }
+    /**
      * ファイルアップロードのエラーチェック
      */
     public static function callbackValidFile ($validator, $value, $rule)

@@ -38,7 +38,7 @@
     {
         // 検索結果の取得
         $this->forms["search"]->restore();
-        $ts = $this->forms["search"]->search()<?=$controller->getTableChain("find")?>->removePagenation()->select();
+        $ts = $this->forms["search"]->search()<?=$pageset->getTableChainSource("find")?>->removePagenation()->select();
         // CSVファイルの書き込み
         $csv = csv_open("php://temp", "w", self::$csv_setting);
         $csv->writeLines($ts);

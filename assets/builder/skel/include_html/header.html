@@ -34,10 +34,10 @@
 <?php   else: ?>
 <?php       $index_page = $menu_controller->getIndexPage(); ?>
 <?php       if ($role->getName() == "guest"): ?>
-        <dt><a href='{{"<?=$index_page->getFullPage()?>"|page_to_url}}'><?=$index_page->getLabel()?></a></dt>
+        <dt><a href='{{"<?=$index_page->getFullPage()?>"|page_to_url}}'><?=$index_page->getTitle()?></a></dt>
 <?php       else: ?>
         {{if "<?=$index_page->getFullPage()?>"|is_accessible}}
-            <dt><a href='{{"<?=$index_page->getFullPage()?>"|page_to_url}}'><?=$index_page->getLabel()?></a></dt>
+            <dt><a href='{{"<?=$index_page->getFullPage()?>"|page_to_url}}'><?=$index_page->getTitle()?></a></dt>
         {{/if}}
 <?php       endif ?>
 <?php   endif; ?>
@@ -46,8 +46,8 @@
     <dl>
 <?php foreach ($role->getSchema()->getRoles() as $role_others): ?>
 <?php   if ($role_others->getName() != $role->getName()): ?>
-<?php       if ($menu_controller = $role_others->getIndexController()): ?>
-        <dt><a href='{{"<?=$menu_controller->getIndexPage()->getFullPage()?>"|page_to_url}}'><?=$menu_controller->getLabel()?></a></dt>
+<?php       if ($menu_page = $role_others->getIndexController()->getIndexPage()): ?>
+        <dt><a href='{{"<?=$menu_page->getFullPage()?>"|page_to_url}}'><?=$menu_page->getTitle()?></a></dt>
 <?php       endif; ?>
 <?php   endif; ?>
 <?php endforeach; ?>
