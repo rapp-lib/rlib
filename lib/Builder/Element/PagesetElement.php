@@ -62,10 +62,10 @@ class PagesetElement extends Element_Base
      */
     public function getFlg ($flg)
     {
-        if ($flg=="is_mypage") return $this->getParent()->getAttr("is_mypage");
+        $controller = $this->getParent();
+        if ($flg=="is_mypage") return $controller->getFlagAttr("is_mypage");
         if ($flg=="is_master") return $this->getAttr("is_master");
         if ($flg=="is_edit") {
-            $controller = $this->getParent();
             if ($controller->getFlagAttr("is_mypage") && $controller->getRole()) {
                 if ($role_table = $controller->getRole()->getAuthTable()) {
                     return $controller->getTable()->getName() == $role_table->getName();
@@ -174,9 +174,9 @@ class PagesetElement extends Element_Base
     {
         $append = "";
         if ($type=="find") {
-            if ($this->getFlagAttr("is_mypage")) $append .= '->findMine()';
+            if ($this->getFlg("is_mypage")) $append .= '->findMine()';
         } elseif ($type=="save") {
-            if ($this->getFlagAttr("is_mypage")) $append .= '->saveMine()';
+            if ($this->getFlg("is_mypage")) $append .= '->saveMine()';
             else $append .= '->save()';
         }
         return $append;

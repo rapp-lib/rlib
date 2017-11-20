@@ -21,6 +21,7 @@ class ControllerElement extends Element_Base
             $pagesets[] = array("type"=>"form",
                 "param_fields"=>$this->getFlagAttr("param_fields",array()),
                 "use_mail"=>$this->getFlagAttr("use_mail",false),
+                "is_master"=>$this->getFlagAttr("is_master",false),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", false),
                 "skip_complete"=>$this->getFlagAttr("skip_complete", false));
         } elseif ($this->getAttr("type") == "list") {
@@ -39,6 +40,7 @@ class ControllerElement extends Element_Base
             $pagesets[] = array("type"=>"form",
                 "param_fields"=>$this->getFlagAttr("param_fields",array()),
                 "use_mail"=>$this->getFlagAttr("use_mail",false),
+                "is_master"=>$this->getFlagAttr("is_master",true),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", true),
                 "skip_complete"=>$this->getFlagAttr("skip_complete", true));
             if ($this->getFlagAttr("use_detail", false)) {
