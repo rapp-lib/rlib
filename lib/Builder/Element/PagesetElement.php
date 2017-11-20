@@ -58,6 +58,23 @@ class PagesetElement extends Element_Base
         return $this->getParent()->getLabel();
     }
     /**
+     * 複合的な属性を取得する
+     */
+    public function getFlg ($flg)
+    {
+        if ($flg=="is_mypage") return $this->getParent()->getAttr("is_mypage");
+        if ($flg=="is_master") return $this->getAttr("is_master");
+        if ($flg=="is_edit") {
+            $controller = $this->getParent();
+            if ($controller->getFlagAttr("is_mypage") && $controller->getRole()) {
+                if ($role_table = $controller->getRole()->getAuthTable()) {
+                    return $controller->getTable()->getName() == $role_table->getName();
+                }
+            }
+            return false;
+        }
+    }
+    /**
      * パラメータとして受け付けるField情報の取得
      */
     public function getParamFields ()
@@ -149,5 +166,19 @@ class PagesetElement extends Element_Base
         $table = $controller->getTable();
         return $this->getSchema()->fetch($this->getTemplateEntry().".controller", array(
             "pageset"=>$this, "controller"=>$controller, "role"=>$role, "table"=>$table));
+    }
+    /**
+     * Tableのクエリ組み立てChainのPHPコードを取得
+     */
+    public function getTableChainSource ($type)
+    {
+        $append = "";
+        if ($type=="find") {
+            if ($this->getFlagAttr("is_mypage")) $append .= '->findMine()';
+        } elseif ($type=="save") {
+            if ($this->getFlagAttr("is_mypage")) $append .= '->saveMine()';
+            else $append .= '->save()';
+        }
+        return $append;
     }
 }

@@ -9,8 +9,8 @@
 {{/script}}
 
 {{form action='.'|page_to_url enctype="multipart/form-data" method="post" form=$forms.entry class="form-entry"}}
-<?php if ($pageset->getAttr("is_master") || $controller->isAccountMyPage()): ?>
-{{input name="id" type="hidden"}}
+<?php if ($pageset->getFlg("is_master")): ?>
+{{input name="<?=$table->getIdCol()->getName()?>" type="hidden"}}
 <?php endif; ?>
 <table class="tbl detail">
 <?php foreach ($controller->getInputCols() as $col): ?>

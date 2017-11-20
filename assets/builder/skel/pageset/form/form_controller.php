@@ -8,13 +8,13 @@
         "table" => "<?=$table->getName()?>",
 <?php endif; ?>
         "fields" => array(
-<?php if ($pageset->getAttr("is_master") || $controller->isAccountMyPage()): ?>
-            "id",
+<?php if ($pageset->getFlg("is_master")): ?>
+            "<?=$table->getIdCol()->getName()?>",
 <?php endif; ?>
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?=$col->getEntryFormFieldDefSource()?>
 <?php   if ($col->getAttr("type")==="assoc"): ?>
-<?php       if ($pageset->getAttr("is_master") && ! $col->getAttr("def.assoc.single")): ?>
+<?php       if ($pageset->getFlg("is_master") && ! $col->getAttr("def.assoc.single")): ?>
             "<?=$col->getName()?>.*.<?=$col->getAssocTable()->getIdCol()->getName()?>",
 <?php       endif; ?>
 <?php       if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
@@ -49,13 +49,13 @@
             $this->forms["entry"]->restore();
         } else {
             $this->forms["entry"]->clear();
-<?php if ($controller->isAccountMyPage()): ?>
-            $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectOne();
+<?php if ($pageset->getFlg("is_edit")): ?>
+            $t = $this->forms["entry"]->getTable()<?=$pageset->getTableChainSource("find")?>->selectOne();
             $this->forms["entry"]->setRecord($t);
-            $this->forms["entry"]["id"] = "myself";
-<?php elseif ($pageset->getAttr("is_master")): ?>
+            if ( ! $t) return $this->response("badrequest");
+<?php elseif ($pageset->getFlg("is_master")): ?>
             if ($id = $this->input["id"]) {
-                $t = $this->forms["entry"]->getTable()<?=$controller->getTableChain("find")?>->selectById($id);
+                $t = $this->forms["entry"]->getTable()<?=$pageset->getTableChainSource("find")?>->selectById($id);
                 if ( ! $t) return $this->response("notfound");
                 $this->forms["entry"]->setRecord($t);
             }
@@ -87,7 +87,7 @@
         $this->forms["entry"]->restore();
         if ( ! $this->forms["entry"]->isEmpty()) {
 <?php if ($table->hasDef()): ?>
-            $t = $this->forms["entry"]->getTableWithValues()<?=$controller->getTableChain("save")?>->getSavedRecord();
+            $t = $this->forms["entry"]->getTableWithValues()<?=$pageset->getTableChainSource("save")?>->getSavedRecord();
 <?php else: ?>
             $t = $this->forms["entry"]->getValues();
 <?php endif; ?>

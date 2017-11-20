@@ -35,7 +35,7 @@
             // DBへの登録処理
             app()->db()->begin();
             while ($t=$csv->readLine()) {
-                table("<?=$table->getName()?>")->values($t)<?=$controller->getTableChain("save")?>;
+                table("<?=$table->getName()?>")->values($t)<?=$pageset->getTableChainSource("save")?>;
             }
             app()->db()->commit();
             $this->forms["entry_csv"]->clear();

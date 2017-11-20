@@ -39,7 +39,6 @@ class ControllerElement extends Element_Base
             $pagesets[] = array("type"=>"form",
                 "param_fields"=>$this->getFlagAttr("param_fields",array()),
                 "use_mail"=>$this->getFlagAttr("use_mail",false),
-                "is_master"=>$this->getFlagAttr("is_master",true),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", true),
                 "skip_complete"=>$this->getFlagAttr("skip_complete", true));
             if ($this->getFlagAttr("use_detail", false)) {
@@ -227,34 +226,5 @@ class ControllerElement extends Element_Base
             }
         }
         return $links;
-    }
-
-// -- マイページ機能
-
-    /**
-     * Tableのクエリ組み立てChainへの追加分を返す
-     */
-    public function getTableChain ($type)
-    {
-        $append = "";
-        if ($type=="find") {
-            if ($this->getFlagAttr("is_mypage")) $append .= '->findMine()';
-        } elseif ($type=="save") {
-            if ($this->getFlagAttr("is_mypage")) $append .= '->saveMine()';
-            else $append .= '->save()';
-        }
-        return $append;
-    }
-    /**
-     * アカウント自身を対象としたControllerであるかどうかを返す
-     */
-    public function isAccountMyPage ()
-    {
-        if ($this->getFlagAttr("is_mypage") && $this->getRole()) {
-            if ($role_table = $this->getRole()->getAuthTable()) {
-                return $this->getTable()->getName() == $role_table->getName();
-            }
-        }
-        return false;
     }
 }

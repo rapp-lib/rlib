@@ -21,10 +21,10 @@
         } elseif ($this->forms["search"]->receive($this->input)) {
             $this->forms["search"]->save();
         }
-        $this->vars["ts"] = $this->forms["search"]->search()<?=$controller->getTableChain("find")?>->select();
+        $this->vars["ts"] = $this->forms["search"]->search()<?=$pageset->getTableChainSource("find")?>->select();
 <?php foreach ($pageset->getParamFields() as $param_field): ?>
 <?php   if ($param_field["required"]): ?>
-        if ( ! $this->forms["search"]["<?=$param_field["field_name"]?>"]) return $this->response("notfound");
+        if ( ! $this->forms["search"]["<?=$param_field["field_name"]?>"]) return $this->response("badrequest");
 <?php   endif; ?>
 <?php endforeach; ?>
     }

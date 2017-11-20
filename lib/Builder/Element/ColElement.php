@@ -82,14 +82,15 @@ class ColElement extends Element_Base
         foreach ((array)$this->getAttr("rules") as $type=>$params) {
             if (is_array($params)) {
                 // 管理画面用の新規/編集共用フォーム
-                if ($pageset->getAttr("is_master")) { // is_master
+                if ($pageset->getFlg("is_master")) {
                     $id_col_name = $this->getParent()->getIdCol()->getName();
                     if ($params["if_register"]) $params["if"][$id_col_name] = false;
                     elseif ($params["if_edit"]) $params["if"][$id_col_name] = true;
-                // 自分の情報の編集ページのみeditあつかい
-                } elseif ($controller->isAccountMyPage()) { // is_edit
+                // 自分の情報の編集ページなどのedit系フォーム
+                } elseif ($pageset->getFlg("is_edit")) {
                     if ($params["if_register"]) continue;
-                } else { // is_register
+                // その他のフォーム
+                } else {
                     if ($params["if_edit"]) continue;
                 }
                 unset($params["if_register"]);
