@@ -36,7 +36,7 @@
             <div class="mi" data-minItems="0" data-maxItems="20">
                 {{input_fieldset name="<?=$name?>" tmpl="${id}" key="key" assign="fieldset"}}
                     <div class="mi-item" data-itemId="{{$key}}">
-<?php   if ($pageset->getAttr("is_master") || $controller->isAccountMyPage()): ?>
+<?php   if ($pageset->getFlg("is_master")): ?>
                         {{input type="hidden" name="<?=$name?>[$key][<?=$col->getAssocTable()->getIdCol()->getName()?>]"}}
 <?php   endif; ?>
 <?php   if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
