@@ -8,13 +8,16 @@
             "axios" => array("https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.min.js"),
             "ckeditor" => array("//cdn.ckeditor.com/4.6.0/standard/ckeditor.js"),
 
-            "jquery.balloon" => array("//cdn.jsdelivr.net/npm/jquery-balloon-js@1.1.2/jquery.balloon.min.js"),
+            "toastr" => array("//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.3/toastr.min.js", array("jquery")),
         ),
         "local" => array(
             "util.appendStyle" => array('util/appendStyle.js'),
+            "util.appendCSS" => array('util/appendCSS.js'),
             "util.DOMChangeListener" => array('util/DOMChangeListener.js', array("jquery")),
             "util.FormObserver" => array('util/FormObserver.js', array("jquery", "util.DOMChangeListener", "util.FormValidator")),
             "util.FormValidator" => array('util/FormValidator.js', array("jquery")),
+            // config
+            "config.toastr" => array('config/toastr.js', array("toastr", "util.appendCSS")),
             // rui
             "rui.show-errors" => array('rui.show-errors/rui.show-errors.js', array("jquery")),
             "rui.mi" => array('mi-3.0/jquery.mi.js', array("jquery", "InputPluginRegistry")),

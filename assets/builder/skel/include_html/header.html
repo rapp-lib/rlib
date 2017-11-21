@@ -11,6 +11,10 @@
 </head>
 <body>
 
+{{if $flash = []|flash}}
+    {{script require=["app.showFlash"]}}showFlash({{$flash|json_encode nofilter}}){{/script}}
+{{/if}}
+
 <header class="header-block">
     <div>
         <div class="logo"><a href="{{'/'|path_to_url}}"></a></div>

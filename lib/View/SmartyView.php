@@ -254,4 +254,12 @@ class SmartyView
     {
         return app()->view()->getAssets()->render(array("clear"=>true));
     }
+
+// -- FlashMessageプラグイン
+
+    public static function smarty_modifier_flash ($options=array())
+    {
+        $flash = app()->session->getFlash()->get($options);
+        return $flash;
+    }
 }

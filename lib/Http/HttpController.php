@@ -118,6 +118,7 @@ class HttpController implements FormRepositry
         $this->request = $request;
         $this->input = $request->getAttribute(InputValues::ATTRIBUTE_INDEX);
         $this->forms = app()->form->addRepositry($this);
+        $this->flash = app()->session->getFlash();
         list(,$action_name) = explode('.', $this->uri->getPageId(), 2);
         // 処理呼び出し
         $action_method_name = "act_".$action_name;

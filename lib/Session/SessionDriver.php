@@ -23,4 +23,13 @@ class SessionDriver
         }
         return $this->managers[$ds_name];
     }
+
+// --
+
+    protected $flash = null;
+    public function getFlash()
+    {
+        if ( ! $this->flash) $this->flash = new FlashMessageQueue();
+        return $this->flash;
+    }
 }
