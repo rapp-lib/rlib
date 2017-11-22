@@ -14,7 +14,7 @@
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?=$col->getEntryFormFieldDefSource()?>
 <?php   if ($col->getAttr("type")==="assoc"): ?>
-<?php       if ($pageset->getFlg("is_master") && ! $col->getAttr("def.assoc.single")): ?>
+<?php       if (($pageset->getFlg("is_master") || $pageset->getFlg("is_edit")) && ! $col->getAttr("def.assoc.single")): ?>
             "<?=$col->getName()?>.*.<?=$col->getAssocTable()->getIdCol()->getName()?>",
 <?php       endif; ?>
 <?php       if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
