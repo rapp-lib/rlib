@@ -938,7 +938,7 @@ class Table_Base extends Table_Core
             // Updateが発行される場合は、Whereを指定
             if ($this->query->getValue($id_col_name)) {
                 $this->query->removeValue($fkey_col_name);
-                $this->query->addWhere($fkey_col_name, $user_id);
+                $this->query->setWhere($fkey_col_name, $user_id);
             // Insertが発行される場合は、Valueに指定
             } else {
                 $this->query->setValue($fkey_col_name, $user_id);
