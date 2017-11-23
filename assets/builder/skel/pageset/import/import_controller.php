@@ -8,6 +8,7 @@
         ),
         "rules" => array(
             "csv_file",
+            array("csv_file", 'csv_form', 'form'=>'<?=$controller->getName()?>.csv'),
         ),
     );
 <?=$pageset->getPageByType("import")->getMethodDecSource()?>
@@ -31,12 +32,10 @@
             }
             // CSVファイルを開く
             $csv_file = app()->file->getFileByUri($this->forms["entry_csv"]["csv_file"])->getSource();
-            $csv = csv_open($csv_file, "r", self::$csv_setting);
+            $csv = $this->forms["csv"]->openCsvFile($csv_file, "r");
             // DBへの登録処理
             app()->db()->begin();
-            while ($t=$csv->readLine()) {
-                table("<?=$table->getName()?>")->values($t)<?=$pageset->getTableChainSource("save")?>;
-            }
+            while ($form = $csv->readForm()) $form->getRecord()->save();
             app()->db()->commit();
             $this->forms["entry_csv"]->clear();
         }

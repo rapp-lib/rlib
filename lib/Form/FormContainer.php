@@ -637,6 +637,18 @@ class FormContainer extends ArrayObject
         }
     }
 
+// -- Csv関連
+
+    /**
+     * CsvHandlerを作成する
+     */
+    public function openCsvFile ($csv_file, $mode="r")
+    {
+        return new FormCsvHandler($csv_file, $mode, $this->def);
+    }
+
+// -- 内部処理
+
     /**
      * 構成を補完
      */

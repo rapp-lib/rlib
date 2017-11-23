@@ -172,6 +172,29 @@ class ValidateRuleLoader
         if (strlen($label)) return false;
         return array("message"=>__("選択された値が不正です"));
     }
+    public static function callbackCsvForm ($validator, $value, $rule)
+    {
+        if ( ! $value) return false;
+        $csv_file = app()->file->getFileByUri($value)->getSource();
+        list($repo_name, $form_name) = explode(",", $rule["form"]);
+        $csv_form = app()->form["staff_reports"]["csv"];
+        if ( ! $csv_form) {
+            report_error("CsvFormが参照できません",array(
+                "csv_form" => $rule["form"],
+            ));
+        }
+        $csv = $csv_form->openCsvFile($csv_file, "r");
+        while ($form = $csv->readForm()) {
+            if ( ! $form->isValid()) {
+                foreach ($form->getErrors() as $error) {
+                    return array("message"=>__("CSVファイルの:line_num行目に問題があります",array(
+                        "line_num"=>$csv->getCurrentLineNum(),
+                    )));
+                }
+            }
+        }
+        return false;
+    }
     /**
      * ファイルアップロードのエラーチェック
      */

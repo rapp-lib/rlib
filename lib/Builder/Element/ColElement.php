@@ -36,12 +36,38 @@ class ColElement extends Element_Base
      */
     public function getEntryFormFieldDefSource ($o=array())
     {
+        $pageset = $o["pageset"];
         $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
         $def = array();
         $def["label"] = $this->getAttr("label");
         if ( ! $this->hasColDef()) $def["col"] = false;
         if ($this->getAttr("type")=="file") $def["storage"] = "public";
-        return '            '.$this->stringifyValue($name, $def).','."\n";
+        $lines = array();
+        $lines[] = $this->stringifyValue($name, $def);
+
+        // type=assocに関わる定義を追記
+        if ($this->getAttr("type")==="assoc"){
+            if ($pageset->getFlg("is_master") && ! $this->getAttr("def.assoc.single")){
+                $lines[] = '"'.$this->getName().'.*.'.$this->getAssocTable()->getIdCol()->getName().'"';
+            }
+            if (($assoc_ord_col = $this->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")){
+                $lines[] = '"'.$this->getName().'.*.'.$assoc_ord_col->getName().'"';
+            } else {
+                $lines[] = $this->stringifyValue($this->getName().".*.ord_seq", array("col"=>false));
+            }
+        }
+        $source = "";
+        foreach ($lines as $line) $source .= '            '.$line.','."\n";
+        // assoc下位の定義を追記
+        if ($this->getAttr("type")==="assoc"){
+            foreach ($this->getAssocTable()->getInputCols() as $assoc_col) {
+                $source .= $assoc_col->getEntryFormFieldDefSource(array(
+                    "pageset" => $pageset,
+                    "name_parent" => $this->getName().".*",
+                ));
+            }
+        }
+        return $source;
     }
     /**
      * $form_searchの定義行の取得

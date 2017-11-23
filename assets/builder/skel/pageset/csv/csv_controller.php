@@ -1,37 +1,36 @@
     /**
      * CSV設定
      */
-    protected static $csv_setting = array(
-        "ignore_empty_line" => true,
-        "rows" => array(
-            "<?=$table->getIdCol()->getName()?>" => "#ID",
+    protected static $form_csv = array(
+        "table" => "<?=$table->getName()?>",
+        "fields" => array(
+            "<?=$table->getIdCol()->getName()?>"=>array("label"=>"<?=$table->getIdCol()->getAttr("label")?>"),
 <?php foreach ($controller->getInputCols() as $col): ?>
-<?php   if ($col->getAttr("type")==="assoc"): ?>
-<?php       if ($controller->getAttr("type")==="master" && ! $col->getAttr("def.assoc.single")): ?>
-            "<?=$col->getName()?>.0.<?=$col->getAssocTable()->getIdCol()->getName()?>" => "<?=$col->getLabel()?>[0] #ID",
-<?php       endif; ?>
-<?php       foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
-            "<?=$col->getName()?>.0.<?=$assoc_col->getName()?>" => "<?=$col->getLabel()?>[0] <?=$assoc_col->getLabel()?>",
-<?php       endforeach; /* foreach as $assoc_col */ ?>
-<?php   else: /* if type=="assoc" */ ?>
-            "<?=$col->getName()?>" => "<?=$col->getLabel()?>",
-<?php   endif; /* if type=="assoc" */ ?>
-<?php endforeach; /* foreach as $col */ ?>
+<?=$col->getEntryFormFieldDefSource(array("pageset"=>$pageset))?>
+<?php endforeach; ?>
         ),
-        "filters" => array(
+        "rules" => array(
+<?php foreach ($controller->getInputCols() as $col): ?>
+<?=$col->getRuleDefSource(array("pageset"=>$pageset))?>
+<?php endforeach ?>
+        ),
+        "csv_setting" => array(
+            "ignore_empty_line" => true,
+            "filters" => array(
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?php   if ($col->getAttr("type")==="assoc"): ?>
 <?php       foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
 <?php           if ($assoc_col->getEnumSet()): ?>
-            array("<?=$col->getName()?>.0.<?=$assoc_col->getName()?>", "enum_value", "enum"=>"<?=$assoc_col->getEnumSet()->getFullName()?>"),
+                array("<?=$col->getName()?>.0.<?=$assoc_col->getName()?>", "enum_value", "enum"=>"<?=$assoc_col->getEnumSet()->getFullName()?>"),
 <?php           endif; ?>
 <?php       endforeach; /* foreach as $assoc_col */ ?>
 <?php   else: /* if type=="assoc" */ ?>
 <?php       if ($col->getEnumSet()): ?>
-            array("<?=$col->getName()?>", "enum_value", "enum"=>"<?=$col->getEnumSet()->getFullName()?>"),
+                array("<?=$col->getName()?>", "enum_value", "enum"=>"<?=$col->getEnumSet()->getFullName()?>"),
 <?php       endif; ?>
 <?php   endif; /* if type=="assoc" */ ?>
 <?php endforeach; ?>
+            ),
         ),
     );
 <?=$pageset->getPageByType("download")->getMethodDecSource()?>
@@ -40,8 +39,8 @@
         $this->forms["search"]->restore();
         $ts = $this->forms["search"]->search()<?=$pageset->getTableChainSource("find")?>->removePagenation()->select();
         // CSVファイルの書き込み
-        $csv = csv_open("php://temp", "w", self::$csv_setting);
-        $csv->writeLines($ts);
+        $csv = $this->forms["csv"]->openCsvFile("php://temp", "w");
+        foreach ($ts as $t) $csv->writeRecord($t);
         // データ出力
         return app()->http->response("stream", $csv->getHandle(), array("headers"=>array(
             'content-type' => 'application/octet-stream',
