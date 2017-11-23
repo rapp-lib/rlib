@@ -29,7 +29,7 @@ class FlashMessageQueue
             $this->now_messages[] = $data;
         } else {
             $stack = & app()->session("FlashMessageQueue")->stack;
-            if ( ! is_array($stack)) $stack = array();
+            if ( ! $stack) $stack = array();
             $stack[] = $data;
         }
     }
