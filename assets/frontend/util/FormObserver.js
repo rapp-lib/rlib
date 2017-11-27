@@ -34,7 +34,8 @@ window.FormObserver = function ($form, state, o) {
         return $(selector) || $("__dummy");
     };
     self.getInputValue = function(field_name){
-        return self.getInputElement(field_name).val();
+        var $input = self.getInputElement(field_name);
+        return $input.filter(function(){ return $(this).val(); }).val();
     };
     self.fieldNameIsMatchRule = function(field_name_ptn, field_name){
         // Ruleの判定の場合は、入力側のfieldset_indexを無視する
