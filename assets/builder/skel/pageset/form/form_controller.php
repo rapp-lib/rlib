@@ -9,29 +9,16 @@
 <?php endif; ?>
         "fields" => array(
 <?php if ($pageset->getFlg("is_master")): ?>
-            "<?=$table->getIdCol()->getName()?>",
+            "<?=$table->getIdCol()->getName()?>"=>array("label"=>"<?=$table->getIdCol()->getAttr("label")?>"),
 <?php endif; ?>
 <?php foreach ($controller->getInputCols() as $col): ?>
-<?=$col->getEntryFormFieldDefSource()?>
-<?php   if ($col->getAttr("type")==="assoc"): ?>
-<?php       if (($pageset->getFlg("is_master") || $pageset->getFlg("is_edit")) && ! $col->getAttr("def.assoc.single")): ?>
-            "<?=$col->getName()?>.*.<?=$col->getAssocTable()->getIdCol()->getName()?>",
-<?php       endif; ?>
-<?php       if (($assoc_ord_col = $col->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")): ?>
-            "<?=$col->getName()?>.*.<?=$assoc_ord_col->getName()?>",
-<?php       else: /* if $assoc_ord_col */ ?>
-            "<?=$col->getName()?>.*.ord_seq"=>array("col"=>false),
-<?php       endif; /* if $assoc_ord_col */ ?>
-<?php       foreach ($col->getAssocTable()->getInputCols() as $assoc_col): ?>
-<?=$assoc_col->getEntryFormFieldDefSource(array("name_parent"=>$col->getName().".*"))?>
-<?php       endforeach; /* foreach as $assoc_col */ ?>
-<?php   endif; /* if type=="assoc" */ ?>
-<?php endforeach; /* foreach as $col */ ?>
+<?=$col->getEntryFormFieldDefSource(array("pageset"=>$pageset))?>
+<?php endforeach; ?>
         ),
         "rules" => array(
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?=$col->getRuleDefSource(array("pageset"=>$pageset))?>
-<?php endforeach /* foreach as $col */ ?>
+<?php endforeach ?>
         ),
     );
 <?=$pageset->getPageByType("form")->getMethodDecSource()?>

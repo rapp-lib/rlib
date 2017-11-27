@@ -1,13 +1,15 @@
 <?php
 namespace R\Lib\Form;
 
-class FormFactory
+use ArrayObject;
+
+class FormFactory extends ArrayObject
 {
-    private $current_repositry = null;
-    private $repositries = array();
-
-// -- Form作成
-
+    public function offsetGet ($ext_controller_name)
+    {
+        $ext_class_name = "R\\App\\Controller\\".str_camelize($ext_controller_name)."Controller";
+        return $this->getRepositry($ext_class_name);
+    }
     /**
      * 構成を指定してFormを作成
      */
@@ -18,6 +20,8 @@ class FormFactory
 
 // -- FormRepositry操作
 
+    private $current_repositry = null;
+    private $repositries = array();
     /**
      * FormRepositryクラスをFormRepositryProxyとして登録
      */
