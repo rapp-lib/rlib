@@ -37,6 +37,8 @@ class DBSchemaDoctrine2
         $schema = new Schema($ignore_tables);
         foreach ($defs as $def) {
             $table = $schema->createTable($def["table_name"]);
+            // テーブルのコメント
+            if ($def["comment"]) $table->addOption("comment", $def["comment"]);
             $id_col_names = array();
             foreach ((array)$def["cols"] as $col_name => $col) {
                 $options = $col;
