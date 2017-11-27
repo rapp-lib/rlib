@@ -1,4 +1,3 @@
-
 window.FormObserver = function ($form, state, o) {
     var self = this;
     self.$form = $form;

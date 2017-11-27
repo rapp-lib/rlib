@@ -1,4 +1,3 @@
-
 window.FormValidator = function (fo) {
     var self = this;
     self.fo = fo;

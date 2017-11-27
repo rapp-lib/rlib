@@ -1,4 +1,3 @@
-
 window.DOMChangeListener = function($elm, mode, listen_callback){
     // MutationObserverに対応している場合
     if (MutationObserver) {

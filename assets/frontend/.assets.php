@@ -9,6 +9,8 @@
             "ckeditor" => array("//cdn.ckeditor.com/4.6.0/standard/ckeditor.js"),
 
             "toastr" => array("//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.3/toastr.min.js", array("jquery")),
+            "spinjs" => array("https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"),
+            "fakeloader" => array("//cdn.jsdelivr.net/npm/jquery.fakeloader@1.0.0/dist/jquery.fakeloader.min.js", array("jquery")),
         ),
         "local" => array(
             "util.appendStyle" => array('util/appendStyle.js'),
@@ -16,8 +18,10 @@
             "util.DOMChangeListener" => array('util/DOMChangeListener.js', array("jquery")),
             "util.FormObserver" => array('util/FormObserver.js', array("jquery", "util.DOMChangeListener", "util.FormValidator")),
             "util.FormValidator" => array('util/FormValidator.js', array("jquery")),
+            "util.Viframe" => array('util/Viframe.js', array("jquery", "spinjs")),
             // config
             "config.toastr" => array('config/toastr.js', array("toastr", "util.appendCSS")),
+            "config.fakeloader" => array('config/fakeloader.js', array("fakeloader", "util.appendCSS")),
             // rui
             "rui.show-errors" => array('rui.show-errors/rui.show-errors.js', array("jquery")),
             "rui.mi" => array('mi-3.0/jquery.mi.js', array("jquery", "InputPluginRegistry")),
