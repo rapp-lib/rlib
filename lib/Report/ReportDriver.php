@@ -108,7 +108,7 @@ class ReportDriver
     {
         $this->reserved_memory = null;
         $last_error = error_get_last();
-        if ($last_error && $this->isFatalPhpErrorCode($last_error['type'])) {
+        if ($last_error && self::isFatalPhpErrorCode($last_error['type'])) {
             $last_error['php_error_code'] = $last_error['type'];
             $e = ReportRenderer::createHandlableError($last_error);
             $this->logException($e);
@@ -131,7 +131,7 @@ class ReportDriver
      */
     public function splErrorHandler($code, $message, $file = '', $line = 0, $context = array())
     {
-        if ($code && ! $this->isFatalPhpErrorCode($code)) {
+        if ($code && ! self::isFatalPhpErrorCode($code)) {
             $e = ReportRenderer::createHandlableError(array(
                 "php_error_code" => $code,
                 "message" => $message,
@@ -145,7 +145,7 @@ class ReportDriver
             return call_user_func($this->prev_spl_error_handler, $code, $message, $file, $line, $context);
         }
     }
-    private function isFatalPhpErrorCode($php_error_code)
+    public static function isFatalPhpErrorCode($php_error_code)
     {
         return $php_error_code & (E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR);
     }

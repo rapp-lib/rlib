@@ -1,7 +1,8 @@
 <?php
 namespace R\Lib\Console\Command;
+
 use R\Lib\Console\Command;
-use R\Lib\Error\HandlableError;
+use R\Lib\Util\GitRepositry;
 
 class BuildCommand extends Command
 {
@@ -14,6 +15,7 @@ class BuildCommand extends Command
             "branch_b2" => "build-working",
             "build_log_id" => "build-".date("Ymd-His"),
         );
+        register_shutdown_function(array($this, "onShutdown"));
     }
     public function act_make ()
     {
@@ -82,165 +84,63 @@ class BuildCommand extends Command
      */
     private function makeApply ()
     {
+        // dブランチからCSVをコピーする
+        $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/log/".$this->config["build_log_id"];
+        $schema_csv_file = $work_dir."/schema.config.csv";
+        $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":config/schema.config.csv"));
+        \R\Lib\Util\File::write($schema_csv_file,$csv_data);
+        // CSVを読み込む
+        $schema_loader = new \R\Lib\Builder\SchemaCsvLoader;
+        $schema_data = $schema_loader->load($schema_csv_file);
+        // SchemaElementを作成
+        $schema = new \R\Lib\Builder\Element\SchemaElement();
+        $schema->addSkel(constant("R_LIB_ROOT_DIR")."/assets/builder/skel");
+        $schema->loadSchemaData($schema_data);
+        $schema->registerDeployCallback(function($deploy_name, $source){
+            $deploy_file = constant("R_APP_ROOT_DIR")."/".$deploy_name;
+            $status = "create";
+            if (file_exists($deploy_file)) {
+                $current_source = file_get_contents($deploy_file);
+                $status = crc32($current_source)==crc32($source) ? "nochange" : "modify";
+            }
+            \R\Lib\Util\File::write($deploy_file, $source);
+            if ($status != "nochange") {
+                print "Deploy ".$status." ".$deploy_name."\n";
+            }
+        });
+
         // apply
         //     checkout b2
         $this->git->checkout($this->config["branch_b2"]);
-        //     make
-        try {
-            $skel_dir = constant("R_LIB_ROOT_DIR")."/assets/builder/skel";
-            $deploy_dir = $current_dir = constant("R_APP_ROOT_DIR");
-            $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/log/".$this->config["build_log_id"];
-            // dブランチからCSVをコピーする
-            $schema_csv_file = $work_dir."/schema.config.csv";
-            $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":config/schema.config.csv"));
-            \R\Lib\Util\File::write($schema_csv_file,$csv_data);
-            // Builderを作成→全件生成
-            $schema = app()->builder(array(
-                "current_dir" => $current_dir,
-                "deploy_dir" => $deploy_dir,
-                "work_dir" => $work_dir,
-                "show_source" => true,
-            ));
-            $schema->addSkel($skel_dir);
-            $schema->initFromSchemaCsv($schema_csv_file);
-            $schema->deploy(true);
-        } catch (HandlableError $e) {
-            report_warning("Builderの実行中にエラーがありました",array(
-                "exceptions" => $e,
-            ));
-        }
+        //     deploy
+        $schema->deploy(true);
         //     git add -A; git commit -m $build_log_id
         $this->git->addCommitAll("build ".$this->config["build_log_id"]);
         //     git checkout d
         $this->git->checkout($this->config["branch_d"]);
         //     git merge b2 --no-commit --no-ff # コミットしない指定
         $this->git->cmd(array("git","merge","--no-ff","--no-commit",$this->config["branch_b2"]));
-    }
-}
-class GitRepositry
-{
-    protected $dir;
-    public function __construct ($dir)
-    {
-        $this->dir = $dir;
-    }
-    /**
-     * Gitレポジトリ直下でコマンド発行
-     */
-    public function cmd ($cmd)
-    {
-        $dir = getcwd();
-        chdir($this->dir);
-        $cmd = app()->console->cliEscape($cmd);
-        app()->console->output("> ".$cmd."\n");
-        $result = shell_exec($cmd);
-        chdir($dir);
-        return rtrim($result);
+        //     git status
+        $this->git->cmd(array("git","status"));
     }
 
-// -- Status確認
-
     /**
-     * Commitされてない差分を取得
+     * エラー停止時の処理を実行する
      */
-    public function getChanges ()
+    public function onShutdown ()
     {
-        $changes = $this->cmd(array("git","status","-s"));
-        return strlen($changes)===0 ? array() : explode("\n",$changes);
-    }
-    /**
-     * 差分を取得
-     */
-    public function getDiff ($ref="HEAD")
-    {
-        $changes = $this->cmd(array("git","diff","--name-only",$ref));
-        return strlen($changes)===0 ? array() : explode("\n",$changes);
-    }
-
-// -- Log取得
-
-    /**
-     * CommitIDを新しい順で取得
-     */
-    public function getCommits ($branch)
-    {
-        $result = $this->cmd(array("git","log","--format=%h",$branch));
-        return explode("\n",$result);
-    }
-
-// -- Branch操作
-
-    /**
-     * Chackout中のBranchを取得
-     */
-    public function getCurrentBranch ()
-    {
-        $branch = $this->cmd(array("git","rev-parse","--abbrev-ref","HEAD"));
-        return $branch;
-    }
-    /**
-     * Branchを全件取得
-     */
-    public function getBranches ()
-    {
-        $result = $this->cmd(array("git","for-each-ref","--format=%(refname)"));
-        $branches = array();
-        foreach (explode("\n",$result) as $branch) {
-            if (preg_match('!^refs/heads/([^/]+?)$!',$branch,$match)) {
-                $branches[] = $match[1];
-            } elseif (preg_match('!^refs/remotes/(([^/]+?)/([^/]+?))$!',$branch,$match)) {
-                $branches[] = $match[1];
+        if (\R\Lib\Report\ReportDriver::isFatalPhpErrorCode(error_get_last())) {
+            $current_branch = $this->git->getCurrentBranch();
+            // ブランチがb1/b2でエラー停止した場合
+            if ($current_branch == $this->config["branch_b1"]
+                || $current_branch == $this->config["branch_d2"]) {
+                //     git add -A
+                $this->git->cmd(array("git","add","-A"));
+                //     git reset --hard
+                $this->git->cmd(array("git","reset","--hard"));
+                //     git checkout d
+                $this->git->checkout($this->config["branch_d"]);
             }
         }
-        return $branches;
-    }
-    /**
-     * Branchを新規作成
-     */
-    public function createBranch ($branch, $ref="HEAD")
-    {
-        $this->cmd(array("git","branch",$branch,$ref));
-    }
-
-// -- HEADに対する操作
-
-    /**
-     * HEADの差し先Branch変更
-     */
-    public function checkout ($branch)
-    {
-        $this->cmd(array("git","checkout",$branch));
-    }
-    /**
-     * Branchの差し先を強制的に変更
-     */
-    public function resetBranch ($to, $options=array())
-    {
-        $this->cmd(array("git","reset",$to,$options));
-    }
-    /**
-     * BranchのMerge
-     */
-    public function merge ($ref, $options=array())
-    {
-        $this->cmd(array("git","merge",$ref,$options));
-    }
-    /**
-     * BranchのMerge
-     */
-    public function mergeNoCommit ($ref)
-    {
-        $this->cmd(array("git","merge","--no-commit",$ref));
-    }
-
-// -- HEADに対する操作
-
-    /**
-     * 全差分を反映
-     */
-    public function addCommitAll ($message)
-    {
-        $this->cmd(array("git","add","-A"));
-        $this->cmd(array("git","commit","-m",$message));
     }
 }
