@@ -56,6 +56,20 @@ class DBSchemaDoctrine2
             foreach ((array)$def["indexes"] as $index) {
                 $table->addIndex($index["cols"], $index["name"], (array)$index["flags"], (array)$index["options"]);
             }
+            $tables[$def["table_name"]] = $table;
+        }
+        // 相互参照関係の登録
+        foreach ($defs as $def) {
+            $table = $schema->getTable($def["table_name"]);
+            foreach ((array)$def["cols"] as $col_name => $col) {
+                // 外部キー制約
+                if ($fkey_for = $col["fkey_for"]) {
+                    $fkey_for_table = $schema->getTable($defs[$fkey_for]["table_name"]);
+                    $index = $fkey_for_table->getPrimaryKey();
+                    $fkey_for_ids = $index->getColumns();
+                    $table->addForeignKeyConstraint($fkey_for_table, array($col_name), array($fkey_for_ids[0]));
+                }
+            }
         }
         return $schema;
     }

@@ -61,7 +61,7 @@ class TableFactory
         $defs = array();
         foreach (get_declared_classes() as $class) {
             if (preg_match('!^'.preg_quote('R\App\Table\\').'([\w\d]+)Table$!', $class, $_)) {
-                $table_name = str_underscore($_[1]);
+                $table_name = $_[1];
                 $defs[$table_name] = $this->getTableDef($table_name);
             }
         }
