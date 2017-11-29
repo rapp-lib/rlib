@@ -24,7 +24,7 @@ class SessionContainer extends ZendSessionContainer
     }
     public function set ($key, $value)
     {
-        $ref = $this->getRef($key);
+        $ref = & $this->getRef($key);
         $ref = $value;
     }
     public function delete ($key)

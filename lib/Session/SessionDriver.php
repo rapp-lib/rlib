@@ -4,6 +4,7 @@ use Zend\Session\SessionManager as ZendSessionManager;
 use Zend\Session\Container as ZendSessionContainer;
 use Zend\Session\Config\SessionConfig as ZendSessionConfig;
 use Zend\Session\Storage\SessionArrayStorage as ZendSessionArrayStorage;
+use Zend\Session\SaveHandler\Cache as ZendSaveHandlerCache;
 
 class SessionDriver extends ZendSessionManager
 {
@@ -14,21 +15,28 @@ class SessionDriver extends ZendSessionManager
     protected $config;
     public function __construct()
     {
-        $this->config = app()->config("session.manager.default");
+        $this->config = app()->config("session");
+        // session_configの展開
         $session_config = null;
         if ($this->config['config']) {
             $session_config = new ZendSessionConfig();
             $session_config->setOptions($this->config['config']['options'] ?: array());
         }
-        $session_storage = null;
-        // class should be fetched from service manager since it will require constructor arguments
+        $session_storage = new ZendSessionArrayStorage();
+        // session_save_handlerの展開
         $session_save_handler = null;
-        if ($this->config['save_handler']) {
-            $class = $this->config['save_handler']['class'];
-            $session_save_handler = new $class();
+        if ($save_handler = $this->config['save_handler']) {
+            if (is_array($save_handler) && $cache_name = $save_handler["cache"]) {
+                $cache_ds = app()->cache($cache_name)->getDs();
+                $session_save_handler = new ZendSaveHandlerCache($cache_ds);
+            } elseif (is_callable($save_handler)) {
+                $session_save_handler = call_user_func($save_handler);
+            } else {
+                report_error("Session save_handlerの指定が不正です", array("save_handler"=>$save_handler));
+            }
         }
         parent::__construct($session_config, $session_storage, $session_save_handler);
-        ZendSessionContainer::setDefaultManager($this);
+        SessionContainer::setDefaultManager($this);
     }
 
 // --
