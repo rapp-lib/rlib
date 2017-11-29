@@ -14,14 +14,14 @@ class ConfigBasedLogin
     {
         if ($priv && ! is_array($priv)) $priv = (array)$priv;
         if ($this->config["persist"]=="session") {
-            app()->session("Auth_LoginSession_".$this->role)->priv = $priv;
+            app()->session("Auth_LoginSession_".$this->role)->set("priv", $priv);
         }
         $this->priv = $priv;
     }
     public function getPriv()
     {
         if ($this->config["persist"]=="session") {
-            return app()->session("Auth_LoginSession_".$this->role)->priv;
+            return app()->session("Auth_LoginSession_".$this->role)->get("priv");
         }
         return $this->priv;
     }

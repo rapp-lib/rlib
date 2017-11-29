@@ -1,27 +1,45 @@
 <?php
 namespace R\Lib\Session;
+use Zend\Session\SessionManager as ZendSessionManager;
+use Zend\Session\Container as ZendSessionContainer;
+use Zend\Session\Config\SessionConfig as ZendSessionConfig;
+use Zend\Session\Storage\SessionArrayStorage as ZendSessionArrayStorage;
 
-class SessionDriver
+class SessionDriver extends ZendSessionManager
 {
-    private $managers = array();
-    public function __invoke($container_name, $ds_name="default")
+    public function __invoke($container_name)
     {
-        return $this->getManager($ds_name)->getContainer($container_name);
+        return $this->getContainer($container_name);
     }
-    public function __call($func, $args)
+    protected $config;
+    public function __construct()
     {
-        return call_user_func_array(array($this->getManager("default"), $func), $args);
-    }
-    public function getManager($ds_name="default")
-    {
-        if ( ! $this->managers[$ds_name]) {
-            $cache_config = app()->config("session.manager.".$ds_name);
-            $this->managers[$ds_name] = new SessionManager($cache_config);
-            if ($ds_name=="default") {
-                $this->managers[$ds_name]->setDefaultManager();
-            }
+        $this->config = app()->config("session.manager.default");
+        $session_config = null;
+        if ($this->config['config']) {
+            $session_config = new ZendSessionConfig();
+            $session_config->setOptions($this->config['config']['options'] ?: array());
         }
-        return $this->managers[$ds_name];
+        $session_storage = null;
+        // class should be fetched from service manager since it will require constructor arguments
+        $session_save_handler = null;
+        if ($this->config['save_handler']) {
+            $class = $this->config['save_handler']['class'];
+            $session_save_handler = new $class();
+        }
+        parent::__construct($session_config, $session_storage, $session_save_handler);
+        ZendSessionContainer::setDefaultManager($this);
+    }
+
+// --
+
+    protected $containers = array();
+    public function getContainer($container_name)
+    {
+        if ( ! $this->containers[$container_name]) {
+            $this->containers[$container_name] = new SessionContainer($container_name, $this);
+        }
+        return $this->containers[$container_name];
     }
 
 // --

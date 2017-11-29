@@ -80,20 +80,10 @@ class HttpDriver
 
     public function response ($type, $data=null, $params=array())
     {
-        if ($type=="error" && $error_html = $this->getErrorHtml(500)) {
+        if ($error_html = $this->getErrorHtml($type)) {
             $type = "html";
             $data = $error_html;
-            report_info("Respond Error");
-        }
-        if ($type=="notfound" && $error_html = $this->getErrorHtml(404)) {
-            $type = "html";
-            $data = $error_html;
-            report_info("Respond Notfound");
-        }
-        if ($type=="forbidden" && $error_html = $this->getErrorHtml(403)) {
-            $type = "html";
-            $data = $error_html;
-            report_info("Respond Forbidden");
+            report_info("Respond ".$type);
         }
         if ($type=="redirect") {
             report_info("Respond Redirect", array("uri"=>$data));
@@ -106,14 +96,24 @@ class HttpDriver
         $emitter = new \Zend\Diactoros\Response\SapiEmitter();
         return $emitter->emit($response);
     }
-    private function getErrorHtml ($code=500)
+    private function getErrorHtml ($type)
     {
-        $error_file = constant("R_LIB_ROOT_DIR")."/assets/error/".$code.".php";
+        $error_codes = array(
+            "badrequest" => 400,
+            "forbidden" => 403,
+            "notfound" => 404,
+            "error" => 500,
+        );
+        if ( ! $error_codes[$type]) return false;
+        $error_file = constant("R_APP_ROOT_DIR")."/error/".$type.".php";
+        if ( ! file_exists($error_file)) {
+            $error_file = constant("R_LIB_ROOT_DIR")."/assets/error/".$type.".php";
+        }
         if (file_exists($error_file)) {
             ob_start();
             include($error_file);
             return ob_get_clean();
         }
-        return "HTTP Error ".$code;
+        return false;
     }
 }

@@ -28,15 +28,13 @@ class FlashMessageQueue
         if ($options["now"]) {
             $this->now_messages[] = $data;
         } else {
-            $stack = & app()->session("FlashMessageQueue")->stack;
-            if ( ! $stack) $stack = array();
-            $stack[] = $data;
+            app()->session("FlashMessageQueue")->add("stack",array($data));
         }
     }
     public function get ($options=array())
     {
         $flash = array();
-        $stack = & app()->session("FlashMessageQueue")->stack;
+        $stack = & app()->session("FlashMessageQueue")->getRef("stack");
         foreach ((array)$stack as $i=>$data) {
             $flash[] = $data;
             unset($stack[$i]);

@@ -15,9 +15,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
                 app()->console->outputError($html);
             // HttpであればSessionBufferに追加
             } else {
-                $buffer = & app()->session("Report_Logging")->buffer;
-                $buffer[] = $record;
-                app()->session("Report_Logging")->buffer = $buffer;
+                app()->session("Report_Logging")->add("buffer", array($record));
             }
         }
     }
