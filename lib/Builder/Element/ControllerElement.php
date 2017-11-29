@@ -56,6 +56,11 @@ class ControllerElement extends Element_Base
                         "param_fields"=>$this->getFlagAttr("param_fields",array()));
                 }
             }
+        } else {
+            report_error("Controller typeの指定が不正です",array(
+                "name" => $this->getName(),
+                "type" => $this->getAttr("type"),
+            ));
         }
         // Pagesetの登録
         foreach ($pagesets as $pageset_attrs) {

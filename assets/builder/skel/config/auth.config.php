@@ -37,11 +37,11 @@
                         // 強制ログアウト
                         if ($priv["ts_logout"] && $priv["ts_logout"] < time() - 2*60*60) return null;
                         $priv["ts_logout"] = time();
-<?php if ($role->getAuthTable()): ?>
+<?php if ($auth_table = $role->getAuthTable()): ?>
                         // 権限情報の更新
                         if ( ! $priv["ts_refresh"]) $priv["ts_refresh"] = time();
                         if ($priv["ts_refresh"] < time() - 60*60) {
-                            return table("Staff")->selectById($priv["id"]);
+                            return table("<?=$auth_table->getName()?>")->selectById($priv["id"]);
                         }
 <?php endif;?>
                     }

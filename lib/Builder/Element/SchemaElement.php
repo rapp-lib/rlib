@@ -93,7 +93,6 @@ class SchemaElement extends Element_Base
             ));
         }
         $config = (array)include($config_file);
-        report($config,($config_file));
         array_add($this->config, $config);
     }
     /**
