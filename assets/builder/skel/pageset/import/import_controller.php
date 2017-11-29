@@ -35,7 +35,7 @@
             $csv = $this->forms["csv"]->openCsvFile($csv_file, "r");
             // DBへの登録処理
             app()->db()->begin();
-            while ($form = $csv->readForm()) $form->getRecord()->save();
+            while ($form = $csv->readForm()) $form->getRecord()<?=$pageset->getTableChainSource("save")?>;
             app()->db()->commit();
             $this->forms["entry_csv"]->clear();
         }

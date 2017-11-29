@@ -182,6 +182,17 @@ class ControllerElement extends Element_Base
         return $cols;
     }
     /**
+     * CSVに表示するColの取得
+     */
+    public function getCsvCols ()
+    {
+        $cols = $this->getInputCols();
+        $cols = array_filter($cols, function($col){
+            return $col->getAttr("type")!=="assoc" && $this->hasColDef();
+        });
+        return $cols;
+    }
+    /**
      * @getter Pageset
      */
     public function getPagesets ()
