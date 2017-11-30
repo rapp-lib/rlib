@@ -17,11 +17,8 @@ class SessionDriver extends ZendSessionManager
     {
         $this->config = app()->config("session");
         // session_configの展開
-        $session_config = null;
-        if ($this->config['config']) {
-            $session_config = new ZendSessionConfig();
-            $session_config->setOptions($this->config['config']['options'] ?: array());
-        }
+        $session_config = new ZendSessionConfig();
+        $session_config->setOptions($this->config['config']['options'] ?: array());
         $session_storage = new ZendSessionArrayStorage();
         // session_save_handlerの展開
         $session_save_handler = null;

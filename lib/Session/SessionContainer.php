@@ -6,21 +6,15 @@ class SessionContainer extends ZendSessionContainer
 {
     public function & getRef ($key)
     {
-        $storage = & $_SESSION;
-        if ( ! isset($storage[$this->getName()])) $storage[$this->getName()] = array();
-        return array_get_ref($storage[$this->getName()], $key);
+        return array_get_ref($_SESSION[$this->getName()], $key);
     }
     public function get ($key)
     {
-        $storage = & $_SESSION;
-        $ref = & $storage[$this->getName()];
-        return array_get($ref, $key);
+        return array_get($_SESSION[$this->getName()], $key);
     }
     public function exists ($key)
     {
-        $storage = & $_SESSION;
-        $ref = & $storage[$this->getName()];
-        return array_isset($ref, $key);
+        return array_isset($_SESSION[$this->getName()], $key);
     }
     public function set ($key, $value)
     {
@@ -29,14 +23,10 @@ class SessionContainer extends ZendSessionContainer
     }
     public function delete ($key)
     {
-        $storage = & $_SESSION;
-        $ref = & $storage[$this->getName()];
-        return array_unset($ref, $key);
+        return array_unset($_SESSION[$this->getName()], $key);
     }
     public function add ($key, $values=null)
     {
-        $storage = & $_SESSION;
-        $ref = & $storage[$this->getName()];
-        return array_add($ref, $key, $values);
+        return array_add($_SESSION[$this->getName()], $key, $values);
     }
 }
