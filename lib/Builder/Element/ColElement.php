@@ -8,6 +8,13 @@ class ColElement extends Element_Base
         return $this->getAttr("label");
     }
     /**
+     * @getter table
+     */
+    public function getTable ()
+    {
+        return $this->getParent();
+    }
+    /**
      * @getter EnumSet
      */
     public function getEnumSet ()
@@ -60,7 +67,7 @@ class ColElement extends Element_Base
         foreach ($lines as $line) $source .= '            '.$line.','."\n";
         // assoc下位の定義を追記
         if ($this->getAttr("type")==="assoc"){
-            foreach ($this->getAssocTable()->getInputCols() as $assoc_col) {
+            foreach ($this->getAssocTable()->getAssocInputCols($this) as $assoc_col) {
                 $source .= $assoc_col->getEntryFormFieldDefSource(array(
                     "pageset" => $pageset,
                     "name_parent" => $this->getName().".*",
@@ -145,7 +152,7 @@ class ColElement extends Element_Base
         foreach ($rules as $rule) $source .= '            '.$this->stringifyValue(0, $rule).','."\n";
         // assoc配下のRuleも出力
         if ($this->getAttr("type")==="assoc") {
-            foreach ($this->getAssocTable()->getInputCols() as $assoc_col) {
+            foreach ($this->getAssocTable()->getAssocInputCols($this) as $assoc_col) {
                 $source .= $assoc_col->getRuleDefSource(array("pageset"=>$pageset, "name_parent"=>$name.".*"));
             }
         }
