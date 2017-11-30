@@ -23,7 +23,7 @@ class Validator
     public function getValue ($name)
     {
         // Siblingの値を取得する
-        if (preg_match('!^([^\.]+).\*\.([^\.]+)$!', $name, $_)) {
+        if (preg_match('!^([^\.]+)\.\*\.([^\.]+)$!', $name, $_)) {
             return $this->values[$_[1]][$this->current_rule["fieldset_index"]][$_[2]];
         }
         return array_get($this->values, $name);

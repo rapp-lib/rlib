@@ -51,7 +51,7 @@ window.FormObserver = function ($form, state, o) {
 // -- input要素から情報を取得する
 
     self.getFieldNameByElement = function($input){
-        return $input.attr('name').replace(/\[/g,'.').replace(/\]/g,'');
+        return $input ? $input.attr('name').replace(/\[/g,'.').replace(/\]/g,'') : "";
     };
     self.getRulesByElement = function($input){
         var field_name = self.getFieldNameByElement($input);
@@ -92,7 +92,7 @@ window.FormObserver = function ($form, state, o) {
         // 入力時の更新
         for (var i in self.field_names) {
             var selector = self.getInputSelector(self.field_names[i]);
-            self.$form.on('change blur', selector, function(){
+            self.$form.on('change', selector, function(){
                 var $input = $(this);
                 $input.addClass("changed");
                 self.refresh();

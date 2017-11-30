@@ -49,10 +49,10 @@ window.FormValidator = function (fo) {
     self.getValue = function ($name)
     {
         // Siblingの値を取得する
-        if ($name.match(/^([^\.]+).\*\.([^\.]+)$/)) {
+        if ($name.match(/\.\*\./)) {
             var parts = $name.split(".");
             var parts_current = self.fo.getFieldNameByElement(self.$current_input).split(".");
-            parts[2] = parts_current[2];
+            for (var i in parts) if (parts[i]=="*") parts[i] = parts_current[i];
             $name = parts.join(".");
         }
         return self.fo.getInputValue($name);
