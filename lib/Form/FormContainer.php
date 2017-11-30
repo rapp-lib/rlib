@@ -33,8 +33,10 @@ class FormContainer extends ArrayObject
     private $tmp_storage = null;
 
     /**
-     * @override
+     * Multiple構造用のFormCollection
      */
+    private $forms = null;
+
     public function __construct ($def=array())
     {
         $this->def = self::completeDef($def);
@@ -42,6 +44,14 @@ class FormContainer extends ArrayObject
         if ($this->def["auto_restore"]) {
             $this->restore();
         }
+    }
+    public function __get ($key)
+    {
+        if ($key=="forms") {
+            if ( ! $this->forms) $this->forms = new FormCollection($this->def);
+            return $this->forms;
+        }
+        return null;
     }
 
     /**
