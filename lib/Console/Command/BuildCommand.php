@@ -133,7 +133,7 @@ class BuildCommand extends Command
             $current_branch = $this->git->getCurrentBranch();
             // ブランチがb1/b2でエラー停止した場合
             if ($current_branch == $this->config["branch_b1"]
-                || $current_branch == $this->config["branch_d2"]) {
+                || $current_branch == $this->config["branch_b2"]) {
                 //     git add -A
                 $this->git->cmd(array("git","add","-A"));
                 //     git reset --hard
