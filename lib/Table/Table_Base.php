@@ -311,8 +311,8 @@ class Table_Base extends Table_Core
         if ($assoc_extra_values) $table->findBy($assoc_extra_values);
         // joinの指定があればJOINを接続
         if ($assoc_join) $table->join($assoc_join[0], $assoc_join[1]);
-        // singleの指定があれば1レコードに制限
-        if (count($ids) < 2 && $assoc_single) $table->limit(1);
+        // singleの指定があればレコード数に制限
+        if ($assoc_single) $table->limit(count($result));
         $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
         $pkey = $this->getIdColName();
         // 主テーブルのResultに関連づける

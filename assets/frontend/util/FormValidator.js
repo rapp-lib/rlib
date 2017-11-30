@@ -48,12 +48,14 @@ window.FormValidator = function (fo) {
     };
     self.getValue = function ($name)
     {
+        // Siblingの値を取得する
+        if ($name.match(/^([^\.]+).\*\.([^\.]+)$/)) {
+            var parts = $name.split(".");
+            var parts_current = self.fo.getFieldNameByElement(self.$current_input).split(".");
+            parts[2] = parts_current[2];
+            $name = parts.join(".");
+        }
         return self.fo.getInputValue($name);
-    };
-    self.getSiblingValue = function ($name)
-    {
-        var field_name = self.fo.getFieldNameByElement(self.$current_input);
-        return self.fo.getInputValue(field_name.replace(/\..+$/, '.'+$name));
     };
 
 // -- ifの評価処理
@@ -80,28 +82,28 @@ window.FormValidator = function (fo) {
         if ($cond === false) return self.stEvalIsBlank($key);
         if ($cond === true) return ! self.stEvalIsBlank($key);
         if (self.is_string($cond)) return self.stEvalEq($key, $cond);
-        if ($cond["is_blank"]) return self.stEvalIsBlank($key, $cond["sibling"]);
-        if ($cond["not_blank"]) return ! self.stEvalIsBlank($key, $cond["sibling"]);
-        if (self.isset($cond["eq"])) return self.stEvalEq($key, $cond["eq"], $cond["sibling"]);
-        if (self.isset($cond["neq"])) return ! self.stEvalEq($key, $cond["neq"], $cond["sibling"]);
-        if (self.isset($cond["contains"])) return ! self.stEvalContains($key, $cond["contains"], $cond["sibling"]);
+        if ($cond["is_blank"]) return self.stEvalIsBlank($key);
+        if ($cond["not_blank"]) return ! self.stEvalIsBlank($key);
+        if (self.isset($cond["eq"])) return self.stEvalEq($key, $cond["eq"]);
+        if (self.isset($cond["neq"])) return ! self.stEvalEq($key, $cond["neq"]);
+        if (self.isset($cond["contains"])) return ! self.stEvalContains($key, $cond["contains"]);
         return false;
     }
-    self.stEvalIsBlank = function ($key, $sibling=false)
+    self.stEvalIsBlank = function ($key)
     {
-        $value = $sibling ? self.getSiblingValue($key) : self.getValue($key);
+        $value = self.getValue($key);
         if (self.is_array($value) && ! self.count($value)) return true;
         if (self.strlen($value) === 0) return true;
         return false;
     }
-    self.stEvalEq = function ($key, $eq_value, $sibling=false)
+    self.stEvalEq = function ($key, $eq_value)
     {
-        $value = $sibling ? self.getSiblingValue($key) : self.getValue($key);
+        $value = self.getValue($key);
         return $value == $eq_value;
     }
-    self.stEvalContains = function ($key, $contains_value, $sibling=false)
+    self.stEvalContains = function ($key, $contains_value)
     {
-        $value = $sibling ? self.getSiblingValue($key) : self.getValue($key);
+        $value = self.getValue($key);
         if ( ! self.is_array($value)) $value = [$value];
         if ( ! self.is_array($contains_value)) $contains_value = [$contains_value];
         for ($k1 in $value) for($k2 in $contains_value) if ($value[$k1] == $contains_value[$k2]) return true;

@@ -22,15 +22,11 @@ class Validator
     }
     public function getValue ($name)
     {
-        return $this->values[$name];
-    }
-    public function getSiblingValue ($name)
-    {
-        $field_parts = explode('.', $this->current_rule["field_name"]);
-        if (count($field_parts)==1) return $this->values[$name];
-        elseif (count($field_parts)==2) return $this->values[$field_parts[0]][$name];
-        elseif (count($field_parts)==3) return $this->values[$field_parts[0]][$this->current_rule["fieldset_index"]][$name];
-        return null;
+        // Siblingの値を取得する
+        if (preg_match('!^([^\.]+).\*\.([^\.]+)$!', $name, $_)) {
+            return $this->values[$_[1]][$this->current_rule["fieldset_index"]][$_[2]];
+        }
+        return array_get($this->values, $name);
     }
     private function applyRules ($rules)
     {
@@ -104,28 +100,28 @@ class Validator
         if ($cond === false) return $this->stEvalIsBlank($key);
         if ($cond === true) return ! $this->stEvalIsBlank($key);
         if (is_string($cond)) return $this->stEvalEq($key, $cond);
-        if ($cond["is_blank"]) return $this->stEvalIsBlank($key, $cond["sibling"]);
-        if ($cond["not_blank"]) return ! $this->stEvalIsBlank($key, $cond["sibling"]);
-        if (isset($cond["eq"])) return $this->stEvalEq($key, $cond["eq"], $cond["sibling"]);
-        if (isset($cond["neq"])) return ! $this->stEvalEq($key, $cond["neq"], $cond["sibling"]);
-        if (isset($cond["contains"])) return ! $this->stEvalContains($key, $cond["contains"], $cond["sibling"]);
+        if ($cond["is_blank"]) return $this->stEvalIsBlank($key);
+        if ($cond["not_blank"]) return ! $this->stEvalIsBlank($key);
+        if (isset($cond["eq"])) return $this->stEvalEq($key, $cond["eq"]);
+        if (isset($cond["neq"])) return ! $this->stEvalEq($key, $cond["neq"]);
+        if (isset($cond["contains"])) return ! $this->stEvalContains($key, $cond["contains"]);
         return false;
     }
-    private function stEvalIsBlank($key, $sibling=false)
+    private function stEvalIsBlank($key)
     {
-        $value = $sibling ? $this->getSiblingValue($key) : $this->getValue($key);
+        $value = $this->getValue($key);
         if (is_array($value) && ! count($value)) return true;
         if (strlen($value) === 0) return true;
         return false;
     }
-    private function stEvalEq($key, $eq_value, $sibling=false)
+    private function stEvalEq($key, $eq_value)
     {
-        $value = $sibling ? $this->getSiblingValue($key) : $this->getValue($key);
+        $value = $this->getValue($key);
         return $value == $eq_value;
     }
-    private function stEvalContains($key, $contains_value, $sibling=false)
+    private function stEvalContains($key, $contains_value)
     {
-        $value = $sibling ? $this->getSiblingValue($key) : $this->getValue($key);
+        $value = $this->getValue($key);
         if ( ! is_array($value)) $value = array($value);
         if ( ! is_array($contains_value)) $contains_value = array($contains_value);
         foreach ($value as $v1) foreach ($contains_value as $v2) if ($v1 == $v2) return true;
