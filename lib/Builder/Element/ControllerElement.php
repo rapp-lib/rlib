@@ -188,7 +188,7 @@ class ControllerElement extends Element_Base
     {
         $cols = $this->getInputCols();
         $cols = array_filter($cols, function($col){
-            return $col->getAttr("type")!=="assoc" && $this->hasColDef();
+            return $col->getAttr("type")!=="assoc" && $col->hasColDef();
         });
         return $cols;
     }
