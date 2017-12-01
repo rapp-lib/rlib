@@ -102,4 +102,32 @@ class PageElement extends Element_Base
         return 'array("'.$this->getFullPage().'", "'.$this->getPathPattern().'"'
             .($routes_dec ? ', array('.implode(', ',$routes_dec).')' : '').'),';
     }
+    /**
+     * リンク先Pageへのリンク記述コードを取得
+     */
+    public function getLinkSource ($type, $from_pageset=null, $o=array())
+    {
+        $params = $o["params"];
+        $source = "";
+        if ($type=="redirect") {
+            $source .= 'return $this->redirect("id://'.$this->getFullPage($from_pageset->getIndexPage()).'"';
+            if ($params) {
+                $source .= ', array(';
+                foreach ($params as $k=>$v) $params[$k] = '"'.$k.'"=>'.$v;
+                $source .= implode(', ', $params);
+                $source .= ')';
+            }
+            $source .= ');';
+        } else {
+            $source .= '{{"'.$this->getFullPage($from_pageset->getIndexPage()).'"|page_to_url';
+            if ($params) {
+                $source .= ':[';
+                foreach ($params as $k=>$v) $params[$k] = '"'.$k.'"=>'.$v;
+                $source .= implode(', ', $params);
+                $source .= ']';
+            }
+            $source .= '}}';
+        }
+        return $source;
+    }
 }

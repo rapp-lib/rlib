@@ -78,18 +78,11 @@ class PagesetElement extends Element_Base
         }
     }
     /**
-     * パラメータとして受け付けるField情報の取得
+     * @getter Controller
      */
-    public function getParamFields ()
+    public function getController ()
     {
-        $param_fields = $this->getAttr("param_fields") ?: array();
-        foreach ($param_fields as $field_name => & $param_field) $param_field["field_name"] = $field_name;
-        return $param_fields;
-    }
-    public function getParamFieldByCol ($col)
-    {
-        $param_fields = $this->getParamFields();
-        return $param_fields[$col->getName()] ?: null;
+        return $this->getParent();
     }
     /**
      * @getter Mail
@@ -123,13 +116,9 @@ class PagesetElement extends Element_Base
         ));
         return null;
     }
-    /**
-     * @getter Controller
-     */
-    public function getController ()
-    {
-        return $this->getParent();
-    }
+
+// -- source
+
     /**
      * ControllerClass中のPHPコードを取得
      */
@@ -191,57 +180,141 @@ class PagesetElement extends Element_Base
         // その他の場合はRoleのIndexを参照
         return $this->getController()->getRole()->getIndexController()->getIndexPage();
     }
+
+    private $links_to = null;
     /**
      * リンク先情報の取得
      */
     public function getLinkTo ()
     {
+        if ($this->links_to !== null) return $this->links_to;
         // IndexPagesetでなければController外にLinkは張らない
-        if ($this != $this->getController()->getIndexPageset()) return array();
+        if ($this != $this->getController()->getIndexPageset()) return $this->links_to = array();
         $links = (array)$this->getController()->getAttr("link_to");
         foreach ($links as & $link) {
-            // controllerの解決
+            // controller,pageの解決
             if (is_string($link)) $link = array("to" => $link);
-            $link["controller"] = $this->getSchema()->getControllerByName($link["to"]);
-            if ($link["controller"]) $link["page"] = $link["controller"]->getIndexPage();
-            // labelの解決
-            $link["label"] = $link["label"] ?: $link["controller"]->getLabel();
-            // 相互のテーブル関係の確認
-            if (($table = $this->getController()->getTable()) && $link["controller"]->getTable()) {
+            if (preg_match('!^([^\.]+)\.([^\.]+)$!', $link["to"], $_)) {
+                $link["controller"] = $this->getSchema()->getControllerByName($_[1]);
+                $link["pageset"] = $link["controller"]->getPagesetByType($_[2]);
+            } else {
+                $link["controller"] = $this->getSchema()->getControllerByName($link["to"]);
+                $link["pageset"] = $link["controller"]->getIndexPageset();
+            }
+            // 相互のテーブルの関係の確認
+            $from_table = $this->getController()->getTable();
+            $to_table = $link["controller"]->getTable();
+            // レコード単位での依存関係となるかどうかを判定
+            if ($from_table && $to_table) {
                 // Having：Categoryの一覧 → Articleの一覧
-                //    ${Article.fkey_col_name}=${Category.id_value}
-                $having_fkey_col = $link["controller"]->getTable()
-                    ->getColByAttr("def.fkey_for", $table->getName());
-                if ($having_fkey_col) {
-                    $link["table_rel"] = "having";
-                    if ( ! $link["param_name"]) $link["param_name"] = $having_fkey_col->getName();
-                }
+                if ($having_fkey_col = $to_table->getColByAttr("def.fkey_for", $from_table->getName())) {
+                    $link["depend_on_record"] = $having_fkey_col->getName();
                 // Even：Categoryの一覧 → Categoryの詳細
-                //    ${Category.id_col_name}=${Category.id_value}
-                $even_id_col = $link["controller"]->getTable() == $table
-                    ? $table->getColByAttr("def.id") : null;
-                if ($even_id_col) {
-                    $link["table_rel"] = "even";
-                    if ( ! $link["param_name"]) $link["param_name"] = $even_id_col->getName();
+                } elseif ($to_table == $from_table) {
+                    $link["depend_on_record"] = $to_table->getIdCol()->getName();
                 }
             }
-            // Linkコードの取得クロージャ
-            $link["getLinkSource"] = function($o)use($link){
-                $page_name = $link["page"]->getFullPage($o["from_page"]);
-                $param = $o["param"] ?: '$t["id"]';
-                if ($type=="redirect") {
-                    $source .= 'return $this->redirect("id://'.$page_name.'"';
-                    if ($link["param_name"]) $source .= ', array("'.$link["param_name"].'"=>"'.$param.'")';
-                    $source .= ');';
-                } else {
-                    if ( ! $o["param"]) $param = '$t.id';
-                    $source .= '{{"'.$page_name.'"|page_to_url';
-                    if ($link["param_name"]) $source .= ':["'.$link["param_name"].'"=>'.$param.']';
-                    $source .= '}}';
-                }
-                return $source;
-            };
+            // labelの解決
+            $link["label"] = $link["label"] ?: $link["controller"]->getLabel();
         }
-        return $links;
+        return $this->links_to = $links;
+    }
+
+    private $links_form = null;
+    /**
+     * リンク元情報の取得
+     */
+    public function getLinkFrom ()
+    {
+        if ($this->links_form !== null) return $this->links_form;
+        // IndexPagesetでなければController外からLinkを受け付けない
+        if ($this != $this->getController()->getIndexPageset()) return $this->links_form = array();
+        $links_form = array();
+        foreach ($this->getSchema()->getControllers() as $from_controller) {
+            foreach ($from_controller->getPagesets() as $from_pageset) {
+                foreach ($from_pageset->getLinkTo() as $link) {
+                    if ($link["pageset"]==$this) {
+                        $links_form[] = $link;
+                    }
+                }
+            }
+        }
+        return $this->links_form = $links_form;
+    }
+
+// -- param_fields
+
+    /**
+     * パラメータとして受け付けるField情報の取得
+     */
+    public function getParamFields ($types=array())
+    {
+        $param_fields = array();
+        // リンク元のTableとの関係により補完
+        if (($params_config = $this->getSkelConfig("params")) && $params_config["depend"]) {
+            foreach ($this->getController()->getIndexPageset()->getLinkFrom() as $link) {
+                $field_name = $link["depend_on_record"];
+                $param_fields[$field_name] = array("type"=>"depend", "field_name"=>$field_name);
+            }
+        }
+        // 属性の明示
+        foreach ((array)$this->getAttr("param_fields") as $field_type => $fields) {
+            // param_fieldsの指定が配列ではなくfield_nameのみである場合に対応
+            if ($fields && ! is_array($fields)) $fields = array($fields=>array());
+            // 配列構造を補完する
+            foreach ((array)$fields as $field_name => $param_field) {
+                if ( ! $param_field["field_name"]) $param_field["field_name"] = $field_name;
+                if ( ! $param_field["type"]) $param_field["type"] = $field_type;
+                $param_fields[$field_name] = $param_field;
+            }
+        }
+        // Typeの指定があれば絞り込む
+        if ($types) $param_fields = array_filter($param_fields, function($param_field)use($types){
+            return in_array($param_field["type"], is_array($types) ? $types : array($types));
+        });
+        return $param_fields;
+    }
+    public function getParamFieldName ($type)
+    {
+        $param_fields = $this->getParamFields($type);
+        $field_names = $param_fields ? array_keys($param_fields) : null;
+        return $field_names ? $field_names[0] : null;
+    }
+    public function getParamFieldByName ()
+    {
+        $param_fields = $this->getParamFields();
+        return $param_fields[$name] ?: null;
+    }
+
+    /**
+     * リンク先Pagesetへのリンク記述コードを取得
+     */
+    public function getLinkSource ($type, $from_pageset, $o=array())
+    {
+        // リンク箇所のコンテキスト変数名
+        $form_name = $o["form_name"] ?: null;
+        $record_name = $o["record_name"] ?: null;
+        // 相互のController
+        $from_controller = $from_pageset->getController();
+        $to_controller = $this->getController();
+        // 相互のテーブル
+        $from_table = $from_controller->getTable();
+        $to_table = $to_controller->getTable();
+        // 相互のparams_fields.depend
+        $from_depend = $from_pageset->getParamFieldName("depend");
+        $to_depend = $this->getParamFieldName("depend");
+
+        // depend共通であれば「to_dep=form[from_dep]」パラメータ付与
+        if ($to_depend && $from_depend===$to_depend && $form_name) {
+            $o["params"][$to_depend] = $form_name.'["'.$from_depend.'"]';
+        }
+
+        // recordの指定があればIDを渡す
+        if ($record_name && $from_table) {
+            // depend非共通であれば「to_dep=record[id]」パラメータ、その他は"id"固定
+            $param_name = ($to_depend && $from_depend!==$to_depend) ? $to_depend : "id";
+            $o["params"][$param_name] = $record_name.'["'.$from_table->getIdCol()->getName().'"]';
+        }
+        return $this->getIndexPage()->getLinkSource($type, $from_pageset, $o);
     }
 }

@@ -7,7 +7,7 @@
         "search_table" => "<?=$table->getName()?>",
         "fields" => array(
 <?php foreach ($controller->getInputCols() as $col): ?>
-<?php   if ($param_field = $pageset->getParamFieldByCol($col)): ?>
+<?php   if ($param_field = $pageset->getParamFieldByName($col->getName())): ?>
 <?=         $col->getSearchFormFieldDefSource(array("pageset"=>$pageset, "type"=>"where"))?>
 <?php   endif; ?>
 <?php endforeach; ?>
@@ -26,9 +26,7 @@
             $this->forms["search"]->save();
         }
         $this->vars["ts"] = $this->forms["search"]->search()<?=$pageset->getTableChainSource("find")?>->select();
-<?php foreach ($pageset->getParamFields() as $param_field): ?>
-<?php   if ($param_field["required"]): ?>
+<?php foreach ($pageset->getParamFields("depend") as $param_field): ?>
         if ( ! $this->forms["search"]["<?=$param_field["field_name"]?>"]) return $this->response("badrequest");
-<?php   endif; ?>
 <?php endforeach; ?>
     }

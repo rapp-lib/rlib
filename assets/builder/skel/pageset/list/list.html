@@ -1,15 +1,8 @@
-<?php
-    $url_param = array();
-    foreach ($pageset->getParamFields() as $param_field) {
-        $url_param[] = '"'.$param_field["field_name"].'"=>$forms.search.'.$param_field["field_name"];
-    }
-    $url_param = implode(", ", $url_param);
-?>
 <?php if ( ! $controller->getSearchCols()): ?>{{*<?="\n"?><?php endif; ?>
 {{form action="."|page_to_url form=$forms.search}}
 <table class="tbl detail">
 <?php foreach ($controller->getInputCols() as $col): ?>
-<?php   if ($param_field = $pageset->getParamFieldByCol($col)): ?>
+<?php   if ($param_field = $pageset->getParamFieldByName($col->getName())): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
         <td><?=$col->getInputSource(array("page"=>$page, "type"=>"hidden"))?><?=$col->getShowSource(array("var_name"=>'$forms.search'))?></td>
@@ -34,19 +27,19 @@
 
 <div class="btn-area">
 <?php if ($a_pageset = $controller->getPagesetByType("form")): ?>
-    <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url<?=$url_param ? ":[".$url_param."]" : ""?>}}' class="create-btn">新規登録</a>
+    <a href='<?=$a_pageset->getLinkSource("smarty", $pageset, array("form_name"=>"\$forms.search"))?>' class="create-btn">新規登録</a>
 <?php endif; ?>
     <div class="right clearfix">
 <?php foreach ($pageset->getLinkTo() as $link): ?>
-<?php   if ( ! $link["param_name"]): ?>
-        <a href='<?=$link["getLinkSource"](array("form_page"=>$page))?>' class="link-btn"><?=$link["label"]?></a>
+<?php   if ( ! $link["depend_on_record"]): ?>
+        <a href='<?=$link["pageset"]->getLinkSource("smarty", $pageset, array("form_name"=>"\$forms.search"))?>' class="link-btn"><?=$link["label"]?></a>
 <?php   endif; ?>
 <?php endforeach; ?>
 <?php if ($a_pageset = $controller->getPagesetByType("csv")): ?>
-        <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url}}' class="export-btn">CSVダウンロード</a>
+        <a href='<?=$a_pageset->getLinkSource("smarty", $pageset, array("form_name"=>"\$forms.search"))?>' class="export-btn">CSVダウンロード</a>
 <?php endif; ?>
 <?php if ($a_pageset = $controller->getPagesetByType("import")): ?>
-        <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url<?=$url_param ? ":[".$url_param."]" : ""?>}}' class="import-btn">一括登録</a>
+        <a href='<?=$a_pageset->getLinkSource("smarty", $pageset, array("form_name"=>"\$forms.search"))?>' class="import-btn">一括登録</a>
 <?php endif; ?>
     </div>
 </div>
@@ -78,17 +71,17 @@
 <?php endforeach; ?>
         <td>
 <?php if ($a_pageset = $controller->getPagesetByType("detail")): ?>
-            <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url:["id"=>$t.id]}}' class="list-btn">詳細</a>
+            <a href='<?=$a_pageset->getLinkSource("smarty", $pageset, array("record_name"=>"\$t", "form_name"=>"\$forms.search"))?>' class="list-btn">詳細</a>
 <?php endif; ?>
 <?php if ($a_pageset = $controller->getPagesetByType("form")): ?>
-            <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url:["id"=>$t.id<?=$url_param ? " ,".$url_param : ""?>]}}' class="list-btn">編集</a>
+            <a href='<?=$a_pageset->getLinkSource("smarty", $pageset, array("record_name"=>"\$t", "form_name"=>"\$forms.search"))?>' class="list-btn">編集</a>
 <?php endif; ?>
 <?php if ($a_pageset = $controller->getPagesetByType("delete")): ?>
-            <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url:["id"=>$t.id]}}' class="list-btn" onclick="return confirm('削除します');">削除</a>
+            <a href='<?=$a_pageset->getLinkSource("smarty", $pageset, array("record_name"=>"\$t", "form_name"=>"\$forms.search"))?>' class="list-btn" onclick="return confirm('削除します');">削除</a>
 <?php endif; ?>
 <?php foreach ($pageset->getLinkTo() as $link): ?>
-<?php   if ($link["param_name"]): ?>
-            <a href='<?=$link["getLinkSource"](array("form_page"=>$page, "param"=>"\$t.id"))?>' class="list-btn"><?=$link["label"]?></a>
+<?php   if ($link["depend_on_record"]): ?>
+            <a href='<?=$link["pageset"]->getLinkSource("smarty", $pageset, array("record_name"=>"\$t", "form_name"=>"\$forms.search"))?>' class="list-btn"><?=$link["label"]?></a>
 <?php   endif; ?>
 <?php endforeach; ?>
         </td>

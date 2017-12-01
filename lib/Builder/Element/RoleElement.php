@@ -63,13 +63,14 @@ class RoleElement extends Element_Base
         return $controllers;
     }
     /**
-     * どこからもLinkで参照されていない最上位のControllerを取得する
+     * 最上位のControllerを取得する
      */
     public function getTopLevelControllers ()
     {
         $controllers = array();
         foreach ($this->getAccessibleControllers() as $controller) {
-            if ( ! $controller->getIndexPageset()->getParamFields()) $controllers[] = $controller;
+            $depend_param_fields = $controller->getIndexPageset()->getParamFields("depend");
+            if ( ! $depend_param_fields) $controllers[] = $controller;
         }
         return $controllers;
     }

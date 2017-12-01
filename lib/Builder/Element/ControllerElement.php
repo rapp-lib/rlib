@@ -19,14 +19,14 @@ class ControllerElement extends Element_Base
             }
         } elseif ($this->getAttr("type") == "form") {
             $pagesets[] = array("type"=>"form",
-                "param_fields"=>$this->getFlagAttr("param_fields",array()),
+                "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()),
                 "use_mail"=>$this->getFlagAttr("use_mail",false),
                 "is_master"=>$this->getFlagAttr("is_master",false),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", false),
                 "skip_complete"=>$this->getFlagAttr("skip_complete", false));
         } elseif ($this->getAttr("type") == "list") {
             $pagesets[] = array("type"=>"list",
-                "param_fields"=>$this->getFlagAttr("param_fields",array()));
+                "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()));
             if ($this->getFlagAttr("use_detail", false)) {
                 $pagesets[] = array("type"=>"detail");
             }
@@ -36,9 +36,9 @@ class ControllerElement extends Element_Base
             $pagesets[] = array("type"=>"delete");
         } elseif ($this->getAttr("type") == "master") {
             $pagesets[] = array("type"=>"list",
-                "param_fields"=>$this->getFlagAttr("param_fields",array()));
+                "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()));
             $pagesets[] = array("type"=>"form",
-                "param_fields"=>$this->getFlagAttr("param_fields",array()),
+                "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()),
                 "use_mail"=>$this->getFlagAttr("use_mail",false),
                 "is_master"=>$this->getFlagAttr("is_master",true),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", true),
@@ -53,7 +53,7 @@ class ControllerElement extends Element_Base
                 $pagesets[] = array("type"=>"csv");
                 if ($this->getFlagAttr("use_import", false)) {
                     $pagesets[] = array("type"=>"import",
-                        "param_fields"=>$this->getFlagAttr("param_fields",array()));
+                        "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()));
                 }
             }
         } else {
