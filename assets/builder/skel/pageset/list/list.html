@@ -37,9 +37,9 @@
     <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url<?=$url_param ? ":[".$url_param."]" : ""?>}}' class="create-btn">新規登録</a>
 <?php endif; ?>
     <div class="right clearfix">
-<?php foreach ($controller->getLinkTo() as $link): ?>
-<?php   if ( ! $link["param_field"]): ?>
-        <a href='{{"<?=$link["controller"]->getIndexPage()->getFullPage($page)?>"|page_to_url}}' class="link-btn"><?=$link["controller"]->getLabel()?></a>
+<?php foreach ($pageset->getLinkTo() as $link): ?>
+<?php   if ( ! $link["param_name"]): ?>
+        <a href='<?=$link["getLinkSource"](array("form_page"=>$page))?>' class="link-btn"><?=$link["label"]?></a>
 <?php   endif; ?>
 <?php endforeach; ?>
 <?php if ($a_pageset = $controller->getPagesetByType("csv")): ?>
@@ -86,9 +86,9 @@
 <?php if ($a_pageset = $controller->getPagesetByType("delete")): ?>
             <a href='{{"<?=$a_pageset->getIndexPage()->getFullPage($page)?>"|page_to_url:["id"=>$t.id]}}' class="list-btn" onclick="return confirm('削除します');">削除</a>
 <?php endif; ?>
-<?php foreach ($controller->getLinkTo() as $link): ?>
-<?php   if ($link["param_field"]): ?>
-            <a href='{{"<?=$link["controller"]->getIndexPage()->getFullPage($page)?>"|page_to_url:["<?=$link["param_field"]?>"=>$t.id]}}' class="list-btn"><?=$link["controller"]->getLabel()?></a>
+<?php foreach ($pageset->getLinkTo() as $link): ?>
+<?php   if ($link["param_name"]): ?>
+            <a href='<?=$link["getLinkSource"](array("form_page"=>$page, "param"=>"\$t.id"))?>' class="list-btn"><?=$link["label"]?></a>
 <?php   endif; ?>
 <?php endforeach; ?>
         </td>

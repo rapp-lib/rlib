@@ -123,35 +123,6 @@ class PagesetElement extends Element_Base
         ));
         return null;
     }
-    public function getIndexPage ()
-    {
-        // TODO:Pagesetの設定でindex_pageに指定されているもの
-        // foreach ($this->getPages() as $page) {
-        //     if ($page->getName() == $this->getAttr("index_page")) return $page;
-        // }
-        // 一番はじめに登録されたもの
-        foreach ($this->getPages() as $page) return $page;
-        return null;
-    }
-    public function getBackPage ()
-    {
-        $controller = $this->getController();
-        // ReminderであればLogin
-        if ($this->getAttr("type")=="reminder") {
-            $login_controller = $controller->getRole()->getLoginController();
-            if ($login_controller) return $login_controller->getIndexPage();
-        }
-        // ControllerのIndexではない場合（Master内のForm等）はControllerのIndex
-        if ($this != ($index_pageset = $controller->getIndexPageset())) {
-            return $index_pageset->getIndexPage();
-        }
-        // Linkで参照されている場合は先頭の参照元
-        if ($links = $controller->getLinkFrom()) {
-            return $links[0]["controller"]->getIndexPage();
-        }
-        // その他の場合はRoleのIndexを参照
-        return $this->getController()->getRole()->getIndexController()->getIndexPage();
-    }
     /**
      * @getter Controller
      */
@@ -183,5 +154,94 @@ class PagesetElement extends Element_Base
             else $append .= '->save()';
         }
         return $append;
+    }
+
+// -- リンク参照機能
+
+    public function getIndexPage ()
+    {
+        // TODO:Pagesetの設定でindex_pageに指定されているもの
+        // foreach ($this->getPages() as $page) {
+        //     if ($page->getName() == $this->getAttr("index_page")) return $page;
+        // }
+        // 一番はじめに登録されたもの
+        foreach ($this->getPages() as $page) return $page;
+        return null;
+    }
+    public function getBackPage ()
+    {
+        // ControllerのIndexではない場合（Master内のForm等）はControllerのIndex
+        if ($this != ($index_pageset = $this->getController()->getIndexPageset())) {
+            return $index_pageset->getIndexPage();
+        }
+        // LinkToで指定されている場合は優先
+        if (($links = $this->getLinkTo()) && $links["back"]) {
+            return $links["back"]["page"];
+        }
+        // Linkの参照元がある場合
+        foreach ($this->getSchema()->getControllers() as $controller_from) {
+            foreach ($controller_from->getPagesets() as $pageset_from) {
+                foreach ($pageset_from->getLinkTo() as $link_from) {
+                    if ($link_from["controller"] == $this->getController()) {
+                        return $controller_from->getIndexPage();
+                    }
+                }
+            }
+        }
+        // その他の場合はRoleのIndexを参照
+        return $this->getController()->getRole()->getIndexController()->getIndexPage();
+    }
+    /**
+     * リンク先情報の取得
+     */
+    public function getLinkTo ()
+    {
+        // IndexPagesetでなければController外にLinkは張らない
+        if ($this != $this->getController()->getIndexPageset()) return array();
+        $links = (array)$this->getController()->getAttr("link_to");
+        foreach ($links as & $link) {
+            // controllerの解決
+            if (is_string($link)) $link = array("to" => $link);
+            $link["controller"] = $this->getSchema()->getControllerByName($link["to"]);
+            if ($link["controller"]) $link["page"] = $link["controller"]->getIndexPage();
+            // labelの解決
+            $link["label"] = $link["label"] ?: $link["controller"]->getLabel();
+            // 相互のテーブル関係の確認
+            if (($table = $this->getController()->getTable()) && $link["controller"]->getTable()) {
+                // Having：Categoryの一覧 → Articleの一覧
+                //    ${Article.fkey_col_name}=${Category.id_value}
+                $having_fkey_col = $link["controller"]->getTable()
+                    ->getColByAttr("def.fkey_for", $table->getName());
+                if ($having_fkey_col) {
+                    $link["table_rel"] = "having";
+                    if ( ! $link["param_name"]) $link["param_name"] = $having_fkey_col->getName();
+                }
+                // Even：Categoryの一覧 → Categoryの詳細
+                //    ${Category.id_col_name}=${Category.id_value}
+                $even_id_col = $link["controller"]->getTable() == $table
+                    ? $table->getColByAttr("def.id") : null;
+                if ($even_id_col) {
+                    $link["table_rel"] = "even";
+                    if ( ! $link["param_name"]) $link["param_name"] = $even_id_col->getName();
+                }
+            }
+            // Linkコードの取得クロージャ
+            $link["getLinkSource"] = function($o)use($link){
+                $page_name = $link["page"]->getFullPage($o["from_page"]);
+                $param = $o["param"] ?: '$t["id"]';
+                if ($type=="redirect") {
+                    $source .= 'return $this->redirect("id://'.$page_name.'"';
+                    if ($link["param_name"]) $source .= ', array("'.$link["param_name"].'"=>"'.$param.'")';
+                    $source .= ');';
+                } else {
+                    if ( ! $o["param"]) $param = '$t.id';
+                    $source .= '{{"'.$page_name.'"|page_to_url';
+                    if ($link["param_name"]) $source .= ':["'.$link["param_name"].'"=>'.$param.']';
+                    $source .= '}}';
+                }
+                return $source;
+            };
+        }
+        return $links;
     }
 }

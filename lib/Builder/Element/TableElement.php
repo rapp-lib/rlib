@@ -82,7 +82,8 @@ class TableElement extends Element_Base
         // getAssocTableとして指定された際のカラム取得
         $cols = $this->getInputCols();
         $cols = array_filter($cols, function($col) use ($parent_col){
-            return $col->getAttr("def.fkey_for")!==$parent_col->getTable()->getName();
+            return $col->getAttr("def.fkey_for")!==$parent_col->getTable()->getName()
+                && $col->getAttr("type")!=="assoc";
         });
         return $cols;
     }
