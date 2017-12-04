@@ -255,15 +255,15 @@ class PagesetElement extends Element_Base
     {
         $param_fields = array();
         // リンク元のTableとの関係により補完
-        if (($params_config = $this->getSkelConfig("params")) && $params_config["depend"]) {
-            $links = $this->getLinkFrom();
-            // リンクも研がない場合、上位のPagesetも参照
-            if ( ! $links) $links =$this->getController()->getIndexPageset()->getLinkFrom();
-            foreach ($links as $link) {
-                $field_name = $link["depend_on_record"];
-                $param_fields[$field_name] = array("type"=>"depend", "field_name"=>$field_name);
-            }
-        }
+        // if (($params_config = $this->getSkelConfig("params")) && $params_config["depend"]) {
+        //     $links = $this->getLinkFrom();
+        //     // リンクがない場合、上位のPagesetも参照
+        //     if ( ! $links) $links = $this->getController()->getIndexPageset()->getLinkFrom();
+        //     foreach ($links as $link) {
+        //         $field_name = $link["depend_on_record"];
+        //         if ($field_name) $param_fields[$field_name] = array("type"=>"depend", "field_name"=>$field_name);
+        //     }
+        // }
         // 属性の明示
         foreach ((array)$this->getAttr("param_fields") as $field_type => $fields) {
             // param_fieldsの指定が配列ではなくfield_nameのみである場合に対応
@@ -272,7 +272,7 @@ class PagesetElement extends Element_Base
             foreach ((array)$fields as $field_name => $param_field) {
                 if ( ! $param_field["field_name"]) $param_field["field_name"] = $field_name;
                 if ( ! $param_field["type"]) $param_field["type"] = $field_type;
-                $param_fields[$field_name] = $param_field;
+                $param_fields[$param_field["field_name"]] = $param_field;
             }
         }
         // Typeの指定があれば絞り込む
@@ -287,7 +287,7 @@ class PagesetElement extends Element_Base
         $field_names = $param_fields ? array_keys($param_fields) : null;
         return $field_names ? $field_names[0] : null;
     }
-    public function getParamFieldByName ()
+    public function getParamFieldByName ($name)
     {
         $param_fields = $this->getParamFields();
         return $param_fields[$name] ?: null;
@@ -313,14 +313,16 @@ class PagesetElement extends Element_Base
 
         // depend共通であれば「to_dep=form[from_dep]」パラメータ付与
         if ($to_depend && $from_depend===$to_depend && $form_name) {
-            $o["params"][$to_depend] = $form_name.'["'.$from_depend.'"]';
+            if ($type=="redirect") $o["params"][$to_depend] = $form_name.'["'.$from_depend.'"]';
+            else $o["params"][$to_depend] = $form_name.'.'.$from_depend;
         }
 
         // recordの指定があればIDを渡す
         if ($record_name && $from_table) {
             // depend非共通であれば「to_dep=record[id]」パラメータ、その他は"id"固定
             $param_name = ($to_depend && $from_depend!==$to_depend) ? $to_depend : "id";
-            $o["params"][$param_name] = $record_name.'["'.$from_table->getIdCol()->getName().'"]';
+            if ($type=="redirect") $o["params"][$param_name] = $record_name.'["'.$from_table->getIdCol()->getName().'"]';
+            else $o["params"][$param_name] = $record_name.'.'.$from_table->getIdCol()->getName();
         }
         return $this->getIndexPage()->getLinkSource($type, $from_pageset, $o);
     }
