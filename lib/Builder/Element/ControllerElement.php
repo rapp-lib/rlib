@@ -17,6 +17,8 @@ class ControllerElement extends Element_Base
             if ($this->getFlagAttr("use_reminder", false)) {
                 $pagesets[] = array("type"=>"reminder");
             }
+        } elseif ($this->getAttr("type") == "reminder") {
+            $pagesets[] = array("type"=>"reminder");
         } elseif ($this->getAttr("type") == "form") {
             $pagesets[] = array("type"=>"form",
                 "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()),
@@ -24,37 +26,42 @@ class ControllerElement extends Element_Base
                 "is_master"=>$this->getFlagAttr("is_master",false),
                 "skip_confirm"=>$this->getFlagAttr("skip_confirm", false),
                 "skip_complete"=>$this->getFlagAttr("skip_complete", false));
-        } elseif ($this->getAttr("type") == "list") {
-            $pagesets[] = array("type"=>"list",
-                "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()));
-            if ($this->getFlagAttr("use_detail", false)) {
-                $pagesets[] = array("type"=>"detail");
-            }
         } elseif ($this->getAttr("type") == "detail") {
             $pagesets[] = array("type"=>"detail");
         } elseif ($this->getAttr("type") == "delete") {
             $pagesets[] = array("type"=>"delete");
-        } elseif ($this->getAttr("type") == "master") {
+        } elseif ($this->getAttr("type") == "apply") {
+            $pagesets[] = array("type"=>"apply");
+        } elseif ($this->getAttr("type") == "list"
+                || $this->getAttr("type") == "master"
+                || $this->getAttr("type") == "fav") {
+            $is_master = $this->getAttr("type") == "master";
+            $is_fav = $this->getAttr("type") == "fav";
             $pagesets[] = array("type"=>"list",
                 "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()));
-            $pagesets[] = array("type"=>"form",
-                "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()),
-                "use_mail"=>$this->getFlagAttr("use_mail",false),
-                "is_master"=>$this->getFlagAttr("is_master",true),
-                "skip_confirm"=>$this->getFlagAttr("skip_confirm", true),
-                "skip_complete"=>$this->getFlagAttr("skip_complete", true));
             if ($this->getFlagAttr("use_detail", false)) {
                 $pagesets[] = array("type"=>"detail");
             }
-            if ($this->getFlagAttr("use_delete", true)) {
+            if ($this->getFlagAttr("use_form", $is_master ? true : false)) {
+                $pagesets[] = array("type"=>"form",
+                    "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()),
+                    "use_mail"=>$this->getFlagAttr("use_mail",false),
+                    "is_master"=>$this->getFlagAttr("is_master",true),
+                    "skip_confirm"=>$this->getFlagAttr("skip_confirm", true),
+                    "skip_complete"=>$this->getFlagAttr("skip_complete", true));
+            }
+            if ($this->getFlagAttr("use_delete", $is_master||$is_fav ? true : false)) {
                 $pagesets[] = array("type"=>"delete");
+            }
+            if ($this->getFlagAttr("use_apply", $is_fav ? true : false)) {
+                $pagesets[] = array("type"=>"apply");
             }
             if ($this->getFlagAttr("use_csv", false)) {
                 $pagesets[] = array("type"=>"csv");
-                if ($this->getFlagAttr("use_import", false)) {
-                    $pagesets[] = array("type"=>"import",
-                        "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()));
-                }
+            }
+            if ($this->getFlagAttr("use_import", false)) {
+                $pagesets[] = array("type"=>"import",
+                    "param_fields.depend"=>$this->getFlagAttr("param_fields.depend",array()));
             }
         } else {
             report_error("Controller typeの指定が不正です",array(

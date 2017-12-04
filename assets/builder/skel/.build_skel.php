@@ -77,6 +77,7 @@
             "index" => array(
                 "use_table" => false,
                 "params" => array(),
+                "attrs" => array(),
                 "index_page" => "index",
                 "controller.template_file" => $dir."/pageset/index/index_controller.php",
                 "pages.index.template_file" => $dir."/pageset/index/index.html",
@@ -86,6 +87,7 @@
             "login" => array(
                 "use_table" => false,
                 "params" => array(),
+                "attrs" => array("use_reminder"),
                 "index_page" => "login",
                 "controller.template_file" => $dir."/pageset/login/login_controller.php",
                 "pages.login.template_file" => $dir."/pageset/login/login.html",
@@ -95,6 +97,7 @@
             "reminder" => array(
                 "use_table" => true,
                 "params" => array(),
+                "attrs" => array(),
                 "index_page" => "reminder",
                 "controller.template_file" => $dir."/pageset/reminder/reminder_controller.php",
                 "pages.reminder.template_file" => $dir."/pageset/reminder/reminder.html",
@@ -110,6 +113,8 @@
             "list" => array(
                 "use_table" => true,
                 "params" => array("depend"=>"optional"),
+                "attrs" => array("is_mypage", "use_csv", "use_import", "use_delete", "use_detail",
+                    "use_form", "use_apply", "search_fields", "sort_fields", "param_fields.depend"),
                 "index_page" => "list",
                 "controller.template_file" => $dir."/pageset/list/list_controller.php",
                 "pages.list.template_file" => $dir."/pageset/list/list.html",
@@ -118,6 +123,7 @@
             "detail" => array(
                 "use_table" => true,
                 "params" => array("id"=>"required"),
+                "attrs" => array("is_mypage"),
                 "index_page" => "detail",
                 "controller.template_file" => $dir."/pageset/detail/detail_controller.php",
                 "pages.detail.template_file" => $dir."/pageset/detail/detail.html",
@@ -126,6 +132,8 @@
             "form" => array(
                 "use_table" => true,
                 "params" => array("id"=>"optional", "depend"=>"optional"),
+                "attrs" => array("is_mypage", "use_mail", "is_master", "skip_confirm", "skip_complete",
+                    "param_fields.depend"),
                 "index_page" => "form",
                 "controller.template_file" => $dir."/pageset/form/form_controller.php",
                 "pages.form.template_file" => $dir."/pageset/form/form.html",
@@ -139,14 +147,25 @@
             "delete" => array(
                 "use_table" => true,
                 "params" => array("id"=>"required"),
+                "attrs" => array("is_mypage"),
                 "index_page" => "delete",
                 "controller.template_file" => $dir."/pageset/delete/delete_controller.php",
                 "pages.delete.template_file" => null,// $dir."/pageset/delete/delete.html",
                 "label" => "削除",
             ),
+            "apply" => array(
+                "use_table" => true,
+                "params" => array("id"=>"optional", "depend"=>"optional"),
+                "attrs" => array("is_mypage", "is_master"),
+                "index_page" => "apply",
+                "controller.template_file" => $dir."/pageset/apply/apply_controller.php",
+                "pages.apply.template_file" => null,// $dir."/pageset/apply/apply.html",
+                "label" => "登録",
+            ),
             "csv" => array(
                 "use_table" => true,
                 "params" => array("depend"=>"optional"),
+                "attrs" => array("is_mypage"),
                 "index_page" => "download",
                 "controller.template_file" => $dir."/pageset/csv/csv_controller.php",
                 "pages.download.template_file" => null,// $dir."/pageset/csv/download.html",
@@ -155,6 +174,7 @@
             "import" => array(
                 "use_table" => true,
                 "params" => array("depend"=>"optional"),
+                "attrs" => array("is_mypage"),
                 "index_page" => "import",
                 "controller.template_file" => $dir."/pageset/import/import_controller.php",
                 "pages.import.template_file" => $dir."/pageset/import/import.html",

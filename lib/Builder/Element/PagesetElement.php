@@ -201,6 +201,12 @@ class PagesetElement extends Element_Base
                 $link["controller"] = $this->getSchema()->getControllerByName($link["to"]);
                 $link["pageset"] = $link["controller"]->getIndexPageset();
             }
+            if ( ! $link["pageset"]) {
+                report_error("LinkToで指定されたPagesetが不正です", array(
+                    "to" => $link["to"],
+                    "pagesets" => $link["controller"]->getPagesets(),
+                ));
+            }
             // 相互のテーブルの関係の確認
             $from_table = $this->getController()->getTable();
             $to_table = $link["controller"]->getTable();
@@ -227,8 +233,6 @@ class PagesetElement extends Element_Base
     public function getLinkFrom ()
     {
         if ($this->links_form !== null) return $this->links_form;
-        // IndexPagesetでなければController外からLinkを受け付けない
-        if ($this != $this->getController()->getIndexPageset()) return $this->links_form = array();
         $links_form = array();
         foreach ($this->getSchema()->getControllers() as $from_controller) {
             foreach ($from_controller->getPagesets() as $from_pageset) {
@@ -252,7 +256,10 @@ class PagesetElement extends Element_Base
         $param_fields = array();
         // リンク元のTableとの関係により補完
         if (($params_config = $this->getSkelConfig("params")) && $params_config["depend"]) {
-            foreach ($this->getController()->getIndexPageset()->getLinkFrom() as $link) {
+            $links = $this->getLinkFrom();
+            // リンクも研がない場合、上位のPagesetも参照
+            if ( ! $links) $links =$this->getController()->getIndexPageset()->getLinkFrom();
+            foreach ($links as $link) {
                 $field_name = $link["depend_on_record"];
                 $param_fields[$field_name] = array("type"=>"depend", "field_name"=>$field_name);
             }
