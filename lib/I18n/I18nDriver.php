@@ -58,4 +58,22 @@ class I18nDriver
         }
         return $message;
     }
+
+// -- Enum値
+
+    protected $enum_values = array();
+    /**
+     * Enum値の取得
+     */
+    public function getEnumValue ($key, $value, $locale=null)
+    {
+        $locale = $locale ?: $this->locale;
+        if ( ! isset($this->enum_values[$locale])) {
+            $data_file = constant("R_APP_ROOT_DIR")."/locale/".$locale."/enum.php";
+            $this->enum_values[$locale] = file_exists($data_file) ? include($data_file) : array();
+        }
+        if (isset($this->enum_values[$locale][$key])) $value = $this->enum_values[$locale][$key];
+        elseif (is_string($value)) $value = __($value);
+        return $value;
+    }
 }

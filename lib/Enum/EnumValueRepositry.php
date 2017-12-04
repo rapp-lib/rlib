@@ -7,11 +7,13 @@ use IteratorAggregate;
 
 class EnumValueRepositry implements ArrayAccess, IteratorAggregate
 {
+    private $repositry_name;
     private $values_name;
     private $retreived = false;
     private $values = array();
-    public function __construct($values_name)
+    public function __construct($repositry_name, $values_name)
     {
+        $this->repositry_name = $repositry_name;
         $this->values_name = $values_name;
     }
     public function offsetExists($key)
@@ -21,7 +23,10 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
     }
     public function offsetGet($key)
     {
-        return $this->offsetExists($key) ? $this->values[$key] : null;
+        if ( ! $this->offsetExists($key)) return null;
+        $value = $this->values[$key];
+        $value = app()->i18n->getEnumValue($this->repositry_name.".".$this->values_name.".".$key, $value);
+        return $value;
     }
     public function offsetSet($key, $value)
     {
