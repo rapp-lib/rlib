@@ -20,7 +20,7 @@
                 {{input type="hidden" name="<?=$name?>[$key][ord_seq]" value=$key}}
 <?php   endif; /* if $assoc_ord_col */ ?>
                 <table class="tbl detail">
-<?php   foreach ($col->getAssocTable()->getAssocInputCols($col) as $assoc_col): ?>
+<?php   foreach ($controller->getAssocInputCols($col) as $assoc_col): ?>
 <?php       if ($assoc_col->getAttr("type")==="assoc") continue; ?>
                 <tr>
                     <th><?=$assoc_col->getLabel()?></th>
@@ -45,7 +45,7 @@
                         {{input type="hidden" name="<?=$name?>[$key][ord_seq]" class="mi-item-seq"}}
 <?php   endif; /* if $assoc_ord_col */ ?>
                         <table class="tbl detail">
-<?php   foreach ($col->getAssocTable()->getAssocInputCols($col) as $assoc_col): ?>
+<?php   foreach ($controller->getAssocInputCols($col) as $assoc_col): ?>
 <?php       if ($assoc_col->getAttr("type")==="assoc"): continue; ?>
 <?php       endif; ?>
                         <tr>

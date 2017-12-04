@@ -146,6 +146,24 @@ class ControllerElement extends Element_Base
         return $filtered_cols ?: $cols;
     }
     /**
+     * 入力画面に表示するColの取得
+     */
+    public function getAssocInputCols ($parent_col)
+    {
+        // getAssocTableとして指定された際のカラム取得
+        $cols = $parent_col->getAssocTable()->getAssocInputCols($parent_col);
+        // use_atによるフィルタリング
+        $filtered_cols = array();
+        foreach ($cols as $i => $col) {
+            if (is_array($use_at = $col->getAttr("use_at"))) {
+                foreach ($use_at as $controller_name) {
+                    if ($controller_name == $this->getName()) $filtered_cols[] = $col;
+                }
+            }
+        }
+        return $filtered_cols ?: $cols;
+    }
+    /**
      * 検索フォームに表示するColの取得
      */
     public function getSearchCols ()

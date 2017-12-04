@@ -1,4 +1,11 @@
 <?php
+    $page = $o["page"];
+    if ( ! $page) {
+        report_error("col_show.htmlの読み込み時にはpageの指定が必須です", array("col"=>$col, "params"=>$o));
+    }
+    $pageset = $page->getParent();
+    $controller = $pageset->getParent();
+
     $var_name = $o["var_name"] ?: '$t';
     $name = $col->getName();
     $input_type = $o["type"] ?: $col->getAttr("type");
@@ -7,11 +14,11 @@
 <?="\n"?>
                     {{foreach <?=$var_name?>.<?=$name?> as $key=>$item}}
                         <table class="tbl_admin detail">
-<?php   foreach ($col->getAssocTable()->getAssocInputCols($col) as $assoc_col): ?>
+<?php   foreach ($controller->getAssocInputCols($col) as $assoc_col): ?>
 <?php       if ($assoc_col->getAttr("type")==="assoc") continue; ?>
                         <tr>
                             <th><?=$assoc_col->getLabel()?></th>
-                            <td><?=$assoc_col->getShowSource(array("var_name"=>$var_name.".".$name.'[$key]'))?></td>
+                            <td><?=$assoc_col->getShowSource(array("page"=>$page, "var_name"=>$var_name.".".$name.'[$key]'))?></td>
                         </tr>
 <?php   endforeach; /* foreach as $assoc_col */ ?>
                         </table>

@@ -44,6 +44,11 @@ class ColElement extends Element_Base
     public function getEntryFormFieldDefSource ($o=array())
     {
         $pageset = $o["pageset"];
+        if ( ! $pageset) {
+            report_error("getEntryFormFieldDefSourceのパラメータにはpagesetの指定が必須です", array("col"=>$this, "params"=>$o));
+        }
+        $controller = $pageset->getParent();
+
         $name = $o["name_parent"] ? $o["name_parent"].".".$this->getName() : $this->getName();
         $def = array();
         $def["label"] = $this->getAttr("label");
@@ -67,7 +72,7 @@ class ColElement extends Element_Base
         foreach ($lines as $line) $source .= '            '.$line.','."\n";
         // assoc下位の定義を追記
         if ($this->getAttr("type")==="assoc"){
-            foreach ($this->getAssocTable()->getAssocInputCols($this) as $assoc_col) {
+            foreach ($controller->getAssocInputCols($this) as $assoc_col) {
                 $source .= $assoc_col->getEntryFormFieldDefSource(array(
                     "pageset" => $pageset,
                     "name_parent" => $this->getName().".*",
@@ -118,6 +123,7 @@ class ColElement extends Element_Base
             report_error("RuleDefSourceのパラメータにはpagesetが必要です", array("col"=>$this, "params"=>$o));
         }
         $controller = $pageset->getParent();
+
         // nameの設定
         $name = $this->getName();
         if ($o["name_parent"]) $name = $o["name_parent"].".".$name;
@@ -152,7 +158,7 @@ class ColElement extends Element_Base
         foreach ($rules as $rule) $source .= '            '.$this->stringifyValue(0, $rule).','."\n";
         // assoc配下のRuleも出力
         if ($this->getAttr("type")==="assoc") {
-            foreach ($this->getAssocTable()->getAssocInputCols($this) as $assoc_col) {
+            foreach ($controller->getAssocInputCols($this) as $assoc_col) {
                 $source .= $assoc_col->getRuleDefSource(array("pageset"=>$pageset, "name_parent"=>$name.".*"));
             }
         }

@@ -8,7 +8,7 @@
 下記の通り入力を受け付けました
 
 <?php foreach ($mail->getController()->getMailCols() as $col): ?>
-<?=$col->getLabel()?> : <?=$col->getMailSource()?><?="\n"?>
+<?=$col->getLabel()?> : <?=$col->getMailSource(array("mail"=>$mail))?><?="\n"?>
 <?php endforeach; ?>
 
 <#?php $mail->load("inc/<?=$mail->getAttr("type")?>_footer.php"); ?>

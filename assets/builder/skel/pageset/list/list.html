@@ -5,7 +5,7 @@
 <?php   if ($param_field = $pageset->getParamFieldByName($col->getName())): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
-        <td><?=$col->getInputSource(array("page"=>$page, "type"=>"hidden"))?><?=$col->getShowSource(array("var_name"=>'$forms.search'))?></td>
+        <td><?=$col->getInputSource(array("page"=>$page, "type"=>"hidden"))?><?=$col->getShowSource(array("page"=>$page, "var_name"=>'$forms.search'))?></td>
     </tr>
 <?php   endif; ?>
 <?php endforeach; ?>
@@ -67,7 +67,7 @@
     {{foreach $ts as $t}}
     <tr>
 <?php foreach ($controller->getListCols() as $col): ?>
-        <td><?=$col->getShowSource()?></td>
+        <td><?=$col->getShowSource(array("page"=>$page))?></td>
 <?php endforeach; ?>
         <td>
 <?php if ($a_pageset = $controller->getPagesetByType("detail")): ?>
