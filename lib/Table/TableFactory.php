@@ -17,7 +17,12 @@ class TableFactory
      */
     public function factory ($table_name)
     {
-        $def = $this->getTableDef($table_name);
+        if (is_string($table_name)) {
+            $def = $this->getTableDef($table_name);
+        } elseif (is_array($table_name)) {
+            $def = $table_name;
+            if ( ! $def["class"]) $def["class"] = '\R\Lib\Table\Table_Base';
+        }
         $table = new $def["class"];
         foreach ($this->reserved_attrs as $key=>$value) $table->setAttr($key, $value);
         return $table;

@@ -32,11 +32,6 @@ class FormContainer extends ArrayObject
      */
     private $tmp_storage = null;
 
-    /**
-     * Multiple構造用のFormCollection
-     */
-    private $forms = null;
-
     public function __construct ($def=array())
     {
         $this->def = self::completeDef($def);
@@ -44,14 +39,6 @@ class FormContainer extends ArrayObject
         if ($this->def["auto_restore"]) {
             $this->restore();
         }
-    }
-    public function __get ($key)
-    {
-        if ($key=="forms") {
-            if ( ! $this->forms) $this->forms = new FormCollection($this->def);
-            return $this->forms;
-        }
-        return null;
     }
 
     /**
@@ -64,6 +51,42 @@ class FormContainer extends ArrayObject
             "errors" => $this->errors,
             "rules" => $this->def["rules"],
         );
+    }
+
+// -- 多階層構造
+
+    /**
+     * 多階層構造用のFormCollection
+     */
+    private $forms = null;
+    /**
+     * 多階層Formの取得
+     */
+    public function __get ($key)
+    {
+        if ($key=="forms") {
+            if ( ! $this->forms) $this->forms = new FormCollection($this->def);
+            return $this->forms;
+        }
+        return null;
+    }
+    /**
+     * 多階層Formへの値の保存
+     */
+    public function saveTo ($key)
+    {
+        $values = $this->getValues();
+        $this->forms[$key]->setValues($values);
+        $this->forms[$key]->save();
+    }
+    /**
+     * 多階層Formにsaveした値の復帰
+     */
+    public function restoreFrom ($key)
+    {
+        $this->forms[$key]->restore();
+        $values = $this->forms[$key]->getValues();
+        $this->setValues($values);
     }
 
 // -- 必須構成情報の取得
@@ -150,6 +173,8 @@ class FormContainer extends ArrayObject
     }
 
     /**
+     * @deprecated
+     *
      * 初期化処理
      * IDを指定して、tableが関係している場合検索してDBから値を設定する
      * ※関係するdef: table
