@@ -56,37 +56,53 @@ class SchemaCsvLoader
                 $ref = & $s["page"][$parent_data["controller"]][$current_data["action"]];
             // 不正な行
             } else {
-                report_warning("Irregular schema-record",array(
-                    "line_num" => $line_num+1,
+                report_error("Schema CSV Parse error @L".($line_num+1)." : 文脈的に不正な行", array(
                     "current_data" =>$current_data,
                     "parent_data" =>$parent_data,
                     "header_line" =>$header_line,
                 ));
                 continue;
             }
-            // 参照へのデータ登録
-            foreach ($current_data as $k => $v) {
-                if (strlen($v)
-                        && ! ($mode == "#tables" && in_array($k,array("other","table","col")))
-                        && ! ($mode == "#pages" && in_array($k,array("other","controller","action")))) {
-                    $this->parse_other($ref[$k], $v);
+            try {
+                // 参照へのデータ登録
+                foreach ($current_data as $k => $v) {
+                    // 空白項目
+                    if ( ! strlen($v)) continue;
+                    // table/pages配下の要素項目
+                    if ( ! ($mode == "#tables" && in_array($k,array("other","table","col")))
+                            && ! ($mode == "#pages" && in_array($k,array("other","controller","action")))) {
+                        $this->parse_other($ref[$k], $v);
+                    // other項目
+                    } elseif ($k=="other" || preg_match('!^other\.\d+$!', $k)) {
+                        $this->parse_other($ref, $v);
+                    }
                 }
+            } catch (\RuntimeException $e) {
+                report_error("Schema CSV Parse error @L".($line_num+1)."(".$k.") : ".$e->getMessage(), array(
+                    "current_data" =>$current_data,
+                    "parent_data" =>$parent_data,
+                    "header_line" =>$header_line,
+                ));
             }
-            $this->parse_other($ref, $current_data["other"]);
         }
         return $s;
     }
     /**
-     * other属性のパース（改行=区切り）
+     * other属性のパース（=|区切り）
      */
     private function parse_other ( & $ref, $str)
     {
-        foreach (preg_split("!(\r?\n)|\|!",$str) as $sets) {
-            if (preg_match('!^(.+?)=(.+)$!',$sets,$match))  {
-                $ref[trim($match[1])] = $this->trim_value($match[2]);
-            } elseif (strlen(trim($sets))) {
-                $ref = $this->trim_value($sets);
+        if (preg_match('!^(?:([^\|=]+)=([^\|]+)(?:$|\|))+$!', $str)) {
+            foreach (preg_split("!\|!",$str) as $sets) {
+                if (preg_match('!^(.+?)=(.+)$!',$sets,$match)) {
+                    $ref[trim($match[1])] = $this->trim_value($match[2]);
+                }
             }
+        } else {
+            if (preg_match('!\|!', $str) && ! preg_match('!^".*"$!', $str)) {
+                throw new \RuntimeException("x=y|z=a Like Format error : ".$str);
+            }
+            $ref = $this->trim_value($str);
         }
     }
     /**
@@ -100,7 +116,10 @@ class SchemaCsvLoader
         } elseif (is_numeric($value)) {
             $value = (int)$value;
         } elseif (preg_match('!^(\{.*\}|\[.*\])$!i', $value)) {
-            $value = json_decode($value, true);
+            $value = json_decode($value_prev = $value, true);
+            if ( ! is_array($value)) {
+                throw new \RuntimeException("JSON Syntax error : ".$value_prev);
+            }
         } elseif (preg_match('!^true$!i', $value)) {
             $value = true;
         } elseif (preg_match('!^false$!i', $value)) {
