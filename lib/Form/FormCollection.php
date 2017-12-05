@@ -31,6 +31,7 @@ class FormCollection implements ArrayAccess
     private function initForm($key)
     {
         $def = $this->def;
+        $def["form_name"] = $def["form_name"]."__".$key;
         $def["tmp_storage_name"] = $def["tmp_storage_name"]."__".$key;
         $this->forms[$key] = new FormContainer($def);
     }
