@@ -112,7 +112,7 @@
             ),
             "list" => array(
                 "use_table" => true,
-                "params" => array("depend"=>"optional"),
+                "params" => array("back"=>true),
                 "attrs" => array("is_mypage", "use_csv", "use_import", "use_delete", "use_detail",
                     "use_form", "use_apply", "search_fields", "sort_fields", "param_fields.depend"),
                 "index_page" => "list",
@@ -122,7 +122,7 @@
             ),
             "detail" => array(
                 "use_table" => true,
-                "params" => array("id"=>"required"),
+                "params" => array("id"=>true),
                 "attrs" => array("is_mypage"),
                 "index_page" => "detail",
                 "controller.template_file" => $dir."/pageset/detail/detail_controller.php",
@@ -131,7 +131,7 @@
             ),
             "form" => array(
                 "use_table" => true,
-                "params" => array("id"=>"optional", "depend"=>"optional"),
+                "params" => array("id"=>true, "back"=>true),
                 "attrs" => array("is_mypage", "use_mail", "is_master", "skip_confirm", "skip_complete",
                     "param_fields.depend"),
                 "index_page" => "form",
@@ -146,7 +146,7 @@
             ),
             "delete" => array(
                 "use_table" => true,
-                "params" => array("id"=>"required"),
+                "params" => array("id"=>true),
                 "attrs" => array("is_mypage"),
                 "index_page" => "delete",
                 "controller.template_file" => $dir."/pageset/delete/delete_controller.php",
@@ -155,8 +155,8 @@
             ),
             "apply" => array(
                 "use_table" => true,
-                "params" => array("id"=>"optional", "depend"=>"optional"),
-                "attrs" => array("is_mypage", "is_master"),
+                "params" => array("id"=>true),
+                "attrs" => array("is_mypage", "param_fields.append"),
                 "index_page" => "apply",
                 "controller.template_file" => $dir."/pageset/apply/apply_controller.php",
                 "pages.apply.template_file" => null,// $dir."/pageset/apply/apply.html",
@@ -164,8 +164,8 @@
             ),
             "cart" => array(
                 "use_table" => true,
-                "params" => array("depend"=>"optional"),
-                "attrs" => array("is_mypage"),
+                "params" => array(),
+                "attrs" => array("is_mypage", "param_fields.append"),
                 "index_page" => "cart",
                 "controller.template_file" => $dir."/pageset/cart/cart_controller.php",
                 "pages.cart.template_file" => $dir."/pageset/cart/cart.html",
@@ -173,7 +173,7 @@
             ),
             "csv" => array(
                 "use_table" => true,
-                "params" => array("depend"=>"optional"),
+                "params" => array(),
                 "attrs" => array("is_mypage"),
                 "index_page" => "download",
                 "controller.template_file" => $dir."/pageset/csv/csv_controller.php",
@@ -182,7 +182,7 @@
             ),
             "import" => array(
                 "use_table" => true,
-                "params" => array("depend"=>"optional"),
+                "params" => array(),
                 "attrs" => array("is_mypage"),
                 "index_page" => "import",
                 "controller.template_file" => $dir."/pageset/import/import_controller.php",

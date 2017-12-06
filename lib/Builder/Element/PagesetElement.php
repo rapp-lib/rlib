@@ -276,14 +276,10 @@ class PagesetElement extends Element_Base
                 $param_fields[$param_field["field_name"]] = $param_field;
             }
         }
-        // pagesetについてidパラメータの引き渡しが要件になっている場合、id=IDを渡す
         if ($params_config = $this->getSkelConfig("params")) {
+            // pagesetについてidパラメータの引き渡しが要件になっている場合、id=IDを渡す
             if ($params_config["id"]) {
-                $param_fields["id"] = array(
-                    "field_name" => "id",
-                    "type" => "depend",
-                    "param_name" => "id",
-                );
+                $param_fields["id"] = array("type"=>"id", "field_name"=>"id", "param_name"=>"id");
             }
         }
         // Typeの指定があれば絞り込む
@@ -316,11 +312,13 @@ class PagesetElement extends Element_Base
             if ($from_pageset->getParamFieldByName($field_name) && $form_name) {
                 if ($type=="redirect") $o["params"][$param_name] = $form_name.'["'.$field_name.'"]';
                 else $o["params"][$param_name] = $form_name.'.'.$field_name;
+                break;
             // recordの指定があればIDを渡す
             } elseif ($record_name && $from_table) {
                 $id_col_name = $from_table->getIdCol()->getName();
                 if ($type=="redirect") $o["params"][$param_name] = $record_name.'["'.$id_col_name.'"]';
                 else $o["params"][$param_name] = $record_name.'.'.$id_col_name;
+                break;
             }
         }
 
