@@ -162,6 +162,15 @@
                 "pages.apply.template_file" => null,// $dir."/pageset/apply/apply.html",
                 "label" => "登録",
             ),
+            "cart" => array(
+                "use_table" => true,
+                "params" => array("depend"=>"optional"),
+                "attrs" => array("is_mypage"),
+                "index_page" => "cart",
+                "controller.template_file" => $dir."/pageset/cart/cart_controller.php",
+                "pages.cart.template_file" => $dir."/pageset/cart/cart.html",
+                "label" => "カート",
+            ),
             "csv" => array(
                 "use_table" => true,
                 "params" => array("depend"=>"optional"),

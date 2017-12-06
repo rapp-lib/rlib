@@ -12,18 +12,18 @@
 ?>
 <?php if ($input_type=="assoc"): ?>
 <?="\n"?>
-                    {{foreach <?=$var_name?>.<?=$name?> as $key=>$item}}
-                        <table class="tbl_admin detail">
+                {{foreach <?=$var_name?>.<?=$name?> as $key=>$item}}
+                    <table class="tbl_admin detail">
 <?php   foreach ($controller->getAssocInputCols($col) as $assoc_col): ?>
 <?php       if ($assoc_col->getAttr("type")==="assoc") continue; ?>
-                        <tr>
-                            <th><?=$assoc_col->getLabel()?></th>
-                            <td><?=$assoc_col->getShowSource(array("page"=>$page, "var_name"=>$var_name.".".$name.'[$key]'))?></td>
-                        </tr>
+                    <tr>
+                        <th><?=$assoc_col->getLabel()?></th>
+                        <td><?=$assoc_col->getShowSource(array("page"=>$page, "var_name"=>$var_name.".".$name.'[$key]'))?></td>
+                    </tr>
 <?php   endforeach; /* foreach as $assoc_col */ ?>
-                        </table>
-                    {{/foreach}}
-                <?=""?>
+                    </table>
+                {{/foreach}}
+            <?=""?>
 <?php elseif ($input_type=="file"): /* if type=="assoc" */ ?>
 {{if <?=$var_name?>.<?=$name?>}}<a href="{{<?=$var_name?>.<?=$name?>}}" target="_blank">ファイル</a>{{/if}}<?=""?>
 <?php elseif ($enum_set = $col->getEnumSet()): /* if type=="assoc" */ ?>

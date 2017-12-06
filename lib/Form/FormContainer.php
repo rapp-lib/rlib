@@ -58,15 +58,15 @@ class FormContainer extends ArrayObject
     /**
      * 多階層構造用のFormCollection
      */
-    private $forms = null;
+    private $sub_forms = null;
     /**
      * 多階層Formの取得
      */
     public function __get ($key)
     {
         if ($key=="forms") {
-            if ( ! $this->forms) $this->forms = new FormCollection($this->def);
-            return $this->forms;
+            if ( ! $this->sub_forms) $this->sub_forms = new FormCollection($this->def);
+            return $this->sub_forms;
         }
         return null;
     }

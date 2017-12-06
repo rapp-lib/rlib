@@ -87,6 +87,6 @@
             $this->forms["entry"]->clear();
         }
 <?php if ($pageset->getAttr("skip_complete")): ?>
-        return $this->redirect("id://<?=$pageset->getBackPage()->getFullPage($page)?>", array("back"=>"1"));
+        return $this->redirect("id://<?=$pageset->getBackPage()->getLocalPage()?>", array("back"=>"1"));
 <?php endif; ?>
     }

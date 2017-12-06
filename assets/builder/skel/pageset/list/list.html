@@ -29,9 +29,10 @@
 <?php if ($a_pageset = $controller->getPagesetByType("form")): ?>
     <a href='<?=$a_pageset->getLinkSource("smarty", $pageset, array("form_name"=>"\$forms.search"))?>' class="create-btn">新規登録</a>
 <?php endif; ?>
+    &nbsp;
     <div class="right clearfix">
 <?php foreach ($pageset->getLinkTo() as $link): ?>
-<?php   if ( ! $link["depend_on_record"]): ?>
+<?php   if ( ! $link["by_record"]): ?>
         <a href='<?=$link["pageset"]->getLinkSource("smarty", $pageset, array("form_name"=>"\$forms.search"))?>' class="link-btn"><?=$link["label"]?></a>
 <?php   endif; ?>
 <?php endforeach; ?>
@@ -80,7 +81,7 @@
             <a href='<?=$a_pageset->getLinkSource("smarty", $pageset, array("record_name"=>"\$t", "form_name"=>"\$forms.search"))?>' class="list-btn" onclick="return confirm('削除します');">削除</a>
 <?php endif; ?>
 <?php foreach ($pageset->getLinkTo() as $link): ?>
-<?php   if ($link["depend_on_record"]): ?>
+<?php   if ($link["by_record"]): ?>
             <a href='<?=$link["pageset"]->getLinkSource("smarty", $pageset, array("record_name"=>"\$t", "form_name"=>"\$forms.search"))?>' class="list-btn"><?=$link["label"]?></a>
 <?php   endif; ?>
 <?php endforeach; ?>
@@ -111,3 +112,7 @@
 {{/if}}
 
 {{/if}}{{* /0件ではない場合 *}}
+
+<div class="btn-area" style="margin-top: 10px;">
+    <a href='{{"<?=$pageset->getBackPage()->getFullPage($page)?>"|page_to_url|url:["back"=>1]}}' class="back-btn">戻る</a>
+</div>
