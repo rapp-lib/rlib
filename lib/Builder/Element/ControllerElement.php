@@ -31,10 +31,11 @@ class ControllerElement extends Element_Base
         } elseif ($this->getAttr("type") == "delete") {
             $pagesets[] = array("type"=>"delete");
         } elseif ($this->getAttr("type") == "apply") {
-            $pagesets[] = array("type"=>"apply");
+            $pagesets[] = array("type"=>"apply",
+                "param_fields.append"=>$this->getFlagAttr("param_fields.append",array()));
         } elseif ($this->getAttr("type") == "cart") {
             $pagesets[] = array("type"=>"cart",
-                "param_fields.depend"=>$this->getFlagAttr("param_fields.assoc",array()));
+                "param_fields.append"=>$this->getFlagAttr("param_fields.append",array()));
         } elseif ($this->getAttr("type") == "list"
                 || $this->getAttr("type") == "master"
                 || $this->getAttr("type") == "fav") {
@@ -57,7 +58,8 @@ class ControllerElement extends Element_Base
                 $pagesets[] = array("type"=>"delete");
             }
             if ($this->getFlagAttr("use_apply", $is_fav ? true : false)) {
-                $pagesets[] = array("type"=>"apply");
+                $pagesets[] = array("type"=>"apply",
+                    "param_fields.append"=>$this->getFlagAttr("param_fields.append",array()));
             }
             if ($this->getFlagAttr("use_csv", false)) {
                 $pagesets[] = array("type"=>"csv");

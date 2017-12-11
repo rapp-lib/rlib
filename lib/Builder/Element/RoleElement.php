@@ -30,7 +30,7 @@ class RoleElement extends Element_Base
     public function getIndexController ()
     {
         $controllers = $this->getAccessibleControllers();
-        foreach (array("index","master","show","form","login") as $type) {
+        foreach (array("index","master","list","form","login") as $type) {
             foreach ($controllers as $controller) {
                 if ($controller->getAttr("type") == $type) return $controller;
             }
@@ -69,8 +69,7 @@ class RoleElement extends Element_Base
     {
         $controllers = array();
         foreach ($this->getAccessibleControllers() as $controller) {
-            $depend_param_fields = $controller->getIndexPageset()->getParamFields("depend");
-            if ( ! $depend_param_fields) $controllers[] = $controller;
+            if ( ! $controller->getIndexPageset()->getParamFields("depend")) $controllers[] = $controller;
         }
         return $controllers;
     }
