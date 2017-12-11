@@ -17,6 +17,7 @@ class Query extends ArrayObject
         // SELECT構文の各SQL句
         "fields" => array(),
         "group" => array(),
+        "having" => array(),
         "order" => array(),
         "offset" => array(),
         "limit" => array(),

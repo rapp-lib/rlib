@@ -67,6 +67,7 @@ class InputField
                     "label" => $v,
                 );
             }
+        //TODO: valuesで値生成するのはおかしい
         } elseif ($values) {
             foreach ($values as $k) {
                 $selected = in_array($k,$values);
