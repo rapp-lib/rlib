@@ -108,7 +108,7 @@ class SmartyView
         if ( ! $values) $values = array();
         $res = array();
         if ($array instanceof \R\Lib\Enum\EnumValueRepositry) $array->retreive($values);
-        foreach ($values as $k=>$v) if (isset($array[$v])) $res[$k] = $array[$v];
+        foreach ($values as $k=>$v) if (isset($array[$v])) $res[$v] = $array[$v];
         return $glue===false ? $res : implode($glue, $res);
     }
 
