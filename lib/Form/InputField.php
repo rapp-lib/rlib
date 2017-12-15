@@ -47,17 +47,9 @@ class InputField
             $values = is_array($this->attrs["value"]) ? $this->attrs["value"] : array($this->attrs["value"]);
         }
         $options = array();
-        if ($enum_name = $this->attrs["enum"]) {
-            foreach (app()->enum[$enum_name] as $k=>$v) {
-                $selected = in_array($k,$values);
-                $options[] = array(
-                    "selected" => $selected,
-                    "checked" => $selected,
-                    "value" => $k,
-                    "label" => $v,
-                );
-            }
-        } elseif ($init_values = $this->attrs["values"]) {
+        if ($init_values = $this->attrs["values"]) {
+            unset($this->attrs["values"]);
+            if (is_string($init_values)) $init_values = app()->enum[$init_values];
             foreach ($init_values as $k=>$v) {
                 $selected = in_array($k,$values);
                 $options[] = array(
@@ -67,15 +59,16 @@ class InputField
                     "label" => $v,
                 );
             }
-        //TODO: valuesで値生成するのはおかしい
-        } elseif ($values) {
-            foreach ($values as $k) {
+        // @deprecated valuesに統合
+        } elseif ($enum_name = $this->attrs["enum"]) {
+            unset($this->attrs["enum"]);
+            foreach (app()->enum[$enum_name] as $k=>$v) {
                 $selected = in_array($k,$values);
                 $options[] = array(
                     "selected" => $selected,
                     "checked" => $selected,
                     "value" => $k,
-                    "label" => "",
+                    "label" => $v,
                 );
             }
         }
@@ -124,8 +117,8 @@ class InputField
                 }
                 $option_html[] = tag("label",array(),tag("input",$option_attrs).tag("span",array(),$option["label"]));
             }
-            unset($attrs["type"]);
-            $this->html = implode('',$option_html);
+            $hidden_html = tag("input",array("type"=>"hidden", "name"=>$attrs["name"]));
+            $this->html = $hidden_html.implode('',$option_html);
         // type=radioselectであれば選択肢構築
         } elseif ($this->attrs["type"]=="radioselect") {
             $option_html = array();

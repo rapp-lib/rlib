@@ -32,12 +32,13 @@ class ValidateRuleLoader
      */
     public static function callbackRequired ($validator, $value, $rule)
     {
-        if (is_array($value)) {
-            if (count($value) > 0) return false;
-        } else {
-            if (strlen($value)) return false;
-        }
+        if ( ! self::isEmpty($value)) return false;
         return array("message"=>__("必ず入力して下さい"));
+    }
+    public static function isEmpty ($value)
+    {
+        if (is_array($value)) return count($value) == 0;
+        return ! strlen($value);
     }
     /**
      * 形式チェック
@@ -46,7 +47,7 @@ class ValidateRuleLoader
      */
     public static function callbackFormat ($validator, $value, $rule)
     {
-        if ( ! strlen($value)) return false;
+        if (self::isEmpty($value)) return false;
         // パラメータチェック
         if ( ! isset(self::$format_enable[$rule["format"]])) {
             report_error("パラメータの指定が不正です",array(
@@ -67,7 +68,7 @@ class ValidateRuleLoader
      */
     public static function callbackRange ($validator, $value, $rule)
     {
-        if ( ! strlen($value)) return false;
+        if (self::isEmpty($value)) return false;
         $min = $rule["min"];
         $max = $rule["max"];
         $params = array("min"=>$min, "max"=>$max);
@@ -98,9 +99,7 @@ class ValidateRuleLoader
      */
     public static function callbackLength ($validator, $value, $rule)
     {
-        if ( ! strlen($value)) {
-            return false;
-        }
+        if (self::isEmpty($value)) return false;
         $min = $rule["min"];
         $max = $rule["max"];
         $params = array("min"=>$min, "max"=>$max);
@@ -130,7 +129,7 @@ class ValidateRuleLoader
      */
     public static function callbackDuplicate ($validator, $value, $rule)
     {
-        if ( ! strlen($value))  return false;
+        if (self::isEmpty($value)) return false;
         $q = table($rule["table"]);
         $q = $q->findBy($rule["col_name"], $value);
         if ($rule["id_field"]) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue($rule["id_field"]));
@@ -144,7 +143,7 @@ class ValidateRuleLoader
      */
     public static function callbackRegistered ($validator, $value, $rule)
     {
-        if ( ! strlen($value))  return false;
+        if (self::isEmpty($value)) return false;
         $q = table($rule["table"]);
         $q = $q->findBy($rule["col_name"], $value);
         if (count($q->select())==1) return false;
@@ -156,7 +155,7 @@ class ValidateRuleLoader
      */
     public static function callbackConfirm ($validator, $value, $rule)
     {
-        if ( ! strlen($value)) return false;
+        if (self::isEmpty($value)) return false;
         $target_value = $validator->getValue($rule["target_field"]);
         if ($target_value==$value) return false;
         return array("message"=>__("入力された値が異なっています"));
@@ -167,14 +166,18 @@ class ValidateRuleLoader
      */
     public static function callbackEnum ($validator, $value, $rule)
     {
-        if ( ! strlen($value)) return false;
+        if (is_array($value)) {
+            foreach ($value as $v) if ($error = self::callbackEnum($validator, $v, $rule)) return $error;
+            return false;
+        }
+        if (self::isEmpty($value)) return false;
         $label = app()->enum[$rule["enum"]][$value];
         if (strlen($label)) return false;
         return array("message"=>__("選択された値が不正です"));
     }
     public static function callbackCsvForm ($validator, $value, $rule)
     {
-        if ( ! $value) return false;
+        if (self::isEmpty($value)) return false;
         $csv_file = app()->file->getFileByUri($value)->getSource();
         list($repo_name, $form_name) = explode(".", $rule["form"]);
         $csv_form = app()->form[$repo_name][$form_name];

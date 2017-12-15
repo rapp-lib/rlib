@@ -105,10 +105,12 @@ class SmartyView
     }
     public static function smarty_modifier_map ($values, $array, $glue=false)
     {
-        if ( ! $values) $values = array();
         $res = array();
-        if ($array instanceof \R\Lib\Enum\EnumValueRepositry) $array->retreive($values);
-        foreach ($values as $k=>$v) if (isset($array[$v])) $res[$v] = $array[$v];
+        if ($values) {
+            if (is_string($array)) $array = app()->enum[$array];
+            if ($array instanceof \R\Lib\Enum\EnumValueRepositry) $array->retreive($values);
+            foreach ($values as $k=>$v) if (isset($array[$v])) $res[$v] = $array[$v];
+        }
         return $glue===false ? $res : implode($glue, $res);
     }
 
