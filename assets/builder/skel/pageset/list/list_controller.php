@@ -18,8 +18,31 @@
             "sort" => array("search"=>"sort", "default"=>"<?=$table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName()?>"),
         ),
     );
+<?php if ($controller->getAttr("bulk_actions")): ?>
+    /**
+     * 一括操作フォーム
+     */
+    protected static $form_bulk = array(
+        "form_page" => "<?=$pageset->getPageByType("list")->getFullPage()?>",
+        "fields" => array(
+            "action",
+            "items.*.id",
+        ),
+    );
+<?php endif; ?>
 <?=$pageset->getPageByType("list")->getMethodDecSource()?>
     {
+<?php if ($bulk_actions = $controller->getAttr("bulk_actions")): ?>
+        if ($this->forms["bulk"]->receive($this->input)) {
+            if ($this->forms["bulk"]["action"]=="delete") {
+                foreach ((array)$this->forms["bulk"]["items"] as $item) {
+                    if ($item["id"]) table("<?=$table->getName()?>")<?=$pageset->getTableChainSource("find")?>->deleteById($item["id"]);
+                }
+                $this->flash->success(__("削除しました"));
+            }
+            return $this->redirect("id://.", array("back"=>"1"));
+        }
+<?php endif; ?>
         if ($this->input["back"]) {
             $this->forms["search"]->restore();
         } elseif ($this->forms["search"]->receive($this->input)) {

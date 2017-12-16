@@ -1,20 +1,20 @@
-<?php if ( ! $controller->getSearchCols()): ?>{{*<?="\n"?><?php endif; ?>
-{{form action="."|page_to_url form=$forms.search}}
+<?php if ($controller->getSearchCols()): ?>
+{{form form=$forms.search}}
 <table class="tbl detail">
-<?php foreach ($controller->getInputCols() as $col): ?>
-<?php   if ($param_field = $pageset->getParamFieldByName($col->getName())): ?>
+<?php   foreach ($controller->getInputCols() as $col): ?>
+<?php       if ($param_field = $pageset->getParamFieldByName($col->getName())): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
         <td><?=$col->getInputSource(array("page"=>$page, "type"=>"hidden"))?><?=$col->getShowSource(array("page"=>$page, "var_name"=>'$forms.search'))?></td>
     </tr>
-<?php   endif; ?>
-<?php endforeach; ?>
-<?php foreach ($controller->getSearchCols() as $col): ?>
+<?php       endif; ?>
+<?php   endforeach; ?>
+<?php   foreach ($controller->getSearchCols() as $col): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
         <td><?=$col->getInputSource(array("page"=>$page))?></td>
     </tr>
-<?php endforeach; ?>
+<?php   endforeach; ?>
 </table>
 <div class="btn-area clearfix">
     <div class="right clearfix">
@@ -23,7 +23,7 @@
     </div>
 </div>
 {{/form}}
-<?php if ( ! $controller->getSearchCols()): ?>*}}<?="\n"?><?php endif; ?>
+<?php endif; ?>
 
 <div class="btn-area">
 <?php if ($a_pageset = $controller->getPagesetByType("form")): ?>
@@ -54,8 +54,17 @@
 <a id="table-sort" data-sort-base-url='{{$forms.search->getSearchPageUrl(["p"=>0, "sort"=>""])}}' data-sort-current="{{$forms.search.sort}}" data-sort-param-name="sort" data-sort-default="<?=$table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName()?>"></a>
 {{script require=["rui.sort"]}}{{/script}}
 
+<?php if ($controller->getAttr("bulk_actions")): ?>
+{{form form=$forms.bulk}}
+<div class="btn-area">
+    <button type="submit" name="action" value="delete" class="bulk-btn" onclick="return confirm('削除します');">選択一括削除</button>
+</div>
+<?php endif; ?>
 <table class="tbl list">
     <tr>
+<?php if ($controller->getAttr("bulk_actions")): ?>
+        <th>&nbsp;</th>
+<?php endif; ?>
 <?php foreach ($controller->getListCols() as $col): ?>
 <?php   if ($controller->isSortCol($col)): ?>
         <th data-sort-toggle="<?=$col->getName()?>" data-sort-handle="#table-sort"><?=$col->getLabel()?></th>
@@ -65,8 +74,11 @@
 <?php endforeach; ?>
         <th>&nbsp;</th>
     </tr>
-    {{foreach $ts as $t}}
+    {{foreach $ts as $i => $t}}
     <tr>
+<?php if ($controller->getAttr("bulk_actions")): ?>
+        <td>{{input type="checkbox" name="items[$i][id]" id=$t.id}}</td>
+<?php endif; ?>
 <?php foreach ($controller->getListCols() as $col): ?>
         <td><?=$col->getShowSource(array("page"=>$page))?></td>
 <?php endforeach; ?>
@@ -89,6 +101,9 @@
     </tr>
     {{/foreach}}
 </table>
+<?php if ($controller->getAttr("bulk_actions")): ?>
+{{/form}}
+<?php endif; ?>
 
 {{if $p = $ts->getPager()}}
 <div class="pager">
