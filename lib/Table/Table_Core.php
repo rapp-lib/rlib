@@ -446,19 +446,34 @@ class Table_Core
         return (int)$record["count"];
     }
     /**
-     * 集計を行って結果を取得
+     * 特定カラムのみに絞った結果データを取得
+     */
+    public function selectHashedBy ($key_col_name, $key_col_name_sub=false, $col_name_sub_ex=false)
+    {
+        if ($key_col_name_sub === false) {
+            return $this->fields(array($key_col_name))
+                ->select()->getHashedBy($key_col_name);
+        } elseif ($col_name_sub_ex === false) {
+            return $this->fields(array($key_col_name, $key_col_name_sub))
+                ->select()->getHashedBy($key_col_name, $key_col_name_sub);
+        } else {
+            return $this->fields(array($key_col_name, $key_col_name_sub, $col_name_sub_ex))
+                ->select()->getHashedBy($key_col_name, $key_col_name_sub, $col_name_sub_ex);
+        }
+    }
+    /**
+     * 集計を行った結果データを取得
      */
     public function selectSummary ($summary_field, $key_col_name, $key_col_name_sub=false)
     {
         if ($key_col_name_sub === false) {
-            return $this->fields(array("summary"=>$summary_field, $key_col_name))
-                ->groupBy($key_col_name)->select()
-                ->getHashedBy($key_col_name, "summary");
+            return $this->fields(array("summary"=>$summary_field, $key_col_name))->groupBy($key_col_name)
+                ->select()->getHashedBy($key_col_name, "summary");
         } else {
             return $this->fields(array(
                 "summary" => $summary_field, $key_col_name, $key_col_name_sub))
-                ->groupBy($key_col_name)->groupBy($key_col_name_sub)->select()
-                ->getHashedBy($key_col_name, $key_col_name_sub, "summary");
+                ->groupBy($key_col_name)->groupBy($key_col_name_sub)
+                ->select()->getHashedBy($key_col_name, $key_col_name_sub, "summary");
         }
     }
 

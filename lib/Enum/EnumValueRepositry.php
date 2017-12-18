@@ -18,14 +18,15 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
     }
     public function offsetExists($key)
     {
-        if ( ! isset($this->values[$key])) $this->retreive(array($key));
-        return isset($this->values[$key]);
+        if ( ! isset($this->values[self::encodeKey($key)])) $this->retreive(array($key));
+        return isset($this->values[self::encodeKey($key)]);
     }
     public function offsetGet($key)
     {
         if ( ! $this->offsetExists($key)) return null;
-        $value = $this->values[$key];
-        $value = app()->i18n->getEnumValue($this->repositry_name.".".$this->values_name.".".$key, $value);
+        $value = $this->values[self::encodeKey($key)];
+        $i18n_enum_key = $this->repositry_name.".".$this->values_name.".".self::encodeKey($key);
+        $value = app()->i18n->getEnumValue($i18n_enum_key, $value);
         return $value;
     }
     public function offsetSet($key, $value)
@@ -42,6 +43,15 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
 
 // --
 
+    public function map($keys)
+    {
+        $this->retreive($keys);
+        $values = array();
+        foreach ($keys as $key) if (isset($this->values[self::encodeKey($key)])) {
+            $values[self::encodeKey($key)] = $this->values[self::encodeKey($key)];
+        }
+        return $values;
+    }
     public function retreive($keys)
     {
         if ($this->retreived) return;
@@ -60,5 +70,12 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
                 "prop_name" => $prop_name,
             ));
         }
+    }
+
+// --
+
+    protected static function encodeKey($key)
+    {
+        return is_array($key) ? json_encode($key) : $key;
     }
 }

@@ -68,32 +68,28 @@
     /**
      * ドット記法で配列の値が設定されているか確認
      */
-    function array_isset ( & $ref, $key)
+    function array_isset ( & $ref, $key, $flag=0)
     {
         $key_parts = explode(".",$key);
         $key_last = array_pop($key_parts);
         foreach ($key_parts as $key_part) {
-            if ( ! is_array($ref)) {
-                return false;
-            }
+            if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
+            if ( ! is_array($ref)) return false;
             $ref = & $ref[$key_part];
         }
-        if ( ! is_array($ref)) {
-            return false;
-        }
+        if ( ! is_array($ref)) return false;
         return array_key_exists($key_last, $ref);
     }
     /**
      * ドット記法で配列の値を取得する
      */
-    function array_get ( & $ref, $key)
+    function array_get ( & $ref, $key, $flag=0)
     {
         $key_parts = explode(".",$key);
         $key_last = array_pop($key_parts);
         foreach ($key_parts as $key_part) {
-            if ( ! is_array($ref)) {
-                return null;
-            }
+            if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
+            if ( ! is_array($ref)) return null;
             $ref = & $ref[$key_part];
         }
         return isset($ref[$key_last]) ? $ref[$key_last] : null;
@@ -106,9 +102,8 @@
         $key_parts = explode(".",$key);
         $key_last = array_pop($key_parts);
         foreach ($key_parts as $key_part) {
-            if ( ! is_array($ref)) {
-                $ref = array();
-            }
+            if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
+            if ( ! is_array($ref)) $ref = array();
             $ref = & $ref[$key_part];
         }
         return $ref[$key_last];

@@ -12,9 +12,9 @@ class Config
     {
         $this->vars = array();
     }
-    public function get ($name)
+    public function get ($key)
     {
-        return array_get($this->vars, $name);
+        return array_get($this->vars, $key, 1);
     }
     public function getAll ()
     {
