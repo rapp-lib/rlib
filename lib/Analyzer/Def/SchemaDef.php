@@ -1,75 +1,16 @@
 <?php
 namespace R\Lib\Analyzer\Def;
 
-class Def_Base
-{
-    protected $name;
-    protected $attrs;
-    protected $parent;
-    protected $children = array();
-    public function __construct ($name="", $attrs=array(), $parent=null)
-    {
-        $this->name = $name;
-        $this->attrs = $attrs;
-        $this->parent = $parent;
-        $this->init();
-    }
-    protected function init ()
-    {
-        // Overrideして処理を記述
-    }
-    public function getName ()
-    {
-        return $this->name;
-    }
-    public function getAttr ($key)
-    {
-        return array_get($this->attrs, $key);
-    }
-    public function getParent ()
-    {
-        return $this->parent;
-    }
-    public function getSchema ()
-    {
-        if ( ! $this->parent) return $this;
-        return $this->parent->getSchema();
-    }
-    /**
-     * 要素のTypeを小文字で返す
-     */
-    public function getDefType ()
-    {
-        if (preg_match('!(\w+)Def$!', get_class($this), $match)) return str_underscore($match[1]);
-        return null;
-    }
-    public function __report ()
-    {
-        return array(
-            "name" => $this->name,
-            "attrs" => $this->attrs,
-            "children" => $this->children,
-        );
-    }
-}
-class NameResolver
-{
-    public function getControllerNameByClass($class)
-    {
-    }
-    public function getControllerClassByName($name)
-    {
-    }
-    public function getControllerNames()
-    {
-        $glob = constant("R_APP_ROOT_DIR")."/app/Controller/*Controller.php";
-        foreach (glob($glob) as $file) if (preg_match('!/(\w+)Controller\.php$!', $file, $_)) {
-            $name = str_underscore($_[1]);
-        }
-    }
-}
+use R\Lib\Analyzer\NameResolver;
+
 class SchemaDef extends Def_Base
 {
+    public function __construct()
+    {
+    }
+
+// -- controller
+
     public function getController($name)
     {
         if ( ! $this->children["controllers"][$name]) {
@@ -79,138 +20,118 @@ class SchemaDef extends Def_Base
     }
     public function getControllers()
     {
-        $result = array();
-        $files = $this->getFilesByType("controller_class");
-        foreach ($files as $file) {
-            if (preg_match('!/(\w+)Controller\.php$!', $file->getFileName(), $match)) {
-                $name = str_underscore($match[1]);
-                $result[$name] = $this->getController($name);
-            }
+        foreach (NameResolver::getControllerNames() as $name) $this->getController($name);
+        return $this->children["controllers"];
+    }
+    public function getForm($full_name)
+    {
+        list($controller_name, $name) = explode('.', $full_name, 2);
+        return $this->getController($controller_name)->getForm($name);
+    }
+    public function getAction($full_name)
+    {
+        list($controller_name, $name) = explode('.', $full_name, 2);
+        return $this->getController($controller_name)->getAction($name);
+    }
+
+
+// -- table
+
+    public function getTable($name)
+    {
+        if ( ! $this->children["tables"][$name]) {
+            $this->children["tables"][$name] = new TableDef($this, $name);
         }
-        return $result;
+        return $this->children["tables"][$name];
     }
     public function getTables()
-    {}
-    public function getEnumRepos()
-    {}
-    public function getPages()
-    {}
-    public function getForms()
-    {}
-    public function getCsvFormats()
-    {}
-    public function getRoles()
-    {}
-    public function getClasses()
-    {}
-    public function getFiles()
-    {}
-    public function getFilesByType($type)
     {
-        $app_root_dir = $this->getSchema()->getConfig("app_root_dir");
-        $globs = $this->getSchema()->getConfig("file_type_globs.".$type);
-        foreach (is_array($globs) ? $globs : array($globs) as $glob) {
-            $glob = $app_root_dir."/".$glob;
-            foreach (glob($glob) as $file_name) {
-                if (is_file($file_name)) {
-                    $name = preg_replace('!^'.preg_quote($app_root_dir,'!').'/!', '', $file_name);
-                    $this->getFile($name);
-                }
-            }
+        foreach (NameResolver::getTableNames() as $name) $this->getTable($name);
+        return $this->children["tables"];
+    }
+    public function getCol($full_name)
+    {
+        list($table_name, $name) = explode('.', $full_name, 2);
+        return $this->getTable($table_name)->getCol($name);
+    }
+
+// -- enum
+
+    public function getEnumRepo($name)
+    {
+        if ( ! $this->children["enum_repos"][$name]) {
+            $this->children["enum_repos"][$name] = new EnumRepoDef($this, $name);
         }
+        return $this->children["enum_repos"][$name];
     }
-    public function getConfig($key)
+    public function getEnumRepos()
     {
-        $config = array(
-            "app_root_dir" => constant("R_APP_ROOT_DIR"),
-            "file_type_globs" => array(
-                "controller_class" => "app/Controller/*.php",
-                "table_class" => "app/Table/*.php",
-                "enum_class" => "app/Enum/*.php",
-                "config_file" => "config/*.php",
-                "mail_template_file" => "mail/*.php",
-            ),
-        );
+        foreach (NameResolver::getEnumRepoNames() as $name) $this->getEnumRepo($name);
+        return $this->children["enum_repos"];
     }
-}
-class FileDef extends Def_Base
-{
-    public function getFileName()
-    {}
-    public function getFileType()
-    {}
-}
-class ClassDef extends Def_Base
-{
-    public function getFile()
-    {}
-    public function getClassName()
-    {}
-    public function getComment()
-    {}
-}
-class ClassMemberDef extends Def_Base
-{
-    public function getClass()
-    {}
-    public function getComment()
-    {}
-}
-class ControllerDef extends ClassDef
-{
-    public function getPages()
-    {}
-    public function getForms()
-    {}
-    public function getCsvFormats()
-    {}
-}
-class PageDef extends ClassMemberDef
-{
-    public function getPath()
-    {}
-    public function getPageId()
-    {}
-    public function getPageFile()
-    {}
-}
-class FormDef extends ClassMemberDef
-{
-    public function getFields()
-    {}
-}
-class FieldDef extends SchemaDef
-{
-    public function getRules()
-    {}
-}
-class RuleDef extends SchemaDef
-{
-}
-class CsvFormatDef extends ClassMemberDef
-{
-    public function getCsvCols()
-    {}
-}
-class CsvColDef extends SchemaDef
-{
-}
-class TableDef extends ClassDef
-{
-    public function getCols()
-    {}
-}
-class ColDef extends SchemaDef
-{
-}
-class EnumRepoDef extends ClassDef
-{
-    public function getEnums()
-    {}
-}
-class EnumDef extends ClassMemberDef
-{
-}
-class RoleDef extends SchemaDef
-{
+
+// -- route
+
+    public function getWebroot($name)
+    {
+        if ( ! $this->children["webroots"][$name]) {
+            $this->children["webroots"][$name] = new WebrootDef($this, $name);
+        }
+        return $this->children["webroots"][$name];
+    }
+    public function getWebroots()
+    {
+        foreach ((array)app()->config("route.webroots") as $name=>$config) $this->getWebroot($name);
+        return $this->children["webroots"];
+    }
+
+// -- role
+
+    public function getRole($name)
+    {
+        if ( ! $this->children["roles"][$name]) {
+            $this->children["roles"][$name] = new RoleDef($this, $name);
+        }
+        return $this->children["roles"][$name];
+    }
+    public function getRoles()
+    {
+        foreach ((array)app()->config("auth.roles") as $name=>$config) $this->getRole($name);
+        return $this->children["roles"];
+    }
+
+// -- class
+
+    public function getClass($name)
+    {
+        if ( ! $this->children["classes"][$name]) {
+            $this->children["classes"][$name] = new ClassDef($this, $name);
+        }
+        return $this->children["classes"][$name];
+    }
+    public function getClasses()
+    {
+        foreach (NameResolver::getAppClasses() as $name) $this->getClass($name);
+        return $this->children["classes"];
+    }
+
+// -- files
+
+    public function getFile($name)
+    {
+        if ( ! $this->children["files"][$name]) {
+            $this->children["files"][$name] = new FileDef($this, $name);
+        }
+        return $this->children["files"][$name];
+    }
+    public function getFiles()
+    {
+        foreach (NameResolver::getAppFiles() as $name) $this->getFile($name);
+        return $this->children["files"];
+    }
+    public function getFileByFullName($filename)
+    {
+        $name = NameResolver::getAppFileName($filename);
+        return $this->getFile($name);
+    }
 }
