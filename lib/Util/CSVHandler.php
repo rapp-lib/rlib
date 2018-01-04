@@ -113,12 +113,26 @@ class CSVHandler
         // エスケープを考慮して1行読み込み
         $d = $this->options["delim"];
         $e = $this->options["escape"];
+        $r = $this->options["return_code"];
+        $csv_line = "";
         $line = "";
         do {
-            $line .= fgets($this->handle);
+            // \nで改行する場合はfgetsで読み込む
+            if ($r==="\n") {
+                $line .= fgets($this->handle);
+            } else {
+                do {
+                    $line .= fread($this->handle,1);
+                } while ( ! feof($this->handle) && ! preg_match('!'.$r.'$!', $line));
+            }
             $item_count = preg_match_all('/'.$e.'/', $line, $dummy);
-        } while ($item_count % 2 != 0);
-        $csv_line = preg_replace('/(?:\r\n|[\r\n])?$/', $d, trim($line));
+        } while ( ! feof($this->handle) && $item_count % 2 != 0);
+        // \nで改行する場合は\r混在の曖昧さを許容する
+        if ($r==="\n") {
+            $csv_line = preg_replace('/(?:\r\n|[\r\n])?$/', $d, $line);
+        } else {
+            $csv_line = preg_replace('!(?:'.$r.')?$!', $d, $line);
+        }
         $csv_pattern ='/('.$e.'[^'.$e.']*(?:'.$e.$e.'[^'
                 .$e.']*)*'.$e.'|[^'.$d.']*)'.$d.'/';
         preg_match_all($csv_pattern, $csv_line, $matches);
