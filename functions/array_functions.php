@@ -86,27 +86,25 @@
     function array_get ( & $ref, $key, $flag=0)
     {
         $key_parts = explode(".",$key);
-        $key_last = array_pop($key_parts);
         foreach ($key_parts as $key_part) {
             if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
             if ( ! is_array($ref)) return null;
             $ref = & $ref[$key_part];
         }
-        return isset($ref[$key_last]) ? $ref[$key_last] : null;
+        return $ref;
     }
     /**
      * ドット記法で配列の参照を取得する
      */
-    function & array_get_ref ( & $ref, $key)
+    function & array_get_ref ( & $ref, $key, $flag=0)
     {
         $key_parts = explode(".",$key);
-        $key_last = array_pop($key_parts);
         foreach ($key_parts as $key_part) {
             if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
             if ( ! is_array($ref)) $ref = array();
             $ref = & $ref[$key_part];
         }
-        return $ref[$key_last];
+        return $ref;
     }
     /**
      * ドット記法で配列の値を削除する
