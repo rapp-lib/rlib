@@ -9,6 +9,11 @@ class Def_Base
     protected $children = array();
     public function __construct ($parent, $name, $attrs=array())
     {
+        if ( ! strlen($name)) {
+            report_error("nome属性が空白です", array(
+                "class" => get_class($this),
+            ));
+        }
         $this->parent = $parent;
         $this->name = $name;
         $this->attrs = $attrs;
@@ -32,8 +37,7 @@ class Def_Base
     }
     public function getSchema ()
     {
-        if ( ! $this->parent) return $this;
-        return $this->parent->getSchema();
+        return $this->getDefType()==="schema" ? $this : $this->parent->getSchema();
     }
     /**
      * 要素のTypeを小文字で返す
@@ -47,8 +51,6 @@ class Def_Base
     {
         return array(
             "name" => $this->name,
-            "attrs" => $this->attrs,
-            "children" => $this->children,
         );
     }
 }

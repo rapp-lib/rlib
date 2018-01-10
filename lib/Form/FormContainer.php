@@ -644,7 +644,8 @@ class FormContainer extends ArrayObject
      * field_nameに対応する値の書き換え関数を対象の配列内で逐次適用する
      * @param $function function ($field_value, $field_name_parts) => $field_value
      */
-    private static function applyFieldFilter ( & $values, $field_name, $function) {
+    private static function applyFieldFilter ( & $values, $field_name, $function)
+    {
         $parts = explode('.',$field_name);
         // 対象が配列ではない
         if (count($parts)==1) {

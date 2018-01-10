@@ -2,11 +2,62 @@
 namespace R\Lib\Analyzer\Def;
 
 use R\Lib\Analyzer\NameResolver;
+use R\Lib\Analyzer\PathCollection;
 
 class SchemaDef extends Def_Base
 {
+    public static function test()
+    {
+        $schema = new SchemaDef();
+        // URL一覧
+        $d = array();
+        foreach ($schema->getWebroots() as $webroot) {
+            $webroot->getName();
+            foreach ($webroot->getRoutes() as $route) {
+                $d[] = array(
+                    "uri" => $route->getUri(),
+                    "title" => ($html=$route->getHtml()) ? $html->getTitle() : "",
+                );
+            }
+        }
+        report($d);
+        // 入力仕様書
+        $d = array();
+        foreach ($schema->getControllers() as $controller) {
+            $d[] = array(
+                "controller" => $controller->getName(),
+            );
+            foreach ($controller->getForms() as $form) {
+                $d[] = array(
+                    "form" => $form->getName(),
+                );
+                foreach ($form->getFields() as $field) {
+                    $d[] = array(
+                        "field" => $field->getName(),
+                    );
+                    foreach ($field->getRules() as $rule) {
+                        $d[] = array(
+                            "rule" => $rule->getName(),
+                        );
+                    }
+                }
+            }
+        }
+        report($d);
+        // テスト仕様書
+        // ファイル一覧
+        $d = $schema->getFiles();
+        report($d);
+    }
+
+    private $config;
     public function __construct()
     {
+        $this->config = include(constant("R_APP_ROOT_DIR")."/.analyze.php");
+    }
+    public function getConfig($name)
+    {
+        return array_get($this->config, $name);
     }
 
 // -- controller
@@ -33,7 +84,6 @@ class SchemaDef extends Def_Base
         list($controller_name, $name) = explode('.', $full_name, 2);
         return $this->getController($controller_name)->getAction($name);
     }
-
 
 // -- table
 
@@ -81,7 +131,7 @@ class SchemaDef extends Def_Base
     }
     public function getWebroots()
     {
-        foreach ((array)app()->config("route.webroots") as $name=>$config) $this->getWebroot($name);
+        foreach ((array)app()->http->getWebroots() as $name=>$entity) $this->getWebroot($name);
         return $this->children["webroots"];
     }
 
@@ -119,14 +169,26 @@ class SchemaDef extends Def_Base
 
     public function getFile($name)
     {
-        if ( ! $this->children["files"][$name]) {
-            $this->children["files"][$name] = new FileDef($this, $name);
+        if ( ! $this->children["files"]) {
+            $this->children["files"] = array();
+            $paths = PathCollection::scanDir(constant("R_APP_ROOT_DIR"));
+            foreach ((array)$this->getConfig("files.desc") as $desc) {
+                $paths->addPaths($desc[0], array("desc"=>$desc[1]));
+            }
+            foreach ((array)$this->getConfig("files.ignore") as $path) {
+                $paths->removePath($path);
+            }
+            foreach ($paths->getFlatten() as $file=>$attrs) {
+                if ( ! file_exists($file)) continue;
+                $name = NameResolver::getAppFileName($file);
+                $this->children["files"][$name] = new FileDef($this, $name, (array)$attrs);
+            }
         }
         return $this->children["files"][$name];
     }
     public function getFiles()
     {
-        foreach (NameResolver::getAppFiles() as $name) $this->getFile($name);
+        $this->getFile(false);
         return $this->children["files"];
     }
     public function getFileByFullName($filename)

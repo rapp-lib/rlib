@@ -11,85 +11,84 @@ class NameResolver
 
     public static function getControllerNames()
     {
-        $names = array();
-        $glob = constant("R_APP_ROOT_DIR")."/app/Controller/*Controller.php";
-        foreach (glob($glob) as $file) if (preg_match('!/(\w+)Controller\.php$!', $file, $_)) {
-            $names[] = str_underscore($_[1]);
-        }
-        return $names;
+        return self::scanAppDir("/app/Controller", function($file){
+            if (preg_match('!/(\w+)Controller\.php$!', $file, $_)) {
+                return str_underscore($_[1]);
+            }
+        });
     }
     public static function getControllerNameByClass($class)
     {
+        if (preg_match('!\\\R\\\App\\\Controller\\\(\w+)Controller$!', $class, $_)) {
+            return str_underscore($_[1]);
+        }
+        return null;
     }
     public static function getControllerClassByName($name)
     {
-    }
-
-// -- form
-
-    public static function getFormPropByName($name)
-    {
-        if (preg_match('!^([\w_]+)\.([\w_]+)$!', $name, $_)) {
-            return array(self::getControllerClassByName($_[1]), $_[2]);
-        }
-        return null;
+        return '\R\App\Controller\\'.str_camelize($name)."Controller";
     }
 
 // -- table
 
     public static function getTableNames()
     {
-        $names = array();
-        $glob = constant("R_APP_ROOT_DIR")."/app/Table/*Table.php";
-        foreach (glob($glob) as $file) if (preg_match('!/(\w+)Table\.php$!', $file, $_)) {
-            $names[] = str_underscore($_[1]);
-        }
-        return $names;
+        return self::scanAppDir("/app/Table", function($file){
+            if (preg_match('!/(\w+)Table\.php$!', $file, $_)) {
+                return str_underscore($_[1]);
+            }
+        });
     }
 
 // -- enum
 
     public static function getEnumRepoNames()
     {
-        $names = array();
-        $glob = constant("R_APP_ROOT_DIR")."/app/Enum/*Enum.php";
-        foreach (glob($glob) as $file) if (preg_match('!/(\w+)Enum\.php$!', $file, $_)) {
-            $names[] = str_underscore($_[1]);
-        }
-        return $names;
+        return self::scanAppDir("/app/Enum", function($file){
+            if (preg_match('!/(\w+)Enum\.php$!', $file, $_)) {
+                return str_underscore($_[1]);
+            }
+        });
     }
 
 // -- class
 
     public static function getAppClasses()
     {
-        $classes = array();
-        for ($i=1; $i<10; $i++) {
-            $glob = constant("R_APP_ROOT_DIR")."/app".str_repeat("/*", $i).".php";
-            $ptn = '!^'.preg_quote(constant("R_APP_ROOT_DIR")."/app/",'!').'(.*)\.php$!';
-            foreach (glob($glob) as $file) if (preg_match($ptn, $file, $_)) {
-                $classes[] = '\R\App\\'.str_replace('/','\\',$_[1]);
+        return self::scanAppDir("/app", function($file){
+            if (preg_match('!^/app/(.*)\.php$!', $file, $_)) {
+                return '\R\App\\'.str_replace('/','\\',$_[1]);
             }
-        }
-        return $classes;
+        });
     }
 
 // -- file
 
-    public static function getAppFiles()
-    {
-        $files = array();
-        for ($i=1; $i<20; $i++) {
-            $glob = constant("R_APP_ROOT_DIR").str_repeat("/*", $i);
-            foreach (glob($glob) as $file) {
-                $files[] = self::getAppFileName($file);
-            }
-        }
-        return $files;
-    }
     public static function getAppFileName($file)
     {
         $ptn = '!^'.preg_quote(constant("R_APP_ROOT_DIR"),'!').'(.*)$!';
         return preg_match($ptn, $file, $_) ? $_[1] : null;
+    }
+    public static function scanAppDir($dir, $map_filter=null)
+    {
+        return self::scanDir(constant("R_APP_ROOT_DIR").$dir, function($file)use($map_filter){
+            $file = NameResolver::getAppFileName($file);
+            if ($map_filter) $file = call_user_func($map_filter, $file);
+            return $file;
+        });
+    }
+    public static function scanDir($dir, $map_filter=null)
+    {
+        $files = array();
+        foreach (new \DirectoryIterator($dir) as $file) {
+            if ($file->isDot()) continue;
+            if ($file->isFile()) $files[] = $file->getPathname();
+            if ($file->isDir()) $files = array_merge($files, self::scanDir($file->getPathname()));
+        }
+        if ($map_filter) {
+            $files = array_map($map_filter, $files);
+            $files = array_filter($files, function($file){ return strlen($file)!==0; });
+        }
+        return $files;
     }
 }

@@ -1,6 +1,8 @@
 <?php
 namespace R\Lib\Analyzer\Def;
 
+use \ReflectionClass;
+
 class ClassDef extends Def_Base
 {
     protected $ref = null;
@@ -26,7 +28,9 @@ class ClassDef extends Def_Base
     }
     public function getProps()
     {
-        foreach ($this->getRef()->getProperties() as $_prop) $this->getProp($_prop->getName());
+        foreach ($this->getRef()->getProperties() as $_prop) {
+            $this->getProp($_prop->getName());
+        }
         return $this->children["props"];
     }
 
@@ -41,7 +45,9 @@ class ClassDef extends Def_Base
     }
     public function getMethods()
     {
-        foreach ($this->getRef()->getMethods() as $_method) $this->getMethod($_method->getName());
+        foreach ($this->getRef()->getMethods() as $_method) {
+            $this->getMethod($_method->getName());
+        }
         return $this->children["methods"];
     }
 }
