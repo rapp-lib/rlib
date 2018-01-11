@@ -53,6 +53,14 @@ class FormContainer extends ArrayObject
         );
     }
 
+    /**
+     * Form定義情報を取得
+     */
+    public function exportDef ()
+    {
+        return $this->def;
+    }
+
 // -- 多階層構造
 
     /**

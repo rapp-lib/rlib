@@ -6,50 +6,6 @@ use R\Lib\Analyzer\PathCollection;
 
 class SchemaDef extends Def_Base
 {
-    public static function test()
-    {
-        $schema = new SchemaDef();
-        // URL一覧
-        $d = array();
-        foreach ($schema->getWebroots() as $webroot) {
-            $webroot->getName();
-            foreach ($webroot->getRoutes() as $route) {
-                $d[] = array(
-                    "uri" => $route->getUri(),
-                    "title" => ($html=$route->getHtml()) ? $html->getTitle() : "",
-                );
-            }
-        }
-        report($d);
-        // 入力仕様書
-        $d = array();
-        foreach ($schema->getControllers() as $controller) {
-            $d[] = array(
-                "controller" => $controller->getName(),
-            );
-            foreach ($controller->getForms() as $form) {
-                $d[] = array(
-                    "form" => $form->getName(),
-                );
-                foreach ($form->getFields() as $field) {
-                    $d[] = array(
-                        "field" => $field->getName(),
-                    );
-                    foreach ($field->getRules() as $rule) {
-                        $d[] = array(
-                            "rule" => $rule->getName(),
-                        );
-                    }
-                }
-            }
-        }
-        report($d);
-        // テスト仕様書
-        // ファイル一覧
-        $d = $schema->getFiles();
-        report($d);
-    }
-
     private $config;
     public function __construct()
     {
@@ -120,7 +76,7 @@ class SchemaDef extends Def_Base
         return $this->children["enum_repos"];
     }
 
-// -- route
+// -- webroot
 
     public function getWebroot($name)
     {
@@ -133,6 +89,13 @@ class SchemaDef extends Def_Base
     {
         foreach ((array)app()->http->getWebroots() as $name=>$entity) $this->getWebroot($name);
         return $this->children["webroots"];
+    }
+    public function getFirstRoute($name)
+    {
+        foreach ($this->getWebroots() as $webroot) {
+            if ($route = $webroot->getRoute($name)) return $route;
+        }
+        return null;
     }
 
 // -- role

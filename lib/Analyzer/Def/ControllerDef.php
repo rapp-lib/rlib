@@ -59,18 +59,10 @@ class ActionDef extends Def_Base
 
 // -- route
 
-    public function getRoute()
+    public function getFirstRoute()
     {
-        return array_shift($routes = $this->getRouteAll());
-    }
-    public function getRouteAll()
-    {
-        $routes = array();
-        foreach ($this->getSchema()->getWebroots() as $webroot) {
-            $page_id = $this->getParent()->getName().".".$this->getName();
-            if ($route = $webroot->getRoute($page_id)) $routes[] = $route;
-        }
-        return $routes;
+        $page_id = $this->getParent()->getName().".".$this->getName();
+        return $this->getSchema()->getFirstRoute($page_id);
     }
 }
 class FormDef extends Def_Base
@@ -79,12 +71,29 @@ class FormDef extends Def_Base
     {
         return app()->form[$this->getParent()->getName()][$this->getName()];
     }
+
+// -- def
+
+    private $def;
     public function getDef()
     {
         if ( ! $this->def) {
             $this->def = ReflectiveAnalyzer::getPrivateValue($this->getEntity(), "def");
         }
         return $this->def;
+    }
+
+// -- route
+
+    public function getFormRoute()
+    {
+        $def = $this->getDef();
+        return $this->getSchema()->getFirstRoute($def["form_page"]);
+    }
+    public function getSearchRoute()
+    {
+        $def = $this->getDef();
+        return $this->getSchema()->getFirstRoute($def["search_page"]);
     }
 
 // -- field
