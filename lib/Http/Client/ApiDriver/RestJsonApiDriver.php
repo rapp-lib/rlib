@@ -5,7 +5,7 @@ class RestJsonApiDriver extends ApiDriver
 {
     public function request($uri, $opt=array())
     {
-        $response_body = parent::request($uri, $opt)->getBody();
+        $response_body = (string)parent::request($uri, $opt)->getBody();
         return json_decode($response_body, true);
     }
 }

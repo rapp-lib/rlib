@@ -10,14 +10,12 @@ class ApiDriver
     }
     public function request($uri, $opt=array())
     {
-        return $this->httpRequest($uri, $opt);
-    }
-    public function httpRequest($uri, $opt=array())
-    {
+        $uri = $this->config["base_uri"].$uri;
         $method = $opt["method"] ?: "GET";
         $headers = $opt["headers"] ?: array();
-        $body = $opt["body"] ?: null;
-        $client = new \Guzzle\Http\Client;
-        return $client->createRequest($method, $uri, $headers, $body, $opt)->send();
+        $body = $opt["body"] ?: "";
+        $client = new \Guzzle\Http\Client();
+        $response = $client->createRequest($method, $uri, $headers, $body, $opt)->send();
+        return $response;
     }
 }
