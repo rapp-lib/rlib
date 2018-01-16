@@ -12,7 +12,7 @@ class Validator
 
     public function __construct ($rules, $values)
     {
-        $this->values = $values;
+        $this->values = (array)$values;
         $this->errors = array();
         $this->applyRules($rules);
     }
