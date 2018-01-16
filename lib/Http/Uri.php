@@ -20,7 +20,7 @@ class Uri extends \Zend\Diactoros\Uri
             $uri = $this->webroot->getRouter()->buildUriStringByPageId($uri["page_id"], $uri["embed_params"]);
         } elseif (is_string($uri) && preg_match('!^id://([^\?]+)$!', $uri, $match)) {
             $page_id = $match[1];
-            $embed_params = $this->webroot->getRouter()->filterEmbedParamsFromQueryParams($uri["page_id"], $query_params);
+            $embed_params = $this->webroot->getRouter()->filterEmbedParamsFromQueryParams($page_id, $query_params);
             $uri = $this->webroot->getRouter()->buildUriStringByPageId($page_id, $embed_params);
         // page_pathを元に初期化
         } elseif (is_array($uri) && isset($uri["page_path"])) {

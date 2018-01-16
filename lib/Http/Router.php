@@ -4,8 +4,9 @@ namespace R\Lib\Http;
 class Router
 {
     private $webroot;
-    private $base_uri;
     private $route_dispatcher;
+    private $routes;
+    private $base_uri = null;
     public function __construct ($webroot, array $routes_config)
     {
         $this->webroot = $webroot;
@@ -25,12 +26,12 @@ class Router
     public function parseUri($uri)
     {
         // 相対解決用BaseUri
-        $request_uri = $this->webroot->getBaseUri();
+        $base_uri = $this->webroot->getBaseUri();
         $parsed = array();
-        if (strlen($uri->getHost()) && $uri->getHost() !== $request_uri->getHost()) {
+        if (strlen($uri->getHost()) && $uri->getHost() !== $base_uri->getHost()) {
             return $parsed;
         }
-        if (preg_match('!^'.preg_quote($request_uri->getPath(), '!').'(.*?)$!', $uri->getPath(), $match)) {
+        if (preg_match('!^'.preg_quote($base_uri->getPath(), '!').'(.*?)$!', $uri->getPath(), $match)) {
             $parsed["page_path"] = $match[1];
         } else {
             return array();
@@ -58,6 +59,10 @@ class Router
             }
         }
         return $parsed;
+    }
+    public function getRoutes ()
+    {
+        return $this->routes;
     }
     public function getRouteByPageId ($page_id)
     {

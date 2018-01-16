@@ -63,7 +63,7 @@ class Webroot
     }
     /**
      * ServerRequest::__construct内で設定を反映するために使う
-     * @private
+     * @access private
      */
     public function updateByRequest ($docroot_dir, $request_uri)
     {

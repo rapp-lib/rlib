@@ -99,7 +99,12 @@ class TableElement extends Element_Base
     {
         $indexes = array();
         foreach ($this->getCols() as $col) {
+            $index_names = (array)$col->getAttr("indexes");
             if ($index_name = $col->getAttr("index")) {
+                if (is_array($index_name)) $index_names = array_merge($index_names, $index_name);
+                else $index_names[] = $index_name;
+            }
+            foreach ($index_names as $index_name) {
                 if ( ! isset($indexes[$index_name])) {
                     $indexes[$index_name] = array("name"=>$index_name, "cols"=>array());
                 }

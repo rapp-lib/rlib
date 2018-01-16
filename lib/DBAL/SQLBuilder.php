@@ -41,6 +41,10 @@ class SQLBuilder
         return "DELETE ".$this->stDeleteFrom($q["table"])
             .$this->stWhere($q["where"], " WHERE ");
     }
+    public function stTruncate($q)
+    {
+        return "TRUNCATE TABLE ".$this->stDeleteFrom($q["table"]);
+    }
 // -- JOIN句
     public function stJoins($xs)
     {
