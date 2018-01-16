@@ -53,14 +53,6 @@ class FormContainer extends ArrayObject
         );
     }
 
-    /**
-     * Form定義情報を取得
-     */
-    public function exportDef ()
-    {
-        return $this->def;
-    }
-
 // -- 多階層構造
 
     /**
@@ -229,6 +221,14 @@ class FormContainer extends ArrayObject
             $this->tmp_storage = app()->session($container_name);
         }
         return $this->tmp_storage;
+    }
+
+    /**
+     * 保存領域の値の取得
+     */
+    public function getSavedValues ()
+    {
+        return (array)$this->getTmpStorage()->get("values");
     }
 
 // -- Request/HTML関連処理
