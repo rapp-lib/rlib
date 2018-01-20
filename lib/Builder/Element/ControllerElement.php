@@ -12,6 +12,8 @@ class ControllerElement extends Element_Base
         // Pagesetの補完
         if ($this->getAttr("type") == "index") {
             $pagesets[] = array("type"=>"index");
+        } elseif ($this->getAttr("type") == "blank") {
+            $pagesets[] = array("type"=>"blank");
         } elseif ($this->getAttr("type") == "login") {
             $pagesets[] = array("type"=>"login");
             if ($this->getFlagAttr("use_reminder", false)) {

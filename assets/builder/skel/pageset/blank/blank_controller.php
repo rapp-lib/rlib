@@ -1,0 +1,3 @@
+<?=$pageset->getPageByType("index")->getMethodDecSource()?>
+    {
+    }
