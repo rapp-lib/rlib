@@ -18,7 +18,8 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
     }
     public function offsetExists($key)
     {
-        if ( ! isset($this->values[self::encodeKey($key)])) $this->retreive(array($key));
+        if ($key===null) return null;
+        if ( ! array_key_exists(self::encodeKey($key), $this->values)) $this->retreive(array($key));
         return isset($this->values[self::encodeKey($key)]);
     }
     public function offsetGet($key)
@@ -59,8 +60,12 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
         $prop_name = 'values_'.$this->values_name;
         if (method_exists($this, $prop_name)) {
             $values = (array)call_user_func(array($this,$prop_name), $keys);
-            foreach ($values as $k=>$v) $this->values[$k] = $v;
-            if ($keys===null) $this->retreived = true;
+            if ($keys===null) {
+                $this->retreived = true;
+                foreach ($values as $k=>$v) $this->values[self::encodeKey($k)] = $v;
+            } else {
+                foreach ($keys as $k) $this->values[self::encodeKey($k)] = $values[$k];
+            }
         } elseif (property_exists($this, $prop_name)) {
             $this->values = static::$$prop_name;
             $this->retreived = true;
@@ -76,6 +81,7 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
 
     protected static function encodeKey($key)
     {
-        return is_array($key) ? json_encode($key) : $key;
+        if (is_array($key)) return json_encode($key);
+        return $key;
     }
 }

@@ -19,6 +19,13 @@ class PagesetElement extends Element_Base
             $page_attrs = array("type"=>$page_type);
             $this->children["page"][$page_name] = new PageElement($page_name, $page_attrs, $this);
         }
+        // BlankPage登録
+        if ($this->getAttr("type")==="blank") {
+            $page_name = $this->getName();
+            $page_attrs = (array)$this->getAttr("page_attrs");
+            if ( ! $page_attrs["type"]) $page_attrs["type"] = "blank";
+            $this->children["page"][$page_name] = new PageElement($page_name, $page_attrs, $this);
+        }
         // Mail登録
         $controller_name = $this->getParent()->getName();
         if ($this->getAttr("use_mail")) {

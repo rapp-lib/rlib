@@ -91,7 +91,7 @@
                 "index_page" => "index",
                 "controller.template_file" => $dir."/pageset/blank/blank_controller.php",
                 "pages.index.template_file" => $dir."/pageset/blank/blank.html",
-                "label" => "コンテンツ",
+                "label" => "",
             ),
             "login" => array(
                 "use_table" => false,
