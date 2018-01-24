@@ -90,7 +90,7 @@
                 "attrs" => array(),
                 "index_page" => "index",
                 "controller.template_file" => $dir."/pageset/blank/blank_controller.php",
-                "pages.index.template_file" => $dir."/pageset/blank/blank.html",
+                "pages.blank.template_file" => $dir."/pageset/blank/blank.html",
                 "label" => "",
             ),
             "login" => array(
