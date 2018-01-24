@@ -88,7 +88,7 @@
                 "use_table" => false,
                 "params" => array(),
                 "attrs" => array(),
-                "index_page" => "index",
+                "index_page" => "blank",
                 "controller.template_file" => $dir."/pageset/blank/blank_controller.php",
                 "pages.blank.template_file" => $dir."/pageset/blank/blank.html",
                 "label" => "",

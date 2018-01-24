@@ -13,17 +13,12 @@ class PagesetElement extends Element_Base
             ));
         }
         // Page登録
-        $page_configs = (array)$this->getSchema()->getConfig($this->getTemplateEntry().".pages");
+        $page_configs = (array)$this->getSkelConfig("pages");
+        $index_page_type = $this->getSkelConfig("index_page");
         foreach ($page_configs as $page_type => $page_config) {
-            $page_name = $this->getName()==$page_type ? $page_type : $this->getName()."_".$page_type;
-            $page_attrs = array("type"=>$page_type);
-            $this->children["page"][$page_name] = new PageElement($page_name, $page_attrs, $this);
-        }
-        // BlankPage登録
-        if ($this->getAttr("type")==="blank") {
             $page_name = $this->getName();
-            $page_attrs = (array)$this->getAttr("page_attrs");
-            if ( ! $page_attrs["type"]) $page_attrs["type"] = "blank";
+            if ($index_page_type!=$page_type) $page_name .= "_".$page_type;
+            $page_attrs = array("type"=>$page_type);
             $this->children["page"][$page_name] = new PageElement($page_name, $page_attrs, $this);
         }
         // Mail登録
