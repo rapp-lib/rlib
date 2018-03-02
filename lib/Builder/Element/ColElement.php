@@ -1,6 +1,8 @@
 <?php
 namespace R\Lib\Builder\Element;
 
+use R\Lib\Builder\CodeRenderer;
+
 class ColElement extends Element_Base
 {
     public function getLabel ()
@@ -62,21 +64,21 @@ class ColElement extends Element_Base
         if ( ! $this->hasColDef()) $def["col"] = false;
         if ($this->getAttr("type")=="file") $def["storage"] = "public";
         $lines = array();
-        $lines[] = $this->stringifyValue($name, $def);
+        $lines[$name] = $def;
 
         // type=assocに関わる定義を追記
         if ($this->getAttr("type")==="assoc"){
             if ($pageset->getFlg("is_master") && ! $this->getAttr("def.assoc.single")){
-                $lines[] = '"'.$this->getName().'.*.'.$this->getAssocTable()->getIdCol()->getName().'"';
+                $lines[] = $this->getName().'.*.'.$this->getAssocTable()->getIdCol()->getName();
             }
-            if (($assoc_ord_col = $this->getAssocTable()->getOrdCol()) && ! $assoc_ord_col->getAttr("type")){
-                $lines[] = '"'.$this->getName().'.*.'.$assoc_ord_col->getName().'"';
+            $assoc_ord_col = $this->getAssocTable()->getOrdCol();
+            if ($assoc_ord_col && ! $assoc_ord_col->getAttr("type")){
+                $lines[] = $this->getName().'.*.'.$assoc_ord_col->getName();
             } else {
-                $lines[] = $this->stringifyValue($this->getName().".*.ord_seq", array("col"=>false));
+                $lines[$this->getName().".*.ord_seq"] = array("col"=>false);
             }
         }
-        $source = "";
-        foreach ($lines as $line) $source .= '            '.$line.','."\n";
+        $source = CodeRenderer::elementLines(3, $lines);
         // assoc下位の定義を追記
         if ($this->getAttr("type")==="assoc"){
             foreach ($controller->getAssocInputCols($this) as $assoc_col) {
@@ -94,21 +96,16 @@ class ColElement extends Element_Base
     public function getSearchFormFieldDefSource ($o=array())
     {
         $name = $this->getName();
-        $type = $o["type"];
-        if ( ! $type) {
-            if (in_array($this->getAttr("def.type"), array("text", "textarea"))) {
-                $type = "word";
-            } if (in_array($this->getAttr("def.type"), array("date"))) {
-                $def_start = array("search"=>"where", "target_col"=>$name, "op"=>"<=");
-                $def_end = array("search"=>"where", "target_col"=>$name, "op"=>">=");
-                return '            '.$this->stringifyValue($name."_start", $def_start).','."\n"
-                    .'            '.$this->stringifyValue($name."_end", $def_end).','."\n";
-            } else {
-                $type = "where";
-            }
+        $lines = array();
+        if (in_array($this->getAttr("type"), array("text", "textarea"))) {
+            $lines[$name] = array("search"=>"word", "target_col"=>$name);
+        } elseif (in_array($this->getAttr("type"), array("date"))) {
+            $lines[$name."_start"] = array("search"=>"where", "target_col"=>$name, "op"=>"<=");
+            $lines[$name."_end"] = array("search"=>"where", "target_col"=>$name, "op"=>">=");
+        } else {
+            $lines[$name] = array("search"=>"where", "target_col"=>$name);
         }
-        $def = array("search"=>$type, "target_col"=>$name);
-        return '            '.$this->stringifyValue($name, $def).','."\n";
+        return CodeRenderer::elementLines(3, $lines);
     }
     /**
      * メール表示用PHPソースの取得
@@ -128,7 +125,7 @@ class ColElement extends Element_Base
         if ($this->getAttr("type")=="checklist" && $def["type"]=="text" && ! $def["format"]) {
             $def["format"] = "json";
         }
-        return '        '.$this->stringifyValue($this->getName(), $def).','."\n";
+        return CodeRenderer::elementLine(2, $this->getName(), $def);
     }
     /**
      * form.field_def中でのrule定義行の取得
@@ -173,7 +170,7 @@ class ColElement extends Element_Base
         }
         $source = "";
         // Ruleの値を配列コードとして出力
-        foreach ($rules as $rule) $source .= '            '.$this->stringifyValue(0, $rule).','."\n";
+        $source .= CodeRenderer::elementLines(3, $rules);
         // assoc配下のRuleも出力
         if ($this->getAttr("type")==="assoc") {
             foreach ($controller->getAssocInputCols($this) as $assoc_col) {
@@ -196,24 +193,5 @@ class ColElement extends Element_Base
     public function hasColDef ()
     {
         return ! $this->getAttr("nodef");
-    }
-    private function stringifyValue($k, $v)
-    {
-        if (is_array($v)) {
-            foreach ($v as $k2=>$v2) {
-                $v[$k2] = $this->stringifyValue($k2,$v2);
-            }
-            $v = 'array('.implode(', ',$v).')';
-        } elseif (is_numeric($v)) {
-        } elseif (is_string($v)) {
-            $v = '"'.$v.'"';
-        } elseif (is_null($v)) {
-            $v = 'null';
-        } elseif (is_bool($v)) {
-            $v = $v ? 'true' : 'false';
-        } else {
-            $v = (string)$v;
-        }
-        return (is_numeric($k) ? "" : '"'.$k.'"=>').$v;
     }
 }
