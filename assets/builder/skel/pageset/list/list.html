@@ -12,7 +12,7 @@
 <?php   foreach ($controller->getSearchCols() as $col): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
-        <td><?=$col->getInputSource(array("page"=>$page))?></td>
+        <td><?=$col->getSearchInputSource(array("page"=>$page))?></td>
     </tr>
 <?php   endforeach; ?>
 </table>

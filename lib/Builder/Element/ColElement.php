@@ -32,6 +32,13 @@ class ColElement extends Element_Base
         return $this->getSchema()->fetch("parts.col_input", array("col"=>$this, "o"=>$o));
     }
     /**
+     * 検索入力HTMLソースの取得
+     */
+    public function getSearchInputSource ($o=array())
+    {
+        return $this->getInputSource($o);
+    }
+    /**
      * 表示HTMLソースの取得
      */
     public function getShowSource ($o=array())
@@ -87,8 +94,19 @@ class ColElement extends Element_Base
     public function getSearchFormFieldDefSource ($o=array())
     {
         $name = $this->getName();
-        $type = $o["type"] ?: "where";
-        if (in_array($this->getAttr("def.type"), array("text", "textarea"))) $type = "word";
+        $type = $o["type"];
+        if ( ! $type) {
+            if (in_array($this->getAttr("def.type"), array("text", "textarea"))) {
+                $type = "word";
+            } if (in_array($this->getAttr("def.type"), array("date"))) {
+                $def_start = array("search"=>"where", "target_col"=>$name, "op"=>"<=");
+                $def_end = array("search"=>"where", "target_col"=>$name, "op"=>">=");
+                return '            '.$this->stringifyValue($name."_start", $def_start).','."\n"
+                    .'            '.$this->stringifyValue($name."_end", $def_end).','."\n";
+            } else {
+                $type = "where";
+            }
+        }
         $def = array("search"=>$type, "target_col"=>$name);
         return '            '.$this->stringifyValue($name, $def).','."\n";
     }
