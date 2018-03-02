@@ -68,7 +68,7 @@ class ColElement extends Element_Base
 
         // type=assocに関わる定義を追記
         if ($this->getAttr("type")==="assoc"){
-            if ($pageset->getFlg("is_master") && ! $this->getAttr("def.assoc.single")){
+            if ( ! $this->getAttr("def.assoc.single") && ($pageset->getFlg("is_master") || $pageset->getFlg("is_edit"))){
                 $lines[] = $this->getName().'.*.'.$this->getAssocTable()->getIdCol()->getName();
             }
             $assoc_ord_col = $this->getAssocTable()->getOrdCol();
