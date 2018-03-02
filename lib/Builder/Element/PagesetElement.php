@@ -260,6 +260,12 @@ class PagesetElement extends Element_Base
     public function getParamFields ($types=array())
     {
         $param_fields = array();
+        if ($params_config = $this->getSkelConfig("params")) {
+            // pagesetについてidパラメータの引き渡しが要件になっている場合、id=IDを渡す
+            if ($params_config["id"]) {
+                $param_fields["id"] = array("type"=>"id", "field_name"=>"id", "param_name"=>"id");
+            }
+        }
         foreach ((array)$this->getAttr("param_fields") as $field_type => $fields) {
             // param_fieldsの指定が配列ではなくfield_nameのみである場合に対応
             if ($fields && ! is_array($fields)) $fields = array($fields=>array());
@@ -276,12 +282,6 @@ class PagesetElement extends Element_Base
                     $param_field["param_name"] = $param_field["field_name"];
                 }
                 $param_fields[$param_field["field_name"]] = $param_field;
-            }
-        }
-        if ($params_config = $this->getSkelConfig("params")) {
-            // pagesetについてidパラメータの引き渡しが要件になっている場合、id=IDを渡す
-            if ($params_config["id"]) {
-                $param_fields["id"] = array("type"=>"id", "field_name"=>"id", "param_name"=>"id");
             }
         }
         // Typeの指定があれば絞り込む
@@ -310,20 +310,19 @@ class PagesetElement extends Element_Base
         foreach ($this->getParamFields() as $param_field) {
             $field_name = $param_field["field_name"];
             $param_name = $param_field["param_name"];
-            // 共通パラメータの引き継ぎ（Form経由）
-            if ($from_pageset->getParamFieldByName($field_name) && $form_name) {
-                if ($type=="redirect") $o["params"][$param_name] = $form_name.'["'.$field_name.'"]';
-                else $o["params"][$param_name] = $form_name.'.'.$field_name;
-                break;
             // recordの指定があればIDを渡す
-            } elseif ($record_name && $from_table) {
+            if ($record_name && $from_table) {
                 $id_col_name = $from_table->getIdCol()->getName();
                 if ($type=="redirect") $o["params"][$param_name] = $record_name.'["'.$id_col_name.'"]';
                 else $o["params"][$param_name] = $record_name.'.'.$id_col_name;
                 break;
+            // 共通パラメータの引き継ぎ（Form経由）
+            } elseif ($from_pageset->getParamFieldByName($field_name) && $form_name) {
+                if ($type=="redirect") $o["params"][$param_name] = $form_name.'["'.$field_name.'"]';
+                else $o["params"][$param_name] = $form_name.'.'.$field_name;
+                break;
             }
         }
-
         return $this->getIndexPage()->getLinkSource($type, $from_pageset, $o);
     }
 }

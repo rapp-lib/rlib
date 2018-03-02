@@ -132,7 +132,9 @@ class ValidateRuleLoader
         if (self::isEmpty($value)) return false;
         $q = table($rule["table"]);
         $q = $q->findBy($rule["col_name"], $value);
-        if ($rule["id_field"]) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue($rule["id_field"]));
+        if ($rule["id_field"]) $id = $validator->getValue($rule["id_field"]);
+        if ($rule["id_role"]) $id = app()->user->id($rule["id_role"]);
+        if (isset($id)) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $id);
         if (count($q->select())==0) return false;
         return array("message"=>__("既に登録されています"));
     }
