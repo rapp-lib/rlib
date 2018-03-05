@@ -143,9 +143,10 @@ class ControllerElement extends Element_Base
     /**
      * 入力画面に表示するColの取得
      */
-    public function getInputCols ()
+    public function getInputCols ($table=false)
     {
-        $cols = $this->getTable()->getInputCols();
+        if ($table===false) $table = $this->getTable();
+        $cols = $table->getInputCols();
         // use_atによるフィルタリング
         $filtered_cols = array();
         foreach ($cols as $i => $col) {
@@ -162,18 +163,12 @@ class ControllerElement extends Element_Base
      */
     public function getAssocInputCols ($parent_col)
     {
-        // getAssocTableとして指定された際のカラム取得
-        $cols = $parent_col->getAssocTable()->getAssocInputCols($parent_col);
-        // use_atによるフィルタリング
-        $filtered_cols = array();
-        foreach ($cols as $i => $col) {
-            if (is_array($use_at = $col->getAttr("use_at"))) {
-                foreach ($use_at as $controller_name) {
-                    if ($controller_name == $this->getName()) $filtered_cols[] = $col;
-                }
-            }
-        }
-        return $filtered_cols ?: $cols;
+        $cols = $this->getInputCols($parent_col->getAssocTable());
+        $cols = array_filter($cols, function($col) use ($parent_col){
+            return $col->getAttr("def.fkey_for")!==$parent_col->getTable()->getName()
+                && $col->getAttr("type")!=="assoc";
+        });
+        return $cols;
     }
     /**
      * 検索フォームに表示するColの取得

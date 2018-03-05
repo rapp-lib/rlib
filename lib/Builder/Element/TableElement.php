@@ -77,16 +77,6 @@ class TableElement extends Element_Base
     {
         return $this->getColsByAttr("type");
     }
-    public function getAssocInputCols ($parent_col)
-    {
-        // getAssocTableとして指定された際のカラム取得
-        $cols = $this->getInputCols();
-        $cols = array_filter($cols, function($col) use ($parent_col){
-            return $col->getAttr("def.fkey_for")!==$parent_col->getTable()->getName()
-                && $col->getAttr("type")!=="assoc";
-        });
-        return $cols;
-    }
     public function getOrdCol ()
     {
         return $this->getColByAttr("def.ord");

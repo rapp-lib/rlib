@@ -260,12 +260,7 @@ class PagesetElement extends Element_Base
     public function getParamFields ($types=array())
     {
         $param_fields = array();
-        if ($params_config = $this->getSkelConfig("params")) {
-            // pagesetについてidパラメータの引き渡しが要件になっている場合、id=IDを渡す
-            if ($params_config["id"]) {
-                $param_fields["id"] = array("type"=>"id", "field_name"=>"id", "param_name"=>"id");
-            }
-        }
+        // Schema上でのparam_fields.<type>.<field_name>が指定されている場合
         foreach ((array)$this->getAttr("param_fields") as $field_type => $fields) {
             // param_fieldsの指定が配列ではなくfield_nameのみである場合に対応
             if ($fields && ! is_array($fields)) $fields = array($fields=>array());
@@ -273,6 +268,7 @@ class PagesetElement extends Element_Base
             foreach ((array)$fields as $field_name => $param_field) {
                 if ( ! $param_field["field_name"]) $param_field["field_name"] = $field_name;
                 if ( ! $param_field["type"]) $param_field["type"] = $field_type;
+                // 主にtype=appendで*.*形式により、Assoc内へのパラメータ引き渡し行う場合
                 if (preg_match('!\.!', $field_name)) {
                     $parts = explode(".", $param_field["field_name"]);
                     $param_field["field_name"] = $parts[0];
@@ -284,7 +280,7 @@ class PagesetElement extends Element_Base
                 $param_fields[$param_field["field_name"]] = $param_field;
             }
         }
-        // Typeの指定があれば絞り込む
+        // Typeの指定があれば絞り込んで返す
         if ($types) $param_fields = array_filter($param_fields, function($param_field)use($types){
             return in_array($param_field["type"], is_array($types) ? $types : array($types));
         });
@@ -310,17 +306,20 @@ class PagesetElement extends Element_Base
         foreach ($this->getParamFields() as $param_field) {
             $field_name = $param_field["field_name"];
             $param_name = $param_field["param_name"];
-            // recordの指定があればIDを渡す
+            // recordの指定がある場合、必ず主キーの値を受け渡す
             if ($record_name && $from_table) {
+                //TODO: パラメータに該当するカラムが存在するのかどうかのチェックとスキップ
+                // リンク先で同一のテーブルを参照している場合、id=で渡す
+                if ($from_table==$to_table) $param_name = "id";
+                // 外部キーの名前をつけて、recordの主キーを渡す
                 $id_col_name = $from_table->getIdCol()->getName();
                 if ($type=="redirect") $o["params"][$param_name] = $record_name.'["'.$id_col_name.'"]';
                 else $o["params"][$param_name] = $record_name.'.'.$id_col_name;
-                break;
-            // 共通パラメータの引き継ぎ（Form経由）
-            } elseif ($from_pageset->getParamFieldByName($field_name) && $form_name) {
+            // リンク元ページも同名のパラメータを受け取っている場合
+            } elseif ($from_pageset->getParamFieldByName($field_name)) {
+                // Form経由で共通パラメータの引き継ぎ
                 if ($type=="redirect") $o["params"][$param_name] = $form_name.'["'.$field_name.'"]';
                 else $o["params"][$param_name] = $form_name.'.'.$field_name;
-                break;
             }
         }
         return $this->getIndexPage()->getLinkSource($type, $from_pageset, $o);
