@@ -34,23 +34,6 @@ class ColElement extends Element_Base
         return $this->getSchema()->fetch("parts.col_input", array("col"=>$this, "o"=>$o));
     }
     /**
-     * 検索入力HTMLソースの取得
-     */
-    public function getSearchInputSource ($o=array())
-    {
-        if (in_array($this->getAttr("def.type"), array("date", "datetime"))) {
-            if ( ! $o["type"]) $o["type"] = "date";
-            $o_start = $o_end = $o;
-            $o_start["name"] = $this->getName()."_start";
-            $o_end["name"] = $this->getName()."_end";
-            return $this->getInputSource($o_start)." &#xFF5E; ".$this->getInputSource($o_end);
-        }
-        if (in_array($this->getAttr("type"), array("textarea"))) {
-            $o["type"] = "text";
-        }
-        return $this->getInputSource($o);
-    }
-    /**
      * 表示HTMLソースの取得
      */
     public function getShowSource ($o=array())
@@ -99,23 +82,6 @@ class ColElement extends Element_Base
             }
         }
         return $source;
-    }
-    /**
-     * $form_searchの定義行の取得
-     */
-    public function getSearchFormFieldDefSource ($o=array())
-    {
-        $name = $this->getName();
-        $lines = array();
-        if (in_array($this->getAttr("type"), array("text", "textarea"))) {
-            $lines[$name] = array("search"=>"word", "target_col"=>$name);
-        } elseif (in_array($this->getAttr("def.type"), array("date", "datetime"))) {
-            $lines[$name."_start"] = array("search"=>"where", "target_col"=>$name." >=");
-            $lines[$name."_end"] = array("search"=>"where", "target_col"=>$name." + INTERVAL 1 DAY <");
-        } else {
-            $lines[$name] = array("search"=>"where", "target_col"=>$name);
-        }
-        return CodeRenderer::elementLines(3, $lines);
     }
     /**
      * メール表示用PHPソースの取得

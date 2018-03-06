@@ -6,13 +6,8 @@
         "search_page" => "<?=$pageset->getPageByType("list")->getFullPage()?>",
         "search_table" => "<?=$table->getName()?>",
         "fields" => array(
-<?php foreach ($controller->getInputCols() as $col): ?>
-<?php   if ($param_field = $pageset->getParamFieldByName($col->getName())): ?>
-<?=         $col->getSearchFormFieldDefSource(array("pageset"=>$pageset, "type"=>"where"))?>
-<?php   endif; ?>
-<?php endforeach; ?>
-<?php foreach ($controller->getSearchCols() as $col): ?>
-<?=         $col->getSearchFormFieldDefSource(array("pageset"=>$pageset))?>
+<?php foreach ($pageset->getSearchFields() as $field): ?>
+<?=         $pageset->getSearchFormFieldDefSource($field); ?>
 <?php endforeach; ?>
             "p" => array("search"=>"page", "volume"=>20),
             "sort" => array("search"=>"sort", "default"=>"<?=$table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName()?>"),

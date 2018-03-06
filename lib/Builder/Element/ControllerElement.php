@@ -171,17 +171,6 @@ class ControllerElement extends Element_Base
         return $cols;
     }
     /**
-     * 検索フォームに表示するColの取得
-     */
-    public function getSearchCols ()
-    {
-        $cols = array();
-        foreach ((array)$this->getAttr("search_fields") as $field_name) {
-            $cols[] = $this->getTable()->getColByName($field_name);
-        }
-        return $cols;
-    }
-    /**
      * ソート対象にするColであるか判定
      */
     public function isSortCol ($col)

@@ -11,6 +11,7 @@ class CodeRenderer
     }
     public static function elementLine($height, $k, $v)
     {
+        if ( ! isset($v)) return;
         return self::indent($height).self::key($height, $k).self::value($height, $v).','."\n";
     }
     public static function indent($height)
@@ -28,7 +29,11 @@ class CodeRenderer
         } elseif (is_array($v)) {
             if (count($v) < 6) {
                 foreach ($v as $k2=>$v2) {
-                    $v[$k2] = self::key($height, $k2).self::value($height, $v2);
+                    if (isset($v2)) {
+                        $v[$k2] = self::key($height, $k2).self::value($height, $v2);
+                    } else {
+                        unset($v[$k2]);
+                    }
                 }
                 $v = 'array('.implode(', ',$v).')';
             } else {
