@@ -354,7 +354,7 @@ class Table_Base extends Table_Core
         if ($col_name = $this->getColNameByAttr("hash_pw")) {
             $value = $this->query->getValue($col_name);
             if (strlen($value)) {
-                $this->query->setValue($col_name, md5($value));
+                $this->query->setValue($col_name, app()->security->passwordHash($value));
             } else {
                 $this->query->removeValue($col_name);
             }
@@ -855,24 +855,33 @@ class Table_Base extends Table_Core
 // -- 基本的な認証処理の定義
 
     /**
-     * @ref R\Lib\Auth\ConfigBasedLogin::authenticate
      * ログイン処理の実装
      */
-    public function authenticate ($params)
+    public function authByLoginIdPw ($login_id, $login_pw)
     {
-        $result = false;
-        if ($params["type"]=="idpw" && strlen($params["login_id"]) && strlen($params["login_pw"])) {
-            $result = $this->findByLoginIdPw($params["login_id"], $params["login_pw"])->selectOne();
+        $login_id_col_name = $this->getColNameByAttr("login_id");
+        $login_pw_col_name = $this->getColNameByAttr("login_pw");
+        if ( ! $login_id_col_name || ! $login_pw_col_name) {
+            report_error("login_id,login_pwカラムがありません",array(
+                "table" => $this,
+            ));
         }
-        if ($result && $col_name = $this->getColNameByAttr("login_date")) {
-            $this->createTable()->updateById($result[$this->getIdColName()],
-                array($col_name=>date("Y/m/d H:i:s")));
+        $this->query->where($this->getQueryTableName().".".$login_id_col_name, (string)$login_id);
+        if (static::$cols[$login_pw_col_name]["hash_pw"]) {
+            $this->with($this->getQueryTableName().".".$login_pw_col_name, $login_pw_col_name."_hash");
         }
-        return $result ? (array)$result : false;
+        $record = $this->selectOne();
+        if (static::$cols[$login_pw_col_name]["hash_pw"]) {
+            if ( ! app()->security->passwordVerify($login_pw, $record[$login_pw_col_name."_hash"])) return null;
+         } else {
+             if ($login_pw != $record[$login_pw_col_name]) return false;
+         }
+         return $record;
     }
     /**
      * @hook chain
      * ログインID/PWを条件に指定する
+     * @deprecated
      */
     public function chain_findByLoginIdPw ($login_id, $login_pw)
     {
@@ -884,7 +893,7 @@ class Table_Base extends Table_Core
             ));
         }
         if (static::$cols[$login_pw_col_name]["hash_pw"]) {
-            $login_pw = md5($login_pw);
+            $login_pw = app()->security->passwordHash($login_pw);
         }
         $this->query->where($this->getQueryTableName().".".$login_id_col_name, (string)$login_id);
         $this->query->where($this->getQueryTableName().".".$login_pw_col_name, (string)$login_pw);

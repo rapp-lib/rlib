@@ -149,9 +149,15 @@ class PagesetElement extends Element_Base
                 $fields[$field_name] = array(
                     "field_name"=>$field_name,
                     "col"=>$col,
-                    "search_type"=>"enum_archive",
+                    "search_type"=>"archive",
+                    "archive_type"=>"archive",
                     "is_fixed"=>true,
                 );
+                if ($col->getEnumSet()) {
+                    $fields[$field_name]["archive_type"] = "enum";
+                } elseif (in_array($col->getAttr("def.type"), array("date", "datetime"))) {
+                    $fields[$field_name]["archive_type"] = "year";
+                }
             }
         }
         // search_fieldsの指定
@@ -216,12 +222,21 @@ class PagesetElement extends Element_Base
             $o_end["name"] = $field["field_name"]."_end";
             return $field["col"]->getInputSource($o_start)
                 ." &#xFF5E; ".$field["col"]->getInputSource($o_end);
-        } elseif ($field["search_type"]=="enum_archive") {
+        } elseif ($field["search_type"]=="archive") {
             $source = "";
             $o["type"] = "hidden";
             $source .= $field["col"]->getInputSource($o);
-            $source .= "\n".str_repeat("    ",3).'{{foreach $enum["'.$field["col"]->getEnumSet()->getFullName().'"] as $k=>$v}}';
-            $source .= "\n".str_repeat("    ",4).'<a href="{{$forms.search->getSearchPageUrl([\''.$field["field_name"].'\'=>$k])}}" class="enum {{if $forms.search.'.$field["field_name"].' == $k}}current{{/if}}">{{$v}}</a>';
+            $archive_src = 'array()';
+            if ($field["archive_type"]=="enum") {
+                $archive_src = '$enum["'.$field["col"]->getEnumSet()->getFullName().'"]';
+            } elseif ($field["archive_type"]=="year") {
+                $archive_src = 'range(date("Y")-3, date("Y")+3)';
+            }
+            $source .= "\n".str_repeat("    ",3).'{{foreach '.$archive_src.' as $k=>$v}}';
+            $source .= "\n".str_repeat("    ",4).'<a '
+                .'href="{{$forms.search->getSearchPageUrl([\''.$field["field_name"].'\'=>$k])}}" '
+                .'class="enum'.'{{if $forms.search.'.$field["field_name"].' == $k}} current{{/if}}"'
+                .'>{{$v}}</a>';
             $source .= "\n".str_repeat("    ",3).'{{/foreach}}';
             $source .= "\n".str_repeat("    ",2);
             return $source;
@@ -249,7 +264,8 @@ class PagesetElement extends Element_Base
             $lines[$field_name."_end"] = array("search"=>"where", "target_col"=>$col_name." + INTERVAL 1 DAY <");
         } elseif ($field["search_type"]=="depend") {
             $lines[$field_name] = array("search"=>"where", "target_col"=>$col_name);
-        } elseif ($field["search_type"]=="enum_archive") {
+        } elseif ($field["search_type"]=="archive") {
+            if ($field["archive_type"]=="year") $col_name = "DATE_FORMAT(".$col_name.", '%Y')";
             $lines[$field_name] = array("search"=>"where", "target_col"=>$col_name);
         } else {
             $lines[$field_name] = array("search"=>$field["search_type"], "target_col"=>$col_name);
