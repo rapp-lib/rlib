@@ -45,7 +45,7 @@
 
 {{else}}{{* 0件ではない場合 *}}
 
-<a id="table-sort" data-sort-base-url='{{$forms.search->getSearchPageUrl(["p"=>0, "sort"=>""])}}' data-sort-current="{{$forms.search.sort}}" data-sort-param-name="sort" data-sort-default="<?=$table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName()?>"></a>
+<a id="table-sort" data-sort-base-url='{{$forms.search->getSearchPageUrl(["p"=>0, "sort"=>""])}}' data-sort-current="{{$forms.search.sort}}" data-sort-param-name="sort" data-sort-default="<?=$controller->getDefaultSortFieldName()?>"></a>
 {{script require=["rui.sort"]}}{{/script}}
 
 <?php if ($controller->getAttr("bulk_actions")): ?>

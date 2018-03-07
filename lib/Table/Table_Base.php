@@ -817,16 +817,31 @@ class Table_Base extends Table_Core
      */
     public function search_typeSort ($form, $field_def, $value)
     {
-        if ( ! isset($value) && isset($field_def["default"])) {
-            $value = $field_def["default"];
+        $cols = array();
+        // @deprecated 旧仕様との互換処理
+        if (isset($field_def["default"])) array_unshift($cols, $field_def["default"]);
+        // colsの解析
+        foreach ((array)$field_def["cols"] as $k=>$v) {
+            if ( ! isset($value)) $value = $v;
+            if (is_numeric($k) && is_string($v)) $cols[$v] = $v;
+            else $cols[$k] = $v;
         }
-        if (preg_match('!^(\w+(?:\.\w+)?)(?:@(ASC|DESC))?!',$value,$match)) {
-            $col_name = $match[1];
-            $col_name .= $match[2]=="DESC" ? " DESC" : "";
-            $this->query->addOrder($col_name);
-        } else {
-            return false;
+        // DESC指定の取得
+        $desc = false;
+        if (preg_match('!^(.*?)(?:@(ASC|DESC))!', $value, $_)) {
+            $value = $_[1];
+            $desc = $_[2]=="DESC";
         }
+        // ユーザ入力値の解析
+        $value = $cols[$value];
+        if ( ! isset($value)) return false;
+        // DESC指定の反映
+        if (is_string($value) && $desc) $value .= " DESC";
+        elseif (is_array($value)) {
+            if ($desc) $value = $value[1];
+            else $value = $value[0];
+        }
+        $this->query->addOrder($value);
     }
     /**
      * @hook search page

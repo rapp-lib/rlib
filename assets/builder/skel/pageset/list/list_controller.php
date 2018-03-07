@@ -10,7 +10,7 @@
 <?=         $pageset->getSearchFormFieldDefSource($field); ?>
 <?php endforeach; ?>
             "p" => array("search"=>"page", "volume"=>20),
-            "sort" => array("search"=>"sort", "default"=>"<?=$table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName()?>"),
+            "sort" => array("search"=>"sort", "cols"=>array("<?=implode('", "', $controller->getSortatbleFieldNames())?>")),
         ),
     );
 <?php if ($controller->getAttr("bulk_actions")): ?>

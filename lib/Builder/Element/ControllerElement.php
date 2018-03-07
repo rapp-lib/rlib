@@ -178,6 +178,24 @@ class ControllerElement extends Element_Base
         return in_array($col->getName(), (array)$this->getAttr("sort_fields"));
     }
     /**
+     * デフォルトのソート対象Colを取得
+     */
+    public function getDefaultSortFieldName ()
+    {
+        $table = $this->getTable();
+        return $table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName();
+    }
+    /**
+     * ソート対象にできるColを取得
+     */
+    public function getSortatbleFieldNames ()
+    {
+        $names = (array)$this->getAttr("sort_fields");
+        $default = $this->getDefaultSortFieldName();
+        if ( ! in_array($default, $names)) array_unshift($names, $default);
+        return $names;
+    }
+    /**
      * 一覧画面に表示するColの取得
      */
     public function getListCols ()
