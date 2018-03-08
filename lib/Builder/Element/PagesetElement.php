@@ -261,7 +261,7 @@ class PagesetElement extends Element_Base
         $lines = array();
         if ($field["search_type"]=="date_range") {
             $lines[$field_name."_start"] = array("search"=>"where", "target_col"=>$col_name." >=");
-            $lines[$field_name."_end"] = array("search"=>"where", "target_col"=>$col_name." + INTERVAL 1 DAY <");
+            $lines[$field_name."_end"] = array("search"=>"where", "target_col"=>$col_name." - INTERVAL 1 DAY <");
         } elseif ($field["search_type"]=="depend") {
             $lines[$field_name] = array("search"=>"where", "target_col"=>$col_name);
         } elseif ($field["search_type"]=="archive") {
