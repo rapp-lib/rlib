@@ -164,6 +164,14 @@ class ColElement extends Element_Base
         return $table_name ? $this->getSchema()->getTableByName($table_name) : null;
     }
     /**
+     * fkey_for関係にあるTableを取得
+     */
+    public function getFkeyForTable ()
+    {
+        $table_name = $this->getAttr("def.fkey_for");
+        return $table_name ? $this->getSchema()->getTableByName($table_name) : null;
+    }
+    /**
      * Table上にColを持つかどうか、Colがない＝Form上のFieldのみ
      */
     public function hasColDef ()

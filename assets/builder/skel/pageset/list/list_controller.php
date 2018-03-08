@@ -29,10 +29,11 @@
     {
 <?php if ($bulk_actions = $controller->getAttr("bulk_actions")): ?>
         if ($this->forms["bulk"]->receive($this->input)) {
-            if ($this->forms["bulk"]["action"]=="delete") {
-                foreach ((array)$this->forms["bulk"]["items"] as $item) {
-                    if ($item["id"]) table("<?=$table->getName()?>")<?=$pageset->getTableChainSource("find")?>->deleteById($item["id"]);
-                }
+            $items = array_filter((array)$this->forms["bulk"]["items"], function($item){
+                return $item["id"];
+            });
+            if ($this->forms["bulk"]["action"]=="delete" && $items) {
+                foreach ($items as $item) table("<?=$table->getName()?>")<?=$pageset->getTableChainSource("find")?>->deleteById($item["id"]);
                 $this->flash->success(__("削除しました"));
             }
             return $this->redirect("id://.", array("back"=>"1"));

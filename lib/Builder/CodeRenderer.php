@@ -27,7 +27,7 @@ class CodeRenderer
         if ($v instanceof CodeFragment){
             return (string)$v;
         } elseif (is_array($v)) {
-            if (count($v) < 6) {
+            if (count($v) < 8) {
                 foreach ($v as $k2=>$v2) {
                     if (isset($v2)) {
                         $v[$k2] = self::key($height, $k2).self::value($height, $v2);

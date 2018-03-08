@@ -81,6 +81,7 @@ class InputField
     private function buildHtml ()
     {
         $attrs = $this->attrs;
+        unset($attrs["values"], $attrs["enum"]);
         // pluginに対応するJS呼び出し
         if ($plugins = $attrs["plugins"]) {
             unset($attrs["plugins"]);

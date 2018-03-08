@@ -117,4 +117,27 @@ class TableElement extends Element_Base
     {
         return ! $this->getAttr("nodef");
     }
+    /**
+     * AuthTableとして参照しているRoleがあれば取得
+     */
+    public function getAuthRole ()
+    {
+        foreach ($this->getSchema()->getRoles() as $role) {
+            if ($role->getAuthTable()==$this) return $role;
+        }
+        return null;
+    }
+    /**
+     * FkeyFor参照先にAuthTableとして参照されるTableを持つColを取得
+     */
+    public function getOwnedByCols ()
+    {
+        $cols = array();
+        foreach ($this->getCols() as $col) {
+            if ($fkey_for_table = $col->getFkeyForTable()) {
+                if ($fkey_for_table->getAuthRole()) $cols[] = $col;
+            }
+        }
+        return $cols;
+    }
 }
