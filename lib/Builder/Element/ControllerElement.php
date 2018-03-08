@@ -243,14 +243,14 @@ class ControllerElement extends Element_Base
         $pagesets = array();
         foreach ($this->getPagesets() as $pageset) {
             if ($pageset->getAttr("type")==$type) {
-                $pagsets[] = $pageset;
+                $pagesets[] = $pageset;
             }
         }
-        return $pagsets;
+        return $pagesets;
     }
     public function getPagesetByType ($type)
     {
-        return array_shift($pagsets = $this->getPagesetsByType($type));
+        return array_shift($pagesets = $this->getPagesetsByType($type));
     }
     /**
      * @getter Pageset
