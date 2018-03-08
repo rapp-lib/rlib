@@ -12,7 +12,7 @@
 <?php   foreach ($controller->getSearchCols() as $col): ?>
     <tr>
         <th><?=$col->getLabel()?></th>
-        <td><?=$col->getInputSource(array("page"=>$page))?></td>
+        <td><?=$col->getSearchInputSource(array("page"=>$page))?></td>
     </tr>
 <?php   endforeach; ?>
 </table>
@@ -77,7 +77,7 @@
     {{foreach $ts as $i => $t}}
     <tr>
 <?php if ($controller->getAttr("bulk_actions")): ?>
-        <td>{{input type="checkbox" name="items[$i][id]" id=$t.id}}</td>
+        <td>{{input type="checkbox" name="items[$i][id]" value=$t.id}}</td>
 <?php endif; ?>
 <?php foreach ($controller->getListCols() as $col): ?>
         <td><?=$col->getShowSource(array("page"=>$page))?></td>

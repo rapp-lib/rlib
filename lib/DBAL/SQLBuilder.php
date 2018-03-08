@@ -81,12 +81,12 @@ class SQLBuilder
         if (is_array($v) && count($v)==1) $v = array_shift($v);
         if (is_array($v) && ($op=="=" || $op=="==")) $op = "IN";
         if (is_array($v) && ($op=="<>" || $op=="!=")) $op = "NOT IN";
-        if (is_array($v)) return $this->stName($k)." ".$op." "."( ".$this->mapJoin($v, function($self,$i,$v){
+        if (is_array($v)) return $this->stExpression($k)." ".$op." "."( ".$this->mapJoin($v, function($self,$i,$v){
             return $self->stValue($v);
         }, " , ")." )";
-        if ($v===null && ($op=="=" || $op=="==")) return $this->stName($k)." IS NULL";
-        if ($v===null && ($op=="<>" || $op=="!=")) return $this->stName($k)." IS NOT NULL";
-        return $this->stName($k)." ".$op." ".$this->stValue($v);
+        if ($v===null && ($op=="=" || $op=="==")) return $this->stExpression($k)." IS NULL";
+        if ($v===null && ($op=="<>" || $op=="!=")) return $this->stExpression($k)." IS NOT NULL";
+        return $this->stExpression($k)." ".$op." ".$this->stValue($v);
     }
 // -- SELECT文固有の表現
     public function stSelectFields($xs)

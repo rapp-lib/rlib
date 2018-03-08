@@ -12,6 +12,8 @@ class ControllerElement extends Element_Base
         // Pagesetの補完
         if ($this->getAttr("type") == "index") {
             $pagesets[] = array("type"=>"index");
+        } elseif ($this->getAttr("type") == "blank") {
+            $pagesets[] = array("type"=>"blank");
         } elseif ($this->getAttr("type") == "login") {
             $pagesets[] = array("type"=>"login");
             if ($this->getFlagAttr("use_reminder", false)) {
@@ -74,9 +76,14 @@ class ControllerElement extends Element_Base
                 "type" => $this->getAttr("type"),
             ));
         }
+        // sub_pageの追加
+        foreach ((array)$this->getAttr("sub_page") as $sub_page) {
+            if ( ! $sub_page["type"]) $sub_page["type"] = "blank";
+            $pagesets[] = $sub_page;
+        }
         // Pagesetの登録
         foreach ($pagesets as $pageset_attrs) {
-            $pageset_name = $pageset_attrs["type"];
+            $pageset_name = $pageset_attrs["name"] ?: $pageset_attrs["type"];
             $this->children["pageset"][$pageset_name]
                 = new PagesetElement($pageset_name, $pageset_attrs, $this);
         }

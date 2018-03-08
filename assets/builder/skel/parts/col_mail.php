@@ -13,7 +13,7 @@
 <#?php foreach (<?=$var_name?>["<?=$name?>"] as $key=>$item): ?>
 <?php   foreach ($controller->getAssocInputCols($col) as $assoc_col): ?>
 <?php       if ($assoc_col->getAttr("type")==="assoc") continue; ?>
-  <?=$assoc_col->getLabel()?> : <?=$assoc_col->getMailSource(array("page"=>$page, "var_name"=>'$item'))?><?="\n"?>
+  <?=$assoc_col->getLabel()?> : <?=$assoc_col->getMailSource(array("page"=>$page, "mail"=>$mail, "var_name"=>'$item'))?><?="\n"?>
 <?php   endforeach; /* foreach as $assoc_col */ ?>
 --<?="\n"?>
 <#?php endforeach; ?><?=""?>

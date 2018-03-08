@@ -7,7 +7,7 @@
     $controller = $pageset->getParent();
 
     $var_name = $o["var_name"] ?: '$forms.entry';
-    $name = $col->getName();
+    $name = $o["name"] ?: $col->getName();
     $input_type = $o["type"] ?: $col->getAttr("type");
     $input_name = $o["name_parent"] ? $o["name_parent"]."[".$name."]" : $name;
 ?>

@@ -84,6 +84,15 @@
                 "pages.static.template_file" => null,// $dir."/pageset/index/static.html",
                 "label" => "トップ",
             ),
+            "blank" => array(
+                "use_table" => false,
+                "params" => array(),
+                "attrs" => array(),
+                "index_page" => "blank",
+                "controller.template_file" => $dir."/pageset/blank/blank_controller.php",
+                "pages.blank.template_file" => $dir."/pageset/blank/blank.html",
+                "label" => "",
+            ),
             "login" => array(
                 "use_table" => false,
                 "params" => array(),
@@ -212,5 +221,6 @@
             "col_input.template_file" => $dir."/parts/col_input.html",
             "col_show.template_file" => $dir."/parts/col_show.html",
             "col_mail.template_file" => $dir."/parts/col_mail.php",
+            "blank_page.template_file" => $dir."/parts/blank_page.html",
         ),
     );

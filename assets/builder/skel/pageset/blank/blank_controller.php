@@ -1,0 +1,3 @@
+<?=$pageset->getPageByType("blank")->getMethodDecSource()?>
+    {
+    }

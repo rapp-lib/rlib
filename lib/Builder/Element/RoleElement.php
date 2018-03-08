@@ -69,7 +69,9 @@ class RoleElement extends Element_Base
     {
         $controllers = array();
         foreach ($this->getAccessibleControllers() as $controller) {
-            if ( ! $controller->getIndexPageset()->getParamFields("depend")) $controllers[] = $controller;
+            if ($controller->getIndexPageset()->getParamFields("depend")) continue;
+            if (in_array($controller->getAttr("type"), array("delete", "detail"))) continue;
+            $controllers[] = $controller;
         }
         return $controllers;
     }
