@@ -46,11 +46,16 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
             }
             bind_elms[i] = $select;
             $elm.before($select);
-            $elm.before(config[i][2]+" ");
+            $elm.before(" "+config[i][2]+" ");
         }
     }
+    // bind_elmsの様式として日付、時刻を持つかどうか
+    var has_date = bind_elms["year"] && bind_elms["month"] && bind_elms["day"];
+    var has_time = bind_elms["hour"] && bind_elms["min"];
     // selectフィールドの値の初期化
-    var date = new Date($elm.val());
+    var preset_value = $elm.val();
+    if (preset_value.match(/^\d+:\d+(:\d+)$/)) preset_value = "1970/1/1 "+preset_value;
+    var date = new Date(preset_value);
     var values = {
         year : date.getFullYear(),
         month : date.getMonth() + 1,
@@ -77,7 +82,7 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
                 }
             }
             // 年月日の選択の日付正規化
-            if (bind_elms["year"].val() && bind_elms["month"].val() && bind_elms["day"].val()) {
+            if (has_date && bind_elms["year"].val() && bind_elms["month"].val() && bind_elms["day"].val()) {
                 var check_date = new Date(bind_elms["year"].val(),bind_elms["month"].val()-1,bind_elms["day"].val());
                 if (check_date.getDate() != bind_elms["day"].val()) {
                     var last_date_of_month = new Date(bind_elms["year"].val(),bind_elms["month"].val()-1+1,0);
@@ -97,7 +102,9 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
         for (var i in bind_elms) {
             values[i] = bind_elms[i].val();
         }
-        if (values.year && values.month && values.day) {
+        if (has_date && ! (values.year && values.month && values.day)) {
+            $elm.attr("value", "");
+        } else {
             var date = new Date(values.year, values.month-1, values.day, values.hour, values.min, values.sec);
             var yyyy = date.getFullYear();
             var mm = ('0'+(date.getMonth()+1)).slice(-2);
@@ -105,13 +112,13 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
             var hh = ('0'+date.getHours()).slice(-2);
             var ii = ('0'+date.getMinutes()).slice(-2);
             var ss = ('0'+date.getSeconds()).slice(-2);
-            if ($elm.attr("type")=="date") {
-                $elm.val(yyyy+"-"+mm+"-"+dd);
-            } else {
-                $elm.val(yyyy+"-"+mm+"-"+dd+"T"+hh+":"+ii+":"+ss);
+            if (has_date && has_time) {
+                $elm.attr("value", yyyy+"-"+mm+"-"+dd+"T"+hh+":"+ii+":"+ss);
+            } else if (has_date) {
+                $elm.attr("value", yyyy+"-"+mm+"-"+dd);
+            } else if (has_time) {
+                $elm.attr("value", hh+":"+ii+":"+ss);
             }
-        } else {
-            $elm.val("");
         }
     };
     for (var i in bind_elms) {
