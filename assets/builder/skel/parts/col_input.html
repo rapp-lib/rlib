@@ -35,6 +35,7 @@
 <?php elseif ($input_type==="assoc" && ! $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>
             <div class="mi" data-minItems="0" data-maxItems="20">
+                <input type="hidden" name="<?=$name?>"/>
                 {{input_fieldset name="<?=$name?>" tmpl="${id}" key="key" assign="fieldset"}}
                     <div class="mi-item" data-itemId="{{$key}}">
 <?php   if ($pageset->getFlg("is_master") || $pageset->getFlg("is_edit")): ?>

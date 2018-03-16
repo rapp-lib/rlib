@@ -19,7 +19,9 @@ class SQLAnalyzer
             $msg = "";
             // 一定時間未満で完了するSQLの場合はINDEXの設定状況のみ確認
             if ($params["elapsed_ms"] < 1000) {
-                if ($is_no_possible_keys && ($is_seq_scan || $is_index_seq_scan)) $msg = "INDEXが適用されないWHERE句";
+                if ($is_using_where && $is_no_possible_keys && ($is_seq_scan || $is_index_seq_scan)) {
+                    $msg = "INDEXが適用されないWHERE句";
+                }
             } else {
                 if ($is_seq_scan && $is_using_where) {
                     if ($is_dep_sq) $msg = "INDEXが適用されない相関サブクエリ";

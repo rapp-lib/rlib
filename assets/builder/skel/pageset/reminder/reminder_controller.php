@@ -78,7 +78,7 @@
             $cred_data = app()->cache("cred")->readCred($cred);
             // パスワードの更新
             $t = table("<?=$table->getName()?>")->findBy("<?=$table->getColByAttr("def.mail")->getName()?>", $cred_data["mail"])->selectOne();
-            table("Staff")->updateById($t["id"], array(
+            table("<?=$table->getName()?>")->updateById($t["id"], array(
                 "<?=$table->getColByAttr("def.login_pw")->getName()?>" => $this->forms["reset"]["login_pw"]
             ));
             app()->cache("cred")->dropCred($cred);
