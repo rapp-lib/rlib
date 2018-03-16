@@ -25,8 +25,13 @@ class Validator
         // Siblingの値を取得する
         if (preg_match('!^([^\.]+)\.\*\.([^\.]+)$!', $name, $_)) {
             return $this->values[$_[1]][$this->current_rule["fieldset_index"]][$_[2]];
-        }
         return array_get($this->values, $name);
+    }
+    public function getExternalFormValue ($form_name, $name)
+    {
+        $parts = explode(".", $form_name);
+        $values = app()->form[$parts[0]][$parts[1]]->getSavedValues();
+        return array_get($values, $name);
     }
     private function applyRules ($rules)
     {
