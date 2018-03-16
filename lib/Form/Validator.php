@@ -12,7 +12,7 @@ class Validator
 
     public function __construct ($rules, $values)
     {
-        $this->values = (array)$values;
+        $this->values = $values;
         $this->errors = array();
         $this->applyRules($rules);
     }
@@ -22,11 +22,21 @@ class Validator
     }
     public function getValue ($name)
     {
-        // Siblingの値を取得する
-        if (preg_match('!^([^\.]+)\.\*\.([^\.]+)$!', $name, $_)) {
-            return $this->values[$_[1]][$this->current_rule["fieldset_index"]][$_[2]];
+        $parts = explode('.',$name);
+        if (count($parts)==1) return $this->values[$parts[0]];
+        elseif (count($parts)==2) return $this->values[$parts[0]][$parts[1]];
+        elseif (count($parts)==3) {
+            if($parts=="*") {
+                // Siblingの値を取得する
+                return $this->values[$parts[0]][$this->current_rule["fieldset_index"]][$parts[1]];
+            } else return $this->values[$parts[0]][$parts[1]][$parts[2]];
         }
-        return array_get($this->values, $name);
+    }
+    public function getExternalFormValue ($form_name, $name)
+    {
+        $parts = explode(".", $form_name);
+        $values = app()->form[$parts[0]][$parts[1]]->getSavedvalues();
+        return array_get($values, $name);
     }
     private function applyRules ($rules)
     {
