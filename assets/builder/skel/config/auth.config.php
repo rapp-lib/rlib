@@ -19,8 +19,7 @@
                         //    return array("id"=>9999999);
                         // }
                         return table("<?=$role->getAuthTable()->getName()?>")
-                            ->findByLoginIdPw($params["login_id"], $params["login_pw"])
-                            ->selectOne();
+                            ->authByLoginIdPw($params["login_id"], $params["login_pw"]);
 <?php else:?>
                         if ("<?=$role->getName()?>"==$params["login_id"] && "cftyuhbvg"==$params["login_pw"]) {
                             return array("id"=>9999999);

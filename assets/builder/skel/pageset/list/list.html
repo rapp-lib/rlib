@@ -1,27 +1,21 @@
-<?php if ($controller->getSearchCols()): ?>
+<?php if ($search_fields = $pageset->getSearchFields()): ?>
 {{form form=$forms.search}}
 <table class="tbl detail">
-<?php   foreach ($controller->getInputCols() as $col): ?>
-<?php       if ($param_field = $pageset->getParamFieldByName($col->getName())): ?>
+<?php   foreach ($search_fields as $field): ?>
     <tr>
-        <th><?=$col->getLabel()?></th>
-        <td><?=$col->getInputSource(array("page"=>$page, "type"=>"hidden"))?><?=$col->getShowSource(array("page"=>$page, "var_name"=>'$forms.search'))?></td>
-    </tr>
-<?php       endif; ?>
-<?php   endforeach; ?>
-<?php   foreach ($controller->getSearchCols() as $col): ?>
-    <tr>
-        <th><?=$col->getLabel()?></th>
-        <td><?=$col->getInputSource(array("page"=>$page))?></td>
+        <th><?=$field["col"]->getLabel()?></th>
+        <td><?=$pageset->getSearchInputSource($field)?></td>
     </tr>
 <?php   endforeach; ?>
 </table>
+<?php   if (count($search_fields) > count($pageset->getFixedSearchFields())): ?>
 <div class="btn-area clearfix">
     <div class="right clearfix">
-        <a href="{{$forms.search->getSearchPageUrl()}}" class="reset-btn">リセット</a>
+        <a href="{{$forms.search->getSearchPageUrl(<?=$pageset->getFixedSearchParamSource()?>)}}" class="reset-btn">リセット</a>
         <button type="submit" class="search-btn">検索</button>
     </div>
 </div>
+<?php   endif; ?>
 {{/form}}
 <?php endif; ?>
 
@@ -51,7 +45,7 @@
 
 {{else}}{{* 0件ではない場合 *}}
 
-<a id="table-sort" data-sort-base-url='{{$forms.search->getSearchPageUrl(["p"=>0, "sort"=>""])}}' data-sort-current="{{$forms.search.sort}}" data-sort-param-name="sort" data-sort-default="<?=$table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName()?>"></a>
+<a id="table-sort" data-sort-base-url='{{$forms.search->getSearchPageUrl(["p"=>0, "sort"=>""])}}' data-sort-current="{{$forms.search.sort}}" data-sort-param-name="sort" data-sort-default="<?=$controller->getDefaultSortFieldName()?>"></a>
 {{script require=["rui.sort"]}}{{/script}}
 
 <?php if ($controller->getAttr("bulk_actions")): ?>
@@ -77,7 +71,7 @@
     {{foreach $ts as $i => $t}}
     <tr>
 <?php if ($controller->getAttr("bulk_actions")): ?>
-        <td>{{input type="checkbox" name="items[$i][id]" id=$t.id}}</td>
+        <td>{{input type="checkbox" name="items[$i][id]" value=$t.id}}</td>
 <?php endif; ?>
 <?php foreach ($controller->getListCols() as $col): ?>
         <td><?=$col->getShowSource(array("page"=>$page))?></td>

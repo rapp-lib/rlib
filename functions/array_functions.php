@@ -31,7 +31,7 @@
     function array_add ( & $ref, $key, $value=array())
     {
         // keyを配列で指定した場合
-        if (is_array($key)) {
+        if (is_arraylike($key)) {
             // 連番添え字の場合上書きせず追加
             if (is_seqarray($key)) {
                 $offset = count($ref)==0 ? 0 : (int)max(array_keys($ref))+1;
@@ -44,9 +44,9 @@
                 }
             }
         } else {
-            if ( ! is_array($ref)) $ref = array();
+            if ( ! is_arraylike($ref)) $ref = array();
             // valueを配列で指定した場合
-            if (is_array($value)) {
+            if (is_arraylike($value)) {
                 $ref_sub = & array_get_ref($ref, $key);
                 // 連番添え字の場合上書きせず追加
                 if (is_seqarray($value)) {
@@ -74,10 +74,10 @@
         $key_last = array_pop($key_parts);
         foreach ($key_parts as $key_part) {
             if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
-            if ( ! is_array($ref)) return false;
+            if ( ! is_arraylike($ref)) return false;
             $ref = & $ref[$key_part];
         }
-        if ( ! is_array($ref)) return false;
+        if ( ! is_arraylike($ref)) return false;
         return array_key_exists($key_last, $ref);
     }
     /**
@@ -88,7 +88,7 @@
         $key_parts = explode(".",$key);
         foreach ($key_parts as $key_part) {
             if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
-            if ( ! is_array($ref)) return null;
+            if ( ! is_arraylike($ref)) return null;
             $ref = & $ref[$key_part];
         }
         return $ref;
@@ -101,7 +101,7 @@
         $key_parts = explode(".",$key);
         foreach ($key_parts as $key_part) {
             if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
-            if ( ! is_array($ref)) $ref = array();
+            if ( ! is_arraylike($ref)) $ref = array();
             $ref = & $ref[$key_part];
         }
         return $ref;
@@ -114,7 +114,7 @@
         $key_parts = explode(".",$key);
         $key_last = array_pop($key_parts);
         foreach ($key_parts as $key_part) {
-            if ( ! is_array($ref)) {
+            if ( ! is_arraylike($ref)) {
                 return;
             }
             $ref = & $ref[$key_part];
@@ -126,20 +126,12 @@
      */
     function array_clean ( & $ref)
     {
-        if ( ! is_arraylike($ref)) {
-            return $ref;
-        }
+        if ( ! is_arraylike($ref)) return $ref;
         foreach ($ref as $k => & $v) {
-            if (is_array($v)) {
-                array_clean($v);
-            }
-            if (is_array($v) && count($v)===0) {
-                unset($ref[$k]);
-            } elseif (is_string($v) && strlen($v)===0) {
-                unset($ref[$k]);
-            } elseif ( ! isset($v)) {
-                unset($ref[$k]);
-            }
+            if (is_arraylike($v)) array_clean($v);
+            if (is_array($v) && count($v)===0) unset($ref[$k]);
+            elseif (is_string($v) && strlen($v)===0) unset($ref[$k]);
+            elseif ( ! isset($v)) unset($ref[$k]);
         }
     }
     /**

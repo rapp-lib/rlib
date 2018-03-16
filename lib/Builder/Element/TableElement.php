@@ -77,16 +77,6 @@ class TableElement extends Element_Base
     {
         return $this->getColsByAttr("type");
     }
-    public function getAssocInputCols ($parent_col)
-    {
-        // getAssocTableとして指定された際のカラム取得
-        $cols = $this->getInputCols();
-        $cols = array_filter($cols, function($col) use ($parent_col){
-            return $col->getAttr("def.fkey_for")!==$parent_col->getTable()->getName()
-                && $col->getAttr("type")!=="assoc";
-        });
-        return $cols;
-    }
     public function getOrdCol ()
     {
         return $this->getColByAttr("def.ord");
@@ -126,5 +116,28 @@ class TableElement extends Element_Base
     public function hasDef ()
     {
         return ! $this->getAttr("nodef");
+    }
+    /**
+     * AuthTableとして参照しているRoleがあれば取得
+     */
+    public function getAuthRole ()
+    {
+        foreach ($this->getSchema()->getRoles() as $role) {
+            if ($role->getAuthTable()==$this) return $role;
+        }
+        return null;
+    }
+    /**
+     * FkeyFor参照先にAuthTableとして参照されるTableを持つColを取得
+     */
+    public function getOwnedByCols ()
+    {
+        $cols = array();
+        foreach ($this->getCols() as $col) {
+            if ($fkey_for_table = $col->getFkeyForTable()) {
+                if ($fkey_for_table->getAuthRole()) $cols[] = $col;
+            }
+        }
+        return $cols;
     }
 }

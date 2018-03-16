@@ -1,6 +1,8 @@
 <?php
 namespace R\Lib\Builder\Element;
 
+use R\Lib\Builder\CodeRenderer;
+
 class PagesetElement extends Element_Base
 {
     public function init ()
@@ -13,9 +15,11 @@ class PagesetElement extends Element_Base
             ));
         }
         // Page登録
-        $page_configs = (array)$this->getSchema()->getConfig($this->getTemplateEntry().".pages");
+        $page_configs = (array)$this->getSkelConfig("pages");
+        $index_page_type = $this->getSkelConfig("index_page");
         foreach ($page_configs as $page_type => $page_config) {
-            $page_name = $this->getName()==$page_type ? $page_type : $this->getName()."_".$page_type;
+            $page_name = $this->getName();
+            if ($index_page_type!=$page_type) $page_name .= "_".$page_type;
             $page_attrs = array("type"=>$page_type);
             $this->children["page"][$page_name] = new PageElement($page_name, $page_attrs, $this);
         }
@@ -115,6 +119,158 @@ class PagesetElement extends Element_Base
             "pageset" => $this,
         ));
         return null;
+    }
+
+// -- 検索フォーム
+
+    /**
+     * 検索フォームに表示するColの取得
+     */
+    public function getSearchFields ()
+    {
+        $fields = array();
+        $controller = $this->getParent();
+        $table = $controller->getTable();
+        foreach ($controller->getInputCols() as $col) {
+            $field_name = $col->getName();
+            // param_fieldsの指定
+            if ($param_field = $this->getParamFieldByName($field_name)) {
+                if ($param_field["type"]=="depend") {
+                    $fields[$field_name] = array(
+                        "field_name"=>$field_name,
+                        "col"=>$col,
+                        "search_type"=>"depend",
+                        "is_fixed"=>true,
+                    );
+                }
+            }
+            // archive_fieldの指定
+            if ($field_name == $controller->getAttr("archive_field")) {
+                $fields[$field_name] = array(
+                    "field_name"=>$field_name,
+                    "col"=>$col,
+                    "search_type"=>"archive",
+                    "archive_type"=>"archive",
+                    "is_fixed"=>true,
+                );
+                if ($col->getEnumSet()) {
+                    $fields[$field_name]["archive_type"] = "enum";
+                } elseif (in_array($col->getAttr("def.type"), array("date", "datetime"))) {
+                    $fields[$field_name]["archive_type"] = "year";
+                }
+            }
+        }
+        // search_fieldsの指定
+        foreach ((array)$controller->getAttr("search_fields") as $field_name=>$field) {
+            // field_nameの補完
+            if (is_numeric($field_name) && is_string($field)) {
+                $field_name = $field;
+                $field = array("field_name"=>$field_name);
+            }
+            if (is_string($field)) {
+                $field = array("field_name"=>$field_name, "search_type"=>$field);
+            }
+            // colの補完
+            if ( ! $field["col"]) $field["col"] = $field_name;
+            $field["col"] = $table->getColByName($field["col"]);
+            // search_typeの補完
+            if ( ! $field["search_type"]) {
+                if (in_array($field["col"]->getAttr("type"), array("text", "textarea"))) {
+                    $field["search_type"] = "word";
+                } elseif (in_array($field["col"]->getAttr("def.type"), array("date", "datetime"))) {
+                    $field["search_type"] = "date_range";
+                } else {
+                    $field["search_type"] = "where";
+                }
+            }
+            $fields[$field_name] = $field;
+        }
+        return $fields;
+    }
+    /**
+     * 固定の検索項目の取得
+     */
+    public function getFixedSearchFields ()
+    {
+        $fields = $this->getSearchFields();
+        return array_filter($fields, function($field){
+            return $field["is_fixed"];
+        });
+    }
+    /**
+     * 固定の検索項目のパラメータ取得
+     */
+    public function getFixedSearchParamSource ()
+    {
+        $var_name = '$forms.search';
+        $params = array();
+        foreach ($this->getFixedSearchFields() as $field) {
+            $params[] = $var_name.".".$field["field_name"]."=>".$field["field_name"];
+        }
+        return $params ? "[".implode(", ",$params)."]" : "";
+    }
+    /**
+     * 検索入力HTMLソースの取得
+     */
+    public function getSearchInputSource ($field)
+    {
+        $o = array("page"=>$this->getIndexPage());
+        if ($field["search_type"]=="date_range") {
+            $o["type"] = "date";
+            $o_start = $o_end = $o;
+            $o_start["name"] = $field["field_name"]."_start";
+            $o_end["name"] = $field["field_name"]."_end";
+            return $field["col"]->getInputSource($o_start)
+                ." &#xFF5E; ".$field["col"]->getInputSource($o_end);
+        } elseif ($field["search_type"]=="archive") {
+            $source = "";
+            $o["type"] = "hidden";
+            $source .= $field["col"]->getInputSource($o);
+            $archive_src = 'array()';
+            if ($field["archive_type"]=="enum") {
+                $archive_src = '$enum["'.$field["col"]->getEnumSet()->getFullName().'"]';
+            } elseif ($field["archive_type"]=="year") {
+                $archive_src = 'range(date("Y")-3, date("Y")+3)';
+            }
+            $source .= "\n".str_repeat("    ",3).'{{foreach '.$archive_src.' as $k=>$v}}';
+            $source .= "\n".str_repeat("    ",4).'<a '
+                .'href="{{$forms.search->getSearchPageUrl([\''.$field["field_name"].'\'=>$k])}}" '
+                .'class="enum'.'{{if $forms.search.'.$field["field_name"].' == $k}} current{{/if}}"'
+                .'>{{$v}}</a>';
+            $source .= "\n".str_repeat("    ",3).'{{/foreach}}';
+            $source .= "\n".str_repeat("    ",2);
+            return $source;
+        } elseif ($field["search_type"]=="depend") {
+            $o_hidden = $o_show = $o;
+            $o_hidden["type"] = "hidden";
+            $o_show["var_name"] = '$forms.search';
+            return $field["col"]->getInputSource($o_hidden).$field["col"]->getShowSource($o_show);
+        }
+        if ($field["search_type"]=="word") {
+            $o["type"] = "text";
+        }
+        return $field["col"]->getInputSource($o);
+    }
+    /**
+     * $form_searchの定義行の取得
+     */
+    public function getSearchFormFieldDefSource ($field)
+    {
+        $field_name = $field["field_name"];
+        $col_name = $field["col"]->getName();
+        $lines = array();
+        if ($field["search_type"]=="date_range") {
+            $lines[$field_name."_start"] = array("search"=>"where", "target_col"=>$col_name." >=");
+            $lines[$field_name."_end"] = array("search"=>"where", "target_col"=>$col_name." - INTERVAL 1 DAY <");
+        } elseif ($field["search_type"]=="depend") {
+            $lines[$field_name] = array("search"=>"where", "target_col"=>$col_name);
+        } elseif ($field["search_type"]=="archive") {
+            if ($field["archive_type"]=="year") $col_name = "DATE_FORMAT(".$col_name.", '%Y')";
+            $lines[$field_name] = array("search"=>"where", "target_col"=>$col_name);
+        } else {
+            $lines[$field_name] = array("search"=>$field["search_type"], "target_col"=>$col_name);
+        }
+        return CodeRenderer::elementLines(3, $lines);
     }
 
 // -- source
@@ -258,6 +414,7 @@ class PagesetElement extends Element_Base
     public function getParamFields ($types=array())
     {
         $param_fields = array();
+        // param_fields.<type>.<field_name>が指定されている場合
         foreach ((array)$this->getAttr("param_fields") as $field_type => $fields) {
             // param_fieldsの指定が配列ではなくfield_nameのみである場合に対応
             if ($fields && ! is_array($fields)) $fields = array($fields=>array());
@@ -265,6 +422,7 @@ class PagesetElement extends Element_Base
             foreach ((array)$fields as $field_name => $param_field) {
                 if ( ! $param_field["field_name"]) $param_field["field_name"] = $field_name;
                 if ( ! $param_field["type"]) $param_field["type"] = $field_type;
+                // 主にtype=appendで*.*形式により、Assoc内へのパラメータ引き渡し行う場合
                 if (preg_match('!\.!', $field_name)) {
                     $parts = explode(".", $param_field["field_name"]);
                     $param_field["field_name"] = $parts[0];
@@ -276,13 +434,14 @@ class PagesetElement extends Element_Base
                 $param_fields[$param_field["field_name"]] = $param_field;
             }
         }
-        if ($params_config = $this->getSkelConfig("params")) {
-            // pagesetについてidパラメータの引き渡しが要件になっている場合、id=IDを渡す
+        // pagesetでidの引き渡しが要件になっていて、指定がない場合、id=での受け渡しを補完
+        if ( ! $param_fields) {
+            $params_config = $this->getSkelConfig("params");
             if ($params_config["id"]) {
                 $param_fields["id"] = array("type"=>"id", "field_name"=>"id", "param_name"=>"id");
             }
         }
-        // Typeの指定があれば絞り込む
+        // Typeの指定があれば絞り込んで返す
         if ($types) $param_fields = array_filter($param_fields, function($param_field)use($types){
             return in_array($param_field["type"], is_array($types) ? $types : array($types));
         });
@@ -308,20 +467,40 @@ class PagesetElement extends Element_Base
         foreach ($this->getParamFields() as $param_field) {
             $field_name = $param_field["field_name"];
             $param_name = $param_field["param_name"];
-            // 共通パラメータの引き継ぎ（Form経由）
-            if ($from_pageset->getParamFieldByName($field_name) && $form_name) {
-                if ($type=="redirect") $o["params"][$param_name] = $form_name.'["'.$field_name.'"]';
-                else $o["params"][$param_name] = $form_name.'.'.$field_name;
-                break;
-            // recordの指定があればIDを渡す
-            } elseif ($record_name && $from_table) {
+            // recordの指定がある場合、必ず主キーの値を受け渡す
+            if ($record_name && $from_table) {
+                //TODO: パラメータに該当するカラムが存在するのかどうかのチェックとスキップ
+                // リンク先で同一のテーブルを参照している場合、id=で渡す
+                if ($from_table==$to_table) $param_name = "id";
+                // 外部キーの名前をつけて、recordの主キーを渡す
                 $id_col_name = $from_table->getIdCol()->getName();
                 if ($type=="redirect") $o["params"][$param_name] = $record_name.'["'.$id_col_name.'"]';
                 else $o["params"][$param_name] = $record_name.'.'.$id_col_name;
-                break;
+            // リンク元ページも同名のパラメータを受け取っている場合
+            } elseif ($from_pageset->getParamFieldByName($field_name)) {
+                // Form経由で共通パラメータの引き継ぎ
+                if ($type=="redirect") $o["params"][$param_name] = $form_name.'["'.$field_name.'"]';
+                else $o["params"][$param_name] = $form_name.'.'.$field_name;
             }
         }
-
         return $this->getIndexPage()->getLinkSource($type, $from_pageset, $o);
     }
+
+// -- archive_field
+
+    /**
+     * リンク先Pagesetへのリンク記述コードを取得
+     */
+    public function getArchiveField ()
+    {
+        // archive_fieldが指定されている場合
+        if ($field_name = $this->getAttr("archive_field")) {
+            $param_fields[$field_name] = array(
+                "type"=>"archive",
+                "field_name"=>$field_name,
+                "param_name"=>$field_name,
+            );
+        }
+    }
+
 }

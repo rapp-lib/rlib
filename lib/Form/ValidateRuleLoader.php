@@ -78,15 +78,15 @@ class ValidateRuleLoader
             if (isset($value)) { $value = strtotime($value); }
         }
         if (isset($min) && isset($max)) {
-            if ($min >= $value || $max <= $value) {
+            if ($min > $value || $max < $value) {
                 return array("message"=>__(":min以上:max以下で入力して下さい", $params));
             }
         } elseif (isset($min)) {
-            if ($min >= $value) {
+            if ($min > $value) {
                 return array("message"=>__(":min以上で入力して下さい", $params));
             }
         } elseif (isset($max)) {
-            if ($max <= $value) {
+            if ($max < $value) {
                 return array("message"=>__(":max以下で入力して下さい", $params));
             }
         }
@@ -107,15 +107,15 @@ class ValidateRuleLoader
         if (isset($min) && isset($max)) {
             if ($min==$max && $min!=$length) {
                 return array("message"=>__(":min文字で入力してください", $params));
-            } elseif ($min >= $length || $max <= $length) {
+            } elseif ($min > $length || $max < $length) {
                 return array("message"=>__(":min文字以上:max文字以内で入力してください", $params));
             }
         } elseif (isset($min)) {
-            if ($min >= $length) {
+            if ($min > $length) {
                 return array("message"=>__(":min文字以上で入力してください", $params));
             }
         } elseif (isset($max)) {
-            if ($max <= $length) {
+            if ($max < $length) {
                 return array("message"=>__(":max文字以内で入力してください", $params));
             }
         }
@@ -132,7 +132,9 @@ class ValidateRuleLoader
         if (self::isEmpty($value)) return false;
         $q = table($rule["table"]);
         $q = $q->findBy($rule["col_name"], $value);
-        if ($rule["id_field"]) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $validator->getValue($rule["id_field"]));
+        if ($rule["id_role"]) $id = app()->user->id($rule["id_role"]);
+        elseif ($rule["id_field"]) $id = $validator->getValue($rule["id_field"]);
+        if (isset($id)) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $id);
         if (count($q->select())==0) return false;
         return array("message"=>__("既に登録されています"));
     }

@@ -12,6 +12,8 @@ class ControllerElement extends Element_Base
         // Pagesetの補完
         if ($this->getAttr("type") == "index") {
             $pagesets[] = array("type"=>"index");
+        } elseif ($this->getAttr("type") == "blank") {
+            $pagesets[] = array("type"=>"blank");
         } elseif ($this->getAttr("type") == "login") {
             $pagesets[] = array("type"=>"login");
             if ($this->getFlagAttr("use_reminder", false)) {
@@ -74,9 +76,14 @@ class ControllerElement extends Element_Base
                 "type" => $this->getAttr("type"),
             ));
         }
+        // sub_pageの追加
+        foreach ((array)$this->getAttr("sub_page") as $sub_page) {
+            if ( ! $sub_page["type"]) $sub_page["type"] = "blank";
+            $pagesets[] = $sub_page;
+        }
         // Pagesetの登録
         foreach ($pagesets as $pageset_attrs) {
-            $pageset_name = $pageset_attrs["type"];
+            $pageset_name = $pageset_attrs["name"] ?: $pageset_attrs["type"];
             $this->children["pageset"][$pageset_name]
                 = new PagesetElement($pageset_name, $pageset_attrs, $this);
         }
@@ -136,9 +143,10 @@ class ControllerElement extends Element_Base
     /**
      * 入力画面に表示するColの取得
      */
-    public function getInputCols ()
+    public function getInputCols ($table=false)
     {
-        $cols = $this->getTable()->getInputCols();
+        if ($table===false) $table = $this->getTable();
+        $cols = $table->getInputCols();
         // use_atによるフィルタリング
         $filtered_cols = array();
         foreach ($cols as $i => $col) {
@@ -155,28 +163,11 @@ class ControllerElement extends Element_Base
      */
     public function getAssocInputCols ($parent_col)
     {
-        // getAssocTableとして指定された際のカラム取得
-        $cols = $parent_col->getAssocTable()->getAssocInputCols($parent_col);
-        // use_atによるフィルタリング
-        $filtered_cols = array();
-        foreach ($cols as $i => $col) {
-            if (is_array($use_at = $col->getAttr("use_at"))) {
-                foreach ($use_at as $controller_name) {
-                    if ($controller_name == $this->getName()) $filtered_cols[] = $col;
-                }
-            }
-        }
-        return $filtered_cols ?: $cols;
-    }
-    /**
-     * 検索フォームに表示するColの取得
-     */
-    public function getSearchCols ()
-    {
-        $cols = array();
-        foreach ((array)$this->getAttr("search_fields") as $field_name) {
-            $cols[] = $this->getTable()->getColByName($field_name);
-        }
+        $cols = $this->getInputCols($parent_col->getAssocTable());
+        $cols = array_filter($cols, function($col) use ($parent_col){
+            return $col->getAttr("def.fkey_for")!==$parent_col->getTable()->getName()
+                && $col->getAttr("type")!=="assoc";
+        });
         return $cols;
     }
     /**
@@ -185,6 +176,24 @@ class ControllerElement extends Element_Base
     public function isSortCol ($col)
     {
         return in_array($col->getName(), (array)$this->getAttr("sort_fields"));
+    }
+    /**
+     * デフォルトのソート対象Colを取得
+     */
+    public function getDefaultSortFieldName ()
+    {
+        $table = $this->getTable();
+        return $table->getOrdCol() ? $table->getOrdCol()->getName() : $table->getIdCol()->getName();
+    }
+    /**
+     * ソート対象にできるColを取得
+     */
+    public function getSortatbleFieldNames ()
+    {
+        $names = (array)$this->getAttr("sort_fields");
+        $default = $this->getDefaultSortFieldName();
+        if ( ! in_array($default, $names)) array_unshift($names, $default);
+        return $names;
     }
     /**
      * 一覧画面に表示するColの取得
@@ -229,14 +238,19 @@ class ControllerElement extends Element_Base
     {
         return (array)$this->children["pageset"];
     }
-    public function getPagesetByType ($type)
+    public function getPagesetsByType ($type)
     {
+        $pagesets = array();
         foreach ($this->getPagesets() as $pageset) {
             if ($pageset->getAttr("type")==$type) {
-                return $pageset;
+                $pagesets[] = $pageset;
             }
         }
-        return null;
+        return $pagesets;
+    }
+    public function getPagesetByType ($type)
+    {
+        return array_shift($pagesets = $this->getPagesetsByType($type));
     }
     /**
      * @getter Pageset

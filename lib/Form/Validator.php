@@ -111,10 +111,11 @@ class Validator
         if ($cond === true) return ! $this->stEvalIsBlank($key);
         if (is_string($cond)) return $this->stEvalEq($key, $cond);
         if ($cond["is_blank"]) return $this->stEvalIsBlank($key);
-        if ($cond["not_blank"]) return ! $this->stEvalIsBlank($key);
         if (isset($cond["eq"])) return $this->stEvalEq($key, $cond["eq"]);
         if (isset($cond["neq"])) return ! $this->stEvalEq($key, $cond["neq"]);
         if (isset($cond["contains"])) return ! $this->stEvalContains($key, $cond["contains"]);
+        if ($priv_req = $cond["has_priv"]) return $this->stEvalHasPriv($key, $priv_req);
+        if ($priv_req = $cond["not_has_priv"]) return ! $this->stEvalHasPriv($key, $priv_req);
         return false;
     }
     private function stEvalIsBlank($key)
@@ -123,6 +124,10 @@ class Validator
         if (is_array($value) && ! count($value)) return true;
         if (strlen($value) === 0) return true;
         return false;
+    }
+    private function stEvalHasPriv($key, $priv_req)
+    {
+        return app()->user->checkCurrentPriv($key, $priv_req);
     }
     private function stEvalEq($key, $eq_value)
     {

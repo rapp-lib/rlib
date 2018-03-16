@@ -5,9 +5,10 @@
     }
     $pageset = $page->getParent();
     $controller = $pageset->getParent();
+    $role = $controller->getRole();
 
     $var_name = $o["var_name"] ?: '$forms.entry';
-    $name = $col->getName();
+    $name = $o["name"] ?: $col->getName();
     $input_type = $o["type"] ?: $col->getAttr("type");
     $input_name = $o["name_parent"] ? $o["name_parent"]."[".$name."]" : $name;
 ?>
@@ -68,7 +69,13 @@
         <?=""?>
 <?php else: /* elseif type==="assoc" */ ?>
 {{input name="<?=$input_name?>" type="<?=$input_type?>"<?=""?>
-<?php if ($enum_set = $col->getEnumSet()): ?> enum="<?=$enum_set->getFullName()?>"<?php endif; ?>
+<?php if ($enum_set = $col->getEnumSet()): ?>
+<?php   if ($pageset->getFlg("is_mypage") && $enum_set->hasOwnedEnumSet($role)): ?>
+ values=$enum["<?=$enum_set->getFullName()?>_for_<?=$role->getName()?>"][$auth->id("<?=$role->getName()?>")]
+<?php   else: ?>
+ values=$enum["<?=$enum_set->getFullName()?>"]
+<?php   endif; ?>
+<?php endif; ?>
 <?php if ($input_type=="password"): ?> autocomplete="new-password"<?php endif; ?>
 <?php if (in_array($input_type,array("text","password"))): ?> class="w-full"<?php endif; ?>
 }}<?=""?>

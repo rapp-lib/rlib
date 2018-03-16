@@ -17,6 +17,8 @@ class PageElement extends Element_Base
     }
     public function getTitle ()
     {
+        if ($title = $this->getAttr("title")) return $title;
+        if ($label = $this->getAttr("label")) return $label;
         $title = $this->getParent()->getTitle();
         if ($this->getParent()->getIndexPage() !== $this) {
             if ($label = $this->getSkelConfig("label")) $title .= " ".$label;
@@ -64,6 +66,7 @@ class PageElement extends Element_Base
     }
     public function hasHtml ()
     {
+        if (($has_html = $this->getAttr("has_html")) !== null) return $has_html;
         return $this->getSchema()->getConfig($this->getTemplateEntry().".template_file");
     }
     /**
