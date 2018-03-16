@@ -663,13 +663,13 @@ class FormContainer extends ArrayObject
             $values[$parts[0]] = call_user_func($function, $values[$parts[0]], $field_name);
         // 対象が1次配列
         } elseif (count($parts)==2) {
-            if ( ! isset($values[$parts[0]][$parts[1]])) {
+            if ( ! is_arraylike($values[$parts[0]]) || ! isset($values[$parts[0]][$parts[1]])) {
                 return;
             }
             $values[$parts[0]][$parts[1]] = call_user_func($function, $values[$parts[0]][$parts[1]], $field_name);
         // 対象が2次配列
         } elseif (count($parts)==3) {
-            if (count($values[$parts[0]])==0) {
+            if ( ! is_arraylike($values[$parts[0]]) || count($values[$parts[0]])==0) {
                 return;
             }
             foreach ($values[$parts[0]] as $fieldset_index => $fieldset) {

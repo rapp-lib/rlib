@@ -10,7 +10,7 @@
 ?>
 <?php if ($col->getAttr("type")=="assoc"): ?>
 --<?="\n"?>
-<#?php foreach (<?=$var_name?>["<?=$name?>"] as $key=>$item): ?>
+<#?php foreach ((array)<?=$var_name?>["<?=$name?>"] as $key=>$item): ?>
 <?php   foreach ($controller->getAssocInputCols($col) as $assoc_col): ?>
 <?php       if ($assoc_col->getAttr("type")==="assoc") continue; ?>
   <?=$assoc_col->getLabel()?> : <?=$assoc_col->getMailSource(array("page"=>$page, "mail"=>$mail, "var_name"=>'$item'))?><?="\n"?>

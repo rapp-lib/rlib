@@ -19,8 +19,9 @@ class PagesetElement extends Element_Base
         $index_page_type = $this->getSkelConfig("index_page");
         foreach ($page_configs as $page_type => $page_config) {
             $page_name = $this->getName();
-            if ($index_page_type!=$page_type) $page_name .= "_".$page_type;
-            $page_attrs = array("type"=>$page_type);
+            $is_index_page = $index_page_type==$page_type;
+            if ( ! $is_index_page) $page_name .= "_".$page_type;
+            $page_attrs = array("type"=>$page_type, "is_index_page"=>$is_index_page);
             $this->children["page"][$page_name] = new PageElement($page_name, $page_attrs, $this);
         }
         // Mail登録
@@ -47,6 +48,10 @@ class PagesetElement extends Element_Base
                 "mail_col_name" => "mail",
             ), $this);
         }
+    }
+    public function getType ()
+    {
+        return $this->getAttr("type");
     }
     public function getTemplateEntry ()
     {

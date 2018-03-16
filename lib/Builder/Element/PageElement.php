@@ -3,9 +3,13 @@ namespace R\Lib\Builder\Element;
 
 class PageElement extends Element_Base
 {
+    public function getPageset ()
+    {
+        return $this->getParent();
+    }
     public function getController ()
     {
-        return $this->getParent()->getParent();
+        return $this->getPageset()->getParent();
     }
     public function getTemplateEntry ()
     {
@@ -101,6 +105,9 @@ class PageElement extends Element_Base
         }
         if ($this->getController()->getRole()->getName()!="guest" && ! $this->getController()->getPrivRequired()) {
             $routes_dec[] = '"auth.priv_req"=>false';
+        }
+        if ($this->getPageset()->getType()=="delete" && $this->getAttr("is_index_page")) {
+            $routes_dec[] = '"csrf_check"=>true';
         }
         return 'array("'.$this->getFullPage().'", "'.$this->getPathPattern().'"'
             .($routes_dec ? ', array('.implode(', ',$routes_dec).')' : '').'),';
