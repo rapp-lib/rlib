@@ -79,6 +79,7 @@
 <?php endif; ?>
 <?php if ($input_type=="password"): ?> autocomplete="new-password"<?php endif; ?>
 <?php if (in_array($input_type,array("text","password"))): ?> class="w-full"<?php endif; ?>
+<?=$col->getInputAttrs()?>
 }}<?=""?>
 <?php if ($input_type=="file"): ?>{{if <?=$var_name?>.<?=$name?>}}<span> <a href="{{<?=$var_name?>.<?=$name?>}}" target="_blank" class="uploaded">ファイル</a> <a href="javascript:void(0);" onclick="$(this).parent().parent().find('input.uploaded').val('').change();$(this).parent().hide();">削除</a></span>{{/if}}<?php endif; ?>
 <?php endif; /* if type==="assoc" && def.assoc.single */ ?>

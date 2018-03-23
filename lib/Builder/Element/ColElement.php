@@ -178,4 +178,15 @@ class ColElement extends Element_Base
     {
         return ! $this->getAttr("nodef");
     }
+    /**
+     * inputタグ属性の生成
+     */
+    public function getInputAttrs ()
+    {
+        $input_attr = "";
+        foreach ((array)$this->getAttr("input") as $k=>$v) {
+            $input_attr .= " ". $k.'='.CodeRenderer::smartyValue($v);
+        }
+        return $input_attr;
+    }
 }

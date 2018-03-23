@@ -61,6 +61,18 @@ class CodeRenderer
     {
         return new CodeFragment($code);
     }
+    public static function smartyValue($value)
+    {
+        if (is_array($value)) {
+            $elements = array();
+            foreach ($value as $k=>$v) $elements[] = '"'.$k.'"=>'.self::smartyValue($v);
+            return '['.implode(', ', $elements).']';
+        }
+        else if (is_numeric($value)) return $value;
+        else if (is_bool($value)) return $value ? "true" : "false";
+        else if (is_null($value)) return "null";
+        else return (string)$value;
+    }
 }
 class CodeFragment
 {

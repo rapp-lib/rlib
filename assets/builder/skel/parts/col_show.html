@@ -28,7 +28,7 @@
 {{if <?=$var_name?>.<?=$name?>}}<a href="{{<?=$var_name?>.<?=$name?>}}" target="_blank">ファイル</a>{{/if}}<?=""?>
 <?php elseif ($enum_set = $col->getEnumSet()): /* if type=="assoc" */ ?>
 <?php   if ($input_type=="checklist"): ?>
-{{<?=$var_name?>.<?=$name?>|map:$enum["<?=$enum_set->getFullName()?>":" "]}}<?=""?>
+{{<?=$var_name?>.<?=$name?>|map:$enum["<?=$enum_set->getFullName()?>"]:" "}}<?=""?>
 <?php   else: /* if type=="checklist" */ ?>
 {{$enum["<?=$enum_set->getFullName()?>"][<?=$var_name?>.<?=$name?>]}}<?=""?>
 <?php   endif; /* if type=="checklist" */ ?>
