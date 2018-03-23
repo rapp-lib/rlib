@@ -15,7 +15,7 @@
         "symfony/event-dispatcher": "~2.0",
         "danbruce/fast-route": "^0.6.0",
         "airmanbzh/php-html-generator": "^1.0.0",
-        "illuminate/support": "~4.1",
+        //"illuminate/support": "~4.1",
         "illuminate/queue": "~4.1",
         "illuminate/events": "~4.1",
         "guzzlehttp/guzzle": "~3",
