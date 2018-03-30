@@ -72,9 +72,9 @@
 {{input name="<?=$input_name?>" type="<?=$input_type?>"<?=""?>
 <?php if ($enum_set = $col->getEnumSet()): ?>
 <?php   if ($pageset->getFlg("is_mypage") && $enum_set->hasOwnedEnumSet($role)): ?>
- values=$enum["<?=$enum_set->getFullName()?>_for_<?=$role->getName()?>"][$auth->id("<?=$role->getName()?>")]
+ values=$enum["<?=$enum_set->getFullName()?>_for_<?=$role->getName()?>"][$auth->id("<?=$role->getName()?>")]<?=""?>
 <?php   else: ?>
- values=$enum["<?=$enum_set->getFullName()?>"]
+ values=$enum["<?=$enum_set->getFullName()?>"]<?=""?>
 <?php   endif; ?>
 <?php endif; ?>
 <?php if ($input_type=="password"): ?> autocomplete="new-password"<?php endif; ?>

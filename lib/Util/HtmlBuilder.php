@@ -8,6 +8,7 @@ use HtmlGenerator\HtmlTag;
  */
 class HtmlBuilder extends HtmlTag
 {
+    public static $outputLanguage  = ENT_HTML401;
     public static $avoidXSS  = true;
     public static function build($name, $attrs=null, $content=null)
     {
