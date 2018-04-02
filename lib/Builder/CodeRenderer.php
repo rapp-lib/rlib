@@ -71,7 +71,7 @@ class CodeRenderer
         else if (is_numeric($value)) return $value;
         else if (is_bool($value)) return $value ? "true" : "false";
         else if (is_null($value)) return "null";
-        else return (string)$value;
+        else return '"'.(string)$value.'"';
     }
 }
 class CodeFragment
