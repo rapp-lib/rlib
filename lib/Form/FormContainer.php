@@ -493,8 +493,14 @@ class FormContainer extends ArrayObject
                 "form_def" => $this->def,
             ));
         }
-        // 関係するTableに対して検索条件を付与
-        return table($this->def["search_table"])->findBySearchFields($this, $search_fields);
+        // 関係するTableに対してJoinと検索条件を付与
+        $q = table($this->def["search_table"]);
+        foreach ((array)$this->def["search_joins"] as $join) {
+            if (is_array($join)) $q->join($join[0], $join[1] ?: array(), $join[2] ?: "LEFT");
+            elseif (is_string($join)) $q->joinBelongsTo($join);
+        }
+        $q->findBySearchFields($this, $search_fields);
+        return $q;
     }
 
     /**
