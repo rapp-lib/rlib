@@ -59,6 +59,11 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
 
         $prop_name = 'values_'.$this->values_name;
         if (method_exists($this, $prop_name)) {
+            if (is_array($keys)) {
+                $keys = array_unique($keys);
+                $keys = array_filter($keys, function($v){ return $v!==null; });
+                if (count($keys)==0) return;
+            }
             $values = (array)call_user_func(array($this,$prop_name), $keys);
             if ($keys===null) {
                 $this->retreived = true;

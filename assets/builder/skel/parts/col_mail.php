@@ -18,7 +18,7 @@
 --<?="\n"?>
 <#?php endforeach; ?><?=""?>
 <?php elseif ($enum_set = $col->getEnumSet()): ?>
-<#?=app()->enum["<?=$enum_set->getFullName()?>"][<?=$var_name?>["<?=$name?>"]]?><#?="\n"?><?=""?>
+<#?=<?=$var_name?>["<?=$col->getEnumAliasColName()?>"]?><#?="\n"?><?=""?>
 <?php elseif ($col->getAttr("type")=="file"): ?>
 <#?=app()->http->getServedRequest()->getUri()->getWebroot()->uri(<?=$var_name?>["<?=$name?>"])?><#?="\n"?><?=""?>
 <?php elseif ($col->getAttr("type")=="date"): ?>

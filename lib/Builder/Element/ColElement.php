@@ -27,6 +27,13 @@ class ColElement extends Element_Base
         return null;
     }
     /**
+     * Enum Aliasカラム名の取得
+     */
+    public function getEnumAliasColName ()
+    {
+        return $this->getName()."_label";
+    }
+    /**
      * 入力HTMLソースの取得
      */
     public function getInputSource ($o=array())
@@ -100,6 +107,12 @@ class ColElement extends Element_Base
         $def["comment"] = $this->getAttr("label");
         if ($this->getAttr("type")=="checklist" && $def["type"]=="text" && ! $def["format"]) {
             $def["format"] = "json";
+        }
+        if ($enum_set = $this->getEnumSet()) {
+            $def["alias"][$this->getEnumAliasColName()]["enum"] = $enum_set->getFullName();
+            if ($this->getAttr("type")=="checklist") {
+                $def["alias"][$this->getEnumAliasColName()]["glue"] = " ";
+            }
         }
         return CodeRenderer::elementLine(2, $this->getName(), $def);
     }
