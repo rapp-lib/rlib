@@ -486,7 +486,7 @@ class Table_Base extends Table_Core
                         ));
                     }
                     // 値を引数に呼び出し
-                    $src_values = $this->result->getHashedBy($src_col_name);
+                    $src_values = $this->result->getHashedBy($this->getIdColName(), $src_col_name);
                     $values = call_user_func(array($this,$method_name), $src_values, $alias);
                     // 結果を統合する
                     $this->result->mergeBy($alias_col_name, $values);
@@ -513,16 +513,23 @@ class Table_Base extends Table_Core
         // checklistのように対象の値が複数となっている
         } elseif ($alias["glue"]) {
             $reduced = array_reduce($src_values, function($result, $item){
-                return array_merge($result, array_values($item));
+                return array_merge($result, array_values((array)$item));
             }, array());
-            app()->enum[$alias["enum"]]->retreive($reduced);
+            $map = app()->enum[$alias["enum"]]->map($reduced);
             $dest_values = array();
-            foreach ($src_values as $k=>$v) {
-                $dest_values[$k] = implode($alias["glue"], $app()->enum[$alias["enum"]]->map($v));
+            foreach ($src_values as $k1=>$v1) {
+                $dest_values[$k1] = array();
+                foreach ((array)$v1 as $k2=>$v2) {
+                    $dest_values[$k1][$k2] = $map[$v2];
+                }
+                $dest_values[$k1] = implode($alias["glue"], $dest_values[$k1]);
             }
             return $dest_values;
         } else {
-            return app()->enum[$alias["enum"]]->map($src_values);
+            $map = app()->enum[$alias["enum"]]->map($src_values);
+            $dest_values = array();
+            foreach ($src_values as $k=>$v) $dest_values[$k] = $map[$v];
+            return $dest_values;
         }
     }
 
