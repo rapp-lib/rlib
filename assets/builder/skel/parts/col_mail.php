@@ -18,7 +18,11 @@
 --<?="\n"?>
 <#?php endforeach; ?><?=""?>
 <?php elseif ($enum_set = $col->getEnumSet()): ?>
+<?php   if ($col->getAttr("type")=="checklist"): ?>
+<#?=implode(<?=$var_name?>["<?=$col->getEnumAliasColName()?>"], " ")?><#?="\n"?><?=""?>
+<?php   else: ?>
 <#?=<?=$var_name?>["<?=$col->getEnumAliasColName()?>"]?><#?="\n"?><?=""?>
+<?php   endif; ?>
 <?php elseif ($col->getAttr("type")=="file"): ?>
 <#?=app()->http->getServedRequest()->getUri()->getWebroot()->uri(<?=$var_name?>["<?=$name?>"])?><#?="\n"?><?=""?>
 <?php elseif ($col->getAttr("type")=="date"): ?>

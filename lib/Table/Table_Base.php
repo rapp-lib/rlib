@@ -511,7 +511,7 @@ class Table_Base extends Table_Core
                 "enum"=>$alias["enum"], "table"=>$this, "alias"=>$alias,
             ));
         // checklistのように対象の値が複数となっている
-        } elseif ($alias["glue"]) {
+        } elseif ($alias["array"] || $alias["glue"]) {
             $reduced = array_reduce($src_values, function($result, $item){
                 return array_merge($result, array_values((array)$item));
             }, array());
@@ -522,7 +522,7 @@ class Table_Base extends Table_Core
                 foreach ((array)$v1 as $k2=>$v2) {
                     $dest_values[$k1][$k2] = $map[$v2];
                 }
-                $dest_values[$k1] = implode($alias["glue"], $dest_values[$k1]);
+                if ($alias["glue"]) $dest_values[$k1] = implode($alias["glue"], $dest_values[$k1]);
             }
             return $dest_values;
         } else {

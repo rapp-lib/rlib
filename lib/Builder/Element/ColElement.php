@@ -111,7 +111,7 @@ class ColElement extends Element_Base
         if ($enum_set = $this->getEnumSet()) {
             $def["alias"][$this->getEnumAliasColName()]["enum"] = $enum_set->getFullName();
             if ($this->getAttr("type")=="checklist") {
-                $def["alias"][$this->getEnumAliasColName()]["glue"] = " ";
+                $def["alias"][$this->getEnumAliasColName()]["array"] = true;
             }
         }
         return CodeRenderer::elementLine(2, $this->getName(), $def);
