@@ -136,6 +136,9 @@ class Table_Core
             $id_col_name = $this->getIdColName();
             $record[$id_col_name] = $id;
         }
+        // Resultへの登録
+        if ( ! $this->result) $this->result = new Result($this);
+        $this->result[] = $record;
         return $record;
     }
 

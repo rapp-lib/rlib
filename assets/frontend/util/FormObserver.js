@@ -35,7 +35,10 @@ window.FormObserver = function ($form, state, o) {
     };
     self.getInputValue = function(field_name){
         var $input = self.getInputElement(field_name);
-        return $input.filter(function(){ return $(this).val(); }).val();
+        if ($input.attr("type") == "radio") $input = $input.filter(':checked');
+        if ($input.attr("type") == "checkbox") $input = $input.filter(':checked');
+        $input = $input.filter(function(){ return $(this).val(); });
+        return $input.val();
     };
     self.fieldNameIsMatchRule = function(field_name_ptn, field_name){
         // Ruleの判定の場合は、入力側のfieldset_indexを無視する
