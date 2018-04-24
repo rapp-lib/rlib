@@ -27,7 +27,8 @@ class CodeRenderer
         if ($v instanceof CodeFragment){
             return (string)$v;
         } elseif (is_array($v)) {
-            if (count($v) < 8) {
+            $v = array_filter($v, function($v2){ return isset($v2); });
+            if (count($v) < 4) {
                 foreach ($v as $k2=>$v2) {
                     if (isset($v2)) {
                         $v[$k2] = self::key($height, $k2).self::value($height, $v2);
@@ -71,7 +72,7 @@ class CodeRenderer
         else if (is_numeric($value)) return $value;
         else if (is_bool($value)) return $value ? "true" : "false";
         else if (is_null($value)) return "null";
-        else return (string)$value;
+        else return '"'.(string)$value.'"';
     }
 }
 class CodeFragment

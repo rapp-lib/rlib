@@ -449,27 +449,6 @@ class Table_Base extends Table_Core
     }
     /**
      * @hook on_getBlankCol
-     * enumの値を取得
-     * @deprecated retreiveを定義して使うべき
-     */
-    protected function on_getBlankCol_enumValue ($record, $col_name)
-    {
-        if (preg_match('!^([^:]+):enum(?::(?:([^\.]+)\.)?([^\.]+))?$!', $col_name, $match)) {
-            list(,$base_col_name, $repo_name, $values_name) = $match;
-            $repo_name = $repo_name ?: $this->getAppTableName();
-            $values_name = $values_name ?: $base_col_name;
-            $enum = app()->enum[$repo_name.".".$values_name];
-            $keys = $this->result->getHashedBy($base_col_name);
-            $enum->retreive($keys);
-            foreach ($this->result as $record_a) {
-                $record_a[$col_name] = $enum[$record_a[$base_col_name]];
-            }
-            return true;
-        }
-        return false;
-    }
-    /**
-     * @hook on_getBlankCol
      * retreiveメソッドが定義されていたら参照する
      */
     protected function on_getBlankCol_retreive ($record, $col_name)
@@ -485,6 +464,72 @@ class Table_Base extends Table_Core
         // 値の設定漏れがあった場合はnullで埋める
         foreach ($this->result as $a_record) {
             if ( ! isset($a_record[$col_name])) $a_record[$col_name] = null;
+        }
+        return true;
+    }
+    /**
+     * @hook on_getBlankCol
+     * aliasが定義されていたら参照する
+     */
+    protected function on_getBlankCol_alias ($record, $col_name)
+    {
+        foreach (static::$cols as $src_col_name=>$src_col) {
+            foreach ((array)$src_col["alias"] as $alias_col_name=>$alias) {
+                if ($alias_col_name===$col_name) {
+                    if ( ! $alias["type"] && $alias["enum"]) $alias["type"] = "enum";
+                    $alias["src_col_name"] = $src_col_name;
+                    $alias["alias_col_name"] = $alias_col_name;
+                    $method_name = "retreive_alias".str_camelize($alias["type"]);
+                    if ( ! method_exists($this, $method_name)) {
+                        report_error("aliasに対応する処理がありません",array(
+                            "table"=>$this, "alias"=>$alias, "method_name"=>$method_name,
+                        ));
+                    }
+                    // 値を引数に呼び出し
+                    $src_values = $this->result->getHashedBy($this->getIdColName(), $src_col_name);
+                    $values = call_user_func(array($this,$method_name), $src_values, $alias);
+                    // 結果を統合する
+                    $this->result->mergeBy($alias_col_name, $values);
+                    // 値の設定漏れがあった場合はnullで埋める
+                    foreach ($this->result as $a_record) {
+                        if ( ! isset($a_record[$col_name])) $a_record[$col_name] = null;
+                    }
+                    return true;
+                }
+            }
+        }
+    }
+    /**
+     * @hook retreive_alias
+     * aliasにtype指定がない場合の処理
+     */
+    protected function retreive_aliasEnum ($src_values, $alias)
+    {
+        // 指定が不正
+        if ( ! $alias["enum"] || ! app()->enum[$alias["enum"]]) {
+            report_error("aliasで指定されるenumがありません",array(
+                "enum"=>$alias["enum"], "table"=>$this, "alias"=>$alias,
+            ));
+        // checklistのように対象の値が複数となっている
+        } elseif ($alias["array"] || $alias["glue"]) {
+            $reduced = array_reduce($src_values, function($result, $item){
+                return array_merge($result, array_values((array)$item));
+            }, array());
+            $map = app()->enum[$alias["enum"]]->map($reduced);
+            $dest_values = array();
+            foreach ($src_values as $k1=>$v1) {
+                $dest_values[$k1] = array();
+                foreach ((array)$v1 as $k2=>$v2) {
+                    $dest_values[$k1][$k2] = $map[$v2];
+                }
+                if ($alias["glue"]) $dest_values[$k1] = implode($alias["glue"], $dest_values[$k1]);
+            }
+            return $dest_values;
+        } else {
+            $map = app()->enum[$alias["enum"]]->map($src_values);
+            $dest_values = array();
+            foreach ($src_values as $k=>$v) $dest_values[$k] = $map[$v];
+            return $dest_values;
         }
     }
 

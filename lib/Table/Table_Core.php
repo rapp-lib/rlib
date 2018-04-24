@@ -392,7 +392,7 @@ class Table_Core
     {
         if (isset($record[$col_name])) return $record[$col_name];
         if (count($parts = explode(".",$col_name))==2) return $record[$parts[0]][$parts[1]];
-        return null;
+        return $record[$col_name];
     }
 
 // -- SELECT文の発行

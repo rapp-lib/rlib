@@ -86,7 +86,9 @@
 <?php endif; ?>
             $this->forms["entry"]->clear();
         }
-<?php if ($pageset->getAttr("skip_complete")): ?>
+<?php if ($pageset->getAttr("skip_complete")===true): ?>
         return $this->redirect("id://<?=$pageset->getBackPage()->getLocalPage()?>", array("back"=>"1"));
+<?php elseif (($skip_complete = $pageset->getAttr("skip_complete")) && is_string($skip_complete)): ?>
+        return $this->redirect("id://<?=$skip_complete?>");
 <?php endif; ?>
     }
