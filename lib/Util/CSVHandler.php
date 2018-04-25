@@ -109,7 +109,7 @@ class CSVHandler
     private function readCsvLine ()
     {
         // ファイルの末尾に到達したらnullを返す
-        if (feof($this->handle)) return null;
+        if ( ! $this->handle || feof($this->handle)) return null;
         // エスケープを考慮して1行読み込み
         $d = $this->options["delim"];
         $e = $this->options["escape"];
