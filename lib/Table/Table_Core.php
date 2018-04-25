@@ -136,7 +136,7 @@ class Table_Core
             $id_col_name = $this->getIdColName();
             $record[$id_col_name] = $id;
         }
-        // Resultへの登録
+        // Resultへのマッピング
         if ( ! $this->result) $this->result = new Result($this);
         $this->result[] = $record;
         return $record;
@@ -294,10 +294,6 @@ class Table_Core
         // 結果レコードを組み立てて値をHydrateする
         $record = $this->createRecord();
         $record->hydrate($data);
-
-        // マッピング
-        $result[] = $record;
-
         // on_fetch_*を呼び出す
         $this->callListenerMethod("fetch",array($record));
         return $record;
@@ -487,7 +483,7 @@ class Table_Core
      */
     public function save ($values=array())
     {
-        $this->query->addValues($values);
+        $this->query->addValues((array)$values);
         // IDが指定されていればUpdate
         $id_col_name = $this->getIdColName();
         if ($id = $this->query->getValue($id_col_name)) {
@@ -503,7 +499,7 @@ class Table_Core
      */
     public function insert ($values=array())
     {
-        $this->query->addValues($values);
+        $this->query->addValues((array)$values);
         return $this->execQuery("insert");
     }
     /**
@@ -512,14 +508,14 @@ class Table_Core
     public function updateById ($id, $values=array())
     {
         $this->findById($id);
-        return $this->updateAll($values);
+        return $this->updateAll((array)$values);
     }
     /**
      * UPDATE文の発行
      */
     public function updateAll ($values=array())
     {
-        $this->query->addValues($values);
+        $this->query->addValues((array)$values);
         return $this->execQuery("update");
     }
     /**
