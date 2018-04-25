@@ -106,7 +106,9 @@ class Validator
         if ($cond === false) return $this->stEvalIsBlank($key);
         if ($cond === true) return ! $this->stEvalIsBlank($key);
         if (is_string($cond)) return $this->stEvalEq($key, $cond);
+        if (is_numeric($cond)) return $this->stEvalEq($key, $cond);
         if ($cond["is_blank"]) return $this->stEvalIsBlank($key);
+        if ($cond["not_blank"]) return ! $this->stEvalIsBlank($key);
         if (isset($cond["eq"])) return $this->stEvalEq($key, $cond["eq"]);
         if (isset($cond["neq"])) return ! $this->stEvalEq($key, $cond["neq"]);
         if (isset($cond["contains"])) return ! $this->stEvalContains($key, $cond["contains"]);

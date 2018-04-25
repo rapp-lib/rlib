@@ -82,6 +82,7 @@ window.FormValidator = function (fo) {
         if ($cond === false) return self.stEvalIsBlank($key);
         if ($cond === true) return ! self.stEvalIsBlank($key);
         if (self.is_string($cond)) return self.stEvalEq($key, $cond);
+        if (self.is_numeric($cond)) return self.stEvalEq($key, $cond);
         if ($cond["is_blank"]) return self.stEvalIsBlank($key);
         if ($cond["not_blank"]) return ! self.stEvalIsBlank($key);
         if (self.isset($cond["eq"])) return self.stEvalEq($key, $cond["eq"]);
