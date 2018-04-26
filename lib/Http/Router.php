@@ -36,7 +36,7 @@ class Router
         } else {
             return array();
         }
-        $request_path = preg_replace('!/index\.\w+$!', '/', $uri->getPath());
+        $request_path = preg_replace('!/index\.\w+$!', '/', $parsed["page_path"]);
         $routed = $this->route_dispatcher->dispatch("ROUTE", $request_path);
         if ($routed[0] === \FastRoute\Dispatcher::FOUND) {
             $parsed["page_id"] = $routed[1];
