@@ -558,7 +558,7 @@ class FormContainer extends ArrayObject
     public function getRecord ()
     {
         $record = $this->getTable()->createRecord();
-        $this->converRecord($record, false);
+        $this->convertRecord($record, false);
         return $record;
     }
 
@@ -568,14 +568,14 @@ class FormContainer extends ArrayObject
      */
     public function setRecord ($record)
     {
-        $this->converRecord($record, true);
+        $this->convertRecord($record, true);
     }
 
     /**
      * Recordとフォームの値の相互変換
      * @param bool $is_record_to_values ? Recordから値を取り込む : Recordに値を登録する
      */
-    private function converRecord ($record, $is_record_to_values)
+    private function convertRecord ($record, $is_record_to_values)
     {
         foreach ($this->def["fields"] as $field_name => $field_def) {
             // colがfalseであれば削除
@@ -637,8 +637,22 @@ class FormContainer extends ArrayObject
                         }
                     }
                 }
-                if ($is_record_to_values) $this[$field_name] = $values;
-                else $record[$col_name] = $values;
+                if ($is_record_to_values) {
+                    $this[$field_name] = $values;
+                } else {
+                    // assoc参照関係があれば下層をRecordに対応づける
+                    if ($assoc_col_name = $field_def["col"]) {
+                        $table_def = app()->table->getTableDef($this->def["table"]);
+                        $assoc_table_name = $table_def["cols"][$assoc_col_name]["assoc"]["table"];
+                        if ($assoc_table_name) {
+                            $assoc_table = table($assoc_table_name);
+                            foreach ($values as $k=>$v) {
+                                $values[$k] = $assoc_table->createRecord($v);
+                            }
+                        }
+                    }
+                    $record[$col_name] = $values;
+                }
             // 下層を処理しない型の処理
             } else {
                 //TODO: テーブル定義の確認

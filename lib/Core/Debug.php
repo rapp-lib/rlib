@@ -21,14 +21,12 @@ class Debug
     private function checkClient ()
     {
         if ($this->client_checked || ! isset($_SESSION)) return;
-        if (isset($_POST["__ts"]) && isset($_POST["_"])) {
-            for ($min = floor(time()/60), $i=-5; $i<=5; $i++) {
-                if ($_POST["__ts"] == substr(md5("_/".($min+$i)),12,12)) {
-                    $_SESSION["__debug"] = $_POST["_"]["report"];
-                    if (function_exists("apc_clear_cache")) {
-                        apc_clear_cache();
-                    }
-                }
+        if (isset($_POST["__ts"])) {
+            $debug_config = app()->config("debug");
+            $check_url = $debug_config["verify"] ?: "http://verify-secret.rapp-lib.com/?__ts=";
+            if (file_get_contents($check_url.$_POST["__ts"]) === "OK") {
+                $_SESSION["__debug"] = $_POST["_"]["report"];
+                if (function_exists("apc_clear_cache")) apc_clear_cache();
             }
         }
         if (isset($_SESSION["__debug"])) $this->setDebugLevel($_SESSION["__debug"]);

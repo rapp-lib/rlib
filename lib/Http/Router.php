@@ -31,8 +31,8 @@ class Router
         if (strlen($uri->getHost()) && $uri->getHost() !== $base_uri->getHost()) {
             return $parsed;
         }
-        if (preg_match('!^'.preg_quote($base_uri->getPath(), '!').'(.*?)$!', $uri->getPath(), $match)) {
-            $parsed["page_path"] = $match[1];
+        if ($page_path = $this->requestPathToPagePath($uri->getPath())) {
+            $parsed["page_path"] = $page_path;
         } else {
             return array();
         }
@@ -91,7 +91,8 @@ class Router
         // RouteからPatternを取得
         $route = $this->getRouteByPageId($page_id);
         // embed_paramsを置き換える
-        $page_path = $route["pattern"];
+        $page_path = $this->requestPathToPagePath($route["pattern"]);
+        if ( ! $page_path) return false;
         $page_path = preg_replace_callback('!\{([^:]+)(?::([^\}]+))?\}!', function($match)use($embed_params){
             return isset($embed_params[$match[1]]) ? $embed_params[$match[1]] : "@@EMBED@@";
         }, $page_path);
@@ -133,7 +134,7 @@ class Router
                 $route["pattern"] = $base_path.$row[1];
                 $routes[] = $route;
             } elseif (is_array($row[0])) {
-                foreach ((array)self::flattenGrouped($row[0], $row[1], $row[2]) as $append_route) {
+                foreach ((array)self::flattenGrouped($row[0], $base_path.$row[1], $row[2]) as $append_route) {
                     $routes[] = $append_route;
                 }
             }
@@ -152,5 +153,13 @@ class Router
             return strlen($a["pattern"]) < strlen($b["pattern"]) ? +1 : -1;
         });
         return $routes;
+    }
+    /**
+     * BaseUriのついたPathからPagePathを取り出す
+     */
+    private function requestPathToPagePath($request_path)
+    {
+        $base_uri = $this->webroot->getBaseUri();
+        return preg_match('!^'.preg_quote($base_uri->getPath(), '!').'(.*?)$!', $request_path, $_) ? $_[1] : false;
     }
 }

@@ -12,6 +12,13 @@
     {
         if ( ! strlen($string)) return "";
         $date = new \DateTime($string);
+        // 日本語の曜日 x
+        if (preg_match('/x/', $format)) {
+            $w = $date->format("w");
+            $week_jp = array(0 => '日', 1 => '月', 2 => '火',
+                3 => '水', 4 => '木', 5 => '金', 6 => '土');
+            $format = preg_replace('/x/', $week_jp[$w], $format);
+        }
         return $date->format($format);
     }
     function rand_string ($length=8, $seed=null)
