@@ -218,6 +218,23 @@ class ReportRenderer
     public static function compactValue($value)
     {
         $r = null;
+        if (is_array($value) || is_object($value)) {
+            if ($value instanceof \ArrayObject) {
+                $r["__type"] = "object(".get_class($value).')['.count($value).']';
+            } elseif (is_object($value)) { 
+                $r["__type"] = "object(".get_class($value).')';
+                $value = method_exists($value,"__report") ? (array)$value->__report() : get_object_vars($value);
+            }
+            // 省略
+            if (count($value) > ($limit=25)*2) {
+                $value_copy = array();
+                foreach(array_slice((array)$value, 0, $limit, true) as $k=>$v) $value_copy[$k] = $v;
+                $value_copy[] = "... shortened into ".($limit*2)." / ".count($value)." ...";
+                foreach(array_slice((array)$value, -$limit, $limit, true) as $k=>$v) $value_copy[$k] = $v;
+                $value = $value_copy;
+            }
+            foreach ($value as $k=>$v) $r[$k] = self::compactValue($v);
+        /*
         if (is_array($value) || ($value instanceof \ArrayObject)) {
             if (is_object($value)) {
                 $r["__type"] = "object(".get_class($value).')['.count($value).']';
@@ -231,6 +248,7 @@ class ReportRenderer
             foreach ($obj_vars as $k=>$v) {
                 $r[$k] = self::compactValue($v);
             }
+        */
         } elseif ( ! is_string($value) && is_callable($value)) {
             $ref = is_array($value) ? new \ReflectionMethod($value[0], $value[1]) : new \ReflectionFunction($value);
             $r = 'function '.$ref->getName().'@'.$ref->getFileName().'(L'.$ref->getStartLine().')';

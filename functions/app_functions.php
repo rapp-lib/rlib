@@ -7,7 +7,23 @@
      */
     function app_set ($container)
     {
+        if ($GLOBALS["R_CONTAINER"]) {
+            if ( ! $GLOBALS["R_CONTAINER_STACK"]) $GLOBALS["R_CONTAINER_STACK"] = array();
+            array_push($GLOBALS["R_CONTAINER_STACK"], $GLOBALS["R_CONTAINER"]);
+        }
         $GLOBALS["R_CONTAINER"] = $container;
+    }
+    /**
+     *
+     */
+    function app_unset ()
+    {
+        if ($GLOBALS["R_CONTAINER_STACK"]) {
+            $GLOBALS["R_CONTAINER"] = array_pop($GLOBALS["R_CONTAINER_STACK"]);
+        } else {
+            $GLOBALS["R_CONTAINER"] = null;
+        }
+        return $GLOBALS["R_CONTAINER"];
     }
     /**
      *

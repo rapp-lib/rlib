@@ -788,41 +788,29 @@ class Table_Base extends Table_Core
      */
     public function search_typeWhere ($form, $field_def, $value)
     {
-        if ( ! isset($value)) {
-            return false;
-        }
+        if ( ! isset($value)) return false;
         // 対象カラムは複数指定に対応
         $target_cols = $field_def["target_col"];
-        if ( ! is_array($target_cols)) {
-            $target_cols = array($target_cols);
-        }
+        if ( ! is_array($target_cols)) $target_cols = array($target_cols);
         $conditions_or = array();
         foreach ($target_cols as $i => $target_col) {
             $conditions_or[$i] = array($target_col => $value);
         }
-        if (count($conditions_or)==0) {
-            return false;
-        }
-        if (count($conditions_or)==1) {
-            $this->query->where(array_pop($conditions_or));
+        if (count($conditions_or)==0) return false;
+        $query_part = $field_def["having"] ? "having" : "where";
+        if (count($conditions_or)==1) $this->query[$query_part][] = array_pop($conditions_or);
         // 複数のカラムが有効であればはORで接続
-        } elseif (count($conditions_or)>1) {
-            $this->query->where(array("OR"=>$conditions_or));
-        }
+        elseif (count($conditions_or)>1) $this->query[$query_part][] = array("OR"=>$conditions_or);
     }
     /**
      * @hook search word
      */
     public function search_typeWord ($form, $field_def, $value)
     {
-        if ( ! isset($value)) {
-            return false;
-        }
+        if ( ! isset($value)) return false;
         // 対象カラムは複数指定に対応
         $target_cols = $field_def["target_col"];
-        if ( ! is_array($target_cols)) {
-            $target_cols = array($target_cols);
-        }
+        if ( ! is_array($target_cols)) $target_cols = array($target_cols);
         // スペースで分割して複数キーワード指定
         $conditions_or = array();
         foreach ($target_cols as $i => $target_col) {
@@ -833,15 +821,11 @@ class Table_Base extends Table_Core
                 }
             }
         }
-        if (count($conditions_or)==0) {
-            return false;
-        }
-        if (count($conditions_or)==1) {
-            $this->query->where(array_pop($conditions_or));
+        if (count($conditions_or)==0) return false;
+        $query_part = $field_def["having"] ? "having" : "where";
+        if (count($conditions_or)==1) $this->query[$query_part][] = array_pop($conditions_or);
         // 複数のカラムが有効であればはORで接続
-        } elseif (count($conditions_or)>1) {
-            $this->query->where(array("OR"=>$conditions_or));
-        }
+        elseif (count($conditions_or)>1) $this->query[$query_part][] = array("OR"=>$conditions_or);
     }
     /**
      * @hook search exists
@@ -849,9 +833,7 @@ class Table_Base extends Table_Core
      */
     public function search_typeExists ($form, $field_def, $value)
     {
-        if ( ! isset($value)) {
-            return false;
-        }
+        if ( ! isset($value)) return false;
         $table = table($field_def["search_table"]);
         $table->findBy($this->getQueryTableName().".".$this->getIdColName()."=".$table->getQueryTableName().".".$field_def["fkey"]);
         $table->findBySearchFields($form, $field_def["search_fields"]);
@@ -867,7 +849,7 @@ class Table_Base extends Table_Core
         if (isset($field_def["default"])) array_unshift($cols, $field_def["default"]);
         // colsの解析
         foreach ((array)$field_def["cols"] as $k=>$v) {
-            if ( ! isset($value)) $value = $v;
+            if ( ! isset($value)) $value = is_array($v) ? $k : $v;
             if (is_numeric($k) && is_string($v)) $cols[$v] = $v;
             else $cols[$k] = $v;
         }
@@ -895,19 +877,10 @@ class Table_Base extends Table_Core
     {
         // 1ページの表示件数
         $volume = $field_def["volume"];
-        if ( ! $volume) {
-            // 指定済みのlimitにより補完
-            if ($limit = $this->query->getLimit()) {
-                $volume = $limit;
-            // 指定が無ければ20件とみなす
-            } else {
-                $volume = 20;
-            }
-        }
+        // 指定済みのlimitにより補完, 指定が無ければ20件とみなす
+        if ( ! $volume) $volume = $this->query->getLimit() ?: 20;
         // 1ページ目
-        if ( ! $value) {
-            $value = 1;
-        }
+        if ( ! $value) $value = 1;
         $this->query->setOffset(($value-1)*$volume);
         $this->query->setLimit($volume);
     }

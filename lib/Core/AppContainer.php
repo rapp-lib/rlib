@@ -10,6 +10,7 @@ class AppContainer
         "security" => 'R\Lib\Core\Security',
         "enum" => 'R\Lib\Enum\EnumRepositry',
         "view" => 'R\Lib\View\ViewFactory',
+        "test" => 'R\Lib\Test\TestDriver',
         // 4.0
         "config" => 'R\Lib\Core\Config',
         "env" => 'R\Lib\Core\Env',

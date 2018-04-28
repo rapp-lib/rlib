@@ -20,9 +20,7 @@ class Debug
     private $client_checked = false;
     private function checkClient ()
     {
-        if ($this->client_checked || ! isset($_SESSION)) {
-            return;
-        }
+        if ($this->client_checked || ! isset($_SESSION)) return;
         if (isset($_POST["__ts"]) && isset($_POST["_"])) {
             for ($min = floor(time()/60), $i=-5; $i<=5; $i++) {
                 if ($_POST["__ts"] == substr(md5("_/".($min+$i)),12,12)) {
@@ -33,9 +31,10 @@ class Debug
                 }
             }
         }
-        if (isset($_SESSION["__debug"])) {
-            $this->setDebugLevel($_SESSION["__debug"]);
-        }
+        if (isset($_SESSION["__debug"])) $this->setDebugLevel($_SESSION["__debug"]);
         $this->client_checked = true;
+        if ($this->getDebugLevel() && $int = $_REQUEST["__intercept"]) {
+            if (method_exists(app()->$int, "runIntercept")) app()->$int->runIntercept();
+        }
     }
 }

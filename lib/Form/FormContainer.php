@@ -597,7 +597,7 @@ class FormContainer extends ArrayObject
                     if ($child_field_def["col"]===false) {
                         continue;
                     }
-                    $item_name = $field_def["item_name"];
+                    $item_name = $child_field_def["item_name"];
                     $child_col_name = $child_field_def["col"];
                     $child_table_name = $child_field_def["table"];
                     //TODO: テーブル定義の確認
@@ -645,7 +645,7 @@ class FormContainer extends ArrayObject
                 // $col_def = table()->getDef($table_name,$col_name);
                 // 値を登録
                 if ($is_record_to_values) {
-                    $this[$field_name] = $record[$col_name];
+                    $this[$field_name] = $record->getColValue($col_name);
                 } else {
                     $record[$col_name] = $this[$field_name];
                 }

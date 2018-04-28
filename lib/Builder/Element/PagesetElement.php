@@ -250,9 +250,10 @@ class PagesetElement extends Element_Base
             $o_hidden["type"] = "hidden";
             $o_show["var_name"] = '$forms.search';
             return $field["col"]->getInputSource($o_hidden).$field["col"]->getShowSource($o_show);
-        }
-        if ($field["search_type"]=="word") {
+        } elseif ($field["search_type"]=="word") {
             $o["type"] = "text";
+        } else {
+            if ($field["col"]->getEnumSet()) $o["type"] = "checklist";
         }
         return $field["col"]->getInputSource($o);
     }

@@ -34,7 +34,7 @@
         <?=""?>
 <?php elseif ($input_type==="assoc" && ! $col->getAttr("def.assoc.single")): ?>
 <?="\n"?>
-            <div class="mi" data-minItems="0" data-maxItems="20">
+            <div class="mi" data-minItems="0" data-maxItems="1000">
                 <input type="hidden" name="<?=$name?>"/>
                 {{input_fieldset name="<?=$name?>" tmpl="${id}" key="key" assign="fieldset"}}
                     <div class="mi-item" data-itemId="{{$key}}">

@@ -140,7 +140,7 @@
     function array_dot ( & $ref)
     {
         $result = array();
-        foreach ($ref as $k=>$v) {
+        foreach ($ref as $k => & $v) {
             if (is_arraylike($v)) {
                 foreach (array_dot($v) as $k_inner=>$v_inner) {
                     $result[$k.".".$k_inner] = $v_inner;
