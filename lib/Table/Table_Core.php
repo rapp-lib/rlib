@@ -447,6 +447,14 @@ class Table_Core
     /**
      * 特定カラムのみに絞った結果データを取得
      */
+    public function selectCol ($col_name)
+    {
+        $t = $this->fields(array($col_name))->selectOne();
+        return $t ? $t[$col_name] : null;
+    }
+    /**
+     * 特定カラムのみに絞った結果データを取得
+     */
     public function selectHashedBy ($key_col_name, $key_col_name_sub=false, $col_name_sub_ex=false)
     {
         if ($key_col_name_sub === false) {

@@ -13,11 +13,14 @@ class ReportRenderer
         $count = count($records);
         $limit = 100;
         if ($count > $limit) {
-            $records = array_slice($records,0,$limit/2)+array_slice($records,-$limit/2);
-            $records[] = array(
-                "message" => "Report表示件数が多すぎるので".($count-$limit)."件中略しました",
+            $records_tmp = array();
+            foreach (array_slice($records,0,$limit/2) as $record) $records_tmp[] = $record;
+            $records_tmp[] = array(
+                "message" => "Report表示件数が多すぎるので".($count-$limit)."/".$count."件中略しました",
                 "level" => Logger::WARNING,
             );
+            foreach (array_slice($records,-$limit/2) as $record) $records_tmp[] = $record;
+            $records = $records_tmp;
         }
         $res = "";
         foreach ($records as $record) $res .= self::render($record, $format);
