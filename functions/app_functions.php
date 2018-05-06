@@ -2,20 +2,19 @@
 
 // -- 各クラスのインスタンス取得
 
-    /**
-     *
-     */
+    function illuminated ()
+    {
+        return class_exists('\Illuminate\Support\Facades\Facade');
+    }
     function app_set ($container)
     {
+        if (illuminated()) $GLOBALS["R_CONTAINER"] = \Illuminate\Support\Facades\Facade::getFacadeApplication();
         if ($GLOBALS["R_CONTAINER"]) {
             if ( ! $GLOBALS["R_CONTAINER_STACK"]) $GLOBALS["R_CONTAINER_STACK"] = array();
             array_push($GLOBALS["R_CONTAINER_STACK"], $GLOBALS["R_CONTAINER"]);
         }
-        $GLOBALS["R_CONTAINER"] = $container;
+        if (illuminated()) \Illuminate\Support\Facades\Facade::setFacadeApplication($container);
     }
-    /**
-     *
-     */
     function app_unset ()
     {
         if ($GLOBALS["R_CONTAINER_STACK"]) {
@@ -23,52 +22,26 @@
         } else {
             $GLOBALS["R_CONTAINER"] = null;
         }
+        if (illuminated()) \Illuminate\Support\Facades\Facade::setFacadeApplication($GLOBALS["R_CONTAINER"]);
         return $GLOBALS["R_CONTAINER"];
     }
-    /**
-     *
-     */
+if ( ! illuminated()) {
     function app ()
     {
         return $GLOBALS["R_CONTAINER"];
     }
-    /**
-     * @alias
-     */
+}
+
+// -- app()->*
+
     function table ($table_name)
     {
         return app()->table($table_name);
     }
-    /**
-     * @alias
-     */
     function __ ($key, $values=array(), $locale=null)
     {
         return app()->i18n->getMessage($key, $values, $locale);
     }
-
-// -- Webroot
-
-    /**
-     * 転送リクエストの作成
-     * @deprecated
-     */
-    function redirect ($url, $params=array(), $anchor=null)
-    {
-        $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri($url, $params, $anchor);
-        return app()->http->response("redirect", "".$uri);
-    }
-    /**
-     * URLの組み立て
-     * @deprecated
-     */
-    function url ($base_url=null, $params=array(), $anchor=null)
-    {
-        return app()->http->getServedRequest()->getUri()->getWebroot()->uri($base_url, $params, $anchor);
-    }
-
-// -- Report
-
     function report ()
     {
         $values = array();
@@ -102,5 +75,9 @@
     function tag ($name, $attrs=null, $content=null)
     {
         return \R\Lib\Util\HtmlBuilder::build($name, $attrs, $content);
+    }
+    function arr ( & $arr)
+    {
+        return new \R\Lib\Util\Arr($arr);
     }
 
