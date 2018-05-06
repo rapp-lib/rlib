@@ -40,6 +40,7 @@ class SmartyView
         $smarty->registerDefaultPluginHandler(array($this,"pluginHandler"));
         // 関数名と衝突するプラグインの事前登録
         $smarty->registerPlugin("modifier", "date", "str_date");
+        $smarty->registerPlugin("modifier", "url", get_class($this)."::smarty_modifier_url");
         // キャッシュ/コンパイル済みデータ保存先設定
         $cache_dir = constant("R_APP_ROOT_DIR").'/tmp/smarty_cache/';
         $smarty->setCacheDir($cache_dir);
@@ -213,6 +214,12 @@ class SmartyView
 
 // -- URL解決プラグイン
 
+    public static function smarty_modifier_url ($url, $query_params=array(), $anchor=null)
+    {
+        return "".app()->http->getServedRequest()->getUri()
+            ->getRelativeUri($url, $query_params, $anchor)
+            ->withToken()->withoutAuthorityInWebroot();
+    }
     public static function smarty_modifier_page_to_url ($page_id, $query_params=array(), $anchor=null)
     {
         return "".app()->http->getServedRequest()->getUri()

@@ -29,7 +29,7 @@ class Def_Base
     }
     public function getAttr ($key)
     {
-        return array_get($this->attrs, $key);
+        return \R\Lib\Util\Arr::array_get($this->attrs, $key);
     }
     public function getParent ()
     {

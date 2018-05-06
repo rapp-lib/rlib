@@ -4,7 +4,7 @@
 
     function illuminated ()
     {
-        return class_exists('\Illuminate\Support\Facades\Facade');
+        return class_exists('\Illuminate\Support\Facades\Facade') && function_exists("app");
     }
     function app_set ($container)
     {

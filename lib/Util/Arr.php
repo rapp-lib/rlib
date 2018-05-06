@@ -7,23 +7,23 @@ class Arr extends ArrayObject
     /**
      * ドット記法で配列の値が設定されているか確認
      */
-    public function isset($key, $flag=0)
+    public function exists($key, $flag=0)
     {
-        return array_isset($this, $key, $flag);
+        return \R\Lib\Util\Arr::array_isset($this, $key, $flag);
     }
     /**
      * ドット記法で配列の値を取得する
      */
     public function get($key)
     {
-        return array_get($this, $key, $flag);
+        return \R\Lib\Util\Arr::array_get($this, $key, $flag);
     }
     /**
      * ドット記法で配列の値を再帰的に追加する
      */
     public function add($key, $value=array())
     {
-        return array_add($this, $key, $value);
+        return \R\Lib\Util\Arr::array_add($this, $key, $value);
     }
 
 // -- 配列操作
@@ -50,36 +50,36 @@ class Arr extends ArrayObject
     public static function array_add ( & $ref, $key, $value=array())
     {
         // keyを配列で指定した場合
-        if (is_arraylike($key)) {
+        if (\R\Lib\Util\Arr::is_arraylike($key)) {
             // 連番添え字の場合上書きせず追加
-            if (is_seqarray($key)) {
+            if (\R\Lib\Util\Arr::is_seqarray($key)) {
                 $offset = count($ref)==0 ? 0 : (int)max(array_keys($ref))+1;
                 for ($i=0; $i<count($key); $i++) {
-                    array_add($ref, $offset+$i, $key[$i]);
+                    \R\Lib\Util\Arr::array_add($ref, $offset+$i, $key[$i]);
                 }
             } else {
                 foreach ($key as $k => $v) {
-                    array_add($ref, $k, $v);
+                    \R\Lib\Util\Arr::array_add($ref, $k, $v);
                 }
             }
         } else {
-            if ( ! is_arraylike($ref)) $ref = array();
+            if ( ! \R\Lib\Util\Arr::is_arraylike($ref)) $ref = array();
             // valueを配列で指定した場合
-            if (is_arraylike($value)) {
-                $ref_sub = & array_get_ref($ref, $key);
+            if (\R\Lib\Util\Arr::is_arraylike($value)) {
+                $ref_sub = & \R\Lib\Util\Arr::array_get_ref($ref, $key);
                 // 連番添え字の場合上書きせず追加
-                if (is_seqarray($value)) {
+                if (\R\Lib\Util\Arr::is_seqarray($value)) {
                     $offset = count($ref_sub)==0 ? 0 : (int)max(array_keys($ref_sub))+1;
                     for ($i=0; $i<count($value); $i++) {
-                        array_add($ref_sub, $offset+$i, $value[$i]);
+                        \R\Lib\Util\Arr::array_add($ref_sub, $offset+$i, $value[$i]);
                     }
                 } else {
                     foreach ($value as $k => $v) {
-                        array_add($ref_sub, $k, $v);
+                        \R\Lib\Util\Arr::array_add($ref_sub, $k, $v);
                     }
                 }
             } else {
-                $ref_sub = & array_get_ref($ref, $key);
+                $ref_sub = & \R\Lib\Util\Arr::array_get_ref($ref, $key);
                 $ref_sub = $value;
             }
         }
@@ -93,10 +93,10 @@ class Arr extends ArrayObject
         $key_last = array_pop($key_parts);
         foreach ($key_parts as $key_part) {
             if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
-            if ( ! is_arraylike($ref)) return false;
+            if ( ! \R\Lib\Util\Arr::is_arraylike($ref)) return false;
             $ref = & $ref[$key_part];
         }
-        if ( ! is_arraylike($ref)) return false;
+        if ( ! \R\Lib\Util\Arr::is_arraylike($ref)) return false;
         return array_key_exists($key_last, $ref);
     }
     /**
@@ -107,7 +107,7 @@ class Arr extends ArrayObject
         $key_parts = explode(".",$key);
         foreach ($key_parts as $key_part) {
             if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
-            if ( ! is_arraylike($ref)) return null;
+            if ( ! \R\Lib\Util\Arr::is_arraylike($ref)) return null;
             $ref = & $ref[$key_part];
         }
         return $ref;
@@ -120,7 +120,7 @@ class Arr extends ArrayObject
         $key_parts = explode(".",$key);
         foreach ($key_parts as $key_part) {
             if ($flag & 1 && is_object($ref) && $ref instanceof \Closure) $ref = call_user_func($ref);
-            if ( ! is_arraylike($ref)) $ref = array();
+            if ( ! \R\Lib\Util\Arr::is_arraylike($ref)) $ref = array();
             $ref = & $ref[$key_part];
         }
         return $ref;
@@ -133,7 +133,7 @@ class Arr extends ArrayObject
         $key_parts = explode(".",$key);
         $key_last = array_pop($key_parts);
         foreach ($key_parts as $key_part) {
-            if ( ! is_arraylike($ref)) {
+            if ( ! \R\Lib\Util\Arr::is_arraylike($ref)) {
                 return;
             }
             $ref = & $ref[$key_part];
@@ -145,9 +145,9 @@ class Arr extends ArrayObject
      */
     public static function array_clean ( & $ref)
     {
-        if ( ! is_arraylike($ref)) return $ref;
+        if ( ! \R\Lib\Util\Arr::is_arraylike($ref)) return $ref;
         foreach ($ref as $k => & $v) {
-            if (is_arraylike($v)) array_clean($v);
+            if (\R\Lib\Util\Arr::is_arraylike($v)) \R\Lib\Util\Arr::array_clean($v);
             if (is_array($v) && count($v)===0) unset($ref[$k]);
             elseif (is_string($v) && strlen($v)===0) unset($ref[$k]);
             elseif ( ! isset($v)) unset($ref[$k]);
@@ -160,8 +160,8 @@ class Arr extends ArrayObject
     {
         $result = array();
         foreach ($ref as $k => & $v) {
-            if (is_arraylike($v)) {
-                foreach (array_dot($v) as $k_inner=>$v_inner) {
+            if (\R\Lib\Util\Arr::is_arraylike($v)) {
+                foreach (\R\Lib\Util\Arr::array_dot($v) as $k_inner=>$v_inner) {
                     $result[$k.".".$k_inner] = $v_inner;
                 }
             } else {

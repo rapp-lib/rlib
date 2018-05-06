@@ -1,7 +1,8 @@
 <?php
 namespace R\Lib\Core;
+use Illuminate\Foundation\Application;
 
-class AppContainer
+class AppContainer extends Application
 {
     protected $instances = array();
     protected $providers = array(

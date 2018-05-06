@@ -303,7 +303,7 @@ class FormContainer extends ArrayObject
             });
         }
         // formタグの仕様により混入する非正規な空データを削除
-        array_clean($input_values);
+        \R\Lib\Util\Arr::array_clean($input_values);
         // 処理済みの値を設定
         $this->setValues($input_values);
     }
@@ -683,13 +683,13 @@ class FormContainer extends ArrayObject
             $values[$parts[0]] = call_user_func($function, $values[$parts[0]], $field_name);
         // 対象が1次配列
         } elseif (count($parts)==2) {
-            if ( ! is_arraylike($values[$parts[0]]) || ! isset($values[$parts[0]][$parts[1]])) {
+            if ( ! \R\Lib\Util\Arr::is_arraylike($values[$parts[0]]) || ! isset($values[$parts[0]][$parts[1]])) {
                 return;
             }
             $values[$parts[0]][$parts[1]] = call_user_func($function, $values[$parts[0]][$parts[1]], $field_name);
         // 対象が2次配列
         } elseif (count($parts)==3) {
-            if ( ! is_arraylike($values[$parts[0]]) || count($values[$parts[0]])==0) {
+            if ( ! \R\Lib\Util\Arr::is_arraylike($values[$parts[0]]) || count($values[$parts[0]])==0) {
                 return;
             }
             foreach ($values[$parts[0]] as $fieldset_index => $fieldset) {

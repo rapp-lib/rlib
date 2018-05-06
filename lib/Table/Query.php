@@ -196,7 +196,7 @@ class Query extends ArrayObject
      */
     private function unsetItem ( & $array, $key)
     {
-        array_unset($array, $key);
+        \R\Lib\Util\Arr::array_unset($array, $key);
     }
     /**
      * @getter

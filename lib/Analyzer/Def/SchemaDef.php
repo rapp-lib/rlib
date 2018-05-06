@@ -13,7 +13,7 @@ class SchemaDef extends Def_Base
     }
     public function getConfig($name)
     {
-        return array_get($this->config, $name);
+        return \R\Lib\Util\Arr::array_get($this->config, $name);
     }
 
 // -- controller

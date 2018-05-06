@@ -25,8 +25,8 @@ class Env
     }
     public function get ($key, $default_value=null)
     {
-        if (array_isset($this->env, $key)) {
-            return $this->looseCastValue(array_get($this->env, $key));
+        if (\R\Lib\Util\Arr::array_isset($this->env, $key)) {
+            return $this->looseCastValue(\R\Lib\Util\Arr::array_get($this->env, $key));
         } else {
             return $default_value;
         }

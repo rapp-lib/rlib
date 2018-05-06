@@ -10,7 +10,7 @@ class AppDesc
     }
     public function getAnalyzeConfig($name)
     {
-        return array_get($this->config, $name);
+        return \R\Lib\Util\Arr::array_get($this->config, $name);
     }
     public function getWebrootDir($webroot_name)
     {

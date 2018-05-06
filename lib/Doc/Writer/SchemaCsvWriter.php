@@ -78,8 +78,8 @@ class SchemaCsvWriter
         $fheader = array_flip($header);
         foreach ($fheader as $k=>$i) {
             if ($k=="other") continue;
-            $v = array_get($data, $k);
-            array_unset($data, $k);
+            $v = \R\Lib\Util\Arr::array_get($data, $k);
+            \R\Lib\Util\Arr::array_unset($data, $k);
             $flat[$i] = $this->stringifyValue($v);
         }
         $flat[$fheader["other"]] = $this->stringifyValues($data);
@@ -110,7 +110,7 @@ class SchemaCsvWriter
     private function stringifyValues ($values)
     {
         $r = array();
-        foreach (array_dot($values) as $k=>$v) {
+        foreach (\R\Lib\Util\Arr::array_dot($values) as $k=>$v) {
             $v = $this->stringifyValue($v);
             if (strlen($v)) $r []= $k."=".$v;
         }

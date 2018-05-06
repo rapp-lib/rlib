@@ -13,7 +13,7 @@ class Element_Base
     public function __construct ($name="", $attrs=array(), $parent=null)
     {
         $this->name = $name;
-        array_add($this->attrs, (array)$attrs);
+        \R\Lib\Util\Arr::array_add($this->attrs, (array)$attrs);
         $this->parent = $parent;
         $this->init();
     }
@@ -42,7 +42,7 @@ class Element_Base
     }
     public function getAttr ($key)
     {
-        return array_get($this->attrs, $key);
+        return \R\Lib\Util\Arr::array_get($this->attrs, $key);
     }
     public function getParent ()
     {

@@ -14,7 +14,7 @@ class Config
     }
     public function get ($key)
     {
-        return array_get($this->vars, $key, 1);
+        return \R\Lib\Util\Arr::array_get($this->vars, $key, 1);
     }
     public function getAll ()
     {
@@ -22,7 +22,7 @@ class Config
     }
     public function set ($name, $value)
     {
-        array_add($this->vars, $name, $value);
+        \R\Lib\Util\Arr::array_add($this->vars, $name, $value);
     }
     public function config ($value)
     {

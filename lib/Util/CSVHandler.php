@@ -95,12 +95,12 @@ class CSVHandler
         if (is_array($this->options["map"])) {
             foreach (array_keys($csv_data) as $k) {
                 if (strpos($k, ".")!==false) {
-                    array_add($csv_data, $k, $csv_data[$k]);
+                    \R\Lib\Util\Arr::array_add($csv_data, $k, $csv_data[$k]);
                     unset($csv_data[$k]);
                 }
             }
         }
-        array_clean($csv_data);
+        \R\Lib\Util\Arr::array_clean($csv_data);
         return $csv_data;
     }
     /**
@@ -162,7 +162,7 @@ class CSVHandler
         if (is_array($this->options["map"])) {
             // $csv_data["xxx.0.yyy"]に参照先の値をコピーする
             foreach ($this->options["map"] as $k => $v) {
-                if ( ! isset($csv_data[$v])) $csv_data[$v] = array_get($csv_data, $v);
+                if ( ! isset($csv_data[$v])) $csv_data[$v] = \R\Lib\Util\Arr::array_get($csv_data, $v);
             }
             // コピー対象となった$csv_data["xxx"]を削除する
             foreach (array_keys($csv_data) as $k) {

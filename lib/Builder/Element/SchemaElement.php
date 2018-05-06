@@ -93,20 +93,20 @@ class SchemaElement extends Element_Base
             ));
         }
         $config = (array)include($config_file);
-        array_add($this->config, $config);
+        \R\Lib\Util\Arr::array_add($this->config, $config);
     }
     /**
      * Configの取得
      */
     public function getConfig ($key)
     {
-        if ( ! array_isset($this->config, $key)) {
+        if ( ! \R\Lib\Util\Arr::array_isset($this->config, $key)) {
             report_error("設定がありません",array(
                 "key" => $key,
                 "config" => $this->config,
             ));
         }
-        return array_get($this->config, $key);
+        return \R\Lib\Util\Arr::array_get($this->config, $key);
     }
 
     protected $deploy_callbacks = array();
