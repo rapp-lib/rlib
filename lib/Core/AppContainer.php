@@ -11,6 +11,7 @@ class AppContainer
         "enum" => 'R\Lib\Enum\EnumRepositry',
         "view" => 'R\Lib\View\ViewFactory',
         "test" => 'R\Lib\Test\TestDriver',
+        "doc" => 'R\Lib\Doc\DocDriver',
         // 4.0
         "config" => 'R\Lib\Core\Config',
         "env" => 'R\Lib\Core\Env',
@@ -31,7 +32,6 @@ class AppContainer
     public function __construct ($providers=array())
     {
         foreach ($providers as $k=>$v) $this->providers[$k] = $v;
-        app_set($this);
     }
     public function getProvider ($provider_name)
     {

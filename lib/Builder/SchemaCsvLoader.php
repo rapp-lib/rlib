@@ -9,7 +9,7 @@ class SchemaCsvLoader
         $schema = $this->completeSchema($schema);
         return $schema;
     }
-    private function parseSchemaCsv ($filename)
+    public function parseSchemaCsv ($filename)
     {
         $csv = csv_open($filename, "r", array(
             "ignore_empty_line" => true,
@@ -132,7 +132,7 @@ class SchemaCsvLoader
     /**
      * スキーマの補完
      */
-    private function completeSchema ($schema)
+    public function completeSchema ($schema)
     {
         // Controllerの補完
         foreach ($schema["controller"] as $name => & $c) {
@@ -151,6 +151,7 @@ class SchemaCsvLoader
             }
             $t["cols"] = (array)$t["cols"];
         }
+        // @deprecated tables_defに関する処理は使用していないように見える
         $tables_def = array();
         // DB初期化SQL構築
         foreach ($schema["tables"] as $t_name => & $t) {

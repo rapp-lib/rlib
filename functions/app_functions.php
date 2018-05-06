@@ -60,6 +60,7 @@
     }
     /**
      * URLの組み立て
+     * @deprecated
      */
     function url ($base_url=null, $params=array(), $anchor=null)
     {
@@ -71,7 +72,7 @@
     function report ()
     {
         $values = array();
-        foreach (func_get_args() as $k=>$v) $values["arg-".$k] = $v;
+        foreach (func_get_args() as $k=>$v) $values["value #".$k] = $v;
         app()->report->getLogger()->debug("DEBUG", $values);
     }
     function report_info ($message, array $vars=array())

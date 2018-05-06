@@ -10,10 +10,9 @@ class ServerRequestFactory
      */
     public static function fromGlobals ($webroot, $request=array())
     {
-        $server = $request["server"];
-        if ( ! $server) {
+        $server = isset($request["server"]) ? $request["server"] : $_SERVER;
+        if ( ! $server["DOCUMENT_ROOT_FIXED"]) {
             // $_SERVER["DOCUMENT_ROOT"]の正規化
-            $server = $_SERVER;
             $script_name = $server['SCRIPT_NAME'];
             $script_file_name = $server['SCRIPT_FILENAME'];
             if (substr($script_file_name, -strlen($script_name)) === $script_name) {
@@ -22,16 +21,19 @@ class ServerRequestFactory
         }
         $server = ZendServerRequestFactory::normalizeServer($server);
         $headers = ZendServerRequestFactory::marshalHeaders($server);
+        $uri = isset($request["uri"]) ? $request["uri"] : ZendServerRequestFactory::marshalUriFromServer($server, $headers);
+        $method = isset($request["method"]) ? $request["method"] : ZendServerRequestFactory::get('REQUEST_METHOD', $server, 'GET');
+        $files = isset($request["files"]) ? $request["files"] : ZendServerRequestFactory::normalizeFiles($_FILES);
         return self::build($webroot, array(
             "server"  => $server,
-            "files"   => ZendServerRequestFactory::normalizeFiles($request["files"] ?: $_FILES),
+            "files"   => $files,
             "headers" => $headers,
-            "uri"     => ZendServerRequestFactory::marshalUriFromServer($server, $headers),
-            "method"  => ZendServerRequestFactory::get('REQUEST_METHOD', $server, 'GET'),
-            "body"    => $request["body"] ?: 'php://input',
-            "cookie_params" => $request["cookies"] ?: $_COOKIE,
-            "query_params"  => $request["get"] ?: $_GET,
-            "parsed_body"   => $request["post"] ?: $_POST,
+            "uri"     => $uri,
+            "method"  => $method,
+            "body"    => isset($request["body"]) ? $request["body"] : 'php://input',
+            "cookie_params" => isset($request["cookies"]) ? $request["cookies"] : $_COOKIE,
+            "query_params"  => isset($request["get"]) ? $request["get"] : $_GET,
+            "parsed_body"   => isset($request["post"]) ? $request["post"] : $_POST,
         ));
     }
     /**

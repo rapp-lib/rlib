@@ -39,7 +39,7 @@ class TestDriver
         $runner = new TestRunner();
         $printer = new ResultPrinter();
         $runner->setPrinter($printer);
-        $suite = $runner->getTest($root_dir, "", ".php");
+        $suite = $runner->getTest($root_dir, "", "Test.php");
         // Filterの登録
         if ($params["test"]) $params["filter"] = "^".$params["test"]."$";
         elseif ($params["group"]) $params["groups"][] = $params["group"];

@@ -3,4 +3,6 @@
 /composer.lock
 
 *_DELETE
-!empty
+!.gitkeep
+
+/tests/tmp/*

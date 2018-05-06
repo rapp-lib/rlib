@@ -5,6 +5,7 @@ use Psr\Http\Message\ServerRequestInterface;
 class HttpDriver
 {
     protected $served_request = null;
+    protected $served_request_stack = array();
     public function serve ($webroot_name, $deligate, $request=array())
     {
         // Webroot作成
@@ -15,19 +16,15 @@ class HttpDriver
         } elseif ($request instanceof ServerRequestInterface) {
             $served_request = ServerRequestFactory::fromServerRequestInterface($webroot, $request);
         }
-        if ($this->served_request) {
-            report_error("既にRequestのserve処理中です", array(
-                "request_uri"=>$served_request->getUri(),
-            ));
-        }
-        // Dispatch処理
+        array_push($this->served_request_stack, $this->served_request);
         $this->served_request = $served_request;
+        // Dispatch処理
         $response = $webroot->dispatch($served_request, $deligate);
-        $this->served_request = null;
         report_info("Http Served", array(
-            "request_uri"=>$served_request->getUri(),
-            "input_values"=>$served_request->getAttribute(InputValues::ATTRIBUTE_INDEX),
+            "request_uri"=>$this->served_request->getUri(),
+            "input_values"=>$this->served_request->getAttribute(InputValues::ATTRIBUTE_INDEX),
         ));
+        $this->served_request = array_pop($this->served_request_stack);
         return $response;
     }
     public function getServedRequest ()
