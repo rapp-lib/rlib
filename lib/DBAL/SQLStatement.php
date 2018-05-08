@@ -3,21 +3,19 @@ namespace R\Lib\DBAL;
 
 class SQLStatement
 {
-    private $query;
-    private $sql_string = null;
-    public function __construct($query)
+    protected $sql_string;
+    public function __construct($sql_string)
     {
-        $this->query = $query;
+        $this->sql_string = $sql_string;
     }
     public function __toString()
     {
-        return $this->render();
-    }
-    public function render()
-    {
-        if ($this->sql_string === null) {
-            $this->sql_string = "";
-        }
         return $this->sql_string;
+    }
+    public function logStart()
+    {
+    }
+    public function logEnd($error=null)
+    {
     }
 }

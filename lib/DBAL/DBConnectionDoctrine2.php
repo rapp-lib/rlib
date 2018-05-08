@@ -21,10 +21,6 @@ class DBConnectionDoctrine2 implements DBConnection
     {
         return $this->config["dbname"];
     }
-    public function getDoctrine()
-    {
-        return $this->getDS();
-    }
     public function lastInsertId ($table_name=null, $pkey_name=null)
     {
         return $this->getDS()->lastInsertId($table_name);
@@ -61,18 +57,14 @@ class DBConnectionDoctrine2 implements DBConnection
     public function exec ($st, $params=array())
     {
         $start_ms = microtime(true);
+        if ($st instanceof SQLStatement) $st->logStart();
         try {
-            // SQL発行
-            $stmt = $this->getDS()->query($st);
+            $stmt = $this->getDS()->query("".$st);
         } catch (\Exception $e) {
             $error = $this->getDS()->errorInfo();
             if ($error[0]==="00000") unset($error);
         }
-        // SQL発行後のレポート
-        $params["elapsed_ms"] = round((microtime(true) - $start_ms)*1000,2);
-        if (app()->debug()) report_info('SQL Exec : '.$st, $params);
-        if ($error) report_error('SQL Error : '.implode(' , ',$error), array("SQL"=>$st));
-        if (app()->debug()) $params = $this->analyzeSql($st, $params);
+        if ($st instanceof SQLStatement) $st->logEnd($error);
         return $stmt;
     }
     /**
@@ -92,22 +84,20 @@ class DBConnectionDoctrine2 implements DBConnection
         return $result_copy;
     }
 
-// -- 固有機能
+// --
 
+    /**
+     * Doctrine接続の取得
+     * SchemaDiffなどに使用する
+     */
     public function getDoctrineConnection()
     {
         return $this->getDS();
     }
-    public function setTypes($types)
-    {
-        foreach ((array)$types as $type_name => $type_class) {
-            if (Type::hasType($type_name)) {
-                Type::overrideType($type_name, $type_class);
-            } else {
-                Type::addType($type_name, $type_class);
-            }
-        }
-    }
+    /**
+     * ダンプデータの出力
+     * 接続設定以外参照していないので外部化可能
+     */
     public function dumpData($filename)
     {
         if ($this->config["driver"]==="pdo_mysql") {
@@ -135,6 +125,19 @@ class DBConnectionDoctrine2 implements DBConnection
             return false;
         }
     }
+    /**
+     * RDBMS型に対応するClassの登録
+     */
+    public function setTypes($types)
+    {
+        foreach ((array)$types as $type_name => $type_class) {
+            if (Type::hasType($type_name)) {
+                Type::overrideType($type_name, $type_class);
+            } else {
+                Type::addType($type_name, $type_class);
+            }
+        }
+    }
 
 // --
 
@@ -152,25 +155,5 @@ class DBConnectionDoctrine2 implements DBConnection
             $this->ds = DriverManager::getConnection($this->config, $config);
         }
         return $this->ds;
-    }
-    private function analyzeSql($st, $params)
-    {
-        try {
-            if ($params["elapsed_ms"] && $params["elapsed_ms"]>5000) {
-                report_warning("SQL Warning : Slow SQL tooks ".(round($params["elapsed_ms"]/1000,1)." sec").".", array("statement"=>$st));
-            }
-            if ($this->config["driver"]==="pdo_mysql") {
-                if ( ! preg_match('!^SELECT\s!is',$st)) return;
-                $result = $this->getDS()->query("EXPLAIN ".$st);
-                $explain = $result->fetchAll(\PDO::FETCH_ASSOC);
-                $analyzed = SQLAnalyzer::analyzeMysqlExplain($explain, $st, $params);
-                if ($analyzed) foreach ($analyzed["hint"] as $hint) {
-                    report_warning("SQL Warning : ".$hint[0], $hint[1]);
-                }
-            }
-        } catch (DriverException $e) {
-            report_warning("SQL Warning : EXPLAIN Failed.", array("statement"=>$st));
-        }
-        return $params;
     }
 }
