@@ -5,6 +5,9 @@ use ArrayObject;
 
 class FormFactory extends ArrayObject
 {
+    public function __construct ()
+    {
+    }
     public function offsetGet ($ext_controller_name)
     {
         $ext_class_name = "R\\App\\Controller\\".str_camelize($ext_controller_name)."Controller";

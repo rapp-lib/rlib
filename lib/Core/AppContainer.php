@@ -4,8 +4,7 @@ use Illuminate\Foundation\Application;
 
 class AppContainer extends Application
 {
-    protected $instances = array();
-    protected $providers = array(
+    protected $base_bindings = array(
         // 4.1
         "i18n" => 'R\Lib\I18n\I18nDriver',
         "security" => 'R\Lib\Core\Security',
@@ -24,47 +23,19 @@ class AppContainer extends Application
         "user" => 'R\Lib\Auth\UserLoginDriver',
         "file" => 'R\Lib\File\UserFileDriver',
         "db" => 'R\Lib\DBAL\DBDriver',
-        // 3.x
+        // 3.0
         "table" => 'R\Lib\Table\TableFactory',
         "form" => 'R\Lib\Form\FormFactory',
         "console" => 'R\Lib\Console\ConsoleDriver',
         "builder" => 'R\Lib\Builder\WebappBuilder',
     );
-    public function __construct ($providers=array())
+    public function __construct ()
     {
-        foreach ($providers as $k=>$v) $this->providers[$k] = $v;
-    }
-    public function getProvider ($provider_name)
-    {
-        if ( ! $this->instances[$provider_name]) {
-            // providerインスタンスの生成
-            $class = $this->providers[$provider_name];
-            if ( ! $class || ! class_exists($class)) {
-                report_error("providerクラスが定義されていません",array(
-                    "provider_name" => $provider_name,
-                    "class" => $class,
-                ));
-            }
-            $this->instances[$provider_name] = new $class();
-            // __mountedの呼び出し
-            if (method_exists($this->instances[$provider_name], "__mounted")) {
-                call_user_func(array($this->instances[$provider_name], "__mounted"), $this);
-            }
-        }
-        return $this->instances[$provider_name];
-    }
-    public function __get ($provider_name)
-    {
-        return $this->getProvider($provider_name);
+		$this->instance('Illuminate\Container\Container', $this);
+        foreach ($this->base_bindings as $k=>$v) $this->singleton($k, $v);
     }
     public function __call ($provider_name, $args)
     {
-        // __invokeの呼び出し
-        if ( ! method_exists($this->getProvider($provider_name), "__invoke")) {
-            report_error("__invokeが定義されていません",array(
-                "provider_name" => $provider_name,
-            ));
-        }
-        return call_user_func_array(array($this->getProvider($provider_name), "__invoke"), $args);
+        return call_user_func_array(array($this[$provider_name], "__invoke"), $args);
     }
 }

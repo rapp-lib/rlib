@@ -6,7 +6,9 @@ use ArrayAccess;
 class EnumRepositry implements ArrayAccess
 {
     private $value_repos = array();
-
+    public function __construct ()
+    {
+    }
     public function offsetExists($key)
     {
         if ( ! isset($this->value_repos[$key])) {
