@@ -5,6 +5,9 @@ use ArrayObject;
 
 class ConsoleDriver extends ArrayObject
 {
+    public function __construct()
+    {
+    }
     /**
      * アクセスされたパラメータによりCommandのactionを実行
      */
