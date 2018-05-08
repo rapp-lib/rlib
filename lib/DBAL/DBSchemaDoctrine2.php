@@ -15,6 +15,7 @@ class DBSchemaDoctrine2
         $table_defs = app()->table->collectTableDefs($table_dirs);
         $class_schema = self::getSchemaFromTableDefs($table_defs, $db_schema);
         // 差分抽出
+        $doctrine = app()->db($ds_name)->getDoctrineConnection();
         return $class_schema->getMigrateFromSql($db_schema, $doctrine->getDatabasePlatform());
     }
     /**
@@ -22,10 +23,8 @@ class DBSchemaDoctrine2
      */
     public static function getDbSchema($ds_name)
     {
-        // Doctrine2ベースでの実行準備
-        $db = new DBConnectionDoctrine2($ds_name, app()->config("db.connection.".$ds_name));
-        $doctrine = $db->getDoctrineConnection();
         // DB上の定義取得
+        $doctrine = app()->db($ds_name)->getDoctrineConnection();
         $schema = $doctrine->getSchemaManager()->createSchema();
         // Optionsの付与
         foreach ($doctrine->fetchAll('SHOW TABLE STATUS;') as $stat) {

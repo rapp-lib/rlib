@@ -7,6 +7,7 @@ interface DBConnection
     public function quoteName($name);
     public function quoteValue($value);
     public function getDbname();
+    public function getDoctrineConnection();
     public function lastInsertId($table_name=null, $id_col_name=null);
 // -- トランザクション制御
     public function begin();
