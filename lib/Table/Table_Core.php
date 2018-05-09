@@ -1,6 +1,5 @@
 <?php
 namespace R\Lib\Table;
-use R\Lib\DBAL\SQLBuilder;
 
 /**
  * Tableクラスのコア機能セット
@@ -22,6 +21,11 @@ class Table_Core
     protected static $ds_name = "default";
     protected static $def = array();
     protected static $cols = array();
+    /**
+     * クエリ発行時のTransactionの自動Begin/Commit設定
+     */
+    protected static $auto_begin = true;
+    protected static $auto_commit = true;
     /**
      * テーブル別のListenerメソッドの定義
      */
@@ -58,20 +62,14 @@ class Table_Core
      * このTable処理内でのTransaction処理状態
      */
     private $in_transaction = null;
-    /**
-     * クエリ発行時のTransactionの自動Begin/Commit設定
-     */
-    protected static $auto_begin = true;
-    protected static $auto_commit = true;
 
     /**
      * @override
      */
-    public function __construct ()
+    public function __construct ($query=array(), $result=null)
     {
-        $this->query = new Query;
-        $this->result = null;
-
+        $this->query = new Query($query);
+        $this->result = $result;
         // テーブル名を関連づける
         $this->query->setDbname($this->getConnection()->getDbname());
         $this->query->setTable(array($this->getDefTableName(), $this->getAppTableName()));
@@ -87,10 +85,6 @@ class Table_Core
             call_user_func_array(array($this,$chain_method_name),$args);
             return $this;
         }
-
-        // MEMO: Queryの操作はTableクラス外から行えない
-        // 極力Tableクラス内にQuery操作用の抽象メソッドを定義するべき
-
         report_error("メソッドの定義がありません",array(
             "method_name" => $method_name,
             "chain_method_name" => $chain_method_name,
@@ -100,7 +94,6 @@ class Table_Core
 
 // -- DBConnection取得
 
-    protected $connection = null;
     /**
      * dsnameに対応するDBConnectionを取得する
      */
@@ -114,10 +107,10 @@ class Table_Core
     /**
      * Tableオブジェクトを作成する
      */
-    public function createTable ()
+    public function createTable ($query=array(), $reult=null)
     {
         $class = get_class($this);
-        return new $class;
+        return new $class($query, $reult);
     }
     /**
      * Recordオブジェクトを作成する
@@ -167,10 +160,10 @@ class Table_Core
      */
     public static function getIdColName ()
     {
-        $id_col_name = self::getColNameByAttr("id");
+        $id_col_name = static::getColNameByAttr("id");
         if ( ! $id_col_name) {
             report_error("idカラムが定義されていません",array(
-                "table" => $this,
+                "table" => static::$table_name,
             ));
         }
         return $id_col_name;
@@ -244,13 +237,9 @@ class Table_Core
         // 件数取得用にSQL再発行
         $query = clone($this->query);
         $query["fields"] = array("count"=>"COUNT(*)");
-        unset($query["limit"]);
-        unset($query["offset"]);
-        unset($query["order"]);
-        $statement = $this->renderSQL($query);
-        $result_res = $this->getConnection()->exec($statement);
-        $t = $this->getConnection()->fetch($result_res);
-        $this->total = (int)$t[0]["count"];
+        unset($query["limit"], $query["offset"], $query["order"]);
+        $t = $this->createTable($query)->selectOne();
+        $this->total = (int)$t["count"];
         return $this->total;
     }
     /**
@@ -619,8 +608,7 @@ class Table_Core
         // Query組み立て処理を呼び出す
         $this->callBuildQueryMethods();
         // SQL組み立て
-        //return $this->statement = $this->renderSQL($this->query);
-        return $this->statement = new TableStatement($this);
+        return $this->statement = new Statement($this);
     }
     /**
      * SQLの発行実処理

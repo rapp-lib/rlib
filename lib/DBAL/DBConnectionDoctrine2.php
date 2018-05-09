@@ -21,6 +21,10 @@ class DBConnectionDoctrine2 implements DBConnection
     {
         return $this->config["dbname"];
     }
+    public function getConfig($key)
+    {
+        return \R\Lib\Util\Arr::array_get($this->config, $key);
+    }
     public function lastInsertId ($table_name=null, $pkey_name=null)
     {
         return $this->getDS()->lastInsertId($table_name);
@@ -64,6 +68,7 @@ class DBConnectionDoctrine2 implements DBConnection
             $error = $this->getDS()->errorInfo();
             if ($error[0]==="00000") unset($error);
         }
+        if ( ! $stmt) $error[] = "Query failed";
         if ($st instanceof SQLStatement) $st->logEnd($error);
         return $stmt;
     }
