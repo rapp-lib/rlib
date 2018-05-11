@@ -89,7 +89,7 @@ class HttpDriver
     }
     public function emit ($response)
     {
-        $response = app()->report->beforeEmitResponse($response);
+        $response = app()->report->rewriteHttpResponse($response);
         $emitter = new \Zend\Diactoros\Response\SapiEmitter();
         return $emitter->emit($response);
     }

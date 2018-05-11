@@ -32,42 +32,30 @@ class ReportDriver
         throw ReportRenderer::createHandlableError(array("message"=>$message, "params"=>$params));
     }
 
-// reportのHttp出力バッファ制御
+// -- shutdown前の自動出力
 
-    private $flushable = true;
-    /**
-     * 応答前の処理
-     */
-    public function beforeEmitResponse($response)
+    protected $auto_flush_before_shutdown = true;
+    public function setAutoFlushBeforeShutdown($auto_flush_before_shutdown)
     {
-        if (app()->debug->getDebugLevel()) {
-            if (preg_match('!^text/html!', $response->getHeaderLine('content-type'))) {
-                $this->beforeShutdown();
-            } elseif ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
-                $this->beforeShutdown();
-                $location = $response->getHeaderLine("location");
-                return app()->http->response("html", '<a href="'.$location.'"><div style="padding:20px;'
-                    .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
-                    .'Location: '.$location.'</div></a>');
-            } else {
-                $this->flushable = false;
-            }
-        }
-        return $response;
+        $this->auto_flush_before_shutdown = $auto_flush_before_shutdown;
     }
-    /**
-     * 未応答終了前の処理
-     */
     public function beforeShutdown()
     {
-        if (app()->debug->getDebugLevel() && $this->flushable) {
-            if (php_sapi_name()!=="cli") {
-                // Session BufferからリストアしてHTMLとして表示
-                $records = & app()->session("Report_Logging")->getRef("buffer");
-                print ReportRenderer::renderAll($records, "html");
-                $records = array();
-            }
-        }
+        if ( ! $this->auto_flush_before_shutdown) return;
+        $this->getLoggingHandler()->autoFlushBeforeShutdown();
+    }
+
+// -- http応答の書き換え
+
+    protected $rewite_http_response = true;
+    public function setRewriteHttpResponse($rewite_http_response)
+    {
+        $this->rewite_http_response = $rewite_http_response;
+    }
+    public function rewriteHttpResponse($response)
+    {
+        if ( ! $this->rewite_http_response) return $response;
+        return $this->getLoggingHandler()->rewriteHttpResponse($response);
     }
 
 // -- Error処理系
