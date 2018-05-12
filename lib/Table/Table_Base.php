@@ -501,7 +501,7 @@ class Table_Base extends Table_Core
     }
     /**
      * @hook retreive_alias
-     * aliasにtype指定がない場合の処理
+     * aliasにenum指定がある場合の処理
      */
     protected function retreive_aliasEnum ($src_values, $alias)
     {
@@ -531,6 +531,20 @@ class Table_Base extends Table_Core
             foreach ($src_values as $k=>$v) $dest_values[$k] = $map[$v];
             return $dest_values;
         }
+    }
+    /**
+     * @hook retreive_alias
+     * alias type=summaryの処理 集計結果を対応づける
+     *      - required table, key, value
+     *      - optional joins, where, key_sub
+     */
+    public function retreive_aliasSummary ($src_values, $alias)
+    {
+        $q = table($alias["table"]);
+        $q->findBy($alias["key"], $src_values);
+        foreach ((array)$alias["joins"] as $join) $q->join($join);
+        if ($alias["where"]) $q->findBy($alias["where"]);
+        return $q->selectSummary($alias["value"], $alias["key"], $alias["key_sub"] ?: false);
     }
 
 // -- on_* ストレージ型変換 write+200/read-200

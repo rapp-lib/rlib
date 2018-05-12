@@ -18,11 +18,14 @@ class ReportLoggingHandler extends AbstractProcessingHandler
                 $this->flush();
             // http応答時はhtml出力の場合のみflush
             } else {
-                $flushable = false;
+                $content_type = false;
                 foreach (headers_list() as $header) {
-                    if (preg_match('!^content-type:\s*html/text!i',$header)) $flushable = true;
+                    if (preg_match('!^content-type:\s*(\S+)$!i', $header, $_)) {
+                        $content_type = $_[1];
+                        break;
+                    }
                 }
-                if ($flushable) $this->flush();
+                if (preg_match('!^html/text!',$content_type) || ! $content_type) $this->flush();
                 else $this->pushStash();
             }
         }
