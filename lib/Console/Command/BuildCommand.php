@@ -94,7 +94,7 @@ class BuildCommand extends Command
         $schema_data = $schema_loader->load($schema_csv_file);
         // SchemaElementを作成
         $schema = new \R\Lib\Builder\Element\SchemaElement();
-        $schema->addSkel(constant("R_LIB_ROOT_DIR")."/assets/builder/skel");
+        $schema->addSkel(constant("R_DEV_ROOT_DIR")."/builder/skel");
         $schema->loadSchemaData($schema_data);
         $schema->registerDeployCallback(function($deploy_name, $source){
             $deploy_file = constant("R_APP_ROOT_DIR")."/".$deploy_name;

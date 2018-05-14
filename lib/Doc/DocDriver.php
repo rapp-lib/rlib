@@ -8,11 +8,11 @@ class DocDriver
      */
     public function runIntercept()
     {
-        list($out, $preview) = $this->run($_REQUEST);
+        $result = $this->run($_REQUEST);
         print '<div style="background-color:#000; color:white; padding:20px; margin:0px;">';
-        print nl2br(str_replace(' ','&nbsp;',htmlspecialchars($out)));
+        print nl2br(str_replace(' ','&nbsp;',htmlspecialchars($result["output"])));
         print "</div>";
-        foreach ((array)$preview as $file=>$html) {
+        foreach ((array)$result["preview"] as $file=>$html) {
             print '<h2>'.$file.'</h2><div>'.$html."</div>";
         }
         exit;
@@ -20,7 +20,7 @@ class DocDriver
     public function run($params)
     {
         // rootの決定
-        $root_dir = constant("R_APP_ROOT_DIR")."/docs";
+        $root_dir = constant("R_DEV_ROOT_DIR")."/docs";
         // doc_config.phpの読み込み
         $config = include($root_dir."/doc_config.php");
         // インスタンス生成
@@ -51,6 +51,6 @@ class DocDriver
                 }
             }
         }
-        return array($out, $preview);
+        return array("output"=>$out, "preview"=>$preview);
     }
 }

@@ -21,36 +21,30 @@ class TestDriver
      */
     public function run($params)
     {
-        // rootの決定
-        if ($params["lib"]) $root_dir = constant("R_LIB_ROOT_DIR")."/tests";
-        else $root_dir = constant("R_APP_ROOT_DIR")."/tests";
-        // 基本設定の上書き
-        if ( ! defined("PHPUNIT_TESTSUITE")) define("PHPUNIT_TESTSUITE",true);
-        $params["backupGlobals"] = false;
-        // test_config.xmlの読み込み
-        if (is_file($root_dir."/test_config.xml")) {
-            $params["configuration"] = $root_dir."/test_config.xml";
-        }
+        // root_dirの決定
+        $root_dir = constant("R_DEV_ROOT_DIR")."/tests";
         // test_bootstrap.phpの読み込み
         if (is_file($root_dir."/test_bootstrap.php")) {
             require_once $root_dir."/test_bootstrap.php";
+        }
+        // target_dirの決定
+        $target_dir = $root_dir."/".(preg_match('!^[_\w]+$!', $params["dir"]) ?: "sandbox");
+        // test_config.xmlの読み込み
+        if (is_file($root_dir."/test_config.xml")) {
+            $params["configuration"] = $root_dir."/test_config.xml";
         }
         // インスタンス作成
         $runner = new TestRunner();
         $printer = new ResultPrinter();
         $runner->setPrinter($printer);
-        $suite = $runner->getTest($root_dir, "", "Test.php");
-        // Filterの登録
-        if ($params["test"]) $params["filter"] = "^".$params["test"]."$";
-        elseif ($params["group"]) $params["groups"][] = $params["group"];
-        elseif ( ! $params["all"]) $params["help"] = 1;
+        $suite = $runner->getTest($target_dir, "", ".php");
         // help表示
-        if ($params["help"]) {
+        if ( ! $params || $params["help"]) {
             $printer->write(" * available params:\n");
+            $printer->write("   - dir = examples ... switch dir, default=sandbox\n");
             $printer->write("   - test = TestClass::testMethod ... spec test by name\n");
             $printer->write("   - group = test_group ... spec tests by group\n");
             $printer->write("   - all ... without spec\n");
-            $printer->write("   - lib ... switch to lib tests\n");
             $printer->write("   - help ... show this message\n");
             $printer->write("\n");
             $printer->write(" * available tests:\n");
@@ -67,6 +61,12 @@ class TestDriver
             $printer->write("\n");
         // テスト実行
         } else {
+            // Filterの登録
+            if ($params["test"]) $params["filter"] = "^".$params["test"]."$";
+            elseif ($params["group"]) $params["groups"][] = $params["group"];
+            // 基本設定の上書き
+            if ( ! defined("PHPUNIT_TESTSUITE")) define("PHPUNIT_TESTSUITE",true);
+            $params["backupGlobals"] = false;
             try {
                 $result = $runner->doRun($suite, $params);
             } catch (PHPUnit_Framework_Exception $e) {
