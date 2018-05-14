@@ -9,11 +9,15 @@ class WebrootDef extends Def_Base
     }
     public function getBaseDir()
     {
-        return $this->getSchema()->getConfig("webroots.".$this->getName().".dir");
+        $value = app()->config($key = "http.webroots.".$this->getName().".base_dir");
+        if ( ! isset($value)) report_error("configが必要です", array("key"=>$key));
+        return $value;
     }
     public function getBaseUri()
     {
-        return $this->getSchema()->getConfig("webroots.".$this->getName().".uri");
+        $value = app()->config($key = "http.webroots.".$this->getName().".base_uri");
+        if ( ! isset($value)) report_error("configが必要です", array("key"=>$key));
+        return $value;
     }
 
 // -- route

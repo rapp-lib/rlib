@@ -6,14 +6,8 @@ use R\Lib\Analyzer\PathCollection;
 
 class SchemaDef extends Def_Base
 {
-    private $config;
     public function __construct()
     {
-        $this->config = include(constant("R_APP_ROOT_DIR")."/.analyze.php");
-    }
-    public function getConfig($name)
-    {
-        return \R\Lib\Util\Arr::array_get($this->config, $name);
     }
 
 // -- controller
@@ -135,12 +129,6 @@ class SchemaDef extends Def_Base
         if ( ! $this->children["files"]) {
             $this->children["files"] = array();
             $paths = PathCollection::scanDir(constant("R_APP_ROOT_DIR"));
-            foreach ((array)$this->getConfig("files.desc") as $desc) {
-                $paths->addPaths($desc[0], array("desc"=>$desc[1]));
-            }
-            foreach ((array)$this->getConfig("files.ignore") as $path) {
-                $paths->removePath($path);
-            }
             foreach ($paths->getFlatten() as $file=>$attrs) {
                 if ( ! file_exists($file)) continue;
                 $name = NameResolver::getAppFileName($file);

@@ -8,10 +8,13 @@ class DocDriver
      */
     public function runIntercept()
     {
-        $out = $this->run($_REQUEST);
+        list($out, $preview) = $this->run($_REQUEST);
         print '<div style="background-color:#000; color:white; padding:20px; margin:0px;">';
         print nl2br(str_replace(' ','&nbsp;',htmlspecialchars($out)));
         print "</div>";
+        foreach ((array)$preview as $file=>$html) {
+            print '<h2>'.$file.'</h2><div>'.$html."</div>";
+        }
         exit;
     }
     public function run($params)
@@ -22,23 +25,10 @@ class DocDriver
         $config = include($root_dir."/doc_config.php");
         // インスタンス生成
         $runner = new DocRunner($config);
+        // 設定値の上書き
+        $runner->overwriteConfig();
         // help表示
-        if ($params["all"]) {
-            $doc_files = $runner->runAll();
-            $out .= " * write docs: ALL"."\n";
-            foreach ($doc_files as $doc_name=>$files) {
-                $out .= "   - ".$doc_name."\n";
-                foreach ($files as $file) {
-                    $out .= "     - ".str_replace($config["output_dir"], '', $file)."\n";
-                }
-            }
-        } elseif($doc_name = $params["doc"]) {
-            $files = $runner->run($doc_name);
-            $out .= " * write docs: ".$doc_name."\n";
-            foreach ($files as $file) {
-                $out .= "   - ".str_replace($config["output_dir"], '', $file)."\n";
-            }
-        } else {
+        if ( ! $params || $params["help"]) {
             $out .= " * available params:\n";
             $out .= "   - doc = specific_doc_name ... spec doc by name\n";
             $out .= "   - all ... without spec\n";
@@ -49,7 +39,18 @@ class DocDriver
                 $out .= "   - ".$doc_name."\n";
             }
             $out .= "\n";
+        } else {
+            $result = $runner->run($params);
+            $out .= " * write docs"."\n";
+            foreach ($result as $doc_name=>$contents) {
+                if ( ! $contents) continue;
+                $out .= "   - ".$doc_name."\n";
+                foreach ($contents as $content_name=>$content) {
+                    $out .= "     - ".$content_name."\n";
+                    $preview[$doc_name."/".$content_name] = $content["preview"];
+                }
+            }
         }
-        return $out;
+        return array($out, $preview);
     }
 }

@@ -3,18 +3,17 @@ namespace R\Lib\Doc\Format;
 use R\Lib\DBAL\DBSchemaDoctrine2;
 use R\Lib\Doc\Content\SchemaCsv;
 
-class DbReverseSchemaCsvFormat
+class DbReverseSchemaCsvFormat extends Format_Base
 {
-    public function writeAll($prefix)
+    public function getContents()
     {
-        $files = array();
+        $contents = array();
         foreach ((array)app()->config("db.connection") as $ds_name=>$_) {
-            $files[] = $file = $prefix."/".$ds_name.".schema.config.csv";
-            $this->writeDs($file, $ds_name);
+            $contents[$ds_name.".schema.config.csv"] = $this->getContent($ds_name);
         }
-        return $files;
+        return $contents;
     }
-    private function writeDs($file, $ds_name)
+    private function getContent($ds_name)
     {
         // DB接続先から定義を読み込む
         $db_schema = DBSchemaDoctrine2::getDbSchema($ds_name);
@@ -36,17 +35,18 @@ class DbReverseSchemaCsvFormat
             }
             $schema["tables"][$table_name] = $_table;
         }
-        $this->touchFile($file);
-        // SchemaCsv形式のデータをファイルに書き込む
+        // SchemaCsv形式のデータを作成
         $content = new SchemaCsv($schema);
-        $content->write($file);
-    }
-    public function touchFile($file)
-    {
-        $dir = dirname($file);
-        if ( ! is_dir($dir)) mkdir($dir, 0777, true);
-        touch($file);
-        chmod($file, 0777);
-        return $file;
+        $content->setHeader(array(
+            "tables"=>array(
+                "#tables", "table", "col", "label", "def.type", "type",
+                "def.notnull", "def.length", "def.default", "def.fkey_for",
+                "def.assoc", "other",
+            ),
+            "pages"=>array(
+                "#pages", "controller", "label", "type",
+            ),
+        ));
+        return $content;
     }
 }
