@@ -19,8 +19,8 @@
         "guzzlehttp/guzzle": "~3",
         "commerceguys/guzzle-oauth2-plugin": "~1.0",
         "phpunit/phpunit": "~4",
-        "rapp-lib/zend-diactoros": "dev-master",
-        "rapp-lib/middleman": "dev-master",
+        "rapp-lib/zend-diactoros": "~1",
+        "rapp-lib/middleman": "~2",
         "hirak/prestissimo": "^0.3.7"
     },
     "autoload": {
