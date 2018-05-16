@@ -28,7 +28,8 @@ class TestDriver
             require_once $root_dir."/test_bootstrap.php";
         }
         // target_dirの決定
-        $target_dir = $root_dir."/".(preg_match('!^[_\w]+$!', $params["dir"]) ?: "sandbox");
+        $params["dir"] = preg_match('!^[_\w]+$!', $params["dir"]) ? $params["dir"] : "sandbox";
+        $target_dir = $root_dir."/".$params["dir"];
         // test_config.xmlの読み込み
         if (is_file($root_dir."/test_config.xml")) {
             $params["configuration"] = $root_dir."/test_config.xml";
@@ -39,13 +40,11 @@ class TestDriver
         $runner->setPrinter($printer);
         $suite = $runner->getTest($target_dir, "", ".php");
         // help表示
-        if ( ! $params || $params["help"]) {
+        if ( ! $params["test"] && ! $params["group"]) {
             $printer->write(" * available params:\n");
             $printer->write("   - dir = examples ... switch dir, default=sandbox\n");
-            $printer->write("   - test = TestClass::testMethod ... spec test by name\n");
+            $printer->write("   - test = TestClass::testMethod | all ... spec test by name\n");
             $printer->write("   - group = test_group ... spec tests by group\n");
-            $printer->write("   - all ... without spec\n");
-            $printer->write("   - help ... show this message\n");
             $printer->write("\n");
             $printer->write(" * available tests:\n");
             foreach ($suite as $test_case) {
@@ -62,7 +61,7 @@ class TestDriver
         // テスト実行
         } else {
             // Filterの登録
-            if ($params["test"]) $params["filter"] = "^".$params["test"]."$";
+            if ($params["test"] && $params["test"]!="all") $params["filter"] = "^".$params["test"]."$";
             elseif ($params["group"]) $params["groups"][] = $params["group"];
             // 基本設定の上書き
             if ( ! defined("PHPUNIT_TESTSUITE")) define("PHPUNIT_TESTSUITE",true);

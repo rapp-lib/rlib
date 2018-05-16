@@ -20,7 +20,7 @@ class DocRunner
     {
         $result = array();
         foreach ($this->getDocNames() as $doc_name) {
-            if ($params["doc"] && $params["doc"]!=$doc_name) continue;
+            if ($params["doc"] && ! $params["doc"]!="all" && $params["doc"]!=$doc_name) continue;
             // 設定の読み込み
             $doc = $this->config["docs"][$doc_name];
             $writer_class = $doc["writer"];

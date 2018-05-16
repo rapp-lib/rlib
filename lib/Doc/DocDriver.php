@@ -28,11 +28,9 @@ class DocDriver
         // 設定値の上書き
         $runner->overwriteConfig();
         // help表示
-        if ( ! $params || $params["help"]) {
+        if ( ! $params["doc"]) {
             $out .= " * available params:\n";
-            $out .= "   - doc = specific_doc_name ... spec doc by name\n";
-            $out .= "   - all ... without spec\n";
-            $out .= "   - help ... show this message\n";
+            $out .= "   - doc = specific_doc_name | all ... spec doc by name\n";
             $out .= "\n";
             $out .= " * available docs:\n";
             foreach ($runner->getDocNames() as $doc_name) {
