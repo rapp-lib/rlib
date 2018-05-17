@@ -20,7 +20,7 @@ class DocDriver
     public function run($params)
     {
         // rootの決定
-        $root_dir = constant("R_DEV_ROOT_DIR")."/docs";
+        $root_dir = constant("R_APP_ROOT_DIR")."/devel/docs";
         // doc_config.phpの読み込み
         $config = include($root_dir."/doc_config.php");
         // インスタンス生成

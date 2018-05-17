@@ -10,13 +10,11 @@ class Test_Base extends PHPUnit_Framework_TestCase
         report_info("TEST ".get_class($this)."::".$this->getName());
         return parent::run($result);
     }
-    public function mockApp()
+    public function outputDir($dir_append="")
     {
-        return include(constant("R_APP_ROOT_DIR")."/config/app.php");
-    }
-    public function mockServe()
-    {
-        $response = $app->http->serve("www", function($request){
-        });
+        $dir = constant("R_APP_ROOT_DIR")."/tmp/tests/".str_replace('\\','_',get_class($this));
+        if ($dir_append) $dir .= "/".$dir_append;
+        \R\Lib\Util\File::createDir($dir);
+        return $dir;
     }
 }

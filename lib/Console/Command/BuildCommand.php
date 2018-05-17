@@ -85,16 +85,17 @@ class BuildCommand extends Command
     private function makeApply ()
     {
         // dブランチからCSVをコピーする
-        $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/log/".$this->config["build_log_id"];
-        $schema_csv_file = $work_dir."/schema.config.csv";
-        $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":config/schema.config.csv"));
-        \R\Lib\Util\File::write($schema_csv_file,$csv_data);
+        // $work_dir = constant("R_APP_ROOT_DIR")."/tmp/builder/log/".$this->config["build_log_id"];
+        // $schema_csv_file = $work_dir."/schema.config.csv";
+        // $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":config/schema.config.csv"));
+        // \R\Lib\Util\File::write($schema_csv_file,$csv_data);
+        $schema_csv_file = constant("R_APP_ROOT_DIR")."/config/schema.config.csv";
         // CSVを読み込む
         $schema_loader = new \R\Lib\Builder\SchemaCsvLoader;
         $schema_data = $schema_loader->load($schema_csv_file);
         // SchemaElementを作成
         $schema = new \R\Lib\Builder\Element\SchemaElement();
-        $schema->addSkel(constant("R_DEV_ROOT_DIR")."/builder/skel");
+        $schema->addSkel(constant("R_APP_ROOT_DIR")."//devel/builder/skel");
         $schema->loadSchemaData($schema_data);
         $schema->registerDeployCallback(function($deploy_name, $source){
             $deploy_file = constant("R_APP_ROOT_DIR")."/".$deploy_name;

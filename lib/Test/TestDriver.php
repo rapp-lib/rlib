@@ -22,14 +22,12 @@ class TestDriver
     public function run($params)
     {
         // root_dirの決定
-        $root_dir = constant("R_DEV_ROOT_DIR")."/tests";
+        if ( ! $params["dir"]) $params["dir"] = "sandbox";
+        if ($params["dir"]==="examples") $root_dir = constant("R_DEV_ROOT_DIR")."/examples";
+        elseif ($params["dir"]==="tests") $root_dir = constant("R_APP_ROOT_DIR")."/devel/tests";
+        elseif ($params["dir"]==="sandbox")  $root_dir = constant("R_APP_ROOT_DIR")."/devel/sandbox";
         // test_bootstrap.phpの読み込み
-        if (is_file($root_dir."/test_bootstrap.php")) {
-            require_once $root_dir."/test_bootstrap.php";
-        }
-        // target_dirの決定
-        $params["dir"] = preg_match('!^[_\w]+$!', $params["dir"]) ? $params["dir"] : "sandbox";
-        $target_dir = $root_dir."/".$params["dir"];
+        if (is_file($root_dir."/test_bootstrap.php")) require_once $root_dir."/test_bootstrap.php";
         // test_config.xmlの読み込み
         if (is_file($root_dir."/test_config.xml")) {
             $params["configuration"] = $root_dir."/test_config.xml";
@@ -38,11 +36,11 @@ class TestDriver
         $runner = new TestRunner();
         $printer = new ResultPrinter();
         $runner->setPrinter($printer);
-        $suite = $runner->getTest($target_dir, "", ".php");
+        $suite = $runner->getTest($root_dir, "", ".php");
         // help表示
         if ( ! $params["test"] && ! $params["group"]) {
             $printer->write(" * available params:\n");
-            $printer->write("   - dir = examples ... switch dir, default=sandbox\n");
+            $printer->write("   - dir = sandbox | examples | tests ... switch dir\n");
             $printer->write("   - test = TestClass::testMethod | all ... spec test by name\n");
             $printer->write("   - group = test_group ... spec tests by group\n");
             $printer->write("\n");
