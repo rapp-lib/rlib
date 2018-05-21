@@ -1,12 +1,13 @@
 <?php
-namespace R\Lib\Console\Command;
-
+namespace R\Lib\Builder\Command;
 use R\Lib\Console\Command;
 use R\Lib\Util\GitRepositry;
 
-class BuildCommand extends Command
+class BuildMakeCommand extends Command
 {
-    protected function init ()
+    protected $name = 'build:make';
+    protected $description = 'Building rapp';
+    public function fire()
     {
         $this->git = new GitRepositry(constant("R_APP_ROOT_DIR"));
         $this->config = array(
@@ -16,9 +17,6 @@ class BuildCommand extends Command
             "build_log_id" => "build-".date("Ymd-His"),
         );
         register_shutdown_function(array($this, "onShutdown"));
-    }
-    public function act_make ()
-    {
         $this->makeSetup();
         $this->makeCheck();
         $this->makeApply();
@@ -143,5 +141,6 @@ class BuildCommand extends Command
                 $this->git->checkout($this->config["branch_d"]);
             }
         }
+        report_info("Git command log", array("command_log"=>$this->git->getCommandLog()));
     }
 }

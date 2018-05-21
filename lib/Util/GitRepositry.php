@@ -4,9 +4,14 @@ namespace R\Lib\Util;
 class GitRepositry
 {
     protected $dir;
+    protected $cmd_log = array();
     public function __construct ($dir)
     {
         $this->dir = $dir;
+    }
+    public function getCommandLog ()
+    {
+        return $this->cmd_log;
     }
     /**
      * Gitレポジトリ直下でコマンド発行
@@ -16,7 +21,7 @@ class GitRepositry
         $dir = getcwd();
         chdir($this->dir);
         $cmd = app()->console->cliEscape($cmd);
-        app()->console->output("> ".$cmd."\n");
+        $this->cmd_log[] = "> ".$cmd;
         $result = shell_exec($cmd);
         chdir($dir);
         return rtrim($result);

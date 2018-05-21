@@ -1,20 +1,23 @@
 <?php
-namespace R\Lib\Console\Command;
+namespace R\Lib\table\Command;
+use R\Lib\Console\Command;
+use Symfony\Component\Console\Input\InputOption;
 use R\Lib\DBAL\DBSchemaDoctrine2;
 
-class SchemaCommand extends \R\Lib\Console\Command
+class SchemaDiffCommand extends Command
 {
-    public function act_diff()
+    protected $name = 'schema:diff';
+    protected $description = 'Diff DB-real-schema from Table-defined-schema';
+    public function fire()
     {
-        $apply = isset($this->console["apply"]);
-        $ds_name = $this->console["ds"] ?: "default";
+        $apply = $this->option("apply");
+        $ds_name = $this->option("ds");
         // 差分の取得
         $sqls = DBSchemaDoctrine2::getMigrateSql($ds_name, array(constant("R_APP_ROOT_DIR")."/app/Table"));
         // 差分の表示
         $config = app()->config("db.connection.".$ds_name);
-        app()->console->output("-- ".count($sqls)
-            ." differences from ".$config["dbname"]." on ".$config["host"]."\n\n");
-        foreach ($sqls as $sql) app()->console->output($sql.";\n\n");
+        $this->line("-- ".count($sqls)." differences from ".$config["dbname"]." on ".$config["host"]);
+        foreach ($sqls as $sql) $this->line($sql.";");
         // 差分の適応
         if ($sqls && $apply) {
             $dump_dir = constant("R_APP_ROOT_DIR")."/tmp/dump";
@@ -26,9 +29,16 @@ class SchemaCommand extends \R\Lib\Console\Command
                     "dump_filename" => $dump_filename,
                 ));
             }
-            app()->console->output("-- Backup: ".$dump_filename."\n\n");
-            app()->console->output("-- Apply"."\n\n");
+            $this->line("-- Backup: ".$dump_filename);
+            $this->line("-- Apply");
             app()->db($ds_name)->exec(implode('; ', $sqls));
         }
+    }
+    protected function getOptions()
+    {
+        return array(
+            array('ds', "-d", InputOption::VALUE_OPTIONAL, 'Datasource name.', "default"),
+            array('apply', null, InputOption::VALUE_NONE, 'To apply to DB-real-schema.', null),
+        );
     }
 }

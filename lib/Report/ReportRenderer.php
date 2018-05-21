@@ -306,11 +306,14 @@ class ReportRenderer
         $lib_path = realpath(dirname(__FILE__)."/../..");
         $vendor_path = realpath($lib_path."/../..");
         $logger_path = realpath($vendor_path."/monolog/monolog");
+        $laravel_path = realpath($vendor_path."/laravel/framework");
         $app_path = realpath($vendor_path."/..");
         $r = "";
         $bt['file'] = realpath($bt['file']);
         if (strpos($bt['file'],$lib_path)===0) {
             $r .= "(rlib)".mb_substr($bt['file'],mb_strlen($lib_path));
+        } elseif (strpos($bt['file'],$laravel_path)===0) {
+            $r .= "(laravel)".mb_substr($bt['file'],mb_strlen($laravel_path));
         } elseif (strpos($bt['file'],$logger_path)===0) {
             $r .= "(logger)".mb_substr($bt['file'],mb_strlen($logger_path));
         } elseif (strpos($bt['file'],$vendor_path)===0) {

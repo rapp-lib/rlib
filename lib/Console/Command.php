@@ -1,31 +1,29 @@
 <?php
 namespace R\Lib\Console;
+use Illuminate\Console\Command as IlluminateCommand;
 
-class Command
+abstract class Command extends IlluminateCommand
 {
+    public function __construct ($controller_name=null, $action_name=null)
+    {
+        // @deprecated
+        if ($controller_name && $action_name) {
+            $this->controller_name = $controller_name;
+            $this->action_name = $action_name;
+            $this->console = app()->console;
+            $this->init();
+        } else {
+            parent::__construct();
+        }
+    }
+
     protected $controller_name;
     protected $action_name;
     protected $console;
-    /**
-     * 初期化
-     */
-    public function __construct ($controller_name, $action_name)
-    {
-        $this->controller_name = $controller_name;
-        $this->action_name = $action_name;
-        $this->console = app()->console;
-        $this->init();
-    }
-    /**
-     * 初期化時に呼び出す
-     */
     protected function init ()
     {
         //
     }
-    /**
-     * act_*の実行
-     */
     public function execAct ($args=array())
     {
         $action_method_name = "act_".$this->action_name;
