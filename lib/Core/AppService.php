@@ -3,7 +3,7 @@ namespace R\Lib\Core;
 
 use Illuminate\Events\EventServiceProvider;
 
-class AppService extends ServiceProvider
+class AppServiceProvider extends ServiceProvider
 {
     protected $base_providers = array(
         'R\Lib\Builder\BuilderService',
@@ -18,10 +18,6 @@ class AppService extends ServiceProvider
         "test" => 'R\Lib\Test\TestDriver',
         "doc" => 'R\Lib\Doc\DocDriver',
         // 4.0
-        "config" => 'R\Lib\Core\Config',
-        "env" => 'R\Lib\Core\Env',
-        "debug" => 'R\Lib\Core\Debug',
-        "report" => 'R\Lib\Report\ReportDriver',
         "http" => 'R\Lib\Http\HttpDriver',
         "cache" => 'R\Lib\Cache\CacheDriver',
         "session" => 'R\Lib\Session\SessionDriver',
@@ -35,9 +31,13 @@ class AppService extends ServiceProvider
     public function register()
     {
         app_set($this->app);
+        $this->app->instance('path', constant("R_APP_ROOT_DIR"));
+        $this->app->singleton('env', 'R\Lib\Core\Env');
+        $this->app->singleton('config', 'R\Lib\Core\Config');
+        $this->app->singleton('debug', 'R\Lib\Core\Debug');
+        $this->app->singleton('report', 'R\Lib\Report\ReportDriver');
 		$this->app->register(new EventServiceProvider($this->app));
         $this->app->bind('request', function($app){ return null; });
-        $this->app->bind('path', function($app){ return null; });
         $this->app->bind('exception', function($app){ return null; });
         foreach ($this->base_bindings as $k=>$v) $this->app->singleton($k, $v);
         foreach ($this->base_providers as $v) $this->app->register($v);

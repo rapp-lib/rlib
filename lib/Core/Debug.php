@@ -11,11 +11,11 @@ class Debug
     public function getDebugLevel ()
     {
         $this->checkClient();
-        return $this->debug_level;
+        return app()->config("app.debug");
     }
     public function setDebugLevel ($debug_level)
     {
-        $this->debug_level = $debug_level;
+        app()->config(array("app.debug"=>$debug_level));
     }
     private $client_checked = false;
     private function checkClient ()
