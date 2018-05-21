@@ -6,6 +6,7 @@ class AppContainer extends Application
 {
     public function __construct ()
     {
+        app_set($this);
         $this->instance('Illuminate\Container\Container', $this);
         $this->register('R\Lib\Core\AppServiceProvider');
     }

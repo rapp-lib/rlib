@@ -5,11 +5,9 @@ use Illuminate\Events\EventServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    protected $base_providers = array(
-        'R\Lib\Builder\BuilderService',
-        'R\Lib\Table\TableService',
-    );
     protected $base_bindings = array(
+        'builder' => '\R\Lib\Builder\WebappBuilder',
+        'table' => '\R\Lib\Table\TableFactory',
         // 4.1
         "i18n" => 'R\Lib\I18n\I18nDriver',
         "security" => 'R\Lib\Core\Security',
@@ -30,20 +28,23 @@ class AppServiceProvider extends ServiceProvider
     );
     public function register()
     {
-        app_set($this->app);
         $this->app->instance('path', constant("R_APP_ROOT_DIR"));
         $this->app->singleton('env', 'R\Lib\Core\Env');
         $this->app->singleton('config', 'R\Lib\Core\Config');
         $this->app->singleton('debug', 'R\Lib\Core\Debug');
         $this->app->singleton('report', 'R\Lib\Report\ReportDriver');
+        $this->app->report->listenPhpError();
 		$this->app->register(new EventServiceProvider($this->app));
         $this->app->bind('request', function($app){ return null; });
         $this->app->bind('exception', function($app){ return null; });
         foreach ($this->base_bindings as $k=>$v) $this->app->singleton($k, $v);
-        foreach ($this->base_providers as $v) $this->app->register($v);
-        $this->app->report->listenPhpError();
     }
     public function boot()
     {
+        $this->commands(array(
+            'schema:diff'=>'\R\Lib\Table\Command\SchemaDiffCommand',
+            'build:make'=>'\R\Lib\Builder\Command\BuildMakeCommand',
+        ));
+        $this->commands((array)app()->config("app.commands"));
     }
 }
