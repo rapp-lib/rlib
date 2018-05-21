@@ -14,7 +14,7 @@ class MailHandler
         $this->mailer = new \PHPMailer;
         $this->mailer->CharSet = "UTF-8";
         $this->mailer->Encoding = "base64";
-        $this->template_dir = constant("R_APP_ROOT_DIR")."/mail";
+        $this->template_dir = constant("R_APP_ROOT_DIR")."/resources/mail";
     }
     public function assign ($name, $value=null)
     {

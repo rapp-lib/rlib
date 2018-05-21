@@ -38,9 +38,9 @@
                 function ($role) {
                     // ヘッダー/フッターHTMLファイル
                     $role->getSchema()->fetch("include_html.header", array("role"=>$role),
-                        "/html".$role->getHeaderPath());
+                        "/public".$role->getHeaderPath());
                     $role->getSchema()->fetch("include_html.footer", array("role"=>$role),
-                        "/html".$role->getFooterPath());
+                        "/public".$role->getFooterPath());
                     // RoleControllerクラス
                     $role->getSchema()->fetch("classes.role_controller", array("role"=>$role),
                         "/app/Controller/".$role->getRoleControllerClassName().".php");
@@ -62,14 +62,14 @@
                     if ($page->hasHtml()) {
                         // pageのHtmlファイル
                         $page->getSchema()->fetch("parts.page_frame", array("page"=>$page),
-                            "/html".$page->getPathFile());
+                            "/public".$page->getPathFile());
                     }
                 },
             ),
             "mail" => array(
                 function ($mail) {
                     $mail->getSchema()->fetch($mail->getTemplateEntry(), array("mail"=>$mail),
-                        "/mail/".$mail->getTemplateFile());
+                        "/resources/mail/".$mail->getTemplateFile());
                 },
             ),
         ),

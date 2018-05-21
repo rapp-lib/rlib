@@ -21,17 +21,14 @@ class TestDriver
      */
     public function run($params)
     {
+        // test_bootstrap.phpの読み込み
+        $tests_dir = constant("R_APP_ROOT_DIR")."/devel/tests";
+        require_once $tests_dir."/test_bootstrap.php";
         // root_dirの決定
         if ( ! $params["dir"]) $params["dir"] = "sandbox";
         if ($params["dir"]==="examples") $root_dir = constant("R_DEV_ROOT_DIR")."/examples";
-        elseif ($params["dir"]==="tests") $root_dir = constant("R_APP_ROOT_DIR")."/devel/tests";
+        elseif ($params["dir"]==="tests") $root_dir = $tests_dir;
         elseif ($params["dir"]==="sandbox")  $root_dir = constant("R_APP_ROOT_DIR")."/devel/sandbox";
-        // test_bootstrap.phpの読み込み
-        if (is_file($root_dir."/test_bootstrap.php")) require_once $root_dir."/test_bootstrap.php";
-        // test_config.xmlの読み込み
-        if (is_file($root_dir."/test_config.xml")) {
-            $params["configuration"] = $root_dir."/test_config.xml";
-        }
         // インスタンス作成
         $runner = new TestRunner();
         $printer = new ResultPrinter();
