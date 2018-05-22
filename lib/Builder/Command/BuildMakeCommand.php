@@ -87,9 +87,8 @@ class BuildMakeCommand extends Command
         // $schema_csv_file = $work_dir."/schema.config.csv";
         // $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":config/schema.config.csv"));
         // \R\Lib\Util\File::write($schema_csv_file,$csv_data);
-        $schema_csv_file_name = 'devel/builder/schema.config.csv';
-        $schema_csv_file = constant("R_APP_ROOT_DIR").'/'.$schema_csv_file_name;
-        $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":".$schema_csv_file_name));
+        $schema_csv_file = constant("R_APP_ROOT_DIR")."/tmp/builder/log/".$this->config["build_log_id"].'/schema.config.csv';
+        $csv_data = $this->git->cmd(array("git","show",$this->config["branch_d"].":".'devel/builder/schema.config.csv'));
         \R\Lib\Util\File::write($schema_csv_file, $csv_data);
         // CSVを読み込む
         $schema_loader = new \R\Lib\Builder\SchemaCsvLoader;

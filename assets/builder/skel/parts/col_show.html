@@ -27,10 +27,18 @@
 <?php elseif ($input_type=="file"): /* if type=="assoc" */ ?>
 {{if <?=$var_name?>.<?=$name?>}}<a href="{{<?=$var_name?>.<?=$name?>}}" target="_blank">ファイル</a>{{/if}}<?=""?>
 <?php elseif ($enum_set = $col->getEnumSet()): /* if type=="assoc" */ ?>
-<?php   if ($input_type=="checklist"): ?>
-{{<?=$var_name?>.<?=$col->getEnumAliasColName()?>|implode:" "}}<?=""?>
+<?php   if (preg_match('!^\$forms!', $var_name)): /* if enum_value in form*/ ?>
+<?php       if ($input_type=="checklist"): ?>
+{{<?=$var_name?>.<?=$name?>|map:$enum["<?=$enum_set->getFullName()?>"]:" "}}<?=""?>
+<?php       else: ?>
+{{$enum["<?=$enum_set->getFullName()?>"][<?=$var_name?>.<?=$name?>]}}<?=""?>
+<?php       endif; ?>
 <?php   else: ?>
+<?php       if ($input_type=="checklist"): ?>
+{{<?=$var_name?>.<?=$col->getEnumAliasColName()?>|implode:" "}}<?=""?>
+<?php       else: ?>
 {{<?=$var_name?>.<?=$col->getEnumAliasColName()?>}}<?=""?>
+<?php       endif; ?>
 <?php   endif; ?>
 <?php elseif ($input_type=="password"): /* if type=="assoc" */ ?>
 ********<?=""?>
