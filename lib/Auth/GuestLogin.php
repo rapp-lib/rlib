@@ -9,7 +9,7 @@ class GuestLogin
     public function setPriv($priv)
     {
     }
-    public function getPriv()
+    public function getPriv($priv_id=false)
     {
         return false;
     }

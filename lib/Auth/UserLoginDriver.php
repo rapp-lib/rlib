@@ -15,36 +15,44 @@ class UserLoginDriver
         $this->role = $role;
     }
     /**
-     * 現在のロールと一致する場合のみ、付与されている権限を取得
-     */
-    public function getCurrentPriv($role)
-    {
-        return $role===$this->role ? $this->getPriv($role) : false;
-    }
-    /**
      * 現在のロールと一致する場合のみ、付与されている権限のIDを取得
      */
     public function id($role)
     {
-        $priv = $this->getCurrentPriv($role);
-        if ( ! $priv) {
-            return null;
-        }
-        return $priv["id"] ?: 1;
+        return $this->priv($role, "id");
+    }
+    /**
+     * 現在のロールと一致する場合のみ、付与されている権限を取得
+     */
+    public function priv($role, $priv_id)
+    {
+        return $this->getCurrentPriv($role, $priv_id);
+    }
+
+// --
+
+    /**
+     * 現在のロールと一致する場合のみ、付与されている権限を取得
+     */
+    public function getCurrentPriv($role, $priv_id=false)
+    {
+        if ($role!==$this->role) return false;
+        return $this->getPriv($role, $priv_id);
     }
     /**
      * 現在のロールで要求される権限を満たしているか確認
      */
     public function checkCurrentPriv($role, $priv_req)
     {
-        return $role===$this->role ? $this->checkPriv($role, $priv_req) : false;
+        if ($role!==$this->role) return false;
+        return $this->checkPriv($role, $priv_req);
     }
     /**
      * ログインされている場合のみ、現在のロールを取得
      */
     public function getCurrentRole()
     {
-        return $this->getPriv($this->role) ? $this->role : "guest";
+        return $this->getPriv($this->role, "id") ? $this->role : "guest";
     }
 
 // -- LoginProviderの処理
@@ -52,10 +60,9 @@ class UserLoginDriver
     /**
      * 指定ロールに付与されている権限を取得
      */
-    public function getPriv($role)
+    public function getPriv($role, $priv_id=false)
     {
-        $priv = $this->getLoginProvider($role)->getPriv();
-        return $priv["id"] ? $priv : null;
+        return $this->getLoginProvider($role)->getPriv($priv_id);
     }
     /**
      * 指定ロールに権限を設定

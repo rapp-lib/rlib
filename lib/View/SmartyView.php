@@ -242,11 +242,10 @@ class SmartyView
             ->getRelativeUri($uri)->getPageAuth();
         return app()->user->checkCurrentPriv($page_auth->getRole(), $page_auth->getPrivReq());
     }
-    public static function smarty_modifier_get_priv ($priv_req, $role=null)
+    public static function smarty_modifier_get_priv ($priv_id, $role=null)
     {
         if ( ! $role) $role = app()->http->getServedRequest()->getUri()->getPageAuth()->getRole();
-        $priv = app()->user->getCurrentPriv($role);
-        return $priv[$priv_req];
+        return app()->user->priv($role, $priv_id);
     }
 
 // -- Assets処理プラグイン

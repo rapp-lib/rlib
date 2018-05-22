@@ -18,12 +18,12 @@ class ConfigBasedLogin
         }
         $this->priv = $priv;
     }
-    public function getPriv()
+    public function getPriv($priv_id=false)
     {
         if ($this->config["persist"]=="session") {
-            return app()->session("Auth_LoginSession_".$this->role)->get("priv");
+            $this->priv = app()->session("Auth_LoginSession_".$this->role)->get("priv");
         }
-        return $this->priv;
+        return $priv_id===false ? $this->priv : $this->priv[$priv_id];
     }
     public function checkPriv($priv_req)
     {
