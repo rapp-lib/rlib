@@ -35,6 +35,12 @@ class SessionDriver extends ZendSessionManager
         parent::__construct($session_config, $session_storage, $session_save_handler);
         SessionContainer::setDefaultManager($this);
     }
+    public function handle($request, $next)
+    {
+        $this->start();
+        app()->debug->getDebugLevel();
+        return $next($request);
+    }
 
 // --
 
