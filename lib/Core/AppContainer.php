@@ -1,14 +1,15 @@
 <?php
 namespace R\Lib\Core;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Facade;
 
 class AppContainer extends Application
 {
     public function __construct ()
     {
-        app_set($this);
+        Facade::clearResolvedInstances();
+        Facade::setFacadeApplication($this);
         $this->instance('Illuminate\Container\Container', $this);
-        $this->register('R\Lib\Core\AppServiceProvider');
     }
     public function __call ($provider_name, $args)
     {

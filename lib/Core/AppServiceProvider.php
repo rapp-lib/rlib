@@ -2,10 +2,19 @@
 namespace R\Lib\Core;
 
 use Illuminate\Events\EventServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Facade;
+use Illuminate\Foundation\AliasLoader;
+use Illuminate\Config\EnvironmentVariables;
+use Dotenv\Dotenv;
 
 class AppServiceProvider extends ServiceProvider
 {
     protected $base_bindings = array(
+        // 5.0
+        'config' => 'R\Lib\Core\Config',
+        'debug' => 'R\Lib\Core\Debug',
+        'report' => 'R\Lib\Report\ReportDriver',
         'builder' => '\R\Lib\Builder\WebappBuilder',
         'table' => '\R\Lib\Table\TableFactory',
         // 4.1
@@ -26,25 +35,41 @@ class AppServiceProvider extends ServiceProvider
         "form" => 'R\Lib\Form\FormFactory',
         "console" => 'R\Lib\Console\ConsoleDriver',
     );
+    protected $base_commands = array(
+        'schema:diff'=>'\R\Lib\Table\Command\SchemaDiffCommand',
+        'build:make'=>'\R\Lib\Builder\Command\BuildMakeCommand',
+    );
     public function register()
     {
-        $this->app->instance('path', constant("R_APP_ROOT_DIR"));
-        $this->app->singleton('env', 'R\Lib\Core\Env');
-        $this->app->singleton('config', 'R\Lib\Core\Config');
-        $this->app->singleton('debug', 'R\Lib\Core\Debug');
-        $this->app->singleton('report', 'R\Lib\Report\ReportDriver');
+        // パス設定
+        $this->app->instance('path', constant("R_APP_ROOT_DIR")."/app");
+        $this->app->instance('path.app', constant("R_APP_ROOT_DIR")."/app");
+        $this->app->instance('path.base', constant("R_APP_ROOT_DIR"));
+        $this->app->instance('path.storage', constant("R_APP_ROOT_DIR")."/tmp/storage");
+        //$this->app->instance('path.public', constant("R_APP_ROOT_DIR")."/public");
+        // 環境変数の読み込み
+        with(new Dotenv(constant("R_APP_ROOT_DIR")))->load();
+        // lib以下のService登録
+        foreach ($this->base_bindings as $k=>$v) $this->app->singleton($k, $v);
+        // 環境名を設定
+        $this->app->instance('env', $this->app->config["app.env"]);
+        // Report起動
         $this->app->report->listenPhpError();
+        // Laravel標準Provider登録
 		$this->app->register(new EventServiceProvider($this->app));
         $this->app->bind('request', function($app){ return null; });
         $this->app->bind('exception', function($app){ return null; });
-        foreach ($this->base_bindings as $k=>$v) $this->app->singleton($k, $v);
+        // Timezone設定
+        if ($this->app->config['timezone']) date_default_timezone_set($this->app->config['timezone']);
+        // Aliases設定読み込み
+        AliasLoader::getInstance((array)$this->app->config['aliases'])->register();
+        // Providers設定読み込み
+        $this->app->config['app.manifest'] = $this->app["path.storage"]."/meta";
+        $this->app->getProviderRepository()->load($this->app, (array)$this->app->config['providers']);
     }
     public function boot()
     {
-        $this->commands(array(
-            'schema:diff'=>'\R\Lib\Table\Command\SchemaDiffCommand',
-            'build:make'=>'\R\Lib\Builder\Command\BuildMakeCommand',
-        ));
-        $this->commands((array)app()->config("app.commands"));
+        $this->commands($this->base_commands);
+        $this->commands((array)app()->config["app.commands"]);
     }
 }

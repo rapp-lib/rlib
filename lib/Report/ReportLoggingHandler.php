@@ -8,7 +8,14 @@ class ReportLoggingHandler extends AbstractProcessingHandler
     protected static $buffer = array();
     protected static $buffer_stash_status = "init";
     /**
-     * 終了前の処理
+     * 終了前のエラー応答処理
+     */
+    public function errorOutputBeforeShutdown()
+    {
+        if (php_sapi_name()!=="cli") header('HTTP/1.1 500 Internal Server Error');
+    }
+    /**
+     * 終了前のログ出力処理
      */
     public function autoFlushBeforeShutdown()
     {

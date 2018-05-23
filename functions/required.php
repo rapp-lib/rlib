@@ -4,6 +4,7 @@
 
 // -- Container Facade
 
+    // @deprecated
     function app_set ($container)
     {
         \Illuminate\Support\Facades\Facade::setFacadeApplication($container);
@@ -49,10 +50,6 @@
     function tag ($name, $attrs=null, $content=null)
     {
         return \R\Lib\Util\HtmlBuilder::build($name, $attrs, $content);
-    }
-    function arr ( & $arr)
-    {
-        return new \R\Lib\Util\Arr($arr);
     }
 
 // -- String Util
