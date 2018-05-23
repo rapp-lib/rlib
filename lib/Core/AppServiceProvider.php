@@ -62,7 +62,8 @@ class AppServiceProvider extends ServiceProvider
         // Timezone設定
         if ($this->app->config['timezone']) date_default_timezone_set($this->app->config['timezone']);
         // Aliases設定読み込み
-        AliasLoader::getInstance((array)$this->app->config['aliases'])->register();
+        foreach ((array)$this->app->config['aliases'] as $k=>$v) $this->alias($k, $v);
+        AliasLoader::getInstance((array)$this->app->config['class_aliases'])->register();
         // Providers設定読み込み
         $this->app->config['app.manifest'] = $this->app["path.storage"]."/meta";
         $this->app->getProviderRepository()->load($this->app, (array)$this->app->config['providers']);
