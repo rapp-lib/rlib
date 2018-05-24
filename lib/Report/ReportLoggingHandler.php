@@ -12,7 +12,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
      */
     public function errorOutputBeforeShutdown()
     {
-        if (php_sapi_name()!=="cli") header('HTTP/1.1 500 Internal Server Error');
+        if ( ! app()->runningInConsole()) header('HTTP/1.1 500 Internal Server Error');
     }
     /**
      * 終了前のログ出力処理
@@ -21,7 +21,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
     {
         if (app()->debug->getDebugLevel()) {
             // cliの場合は常に終了時にflush
-            if (php_sapi_name()==="cli") {
+            if (app()->runningInConsole()) {
                 $this->flush();
             // http応答時はhtml出力の場合のみflush
             } else {
@@ -71,7 +71,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
     private function pushStash()
     {
         // stashへの待避
-        if (php_sapi_name()!=="cli" && app()->session->sessionExists()) {
+        if ( ! app()->runningInConsole()) {
             if (self::$buffer_stash_status==="open") {
                 app()->session("Report_Logging")->add("buffer", self::$buffer);
                 self::$buffer = array();
@@ -84,7 +84,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
      */
     private function popStash()
     {
-        if (php_sapi_name()!=="cli" && app()->session->sessionExists()) {
+        if ( ! app()->runningInConsole()) {
             if (self::$buffer_stash_status==="init") {
                 $stash_buffer = & app()->session("Report_Logging")->getRef("buffer");
                 if ($stash_buffer) foreach ($stash_buffer as $stash_record) {
@@ -100,12 +100,12 @@ class ReportLoggingHandler extends AbstractProcessingHandler
      */
     private function flush()
     {
-        if (php_sapi_name()==="cli") {
+        if (app()->runningInConsole()) {
             $text = ReportRenderer::renderAll(self::$buffer, "console");
-            app()->console->outputError($text);
+            file_put_contents("php://stderr", $text);
         } else {
             $html = ReportRenderer::renderAll(self::$buffer, "html");
-            print $html;
+            file_put_contents("php://stdout", $html);
         }
         self::$buffer = array();
     }

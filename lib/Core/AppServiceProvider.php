@@ -17,6 +17,8 @@ class AppServiceProvider extends ServiceProvider
         'report' => 'R\Lib\Report\ReportDriver',
         'builder' => '\R\Lib\Builder\WebappBuilder',
         'table' => '\R\Lib\Table\TableFactory',
+        "cache" => 'R\Lib\Cache\CacheDriver',
+        "session" => 'R\Lib\Session\SessionDriver',
         // 4.1
         "i18n" => 'R\Lib\I18n\I18nDriver',
         "security" => 'R\Lib\Core\Security',
@@ -26,14 +28,11 @@ class AppServiceProvider extends ServiceProvider
         "doc" => 'R\Lib\Doc\DocDriver',
         // 4.0
         "http" => 'R\Lib\Http\HttpDriver',
-        "cache" => 'R\Lib\Cache\CacheDriver',
-        "session" => 'R\Lib\Session\SessionDriver',
         "user" => 'R\Lib\Auth\UserLoginDriver',
         "file" => 'R\Lib\File\UserFileDriver',
         "db" => 'R\Lib\DBAL\DBDriver',
         // 3.0
         "form" => 'R\Lib\Form\FormFactory',
-        "console" => 'R\Lib\Console\ConsoleDriver',
     );
     protected $base_commands = array(
         'schema:diff'=>'\R\Lib\Table\Command\SchemaDiffCommand',
@@ -67,8 +66,10 @@ class AppServiceProvider extends ServiceProvider
         // Providers設定読み込み
         $this->app->config['app.manifest'] = $this->app["path.storage"]."/meta";
         $this->app->getProviderRepository()->load($this->app, (array)$this->app->config['app.providers']);
-        // Session自動Start
-        if ($this->app->config["session.auto_start"]) $this->app->session->start();
+        if ( ! $this->app->runningInConsole()) {
+            // Session自動Start
+            if ($this->app->config["session.auto_start"]) $this->app->session->start();
+        }
     }
     public function boot()
     {
