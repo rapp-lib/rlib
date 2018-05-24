@@ -19,5 +19,6 @@ class <?=$table->getClassName()?> extends Table_App
             array("name"=>"<?=$index["name"]?>", "cols"=>array("<?=implode($index["cols"],'", "')?>")),
 <?php endforeach; ?>
         ),
+<?=R\Lib\Builder\CodeRenderer::elementLines(2, (array)$table->getExtraDefs())?>
     );
 }

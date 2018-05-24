@@ -102,16 +102,30 @@ class Statement extends SQLStatement
     {
         $short_explain = array();
         foreach ($explain as $t) {
-            $short_explain["#".$t["id"]] = $t["table"]." ".$t["type"]."/".$t["select_type"]." ".$t["Extra"];
+            // 1行EXPLAINの構築
+            $info["short_explain"]["#".$t["id"]] = $t["table"]." ".$t["type"]."/".$t["select_type"]." ".$t["Extra"];
+            // テーブル規模の決定
+            if ($table_name = app()->table->getAppTableNameByDefTableName($t["table"])) {
+                $def = table($table_name)->getTableDef();
+                $target_scale = $def["target_scale"];
+            }
+            $scales = array("small"=>100, "midium"=>10000, "large"=>100000);
+            if ( ! $target_scale) $target_scale = "midium";
+            if (is_numeric($target_scale)) {
+                $target_scale = "xlarge";
+                foreach ($scales as $k=>$v) if ($target_scale<=$v) $target_scale = $k;
+            }
+            // EXPLAINからパラメータを抽出する
             $t["Extra"] = array_map("trim",explode(';',$t["Extra"]));
-            $is_few_rows = $t["rows"] < 1000;
             $is_seq_scan = $t["type"] == "ALL" || $t["type"] == "index";
             $is_no_possible_keys = ! $t["possible_keys"] && ! $t["key"];
             $is_dep_sq = $t["select_type"] == "DEPENDENT SUBQUERY";
             $is_seq_join = in_array("Using join buffer", $t["Extra"]);
             $is_using_where = in_array("Using where", $t["Extra"]);
+            // テーブル規模対パラメータから警告を構成する
             $msg = "";
-            if ($is_few_rows) {
+            if ($target_scale=="small") {
+            } elseif ($target_scale=="midium") {
                 if ($is_using_where && $is_seq_scan) {
                     if ($is_no_possible_keys) {
                         $msg = "INDEXが設定されていないWHERE句";
@@ -126,6 +140,5 @@ class Statement extends SQLStatement
             }
             if ($msg) $warn[] = $msg." on ".$t["table"];
         }
-        $info["short_explain"] = $short_explain;
     }
 }
