@@ -2,6 +2,7 @@
 namespace R\Lib\Report;
 use Monolog\Logger;
 use Monolog\Handler\AbstractProcessingHandler;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ReportLoggingHandler extends AbstractProcessingHandler
 {
@@ -43,7 +44,9 @@ class ReportLoggingHandler extends AbstractProcessingHandler
     public function rewriteHttpResponse($response)
     {
         if (app()->debug->getDebugLevel()) {
-            if (preg_match('!^text/html!', $response->getHeaderLine('content-type'))) {
+            if ($response instanceof SymfonyResponse) $content_type = $response->headers->get('content-type');
+            else $content_type = $response->getHeaderLine('content-type');
+            if (preg_match('!^text/html!', $content_type)) {
                 $this->flush();
             } elseif ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
                 $this->flush();
@@ -105,7 +108,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
             file_put_contents("php://stderr", $text);
         } else {
             $html = ReportRenderer::renderAll(self::$buffer, "html");
-            file_put_contents("php://stdout", $html);
+            print $html;
         }
         self::$buffer = array();
     }

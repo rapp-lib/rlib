@@ -19,9 +19,9 @@
     }
     function report ()
     {
-        $values = array();
-        foreach (func_get_args() as $k=>$v) $values["value #".$k] = $v;
-        app()->report->getLogger()->debug("DEBUG", $values);
+        $vars = array();
+        foreach (func_get_args() as $k=>$v) $vars["value #".$k] = $v;
+        app()->report->getLogger()->debug("DEBUG", $vars);
     }
     function report_info ($message, array $vars=array())
     {

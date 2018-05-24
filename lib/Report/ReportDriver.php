@@ -12,7 +12,8 @@ class ReportDriver
     public function getLogger()
     {
         if ( ! isset($this->logger)) {
-            $this->logger = new Logger("rapp");
+            $this->logger = app("log")->getMonolog();
+            if ( ! $this->logger) $this->logger = new Logger("rapp");
             $this->logger->pushHandler($this->getLoggingHandler());
         }
         return $this->logger;

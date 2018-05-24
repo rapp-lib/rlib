@@ -18,8 +18,17 @@ class HttpDriver
         }
         array_push($this->served_request_stack, $this->served_request);
         $this->served_request = $served_request;
-        // Dispatch処理
-        $response = $webroot->dispatch($served_request, $deligate);
+        // ErrorFallback
+        try {
+            // Dispatch処理
+            $response = $webroot->dispatch($served_request, $deligate);
+        } catch (\Exception $e) {
+            if (app()->runningUnitTests()) throw $e;
+            $response = app("exception")->handleException($e);
+        } catch (\Throwable $e) {
+            if (app()->runningUnitTests()) throw $e;
+            $response = app("exception")->handleException($e);
+        }
         report_info("Http Served", array(
             "request_uri"=>$this->served_request->getUri(),
             "input_values"=>$this->served_request->getAttribute(InputValues::ATTRIBUTE_INDEX),
@@ -89,6 +98,7 @@ class HttpDriver
     }
     public function emit ($response)
     {
+        if ($response instanceof \Symfony\Component\HttpFoundation\Response) return $response->send();
         $response = app()->report->rewriteHttpResponse($response);
         $emitter = new \Zend\Diactoros\Response\SapiEmitter();
         return $emitter->emit($response);
