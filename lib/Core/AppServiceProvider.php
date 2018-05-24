@@ -60,17 +60,19 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('request', function($app){ return null; });
         $this->app->bind('exception', function($app){ return null; });
         // Timezone設定
-        if ($this->app->config['timezone']) date_default_timezone_set($this->app->config['timezone']);
+        if ($this->app->config['app.timezone']) date_default_timezone_set($this->app->config['timezone']);
         // Aliases設定読み込み
-        foreach ((array)$this->app->config['aliases'] as $k=>$v) $this->alias($k, $v);
-        AliasLoader::getInstance((array)$this->app->config['class_aliases'])->register();
+        foreach ((array)$this->app->config['app.aliases'] as $k=>$v) $this->alias($k, $v);
+        AliasLoader::getInstance((array)$this->app->config['app.class_aliases'])->register();
         // Providers設定読み込み
         $this->app->config['app.manifest'] = $this->app["path.storage"]."/meta";
-        $this->app->getProviderRepository()->load($this->app, (array)$this->app->config['providers']);
+        $this->app->getProviderRepository()->load($this->app, (array)$this->app->config['app.providers']);
+        // Session自動Start
+        if ($this->app->config["session.auto_start"]) $this->app->session->start();
     }
     public function boot()
     {
         $this->commands($this->base_commands);
-        $this->commands((array)app()->config["app.commands"]);
+        $this->commands((array)$this->app->config["app.commands"]);
     }
 }
