@@ -66,9 +66,10 @@ class TableFactory
     /**
      * Table定義の一覧を取得
      */
-    public function collectTableDefs(array $dirs)
+    public function collectTableDefs($dirs=array())
     {
-        foreach ($dirs as $dir) {
+        $dirs[] = constant("R_APP_ROOT_DIR")."/app/Table";
+        foreach ((array)$dirs as $dir) {
             foreach (glob($dir."/*") as $file) {
                 require_once($file);
             }

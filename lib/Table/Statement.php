@@ -106,7 +106,7 @@ class Statement extends SQLStatement
             $info["short_explain"]["#".$t["id"]] = $t["table"]." ".$t["type"]."/".$t["select_type"]." ".$t["Extra"];
             // テーブル規模の決定
             if ($table_name = app()->table->getAppTableNameByDefTableName($t["table"])) {
-                $def = table($table_name)->getTableDef();
+                $def = app()->table->getTableDef($table_name);
                 $target_scale = $def["target_scale"];
             }
             $scales = array("small"=>100, "midium"=>10000, "large"=>100000);
