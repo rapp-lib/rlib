@@ -276,11 +276,17 @@ class CSVFilterLoader
         if ( ! strlen($value)) return $value;
         // CSV読み込み時
         if ($mode == "r") {
-            $enum_reverse = array();
-            foreach (app()->enum[$filter["enum"]] as $k=>$v) $enum_reverse[$v] = $k;
-            return $enum_reverse[$value];
+            if ($filter["enum_reverse"]) {
+                foreach (app()->enum[$filter["enum_reverse"]] as $k=>$v) ;
+                return app()->enum[$filter["enum_reverse"]][$value];
+            } else {
+                $enum_reverse = array();
+                foreach (app()->enum[$filter["enum"]] as $k=>$v) $enum_reverse[$v] = $k;
+                return $enum_reverse[$value];
+            }
         // CSV書き込み時
         } else {
+            foreach (app()->enum[$filter["enum"]] as $k=>$v) ;
             return app()->enum[$filter["enum"]][$value];
         }
     }
