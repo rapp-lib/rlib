@@ -18,7 +18,7 @@ class MailHandler
     }
     public function assign ($name, $value=null)
     {
-        if (is_array($name)) foreach ($name as $k=>$v) $this->assign($k, $v);
+        if (is_array($name)) foreach ($name as $k=>$v) $this->vars[$k] = $v;
         else \R\Lib\Util\Arr::array_add($this->vars, $name, $value);
     }
     public function load ($template_filename, $assign=array())
