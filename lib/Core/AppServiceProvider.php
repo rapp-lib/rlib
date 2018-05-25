@@ -77,14 +77,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->instance('path', constant("R_APP_ROOT_DIR")."/app");
         $this->app->instance('path.app', constant("R_APP_ROOT_DIR")."/app");
         $this->app->instance('path.base', constant("R_APP_ROOT_DIR"));
-        $this->app->instance('path.storage', constant("R_APP_ROOT_DIR")."/tmp/storage");
+        $this->app->instance('path.storage', constant("R_APP_ROOT_DIR")."/tmp");
         //$this->app->instance('path.public', constant("R_APP_ROOT_DIR")."/public");
         // 環境変数の読み込み
-        with(new Dotenv(constant("R_APP_ROOT_DIR")))->load();
+        if (file_exists(constant("R_APP_ROOT_DIR")."/.env")) {
+            with(new Dotenv(constant("R_APP_ROOT_DIR"),".env"))->load();
+        }
         // lib以下のService登録
         foreach ($this->base_bindings as $k=>$v) $this->app->singleton($k, $v);
         // 環境名を設定
-        $this->app->instance('env', $this->app->config["app.env"]);
+        $this->app->instance('env', "".$this->app->config["app.env"]);
         // Laravel標準Provider登録
         $this->app->register(new EventServiceProvider($this->app));
         $this->app->bind('request', function($app){

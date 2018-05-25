@@ -16,6 +16,7 @@ class Debug
     public function setDebugLevel ($debug_level)
     {
         app()->config["app.debug"] = $debug_level;
+        app("exception")->setDebug($debug_level);
     }
     private $client_checked = false;
     private function checkClient ()
