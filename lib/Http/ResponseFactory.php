@@ -11,6 +11,10 @@ class ResponseFactory
 {
     public static function factory ($type, $data=null, $params=array())
     {
+        if ($data===null) {
+            $data = self::getErrorHtml($type);
+            if ($data!==null) $type = "html";
+        }
         $headers = $params["headers"] ?: array();
         if ($type==="html") {
             return new HtmlResponse($data, $params["status"]?:200, $headers);
@@ -40,5 +44,23 @@ class ResponseFactory
             $stream->write($data);
             return new Response($stream, $params["status"]?:200, $headers);
         }
+    }
+    private static function getErrorHtml ($type)
+    {
+        $error_codes = array(
+            "badrequest" => 400,
+            "forbidden" => 403,
+            "notfound" => 404,
+            "error" => 500,
+        );
+        if ( ! $error_codes[$type]) return null;
+        $error_file = constant("R_APP_ROOT_DIR")."/resources/error/".$type.".php";
+        if ( ! file_exists($error_file)) {
+            $error_file = constant("R_LIB_ROOT_DIR")."/assets/error/".$type.".php";
+        }
+        if ( ! file_exists($error_file)) return null;
+        ob_start();
+        include($error_file);
+        return ob_get_clean();
     }
 }

@@ -90,7 +90,7 @@ class AppServiceProvider extends ServiceProvider
         // Laravel標準Provider登録
         $this->app->register(new EventServiceProvider($this->app));
         $this->app->bind('request', function($app){
-            return forward_static_call(array('\Illuminate\Http\Request', 'createFromGlobals'));
+            return $app->http->createServerRequest();
         });
         // Report起動
         //$this->app->report->listenPhpError();
@@ -103,10 +103,13 @@ class AppServiceProvider extends ServiceProvider
         AliasLoader::getInstance((array)$this->app->config['app.aliases'])->register();
         // Providers設定読み込み
         $this->app->config['app.manifest'] = $this->app["path.storage"]."/meta";
+        if ( ! is_writable($this->app->config['app.manifest'])) {
+            mkdir($this->app->config['app.manifest'], 0777, true);
+        }
         $providers = array_merge($this->base_providers, (array)$this->app->config['app.providers']);
         $this->app->getProviderRepository()->load($this->app, $providers);
+        // Session自動Start
         if ( ! $this->app->runningInConsole()) {
-            // Session自動Start
             if ($this->app->config["session.auto_start"]) $this->app->session->start();
         }
     }

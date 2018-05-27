@@ -7,6 +7,7 @@ class Handler extends IlluminateHandler
 {
     public function handleUncaughtException($exception)
     {
+        app()->report->logException($exception);
         $response = $this->handleException($exception);
         app()->http->emit($response);
     }
@@ -15,6 +16,9 @@ class Handler extends IlluminateHandler
         app()->report->beforeShutdown();
         $error = error_get_last();
         if ( ! is_null($error)){
+            $error['php_error_code'] = $error['type'];
+            $e = \R\Lib\Report\ReportRenderer::createHandlableError($error);
+            app()->report->logException($e);
             extract($error);
             if ( ! $this->isFatal($type)) return;
             $response = $this->handleException(new FatalError($message, $type, 0, $file, $line));

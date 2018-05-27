@@ -18,6 +18,13 @@ class ExceptionServiceProvider extends IlluminateExceptionServiceProvider
             else return new PlainDisplayer;
         });
     }
+	protected function registerDebugDisplayer()
+	{
+		$this->registerWhoops();
+		$this->app['exception.debug'] = $this->app->share(function($app){
+			return new WhoopsDisplayer($app['whoops'], $app->runningInConsole());
+		});
+	}
     protected function registerPrettyWhoopsHandler()
     {
         $this->app['whoops.handler'] = $this->app->share(function(){
@@ -25,10 +32,14 @@ class ExceptionServiceProvider extends IlluminateExceptionServiceProvider
             $handler->setEditor('sublime');
             $handler->setPageTitle('Application Error.');
             $handler->addDataTableCallback("ERROR Data", function(){
-                // $e = \Exception::getPrevious();
-                return array($e);
+                return array();
             });
             return $handler;
         });
+    }
+    protected function requestWantsJson()
+    {
+        return false;
+        //return app()->http->isAjax() || app()->http->wantsJson();
     }
 }

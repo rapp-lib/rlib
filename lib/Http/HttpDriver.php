@@ -1,9 +1,62 @@
 <?php
 namespace R\Lib\Http;
 use Psr\Http\Message\ServerRequestInterface;
+use Illuminate\Support\Facades\Facade;
+use Zend\Diactoros\Response\SapiEmitter;
 
 class HttpDriver
 {
+    public function handle ($request, $next)
+    {
+        try {
+            if (app()->isDownForMaintenance()){
+                $response = app('events')->until('illuminate.app.down');
+                if ( ! is_null($response)) return app()->prepareResponse($response, $request);
+            }
+            $response = $next($request);
+        } catch (\Exception $e) {
+            if (app()->runningUnitTests()) throw $e;
+            $response = app("exception")->handleException($e);
+        } catch (\Throwable $e) {
+            if (app()->runningUnitTests()) throw $e;
+            $response = app("exception")->handleException($e);
+        }
+        report_info("Http Served", array(
+            "request_uri" => $request->getUri(),
+            "input_values" => $request->getAttribute(InputValues::ATTRIBUTE_INDEX),
+        ));
+        return $response;
+    }
+    public function getRequest ()
+    {
+        return app("request");
+    }
+    public function refreshRequest ($request)
+    {
+        app()->instance("request", $request);
+		Facade::clearResolvedInstance('request');
+    }
+    public function createServerRequest ($request=array(), $webroot=false)
+    {
+        // Webroot作成
+        if ($webroot===false) $webroot = $_ENV["APP_WEBROOT"] ?: $_ENV["APP_WEBROOT_FALLBACK"] ?: "www";
+        if (is_string($webroot)) $webroot = $this->webroot($webroot);
+        // ServedRequest作成
+        $method_name = is_array($request) ? "fromGlobals" : "fromServerRequestInterface";
+        return ServerRequestFactory::$method_name($webroot, $request);
+    }
+    public function isAjax ()
+    {
+        return 'XMLHttpRequest' == $this->getReceivedRequest()->getHeader('X-Requested-With');
+    }
+    public function wantsJson ()
+    {
+        $accespables = $this->getReceivedRequest()->getHeader('Accept');
+        return 'application/json' == $accespables[0];
+    }
+
+// -- serve
+
     protected $served_request = null;
     protected $served_request_stack = array();
     public function serve ($webroot_name, $deligate, $request=array())
@@ -38,7 +91,7 @@ class HttpDriver
     }
     public function getServedRequest ()
     {
-        return $this->served_request;
+        return $this->served_request ?: $this->getRequest();
     }
 
 // -- Webroot
@@ -86,41 +139,12 @@ class HttpDriver
 
     public function response ($type, $data=null, $params=array())
     {
-        if ($error_html = $this->getErrorHtml($type)) {
-            $type = "html";
-            $data = $error_html;
-            report_info("Respond ".$type);
-        }
-        if ($type=="redirect") {
-            report_info("Respond Redirect", array("uri"=>$data));
-        }
         return ResponseFactory::factory($type, $data, $params);
     }
     public function emit ($response)
     {
-        if ($response instanceof \Symfony\Component\HttpFoundation\Response) return $response->send();
+        // Inject report info
         $response = app()->report->rewriteHttpResponse($response);
-        $emitter = new \Zend\Diactoros\Response\SapiEmitter();
-        return $emitter->emit($response);
-    }
-    private function getErrorHtml ($type)
-    {
-        $error_codes = array(
-            "badrequest" => 400,
-            "forbidden" => 403,
-            "notfound" => 404,
-            "error" => 500,
-        );
-        if ( ! $error_codes[$type]) return false;
-        $error_file = constant("R_APP_ROOT_DIR")."/error/".$type.".php";
-        if ( ! file_exists($error_file)) {
-            $error_file = constant("R_LIB_ROOT_DIR")."/assets/error/".$type.".php";
-        }
-        if (file_exists($error_file)) {
-            ob_start();
-            include($error_file);
-            return ob_get_clean();
-        }
-        return false;
+        return with($emitter = new SapiEmitter())->emit($response);
     }
 }
