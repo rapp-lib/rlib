@@ -1,59 +1,68 @@
 <?php
 namespace R\Lib\Http;
-use Zend\Diactoros\Response;
-use Zend\Diactoros\Response\HtmlResponse;
-use Zend\Diactoros\Response\JsonResponse;
-use Zend\Diactoros\Response\RedirectResponse;
-use Zend\Diactoros\Response\EmptyResponse;
 use Zend\Diactoros\Stream;
 
 class ResponseFactory
 {
+    private static $fallback_status_codes = array(
+        "empty" => 204,
+        "redirect" => "302",
+        "badrequest" => 400,
+        "forbidden" => 403,
+        "notfound" => 404,
+        "error" => 500,
+    );
     public static function factory ($type, $data=null, $params=array())
     {
-        if ($data===null) {
-            $data = self::getErrorHtml($type);
-            if ($data!==null) $type = "html";
-        }
         $headers = $params["headers"] ?: array();
-        if ($type==="html") {
-            return new HtmlResponse($data, $params["status"]?:200, $headers);
-        } elseif ($type==="json") {
-            return new JsonResponse($data, $params["status"]?:200, $headers);
-        } elseif ($type==="redirect") {
-            $uri = $data;
-            return new RedirectResponse($uri, $params["status"]?:302, $headers);
-        } elseif ($type==="empty") {
-            return new EmptyResponse($params["status"]?:200, $headers);
-        } elseif ($type==="error") {
-            return new EmptyResponse($params["status"]?:500, $headers);
-        } elseif ($type==="notfound") {
-            return new EmptyResponse(404, $headers);
-        } elseif ($type==="forbidden") {
-            return new EmptyResponse(403, $headers);
-        } elseif ($type==="badrequest") {
-            return new EmptyResponse(400, $headers);
-        } elseif ($type==="readfile") {
-            $stream = new Stream($data, 'r');
-            return new Response($stream, $params["status"]?:200, $headers);
-        } elseif ($type==="stream") {
-            if ( ! $data instanceof Stream) $data = new Stream($data, 'r');
-            return new Response($data, $params["status"]?:200, $headers);
-        } elseif ($type==="data") {
-            $stream = new Stream('php://temp', 'wb+');
-            $stream->write($data);
-            return new Response($stream, $params["status"]?:200, $headers);
+        $fallback_status_code = self::$fallback_status_codes[$type];
+        $status_code = $params["status"] ?: $fallback_status_code ?: 200;
+        // 応答データの補完
+        if ($fallback_status_code && $data===null) {
+            if ($data = self::getFallbackHtml($type)) {
+                $data = self::createBody($data);
+                $headers = self::injectContentType('text/html', $headers);
+            } else {
+                $data = new Stream('php://temp', 'r');
+            }
         }
+        if ($type==="html") {
+            $data = self::createBody($data);
+            $headers = self::injectContentType('text/html', $headers);
+        } elseif ($type==="json") {
+            $data = self::createBody(json_encode($data, 15));
+            $headers = self::injectContentType('text/html', $headers);
+        } elseif ($type==="data") {
+            $data = self::createBody($data);
+        } elseif ($type==="readfile" || $type==="stream") {
+            if ( ! $data instanceof Stream) $data = new Stream($data, 'r');
+        } elseif ($type==="redirect") {
+            $headers['location'] = array((string)$data);
+            $data = 'php://temp';
+        } elseif ($type==="empty") {
+            $data = new Stream('php://temp', 'r');
+        }
+        return new Response($data, $status_code, $headers);
     }
-    private static function getErrorHtml ($type)
+    public static function createBody ($html)
     {
-        $error_codes = array(
-            "badrequest" => 400,
-            "forbidden" => 403,
-            "notfound" => 404,
-            "error" => 500,
-        );
-        if ( ! $error_codes[$type]) return null;
+        if ($html instanceof StreamInterface) {
+            return $html;
+        }
+        $body = new Stream('php://temp', 'wb+');
+        $body->write($html);
+        return $body;
+    }
+    private function injectContentType($contentType, array $headers)
+    {
+        $hasContentType = array_reduce(array_keys($headers), function ($carry, $item) {
+            return $carry ?: (strtolower($item) === 'content-type');
+        }, false);
+        if ( ! $hasContentType) $headers['content-type'] = array($contentType);
+        return $headers;
+    }
+    private static function getFallbackHtml ($type)
+    {
         $error_file = constant("R_APP_ROOT_DIR")."/resources/error/".$type.".php";
         if ( ! file_exists($error_file)) {
             $error_file = constant("R_LIB_ROOT_DIR")."/assets/error/".$type.".php";

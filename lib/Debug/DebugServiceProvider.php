@@ -35,13 +35,13 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
             $this->commands(array('command.debugbar.publish', 'command.debugbar.clear'));
         } else {
             $this->app->config["http.global.middlewares.200"] = function($request, $next){
-                return $response = $next($request);
+                $response = $next($request);
                 return app('debugbar')->modifyResponse($request, $response);
             };
             $this->app->config["http.global.controller_class.debugbar"] = 'R\Lib\Debug\DebugbarController';
             $routes = (array)$this->app->config["http.global.routes"];
             $this->app->config["http.global.routes"] = array_merge($routes, array(
-                array("debugbar.openhandler", "/_debugbar/open"),
+                array("debugbar.open", "/_debugbar/open"),
                 array("debugbar.assets_css", "/_debugbar/assets/stylesheets"),
                 array("debugbar.assets_js", "/_debugbar/assets/javascript"),
             ));
@@ -49,28 +49,5 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
         if ($this->app['config']["debug.enabled"]) {
             $this->app["debugbar"]->boot();
         }
-    }
-
-
-    /**
-     * Detect if the Middelware should be used.
-     * 
-     * @return bool
-     */
-    protected function shouldUseMiddleware()
-    {
-        $app = $this->app;
-        $version = $app::VERSION;
-        return !$app->runningInConsole() && version_compare($version, '4.1-dev', '>=') && version_compare($version, '5.0-dev', '<');
-    }
-
-    /**
-     * Get the services provided by the provider.
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return array('debugbar', 'command.debugbar.publish', 'command.debugbar.clear');
     }
 }

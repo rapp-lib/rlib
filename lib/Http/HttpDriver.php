@@ -24,15 +24,6 @@ class HttpDriver
         $method_name = is_array($request) ? "fromGlobals" : "fromServerRequestInterface";
         return ServerRequestFactory::$method_name($webroot, $request);
     }
-    public function isAjax ()
-    {
-        return 'XMLHttpRequest' == $this->getReceivedRequest()->getHeader('X-Requested-With');
-    }
-    public function wantsJson ()
-    {
-        $accespables = $this->getReceivedRequest()->getHeader('Accept');
-        return 'application/json' == $accespables[0];
-    }
 
 // --
 
