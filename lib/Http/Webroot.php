@@ -18,7 +18,7 @@ class Webroot
     public function getRouter ()
     {
         if ( ! isset($this->router)) {
-            $this->router = new Router($this, (array)$this->config["routes"]);
+            $this->router = new Router($this);
         }
         return $this->router;
     }
@@ -48,19 +48,6 @@ class Webroot
         }
         return $this->assets;
     }
-
-// -- パッケージ内でのみ利用
-
-    public function dispatch ($request, $deligate)
-    {
-        $stack = (array)$this->config["middlewares"];
-        $stack[] = $deligate;
-        ksort($stack);
-        $stack = array_values($stack);
-        $dispatcher = new \mindplay\middleman\Dispatcher($stack);
-        $response = $dispatcher->dispatch($request);
-        return $response;
-    }
     /**
      * ServerRequest::__construct内で設定を反映するために使う
      * @access private
@@ -76,6 +63,28 @@ class Webroot
         if ( ! $this->config["base_dir"] && $docroot_dir) {
             $this->config["base_dir"] = $docroot_dir.$this->base_uri->getPath();
         }
+    }
+
+// -- 設定値の取得
+
+    public function getRoutesConfig ()
+    {
+        $routes = (array)$this->config["routes"];
+        $routes = array_merge($routes, (array)app()->config["http.global.routes"]);
+        return $routes;
+    }
+    public function getMiddlewareStack ()
+    {
+        $stack = (array)$this->config["middlewares"];
+        $stack = array_merge($stack, (array)app()->config["http.global.middlewares"]);
+        return $stack;
+    }
+    public function getControllerClass ($controller_name)
+    {
+        $classes = (array)$this->config["controller_class"];
+        $classes = array_merge($classes, (array)app()->config["http.global.controller_class"]);
+        if ($classes[$controller_name]) return $classes[$controller_name];
+        return 'R\App\Controller\\'.str_camelize($controller_name).'Controller';
     }
 
 // --

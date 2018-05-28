@@ -120,7 +120,7 @@ class Uri extends \Zend\Diactoros\Uri
                 report_error("URLに対応するPageIDがありません", array("uri"=>$this));
             }
             list($controller_name,) = explode('.', $page_id, 2);
-            $controller_class = 'R\App\Controller\\'.str_camelize($controller_name).'Controller';
+            $controller_class = $this->webroot->getControllerClass($controller_name);
             if ( ! class_exists($controller_class)) {
                 report_error("PageIDに対応するControllerがありません", array("page_id"=>$page_id));
             }

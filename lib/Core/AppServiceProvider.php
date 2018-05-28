@@ -2,16 +2,14 @@
 namespace R\Lib\Core;
 
 use R\Lib\Exception\ExceptionServiceProvider;
-use \R\Lib\Reposer\ReportLoggingHandler;
-
+use R\Lib\Debug\DebugServiceProvider;
 use Illuminate\Events\EventServiceProvider;
-use Illuminate\Http\Request;
+use Illuminate\Log\LogServiceProvider;
+
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Config\EnvironmentVariables;
 use Dotenv\Dotenv;
-
-use Illuminate\Log\LogServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -43,34 +41,6 @@ class AppServiceProvider extends ServiceProvider
         'schema:diff'=>'\R\Lib\Table\Command\SchemaDiffCommand',
         'build:make'=>'\R\Lib\Builder\Command\BuildMakeCommand',
     );
-    protected $base_providers = array(
-        // 'Illuminate\Foundation\Providers\ArtisanServiceProvider',
-        // 'Illuminate\Auth\AuthServiceProvider',
-        // 'Illuminate\Cache\CacheServiceProvider',
-        // 'Illuminate\Session\CommandsServiceProvider',
-        // 'Illuminate\Foundation\Providers\ConsoleSupportServiceProvider',
-        // 'Illuminate\Routing\ControllerServiceProvider',
-        // 'Illuminate\Cookie\CookieServiceProvider',
-        // 'Illuminate\Database\DatabaseServiceProvider',
-        // 'Illuminate\Encryption\EncryptionServiceProvider',
-        // 'Illuminate\Filesystem\FilesystemServiceProvider',
-        // 'Illuminate\Hashing\HashServiceProvider',
-        // 'Illuminate\Html\HtmlServiceProvider',
-        'Illuminate\Log\LogServiceProvider',
-        // 'Illuminate\Mail\MailServiceProvider',
-        // 'Illuminate\Database\MigrationServiceProvider',
-        // 'Illuminate\Pagination\PaginationServiceProvider',
-        // 'Illuminate\Queue\QueueServiceProvider',
-        // 'Illuminate\Redis\RedisServiceProvider',
-        // 'Illuminate\Remote\RemoteServiceProvider',
-        // 'Illuminate\Auth\Reminders\ReminderServiceProvider',
-        // 'Illuminate\Database\SeedServiceProvider',
-        // 'Illuminate\Session\SessionServiceProvider',
-        // 'Illuminate\Translation\TranslationServiceProvider',
-        // 'Illuminate\Validation\ValidationServiceProvider',
-        // 'Illuminate\View\ViewServiceProvider',
-        'Illuminate\Workbench\WorkbenchServiceProvider',
-    );
     public function register()
     {
         // パス設定
@@ -94,9 +64,11 @@ class AppServiceProvider extends ServiceProvider
         });
         // Report起動
         //$this->app->report->listenPhpError();
-		$this->app->register(new ExceptionServiceProvider($this->app));
+        $this->app->register(new LogServiceProvider($this->app));
+        $this->app->register(new ExceptionServiceProvider($this->app));
         $this->app['exception']->register($this->app["env"]);
         $this->app['exception']->setDebug($this->app['config']['app.debug']);
+        $this->app->register(new DebugServiceProvider($this->app));
         // Timezone設定
         if ($this->app->config['app.timezone']) date_default_timezone_set($this->app->config['timezone']);
         // Aliases設定読み込み
@@ -106,8 +78,7 @@ class AppServiceProvider extends ServiceProvider
         if ( ! is_writable($this->app->config['app.manifest'])) {
             mkdir($this->app->config['app.manifest'], 0777, true);
         }
-        $providers = array_merge($this->base_providers, (array)$this->app->config['app.providers']);
-        $this->app->getProviderRepository()->load($this->app, $providers);
+        $this->app->getProviderRepository()->load($this->app, (array)$this->app->config['app.providers']);
         // Session自動Start
         if ( ! $this->app->runningInConsole()) {
             if ($this->app->config["session.auto_start"]) $this->app->session->start();
