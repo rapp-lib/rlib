@@ -6,27 +6,6 @@ use Zend\Diactoros\Response\SapiEmitter;
 
 class HttpDriver
 {
-    public function handle ($request, $next)
-    {
-        try {
-            if (app()->isDownForMaintenance()){
-                $response = app('events')->until('illuminate.app.down');
-                if ( ! is_null($response)) return app()->prepareResponse($response, $request);
-            }
-            $response = $next($request);
-        } catch (\Exception $e) {
-            if (app()->runningUnitTests()) throw $e;
-            $response = app("exception")->handleException($e);
-        } catch (\Throwable $e) {
-            if (app()->runningUnitTests()) throw $e;
-            $response = app("exception")->handleException($e);
-        }
-        report_info("Http Served", array(
-            "request_uri" => $request->getUri(),
-            "input_values" => $request->getAttribute(InputValues::ATTRIBUTE_INDEX),
-        ));
-        return $response;
-    }
     public function getRequest ()
     {
         return app("request");
@@ -53,6 +32,33 @@ class HttpDriver
     {
         $accespables = $this->getReceivedRequest()->getHeader('Accept');
         return 'application/json' == $accespables[0];
+    }
+
+// --
+
+    public function dispatch ($request, $next)
+    {
+        try {
+            if (app()->isDownForMaintenance()){
+                $response = app('events')->until('illuminate.app.down');
+                if ( ! is_null($response)) return app()->prepareResponse($response, $request);
+            }
+            $stack = $request->getUri()->getWebroot()->getMiddlewareStack();
+            $stack[] = $next;
+            $dispatcher = new \mindplay\middleman\Dispatcher($stack);
+            $response = $dispatcher->dispatch($request);
+        } catch (\Exception $e) {
+            if (app()->runningUnitTests()) throw $e;
+            $response = app("exception")->handleException($e);
+        } catch (\Throwable $e) {
+            if (app()->runningUnitTests()) throw $e;
+            $response = app("exception")->handleException($e);
+        }
+        report_info("Http Served", array(
+            "request_uri" => $request->getUri(),
+            "input_values" => $request->getAttribute(InputValues::ATTRIBUTE_INDEX),
+        ));
+        return $response;
     }
 
 // -- serve
