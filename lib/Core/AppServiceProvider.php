@@ -69,7 +69,7 @@ class AppServiceProvider extends ServiceProvider
         // 'Illuminate\Translation\TranslationServiceProvider',
         // 'Illuminate\Validation\ValidationServiceProvider',
         // 'Illuminate\View\ViewServiceProvider',
-        'Illuminate\Workbench\WorkbenchServiceProvider',
+        // 'Illuminate\Workbench\WorkbenchServiceProvider',
     );
     public function register()
     {

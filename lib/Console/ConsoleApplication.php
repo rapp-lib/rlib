@@ -12,4 +12,14 @@ class ConsoleApplication extends Application
         $app->setRequestForConsoleEnvironment();
 		return parent::start($app);
 	}
+	public function boot()
+	{
+        if (file_exists($include_file = $this->laravel['path'].'/bootstrap/artisan.php')) {
+            include $include_file;
+        }
+		if (isset($this->laravel['events'])) {
+			$this->laravel['events']->fire('artisan.start', array($this));
+		}
+		return $this;
+	}
 }
