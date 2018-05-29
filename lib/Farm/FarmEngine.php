@@ -11,24 +11,20 @@ class FarmEngine
             "app_root_dir" => constant("R_APP_ROOT_DIR"),
             "farm_dirname" => "devel/farm",
             "develop_branch" => null,
+            "fallback_branch" => "develop",
             "farm_branch" => "farm/build",
             "farm_mark" => array("-m", "<FARM>"),
             "farm_mark_find" => array("--grep=", "<FARM>"),
         );
         $this->git = new FarmGitRepositry($this->getConfig("app_root_dir"));
-
-        // DEVELOPブランチが指定されていない場合、HEADをDEVELOPブランチとする
-        if ( ! $this->getConfig("develop_branch")) {
-            $this->config["develop_branch"] = $this->getCurrentBranch();
-        }
     }
     public function getConfig($key)
     {
         return $this->config[$key];
     }
-    public function cmd($cmd)
+    public function cmd($cmd, $options=array())
     {
-        return $this->git->cmd($cmd);
+        return $this->git->cmd($cmd, $options);
     }
     /**
      * 現在のブランチを取得
@@ -44,29 +40,37 @@ class FarmEngine
     {
         // FARMブランチがあれば削除
         if ($this->cmd(array("git", "branch", "--list", $this->getConfig("farm_branch")))) {
-            // git checkout --detach
-            $this->cmd(array("git", "checkout", "--detach"));
+            // FARMブランチをCOしている場合、DEVELOPブランチをCO
+            if ($this->getCurrentBranch() == $this->getConfig("farm_branch")) {
+                // git checkout develop
+                $this->cmd(array("git", "checkout", $this->getConfig("develop_branch")));
+            }
             // git branch -D farm/build
             $this->cmd(array("git", "branch", "-D", $this->getConfig("farm_branch")));
         }
     }
     /**
-     * # 事前状態の設定
+     * # 事前状態の確認
      * 前提: なし
      * 結果: 処理実行可能な状態
      */
-    public function prepareState()
+    public function checkState()
     {
+        // DEVELOPブランチが指定されていない場合、HEADをDEVELOPブランチとする
+        if ( ! $this->getConfig("develop_branch")) {
+            $this->config["develop_branch"] = $this->getCurrentBranch();
+        }
         // Detach HEADをCOしていた場合にエラー停止
         if ( ! $this->getConfig("develop_branch")) {
             report_error("展開先ブランチが指定されていません",array(
                 "develop_branch" => $this->getConfig("develop_branch"),
             ));
         }
-        // DEVELOPとFARMブランチが同じであればエラー停止
+        // DEVELOPとFARMブランチが同じであればFALLBACKブランチに切り替えてエラー停止
         if ($this->getConfig("develop_branch") == $this->getConfig("farm_branch")) {
-            report_error("FARMブランチには展開出来ません",array(
-                "develop_branch" => $this->getConfig("develop_branch"),
+            $this->cleanup();
+            report_error("FARMブランチからFALLBACKブランチに切り替えます",array(
+                "fallback_branch" => $this->getConfig("fallback_branch"),
             ));
         }
         // 作業コピーがCleanでなければエラー停止
@@ -84,18 +88,18 @@ class FarmEngine
     public function prepareFarmBranch()
     {
         // FARMブランチが残っていれば削除
-        $farm->deleteFarmBranch();
+        $this->deleteFarmBranch();
 
         // FARMマークされた直近のコミット（JOINTコミット）を探す
         // JOINT=` git rev-list --grep="<FARM>" develop | head -n1 `
-        $joint_commit = $this->cmd(array("git", "rev-list", "--reflog",
+        $joint_commit = $this->cmd(array("git", "rev-list",
             $this->getConfig("farm_mark_find"), $this->getConfig("develop_branch"),
-            $this->git->noEscape("|"), "head", "-n1"));
+            "--", $this->git->noEscape("|"), "head", "-n1"));
 
         // JOINTコミットがあれば、FARMブランチとしてCO
         if ($joint_commit) {
             // 	git checkout -b farm/build $JOINT
-            $this->cmd(array("git", "checkout", "-b", $this->getConfig("farm_branch"), $join_commit));
+            $this->cmd(array("git", "checkout", "-b", $this->getConfig("farm_branch"), $joint_commit));
         // JOINTコミットがなければ、FARMブランチとして作成
         } else {
             // git checkout --orphan farm/build
@@ -106,7 +110,6 @@ class FarmEngine
             $this->cmd(array("git", "commit", "--allow-empty", $this->getConfig("farm_mark")));
         }
     }
-
     /**
      * # 生成ブランチ上のファイル状態を準備
      * 前提: なし
@@ -118,11 +121,13 @@ class FarmEngine
         // ROOT=` git rev-list --grep="<FARM>" farm/build | tail -n1 `
         $root_commit = $this->cmd(array("git", "rev-list",
             $this->getConfig("farm_mark_find"), $this->getConfig("farm_branch"),
-            $this->git->noEscape("|"), "tail", "-n1"));
+            "--", $this->git->noEscape("|"), "tail", "-n1"));
 
         // 作業コピーをROOTコミットの状態にする
-        // git checkout $ROOT -- .
-        $this->cmd(array("git", "checkout", $root_commit, "--", "."));
+        // git reset $ROOT
+        $this->cmd(array("git", "reset", $root_commit));
+        // git clean -f -- devel/farm
+        $this->cmd(array("git", "clean", "-f"));
     }
     /**
      * DEVELOPブランチ上のFARM_DIRを展開
@@ -165,8 +170,16 @@ class FarmEngine
         // # DEVELOPブランチをCOして、FARMブランチをマージする
         // git checkout develop
         $this->cmd(array("git", "checkout", $this->getConfig("develop_branch")));
-        // git merge --no-commit farm/build
-        $this->cmd(array("git", "merge", "--no-commit", $this->getConfig("farm_branch")));
+
+        // PHPバージョン2.9以降では無関係なブランチのマージを通すオプションを追加
+        $version_string = $this->cmd(array("git", "--version"));
+        $commit_options = array();
+        if (preg_match('!^git version ([\d\.]+)!', $version_string, $_)) {
+            if (version_compare($_[1], 2.9, ">=")) $commit_options[] = "--allow-unrelated-histories";
+        }
+
+        // git merge --no-commit --allow-unrelated-histories farm/build
+        $this->cmd(array("git", "merge", "--no-commit", $commit_options, $this->getConfig("farm_branch")));
     }
     /**
      * # 処理を終了する前の処理
@@ -180,7 +193,11 @@ class FarmEngine
             // git add -A; git reset --hard; git checkout develop
             $this->git->cmd(array("git", "add", "-A"));
             $this->git->cmd(array("git", "reset", "--hard"));
-            $this->git->cmd(array("git", "checkout", $this->getConfig("develop_branch")));
+            if ($this->getConfig("develop_branch") == $this->getConfig("farm_branch")) {
+                $this->git->cmd(array("git", "checkout", $this->getConfig("fallback_branch")));
+            } else {
+                $this->git->cmd(array("git", "checkout", $this->getConfig("develop_branch")));
+            }
         }
         // FARMブランチを削除
         $this->deleteFarmBranch();

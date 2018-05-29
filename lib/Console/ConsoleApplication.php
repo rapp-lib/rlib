@@ -9,7 +9,7 @@ class ConsoleApplication extends Application
         if ( ! in_array("-q",$GLOBALS["argv"]) && ! in_array("--quiet",$GLOBALS["argv"])) {
             $app->debug->setDebugLevel(1);
         }
-        $app->setRequestForConsoleEnvironment();
+        //$app->setRequestForConsoleEnvironment();
 		return parent::start($app);
 	}
 	public function boot()
@@ -21,5 +21,9 @@ class ConsoleApplication extends Application
 			$this->laravel['events']->fire('artisan.start', array($this));
 		}
 		return $this;
+	}
+    public function renderException($e, $output)
+    {
+		throw $e;
 	}
 }

@@ -17,7 +17,7 @@ class FarmGitRepositry extends GitRepositry
     /**
      * Gitレポジトリ直下でコマンド発行
      */
-    public function cmd ($cmd)
+    public function cmd ($cmd, $options=array())
     {
         $dir = getcwd();
         chdir($this->dir);
@@ -25,7 +25,16 @@ class FarmGitRepositry extends GitRepositry
         $this->cmd_log[] = "> ".$cmd;
         list($ret, $out, $err) = \R\Lib\Util\Cli::exec($cmd);
         chdir($dir);
-        return rtrim($out);
+        if ( ! $options["quiet"]) {
+            file_put_contents("php://stderr", "$ ".$cmd."\n");
+            if ($err) foreach (explode("\n", trim($err)) as $line) {
+                file_put_contents("php://stderr", "> ".$line."\n");
+            }
+        }
+        if ($options["return"] != "rawoutput") {
+            $out = rtrim($out);
+        }
+        return $out;
     }
     public function noEscape ($cmd)
     {

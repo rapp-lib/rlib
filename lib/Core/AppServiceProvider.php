@@ -3,6 +3,7 @@ namespace R\Lib\Core;
 
 use R\Lib\Exception\ExceptionServiceProvider;
 use R\Lib\Debug\DebugServiceProvider;
+use R\Lib\Farm\FarmServiceProvider;
 use Illuminate\Events\EventServiceProvider;
 use Illuminate\Log\LogServiceProvider;
 
@@ -40,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
     protected $base_commands = array(
         'schema:diff'=>'\R\Lib\Table\Command\SchemaDiffCommand',
         'build:make'=>'\R\Lib\Builder\Command\BuildMakeCommand',
+        'farm.publish'=>'\R\Lib\Farm\Command\FarmPublishCommand',
     );
     public function register()
     {
@@ -57,13 +59,13 @@ class AppServiceProvider extends ServiceProvider
         foreach ($this->base_bindings as $k=>$v) $this->app->singleton($k, $v);
         // 環境名を設定
         $this->app->instance('env', "".$this->app->config["app.env"]);
-        // Laravel標準Provider登録
-        $this->app->register(new EventServiceProvider($this->app));
+        // Requestの関連付け
         $this->app->bind('request', function($app){
             return $app->http->createServerRequest();
         });
+        // Laravel標準Provider登録
+        $this->app->register(new EventServiceProvider($this->app));
         // Report起動
-        //$this->app->report->listenPhpError();
         $this->app->register(new LogServiceProvider($this->app));
         $this->app->register(new ExceptionServiceProvider($this->app));
         $this->app['exception']->register($this->app["env"]);
@@ -80,8 +82,8 @@ class AppServiceProvider extends ServiceProvider
         }
         $this->app->getProviderRepository()->load($this->app, (array)$this->app->config['app.providers']);
         // Session自動Start
-        if ( ! $this->app->runningInConsole()) {
-            if ($this->app->config["session.auto_start"]) $this->app->session->start();
+        if ( ! $this->app->runningInConsole() && $this->app->config["session.auto_start"]) {
+            $this->app->session->start();
         }
     }
     public function boot()

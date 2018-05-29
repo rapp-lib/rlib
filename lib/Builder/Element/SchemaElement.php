@@ -153,7 +153,7 @@ class SchemaElement extends Element_Base
     protected function deploySource ($deploy_name, $source)
     {
         foreach ((array)$this->deploy_callbacks as $deploy_callback) {
-            call_user_func($deploy_callback, $deploy_name, $source);
+            call_user_func($deploy_callback, $deploy_name, $source, $config_entry, $vars);
         }
     }
 }

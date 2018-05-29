@@ -8,8 +8,10 @@ class Handler extends IlluminateHandler
     public function handleUncaughtException($exception)
     {
         app()->report->logException($exception);
-        $response = $this->handleException($exception);
-        app()->http->emit($response);
+        if ( ! app()->runningInConsole()) {
+            $response = $this->handleException($exception);
+            app()->http->emit($response);
+        }
     }
     public function handleShutdown()
     {
@@ -21,8 +23,10 @@ class Handler extends IlluminateHandler
             app()->report->logException($e);
             extract($error);
             if ( ! $this->isFatal($type)) return;
-            $response = $this->handleException(new FatalError($message, $type, 0, $file, $line));
-            app()->http->emit($response);
+            if ( ! app()->runningInConsole()) {
+                $response = $this->handleException(new FatalError($message, $type, 0, $file, $line));
+                app()->http->emit($response);
+            }
         }
     }
 

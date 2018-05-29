@@ -2,6 +2,8 @@
 namespace R\Lib\Exception;
 use Illuminate\Exception\ExceptionServiceProvider as IlluminateExceptionServiceProvider;
 use Whoops\Handler\PrettyPageHandler;
+use Whoops\Handler\JsonResponseHandler;
+use Whoops\Handler\CallbackHandler;
 
 class ExceptionServiceProvider extends IlluminateExceptionServiceProvider
 {
@@ -18,13 +20,13 @@ class ExceptionServiceProvider extends IlluminateExceptionServiceProvider
             else return new PlainDisplayer;
         });
     }
-	protected function registerDebugDisplayer()
-	{
-		$this->registerWhoops();
-		$this->app['exception.debug'] = $this->app->share(function($app){
-			return new WhoopsDisplayer($app['whoops'], $app->runningInConsole());
-		});
-	}
+    protected function registerDebugDisplayer()
+    {
+        $this->registerWhoops();
+        $this->app['exception.debug'] = $this->app->share(function($app){
+            return new WhoopsDisplayer($app['whoops'], $app->runningInConsole());
+        });
+    }
     protected function registerPrettyWhoopsHandler()
     {
         $this->app['whoops.handler'] = $this->app->share(function(){
@@ -37,9 +39,19 @@ class ExceptionServiceProvider extends IlluminateExceptionServiceProvider
             return $handler;
         });
     }
-    protected function requestWantsJson()
+    protected function registerWhoopsHandler()
     {
-        return false;
-        //return app()->http->isAjax() || app()->http->wantsJson();
+        if ($this->app->runningInConsole()) {
+            $this->app['whoops.handler'] = $this->app->share(function(){
+                return new CallbackHandler(function($e, $inspection, $whoops){
+                });
+            });
+        } elseif (app("request")->isAjax() || app("request")->wantsJson()) {
+            $this->app['whoops.handler'] = $this->app->share(function(){
+                return new JsonResponseHandler;
+            });
+        } else {
+            $this->registerPrettyWhoopsHandler();
+        }
     }
 }
