@@ -48,11 +48,18 @@ class Cli
                 }
             }
             $escaped_value =implode(" ", $escaped_value);
+        // エスケープ不要文字列
+        } elseif ($value instanceof CliNoEscape) {
+            $escaped_value = "".$value;
         // 文字列
         } elseif (is_string($value)) {
             $escaped_value = escapeshellarg($value);
         }
         return $escaped_value;
+    }
+    public static function noEscape ($value)
+    {
+        return new CliNoEscape($value);
     }
     /**
      * execに渡す文字列の構築
@@ -78,5 +85,17 @@ class Cli
             return array($ret, $out, $err);
         }
         return array();
+    }
+}
+class CliNoEscape
+{
+    protected $str;
+    public function __construct($str)
+    {
+        $this->str = $str;
+    }
+    public function __toString()
+    {
+        return $this->str;
     }
 }
