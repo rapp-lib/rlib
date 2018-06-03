@@ -15,6 +15,8 @@ class FarmEngine
             "farm_branch" => "farm/build",
             "farm_mark" => array("-m", "<FARM>"),
             "farm_mark_find" => array("--grep=", "<FARM>"),
+            "root_mark" => array("-m", "<FARM><INIT>"),
+            "root_find" => array("--grep=", "<FARM><INIT>"),
         );
         $this->gitApp = new FarmGitRepositry($this->getConfig("app_root_dir"));
         $this->gitWork = new FarmGitRepositry($this->getConfig("work_root_dir"));
@@ -52,7 +54,7 @@ class FarmEngine
         // DEVELOPブランチが指定されていない場合、APP環境のHEADをDEVELOPブランチとする
         if ( ! $this->getConfig("develop_branch")) {
             $this->config["develop_branch"] = $this->cmdApp(array(
-                "git", "rev-parse", "--abbrev-ref", "HEAD"), array("quiet"=>true));
+                "git", "rev-parse", "--abbrev-ref", "HEAD"));
         }
         // 事後確認、DEVELOPブランチが無効である場合にエラー停止
         if ( ! $this->getConfig("develop_branch")) {
@@ -74,16 +76,16 @@ class FarmEngine
         // # WORK環境をAPP環境から同期
         // WORK環境でAPP環境からDEVELOPブランチを取り込む
         $this->cmdWork(array("git", "fetch", "-f", $this->getConfig("app_root_dir"),
-            "+".$this->getConfig("develop_branch").":".$this->getConfig("develop_branch"),
-            $this->getConfig("app_dir")));
+            "+".$this->getConfig("develop_branch").":".$this->getConfig("develop_branch")));
         //  事後確認、DEVELOPブランチが作成できていなければエラー
         if ( ! $this->cmdWork(array("git", "branch", "--list", $this->getConfig("develop_branch")))) {
-            report_error("WORK環境の同期エラー");
+            report_error("WORK環境への初期同期エラー");
         }
 
         // # JOINTコミットとROOTコミットを用意して、FARMブランチを作成
         // 事前準備、FARMブランチがあれば削除
         if ($this->cmdWork(array("git", "branch", "--list", $this->getConfig("farm_branch")))) {
+            $this->cmdWork(array("git", "checkout", "--detach"));
             $this->cmdWork(array("git", "branch", "-D", $this->getConfig("farm_branch")));
         }
         // DEVELOPブランチからFARMマークされた直近のコミット（JOINTコミット）を探す
@@ -93,16 +95,26 @@ class FarmEngine
             "--", $this->getPipe(), "head", "-n1"));
         // JOINTコミットがあれば、そこからROOTコミットを探索する
         if ($joint_commit) {
-            // 最も古いFARMマークされたコミット（ROOTコミット）を探す
-            // ROOT=` git rev-list --grep="<FARM>" $JOINT | tail -n1 `
-            $root_commit = $this->cmdWork(array("git", "rev-list",
-                $this->getConfig("farm_mark_find"), $joint_commit,
-                "--", $this->getPipe(), "tail", "-n1"));
+            // ROOTコミットを探す
+            if ($this->getConfig("root_find")) {
+                // ROOT=` git rev-list --grep="<FARM>" $JOINT | tail -n1 `
+                $root_commit = $this->cmdWork(array("git", "rev-list",
+                    $this->getConfig("root_find"), $joint_commit,
+                    "--", $this->getPipe(), "tail", "-n1"));
+                // ROOTコミットが見つからなければエラー
+                if ( ! $root_commit) {
+                    report("ROOTコミットが見つかりません");
+                }
+            // ROOTコミットを探索しない場合、JOINTコミットを代用する
+            } else {
+                $root_commit = $joint_commit;
+            }
             // ファイルの状態をROOTコミットにして、JOINTコミットをCO
             // git checkout -b farm/build $ROOT
-            $this->cmdWork(array("git", "checkout", "-b", $this->getConfig("farm_branch")));
+            $this->cmdWork(array("git", "checkout", "-b",
+                $this->getConfig("farm_branch"), $root_commit));
             // git reset --soft $JOINT
-            $this->cmdWork(array("git", "reset", "--hard", $root_commit));
+            $this->cmdWork(array("git", "reset", "--soft", $joint_commit));
         // JOINTコミットがなければ、空白のコミットを作成する
         } else {
             // 作業コピーを空白にしてROOTコミットを作成する
@@ -110,40 +122,46 @@ class FarmEngine
             // git reset --hard
             $this->cmdWork(array("git", "reset", "--hard"));
             // git reset commit --allow-empty -m "<FARM>"
-            $this->cmdWork(array("git", "commit", "--allow-empty", $this->getConfig("farm_mark")));
+            $this->cmdWork(array("git", "commit", "--allow-empty", $this->getConfig("root_mark")));
         }
         // 事後確認、FARMブランチの作成が出来ていない場合エラー
         if ( ! $this->cmdWork(array("git", "branch", "--list", $this->getConfig("farm_branch")))) {
             report_error("FARMブランチの作成エラー");
         }
-
-        // // # DEVELOPブランチ上のFARM_DIRを展開
-        // // git checkout develop -- devel/farm
-        // $this->cmd(array("git", "checkout",
-        //     $this->getConfig("develop_branch"), "--", $this->getConfig("farm_dirname")));
-        // // 事後確認、FARM_DIRの作成が出来ていない場合エラー
-        // if ( ! is_dir($this->getConfig("work_root_dir")."/".$this->getConfig("farm_dirname"))) {
-        //     report_error("FARM_DIRの作成エラー");
-        // }
     }
     /**
-     * 事後処理
+     * FARMコミットの作成
      */
     public function apply()
     {
-        // # FARM_DIR以外のファイルの状態からFARMマークコミットを作成する
+        // 事前確認、WORK環境にFARMブランチがCOされていなければエラー
+        if ($this->gitWork->getCurrentBranch() != $this->getConfig("farm_branch")) {
+            report_error("WORK環境にFARMブランチがCOされていません");
+        }
+        // # FARMマークコミットを作成する
         // git add -A
         $this->cmdWork(array("git", "add", "-A"));
-        // // git reset -- devel/farm
-        // $this->cmdWork(array("git", "reset", "--", $this->getConfig("farm_dirname")));
         // git commit -m "<FARM>"
         $this->cmdWork(array("git", "commit", $this->getConfig("farm_mark")));
 
+        // # WORK環境のFARMブランチをFetchする
+        $this->cmdApp(array("git", "fetch", "-f", $this->getConfig("work_root_dir"),
+            "+".$this->getConfig("farm_branch").":".$this->getConfig("farm_branch")));
+        //  事後確認、FARMブランチが作成できていなければエラー
+        if ( ! $this->cmdApp(array("git", "branch", "--list", $this->getConfig("farm_branch")))) {
+            report_error("作成済みFARMブランチの同期エラー");
+        }
+    }
+    /**
+     * APP環境へのMerge
+     */
+    public function merge()
+    {
         // # DEVELOPブランチをCOして、FARMブランチをマージする
         // git checkout develop
         $this->cmdApp(array("git", "checkout", $this->getConfig("develop_branch")));
-        // git pull tmp/farm/work farm/build
-        $this->cmdApp(array("git", "pull", "--no-commit", "--allow-unrelated-histories",
-            $this->getConfig("work_root_dir"), $this->getConfig("farm_branch")));
+        // git merge --no-commit --allow-unrelated-histories farm/build
+        $this->cmdApp(array("git", "merge",
+            "--no-commit", "--allow-unrelated-histories", $this->getConfig("farm_branch")));
     }
 }

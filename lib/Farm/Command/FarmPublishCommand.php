@@ -11,9 +11,9 @@ class FarmPublishCommand extends Command
     protected function getOptions()
     {
         return array(
-            array('config', "-c", InputOption::VALUE_REQUIRED, 'Config file path.', null),
-            array('dryrun', null, InputOption::VALUE_NONE, 'Dry-run option.', null),
-            array('clean', null, InputOption::VALUE_NONE, 'Cleanup before run.', null),
+            array('config', "-c", InputOption::VALUE_REQUIRED, 'Config file path.'),
+            array('test', "-t", InputOption::VALUE_NONE, 'Run without merge.'),
+            array('flags', "-f", InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Free flag options.'),
         );
     }
     public function fire()
@@ -25,12 +25,13 @@ class FarmPublishCommand extends Command
             report_error("Farm configファイルがありません", array("config_file"=>$config_file));
         }
         $config = include($config_file);
-        $config["option.dryrun"] = $this->option("dryrun");
+        $config["flags"] = $this->option("flags");
 
         // 展開処理
         $farm = new FarmEngine($config);
         $farm->prepare();
         call_user_func($config["build_callback"], $farm);
         $farm->apply();
+        if ( ! $this->option("test")) $farm->merge();
     }
 }

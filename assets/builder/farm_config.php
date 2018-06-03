@@ -3,10 +3,12 @@
         "app_root_dir" => constant("R_APP_ROOT_DIR"),
         "work_root_dir" => constant("R_APP_ROOT_DIR")."/tmp/farm/work",
         "farm_dirname" => "devel/builder",
-        "develop_branch" => null,
+        "develop_branch" => false,
         "farm_branch" => "farm/build",
-        "farm_mark" => array("-m", "build build-".date("Ymd-His")),
-        "farm_mark_find" => array("--grep=^build build-"),
+        "farm_mark" => array("-m", "<FARM>"),
+        "farm_mark_find" => array("--grep=", "<FARM>"),
+        "root_mark" => array("-m", "<FARM><INIT>"),
+        "root_find" => array("--grep=", "<FARM><INIT>"),
         "build_callback" => function($farm){
             $farm_dir = $farm->getConfig("app_root_dir")."/".$farm->getConfig("farm_dirname");
             with($builder = new \R\Lib\Builder\WebappBuilder())->build(array(
@@ -24,7 +26,7 @@
             $status = "create";
             if (file_exists($deploy_file)) {
                 $current_source = $farm->cmdWork(array("git", "cat-file", "-p",
-                    $farm->getConfig("develop_branch").":".$deploy_name),
+                    $farm->getConfig("farm_branch").":".$deploy_name),
                     array("quiet"=>true, "return"=>"rawoutput"));
                 $status = crc32($current_source)==crc32($source) ? "nochange" : "modify";
             }
