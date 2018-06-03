@@ -14,12 +14,16 @@ class FarmEngine
             "develop_branch" => false,
             "farm_branch" => "farm/build",
             "farm_mark" => array("-m", "<FARM>"),
-            "farm_mark_find" => array("--grep=", "<FARM>"),
+            "farm_mark_find" => array("--grep=<FARM>"),
             "root_mark" => array("-m", "<FARM><INIT>"),
-            "root_find" => array("--grep=", "<FARM><INIT>"),
+            "root_find" => array("--grep=<FARM><INIT>"),
         );
-        $this->gitApp = new FarmGitRepositry($this->getConfig("app_root_dir"));
-        $this->gitWork = new FarmGitRepositry($this->getConfig("work_root_dir"));
+        $this->gitApp = new FarmGitRepositry($this->getConfig("app_root_dir"), array(
+            "prompt" => "APP  ",
+        ));
+        $this->gitWork = new FarmGitRepositry($this->getConfig("work_root_dir"), array(
+            "prompt" => "WORK ",
+        ));
     }
     public function getConfig($key)
     {
@@ -27,17 +31,15 @@ class FarmEngine
     }
     public function cmdWork($cmd, $options=array())
     {
-        $options["prompt"] = "WORK ";
         return $this->gitWork->cmd($cmd, $options);
     }
     public function cmdApp($cmd, $options=array())
     {
-        $options["prompt"] = "APP  ";
         return $this->gitApp->cmd($cmd, $options);
     }
     public function getPipe()
     {
-        return $this->gitWork->noEscape("|");
+        return \R\Lib\Util\Cli::noEscape("|");
     }
     /**
      * 事前処理
@@ -53,6 +55,7 @@ class FarmEngine
         }
         // DEVELOPブランチが指定されていない場合、APP環境のHEADをDEVELOPブランチとする
         if ( ! $this->getConfig("develop_branch")) {
+            // git rev-parse --abbrev-ref HEAD
             $this->config["develop_branch"] = $this->cmdApp(array(
                 "git", "rev-parse", "--abbrev-ref", "HEAD"));
         }
@@ -135,7 +138,9 @@ class FarmEngine
     public function apply()
     {
         // 事前確認、WORK環境にFARMブランチがCOされていなければエラー
-        if ($this->gitWork->getCurrentBranch() != $this->getConfig("farm_branch")) {
+        // git rev-parse --abbrev-ref HEAD
+        $current_branch = $this->cmdWork(array("git", "rev-parse", "--abbrev-ref", "HEAD"));
+        if ($current_branch != $this->getConfig("farm_branch")) {
             report_error("WORK環境にFARMブランチがCOされていません");
         }
         // # FARMマークコミットを作成する
@@ -158,8 +163,12 @@ class FarmEngine
     public function merge()
     {
         // # DEVELOPブランチをCOして、FARMブランチをマージする
-        // git checkout develop
-        $this->cmdApp(array("git", "checkout", $this->getConfig("develop_branch")));
+        // git rev-parse --abbrev-ref HEAD
+        $current_branch = $this->cmdApp(array("git", "rev-parse", "--abbrev-ref", "HEAD"));
+        if ($current_branch != $this->getConfig("develop_branch")) {
+            // git checkout develop
+            $this->cmdApp(array("git", "checkout", $this->getConfig("develop_branch")));
+        }
         // git merge --no-commit --allow-unrelated-histories farm/build
         $this->cmdApp(array("git", "merge",
             "--no-commit", "--allow-unrelated-histories", $this->getConfig("farm_branch")));

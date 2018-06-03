@@ -5,10 +5,10 @@
         "farm_dirname" => "devel/builder",
         "develop_branch" => false,
         "farm_branch" => "farm/build",
-        "farm_mark" => array("-m", "<FARM>"),
-        "farm_mark_find" => array("--grep=", "<FARM>"),
-        "root_mark" => array("-m", "<FARM><INIT>"),
-        "root_find" => array("--grep=", "<FARM><INIT>"),
+        "farm_mark" => array("-m<FARM>"),
+        "farm_mark_find" => array("--grep=<FARM>"),
+        "root_mark" => array("-m<FARM><INIT>"),
+        "root_find" => array("--grep=<FARM><INIT>"),
         "build_callback" => function($farm){
             $farm_dir = $farm->getConfig("app_root_dir")."/".$farm->getConfig("farm_dirname");
             with($builder = new \R\Lib\Builder\WebappBuilder())->build(array(
@@ -23,18 +23,14 @@
         "deploy_callback"=>function($deploy_name, $source, $config_entry, $vars, $farm){
             $deploy_name = preg_replace('!^/!', '', $deploy_name);
             $deploy_file = $farm->getConfig("work_root_dir")."/".$deploy_name;
+            // 差分チェック
             $status = "create";
-            if (file_exists($deploy_file)) {
-                $current_source = $farm->cmdWork(array("git", "cat-file", "-p",
-                    $farm->getConfig("farm_branch").":".$deploy_name),
-                    array("quiet"=>true, "return"=>"rawoutput"));
+            $current_source = $farm->cmdWork(array("git", "cat-file", "-p",
+                $farm->getConfig("farm_branch").":".$deploy_name),
+                array("quiet"=>true, "return"=>"rawoutput"));
                 $status = crc32($current_source)==crc32($source) ? "nochange" : "modify";
-            }
-            if ( ! $farm->getConfig("option.dryrun")) {
-                \R\Lib\Util\File::write($deploy_file, $source);
-            }
-            if ($status != "nochange") {
-                print "[PUBLISH] ".$status." ".$deploy_name."\n";
-            }
+                if ($status != "nochange") print "[PUBLISH] ".$status." ".$deploy_name."\n";
+            // ファイルの書き込み
+            \R\Lib\Util\File::write($deploy_file, $source);
         },
     );

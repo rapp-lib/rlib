@@ -1,14 +1,24 @@
 <?php
 namespace R\Lib\Builder\Command;
 use R\Lib\Console\Command;
+use Symfony\Component\Console\Input\InputOption;
 use R\Lib\Util\GitRepositry;
 
 class BuildMakeCommand extends Command
 {
     protected $name = 'build:make';
     protected $description = 'Building rapp';
+    protected function getOptions()
+    {
+        return array(
+            array('ignore-farm', "-f", InputOption::VALUE_NONE, 'Ignore farm:publish.'),
+        );
+    }
     public function fire()
     {
+        if ( ! $this->option("ignore-farm")) {
+            report_error("farm:publishに切り替えるか、--ignore-farmオプションを指定して下さい");
+        }
         $this->git = new GitRepositry(constant("R_APP_ROOT_DIR"));
         $this->config = array(
             "branch_d" => "develop",

@@ -5,15 +5,18 @@ use R\Lib\Util\GitRepositry;
 class FarmGitRepositry extends GitRepositry
 {
     protected $dir;
-    public function __construct ($dir)
+    protected $options;
+    public function __construct ($dir, $options=array())
     {
         $this->dir = $dir;
+        $this->options = $options;
     }
     /**
      * Gitレポジトリ直下でコマンド発行
      */
     public function cmd ($cmd, $options=array())
     {
+        $options = $options + $this->options;
         $dir = getcwd();
         chdir($this->dir);
         $cmd = \R\Lib\Util\Cli::escape($cmd);
