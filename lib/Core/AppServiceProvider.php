@@ -3,7 +3,6 @@ namespace R\Lib\Core;
 
 use R\Lib\Exception\ExceptionServiceProvider;
 use R\Lib\Debug\DebugServiceProvider;
-use R\Lib\Farm\FarmServiceProvider;
 use Illuminate\Events\EventServiceProvider;
 use Illuminate\Log\LogServiceProvider;
 
@@ -57,6 +56,9 @@ class AppServiceProvider extends ServiceProvider
         }
         // lib以下のService登録
         foreach ($this->base_bindings as $k=>$v) $this->app->singleton($k, $v);
+        if ($this->app->runningInConsole()) {
+            $this->app['config']['app.debug'] = true;
+        }
         // 環境名を設定
         $this->app->instance('env', "".$this->app->config["app.env"]);
         // Requestの関連付け
@@ -77,7 +79,7 @@ class AppServiceProvider extends ServiceProvider
         AliasLoader::getInstance((array)$this->app->config['app.aliases'])->register();
         // Providers設定読み込み
         $this->app->config['app.manifest'] = $this->app["path.storage"]."/meta";
-        if ( ! is_writable($this->app->config['app.manifest'])) {
+        if ( ! file_exists($this->app->config['app.manifest'])) {
             mkdir($this->app->config['app.manifest'], 0777, true);
         }
         $this->app->getProviderRepository()->load($this->app, (array)$this->app->config['app.providers']);

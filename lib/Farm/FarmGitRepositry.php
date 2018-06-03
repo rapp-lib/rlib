@@ -9,11 +9,6 @@ class FarmGitRepositry extends GitRepositry
     {
         $this->dir = $dir;
     }
-    protected $cmd_log = array();
-    public function getCommandLog ()
-    {
-        return $this->cmd_log;
-    }
     /**
      * Gitレポジトリ直下でコマンド発行
      */
@@ -22,13 +17,12 @@ class FarmGitRepositry extends GitRepositry
         $dir = getcwd();
         chdir($this->dir);
         $cmd = \R\Lib\Util\Cli::escape($cmd);
-        $this->cmd_log[] = "> ".$cmd;
         list($ret, $out, $err) = \R\Lib\Util\Cli::exec($cmd);
         chdir($dir);
         if ( ! $options["quiet"]) {
-            file_put_contents("php://stderr", "$ ".$cmd."\n");
+            file_put_contents("php://stderr", $options["prompt"]."$ ".$cmd."\n");
             if ($err) foreach (explode("\n", trim($err)) as $line) {
-                file_put_contents("php://stderr", "> ".$line."\n");
+                file_put_contents("php://stderr", $options["prompt"]."> ".$line."\n");
             }
         }
         if ($options["return"] != "rawoutput") {
@@ -39,5 +33,13 @@ class FarmGitRepositry extends GitRepositry
     public function noEscape ($cmd)
     {
         return \R\Lib\Util\Cli::noEscape($cmd);
+    }
+    /**
+     * 現在のブランチを取得
+     */
+    public function getCurrentBranch()
+    {
+        // git rev-parse --abbrev-ref HEAD
+        return $this->cmd(array("git", "rev-parse", "--abbrev-ref", "HEAD"));
     }
 }

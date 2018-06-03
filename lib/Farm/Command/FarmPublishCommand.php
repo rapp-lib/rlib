@@ -29,14 +29,8 @@ class FarmPublishCommand extends Command
 
         // 展開処理
         $farm = new FarmEngine($config);
-        if ($this->option("clean")) $farm->cleanup();
-        $farm->checkState();
-        register_shutdown_function(array($farm, "cleanup"));
-        $farm->prepareFarmBranch();
-        $farm->prepareFarmBranchCopy();
-        $farm->prepareFarmDir();
+        $farm->prepare();
         call_user_func($config["build_callback"], $farm);
-        $farm->cleanFarmDir();
-        $farm->mergeFarmBranch();
+        $farm->apply();
     }
 }
