@@ -39,12 +39,12 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
                 return app('debugbar')->modifyResponse($request, $response);
             };
             $this->app->config["http.global.controller_class.debugbar"] = 'R\Lib\Debug\DebugbarController';
-            $routes = (array)$this->app->config["http.global.routes"];
-            $this->app->config["http.global.routes"] = array_merge($routes, array(
+            $routes = array(
                 array("debugbar.open", "/_debugbar/open"),
                 array("debugbar.assets_css", "/_debugbar/assets/stylesheets"),
                 array("debugbar.assets_js", "/_debugbar/assets/javascript"),
-            ));
+            );
+            foreach ($routes as $route) $this->app->config->push("http.global.routes", $route);
         }
         if ($this->app['config']["debug.enabled"]) {
             $this->app["debugbar"]->boot();

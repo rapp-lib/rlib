@@ -18,7 +18,8 @@ class HttpDriver
     public function createServerRequest ($request=array(), $webroot=false)
     {
         // Webroot作成
-        if ($webroot===false) $webroot = $_ENV["APP_WEBROOT"] ?: $_ENV["APP_WEBROOT_FALLBACK"] ?: "www";
+        if ( ! $webroot) $webroot = $_ENV["APP_WEBROOT"];
+        if ( ! $webroot) report_error("webrootが特定できません");
         if (is_string($webroot)) $webroot = $this->webroot($webroot);
         // ServedRequest作成
         $method_name = is_array($request) ? "fromGlobals" : "fromServerRequestInterface";

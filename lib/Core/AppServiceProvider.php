@@ -54,27 +54,32 @@ class AppServiceProvider extends ServiceProvider
         if (file_exists(constant("R_APP_ROOT_DIR")."/.env")) {
             with(new Dotenv(constant("R_APP_ROOT_DIR"),".env"))->load();
         }
-        // lib以下のService登録
+        // lib以下のbind登録
         foreach ($this->base_bindings as $k=>$v) $this->app->singleton($k, $v);
-        if ($this->app->runningInConsole()) {
-            $this->app['config']['app.debug'] = true;
-        }
+        // Consoleの場合自動的にapp.debug有効化
+        if ($this->app->runningInConsole()) $this->app['config']['app.debug'] = true;
         // 環境名を設定
-        $this->app->instance('env', "".$this->app->config["app.env"]);
-        // Requestの関連付け
-        $this->app->bind('request', function($app){
-            return $app->http->createServerRequest();
+        $this->app->instance('env', $this->app->config["app.env"]);
+        // Fallback用requestセットアップ
+        $this->app->singleton('request.fallback', function($app){
+            if ($app->bound("request")) return $app["request"];
+            $webroot = $app->http->webroot("_fallback", array());
+            return $app->http->createServerRequest(array(), $webroot);
         });
-        // Laravel標準Provider登録
+        // eventセットアップ
         $this->app->register(new EventServiceProvider($this->app));
-        // Report起動
+        // log/reportセットアップ
         $this->app->register(new LogServiceProvider($this->app));
+        // エラー停止処理セットアップ <= report依存
         $this->app->register(new ExceptionServiceProvider($this->app));
         $this->app['exception']->register($this->app["env"]);
         $this->app['exception']->setDebug($this->app['config']['app.debug']);
+        // Session自動Start
+        if ( ! $this->app->runningInConsole() && ! $this->app->config["session.prevent_auto_start"]) {
+            $this->app->session->start();
+        }
+        // Debugbar登録
         $this->app->register(new DebugServiceProvider($this->app));
-        // Timezone設定
-        if ($this->app->config['app.timezone']) date_default_timezone_set($this->app->config['timezone']);
         // Aliases設定読み込み
         AliasLoader::getInstance((array)$this->app->config['app.aliases'])->register();
         // Providers設定読み込み
@@ -83,10 +88,6 @@ class AppServiceProvider extends ServiceProvider
             mkdir($this->app->config['app.manifest'], 0777, true);
         }
         $this->app->getProviderRepository()->load($this->app, (array)$this->app->config['app.providers']);
-        // Session自動Start
-        if ( ! $this->app->runningInConsole() && $this->app->config["session.auto_start"]) {
-            $this->app->session->start();
-        }
     }
     public function boot()
     {

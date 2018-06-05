@@ -29,29 +29,25 @@ class ExceptionServiceProvider extends IlluminateExceptionServiceProvider
     }
     protected function registerPrettyWhoopsHandler()
     {
-        $this->app['whoops.handler'] = $this->app->share(function(){
-            $handler = new PrettyPageHandler;
-            $handler->setEditor('sublime');
-            $handler->setPageTitle('Application Error.');
-            $handler->addDataTableCallback("ERROR Data", function(){
-                return array();
-            });
-            return $handler;
-        });
+        //
     }
     protected function registerWhoopsHandler()
     {
-        if ($this->app->runningInConsole()) {
-            $this->app['whoops.handler'] = $this->app->share(function(){
+        $this->app['whoops.handler'] = $this->app->share(function(){
+            if ($this->app->runningInConsole()) {
                 return new CallbackHandler(function($e, $inspection, $whoops){
                 });
-            });
-        } elseif (app("request")->isAjax() || app("request")->wantsJson()) {
-            $this->app['whoops.handler'] = $this->app->share(function(){
+            } elseif (app("request.fallback")->isAjax() || app("request.fallback")->wantsJson()) {
                 return new JsonResponseHandler;
-            });
-        } else {
-            $this->registerPrettyWhoopsHandler();
-        }
+            } else {
+                $handler = new PrettyPageHandler;
+                $handler->setEditor('sublime');
+                $handler->setPageTitle('Application Error.');
+                $handler->addDataTableCallback("ERROR Data", function(){
+                    return array();
+                });
+                return $handler;
+            }
+        });
     }
 }
