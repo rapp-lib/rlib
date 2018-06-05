@@ -83,11 +83,16 @@ class AppServiceProvider extends ServiceProvider
         // Aliases設定読み込み
         AliasLoader::getInstance((array)$this->app->config['app.aliases'])->register();
         // Providers設定読み込み
-        $this->app->config['app.manifest'] = $this->app["path.storage"]."/meta";
-        if ( ! file_exists($this->app->config['app.manifest'])) {
-            mkdir($this->app->config['app.manifest'], 0777, true);
+        foreach ((array)$this->app->config['app.providers'] as $provider_name) {
+            $this->app->register($provider_name);
         }
-        $this->app->getProviderRepository()->load($this->app, (array)$this->app->config['app.providers']);
+        if ($this->app->config['app.deffered_providers']) {
+            $this->app->config['app.manifest'] = $this->app["path.storage"]."/meta";
+            if ( ! file_exists($this->app->config['app.manifest'])) {
+                mkdir($this->app->config['app.manifest'], 0777, true);
+            }
+            $this->app->getProviderRepository()->load($this->app, $this->app->config['app.deffered_providers']);
+        }
     }
     public function boot()
     {

@@ -31,6 +31,7 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
     }
     public function boot()
     {
+        return;
         if ( ! $this->app->debug->getDebugLevel()) return;
         if ($this->app->runningInConsole()) {
             if ($this->app->config["debug.capture_console"] && method_exists($this->app, 'shutdown')) {
