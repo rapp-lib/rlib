@@ -14,6 +14,20 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
         $this->app['debugbar'] = $this->app->share(function($app){
             return new Debugbar($app);
         });
+        if ( ! $this->app->debug->getDebugLevel()) return;
+        if ( ! $this->app->runningInConsole()) {
+            $this->app->config["http.global.middlewares.200"] = function($request, $next){
+                $response = $next($request);
+                return app('debugbar')->modifyResponse($request, $response);
+            };
+            $this->app->config["http.global.controller_class.debugbar"] = 'R\Lib\Debug\DebugbarController';
+            $routes = array(
+                array("debugbar.open", "/_debugbar/open"),
+                array("debugbar.assets_css", "/_debugbar/assets/stylesheets"),
+                array("debugbar.assets_js", "/_debugbar/assets/javascript"),
+            );
+            foreach ($routes as $route) $this->app->config->push("http.global.routes", $route);
+        }
     }
     public function boot()
     {
@@ -33,18 +47,6 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
                 return new Console\ClearCommand($app['debugbar']);
             });
             $this->commands(array('command.debugbar.publish', 'command.debugbar.clear'));
-        } else {
-            $this->app->config["http.global.middlewares.200"] = function($request, $next){
-                $response = $next($request);
-                return app('debugbar')->modifyResponse($request, $response);
-            };
-            $this->app->config["http.global.controller_class.debugbar"] = 'R\Lib\Debug\DebugbarController';
-            $routes = array(
-                array("debugbar.open", "/_debugbar/open"),
-                array("debugbar.assets_css", "/_debugbar/assets/stylesheets"),
-                array("debugbar.assets_js", "/_debugbar/assets/javascript"),
-            );
-            foreach ($routes as $route) $this->app->config->push("http.global.routes", $route);
         }
         if ($this->app['config']["debug.enabled"]) {
             $this->app["debugbar"]->boot();
