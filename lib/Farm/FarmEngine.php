@@ -169,8 +169,14 @@ class FarmEngine
             // git checkout develop
             $this->cmdApp(array("git", "checkout", $this->getConfig("develop_branch")));
         }
+        // git2.9以降では無関係のブランチのマージで追加オプションが必要
+        $version_string = $this->cmdApp(array("git", "--version"));
+        $version = preg_match('!version (\d+\.\d+)!', $version_string, $_) ? $_[1] : "2.14";
+        if (version_compare($version, "2.9.0")>=0) {
+            $append_option = array("--allow-unrelated-histories");
+        }
         // git merge --no-commit --allow-unrelated-histories farm/build
         $this->cmdApp(array("git", "merge",
-            "--no-commit", "--allow-unrelated-histories", $this->getConfig("farm_branch")));
+            "--no-commit", $append_option, $this->getConfig("farm_branch")));
     }
 }
