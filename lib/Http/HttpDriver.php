@@ -46,10 +46,6 @@ class HttpDriver
             if (app()->runningUnitTests()) throw $e;
             $response = app("exception")->handleException($e);
         }
-        report_info("Http Served", array(
-            "request_uri" => $request->getUri(),
-            "input_values" => $request->getAttribute(InputValues::ATTRIBUTE_INDEX),
-        ));
         return $response;
     }
 
@@ -141,8 +137,6 @@ class HttpDriver
     }
     public function emit ($response)
     {
-        // Inject report info
-        $response = app()->report->rewriteHttpResponse($response);
         return with($emitter = new SapiEmitter())->emit($response);
     }
 }
