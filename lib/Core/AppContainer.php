@@ -16,13 +16,18 @@ class AppContainer extends Application
     {
         return call_user_func_array(array($this[$provider_name], "__invoke"), $args);
     }
-    public function runHttp($request=false)
+    public function runHttp($request=array(), $webroot=false)
     {
-        if ($request) $this->http->refreshRequest($request);
+        // request
+        if (is_array($request)) $request = $this->http->createServerRequest($request, $webroot);
+        $this->http->refreshRequest($request);
+        // boot
         $this->boot();
+        // dispatch
         $response = $this->http->dispatch($this["request"], function($request){
             return $request->getUri()->getPageController()->run($request);
         });
+        // emit
         $this->http->emit($response);
     }
     public function prepareRequest($value)

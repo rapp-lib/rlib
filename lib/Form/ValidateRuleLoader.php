@@ -33,7 +33,7 @@ class ValidateRuleLoader
     public static function callbackRequired ($validator, $value, $rule)
     {
         if ( ! self::isEmpty($value)) return false;
-        return array("message"=>__("必ず入力して下さい"));
+        return array("message"=>___("必ず入力して下さい"));
     }
     public static function isEmpty ($value)
     {
@@ -59,7 +59,7 @@ class ValidateRuleLoader
         // regexの指定があれば正規表現を上書き
         if ($rule["regex"]) $regex = $rule["regex"];
         if (preg_match($regex,$value)) return false;
-        return array("message"=>__($message));
+        return array("message"=>___($message));
     }
     /**
      * 範囲チェック
@@ -79,15 +79,15 @@ class ValidateRuleLoader
         }
         if (isset($min) && isset($max)) {
             if ($min > $value || $max < $value) {
-                return array("message"=>__(":min以上:max以下で入力して下さい", $params));
+                return array("message"=>___(":min以上:max以下で入力して下さい", $params));
             }
         } elseif (isset($min)) {
             if ($min > $value) {
-                return array("message"=>__(":min以上で入力して下さい", $params));
+                return array("message"=>___(":min以上で入力して下さい", $params));
             }
         } elseif (isset($max)) {
             if ($max < $value) {
-                return array("message"=>__(":max以下で入力して下さい", $params));
+                return array("message"=>___(":max以下で入力して下さい", $params));
             }
         }
         return false;
@@ -106,17 +106,17 @@ class ValidateRuleLoader
         $length =mb_strlen(str_replace("\r\n", "\n", $value),"UTF-8");
         if (isset($min) && isset($max)) {
             if ($min==$max && $min!=$length) {
-                return array("message"=>__(":min文字で入力してください", $params));
+                return array("message"=>___(":min文字で入力してください", $params));
             } elseif ($min > $length || $max < $length) {
-                return array("message"=>__(":min文字以上:max文字以内で入力してください", $params));
+                return array("message"=>___(":min文字以上:max文字以内で入力してください", $params));
             }
         } elseif (isset($min)) {
             if ($min > $length) {
-                return array("message"=>__(":min文字以上で入力してください", $params));
+                return array("message"=>___(":min文字以上で入力してください", $params));
             }
         } elseif (isset($max)) {
             if ($max < $length) {
-                return array("message"=>__(":max文字以内で入力してください", $params));
+                return array("message"=>___(":max文字以内で入力してください", $params));
             }
         }
         return false;
@@ -136,7 +136,7 @@ class ValidateRuleLoader
         if ( ! $id && $rule["id_field"]) $id = $validator->getValue($rule["id_field"]);
         if (isset($id)) $q = $q->findBy($q->getQueryTableName().".".$q->getIdColName()." <>", $id);
         if (count($q->select())==0) return false;
-        return array("message"=>__("既に登録されています"));
+        return array("message"=>___("既に登録されています"));
     }
     /**
      * 登録チェック
@@ -149,7 +149,7 @@ class ValidateRuleLoader
         $q = table($rule["table"]);
         $q = $q->findBy($rule["col_name"], $value);
         if (count($q->select())==1) return false;
-        return array("message"=>__("登録されていません"));
+        return array("message"=>___("登録されていません"));
     }
     /**
      * 同一入力チェック
@@ -160,7 +160,7 @@ class ValidateRuleLoader
         if (self::isEmpty($value)) return false;
         $target_value = $validator->getValue($rule["target_field"]);
         if ($target_value==$value) return false;
-        return array("message"=>__("入力された値が異なっています"));
+        return array("message"=>___("入力された値が異なっています"));
     }
     /**
      * Enum入力値チェック
@@ -175,7 +175,7 @@ class ValidateRuleLoader
         if (self::isEmpty($value)) return false;
         $label = app()->enum[$rule["enum"]][$value];
         if (strlen($label)) return false;
-        return array("message"=>__("選択された値が不正です"));
+        return array("message"=>___("選択された値が不正です"));
     }
     public static function callbackCsvForm ($validator, $value, $rule)
     {
@@ -191,7 +191,7 @@ class ValidateRuleLoader
         $csv = $csv_form->openCsvFile($csv_file, "r");
         while ($form = $csv->readForm()) {
             if ( ! $form->isValid()) {
-                return array("message"=>__("CSVファイルの:line_num行目に問題があります",array(
+                return array("message"=>___("CSVファイルの:line_num行目に問題があります",array(
                     "line_num"=>$csv->getCurrentLineNum(),
                     "errors"=>$form->getErrors(),
                 )));
@@ -215,16 +215,16 @@ class ValidateRuleLoader
             $result = false;
         // 値: 3; アップロードされたファイルは一部のみしかアップロードされていません。
         } elseif ($error == UPLOAD_ERR_PARTIAL) {
-            $result = array("message"=>__("ファイルのアップロードが完了しませんでした"));
+            $result = array("message"=>___("ファイルのアップロードが完了しませんでした"));
         // 値: 1; アップロードされたファイルは、php.ini の upload_max_filesize ディレクティブの値を超えています。
         // 値: 2; アップロードされたファイルは、HTML フォームで指定された MAX_FILE_SIZE を超えています。
         } elseif ($error == UPLOAD_ERR_INI_SIZE || $error == UPLOAD_ERR_FORM_SIZE) {
-            $result = array("message"=>__("ファイルサイズが制限容量オーバーです"));
+            $result = array("message"=>___("ファイルサイズが制限容量オーバーです"));
         // 値: 6; テンポラリフォルダがありません。
         // 値: 7; ディスクへの書き込みに失敗しました。
         // 値: 8; PHP の拡張モジュールがファイルのアップロードを中止しました。
         } elseif ($error > 4) {
-            $result = array("message"=>__("ファイルが正しくアップロードできませんでした"));
+            $result = array("message"=>___("ファイルが正しくアップロードできませんでした"));
         } else {
             report_warning("ファイルアップロードで原因不明のエラーがありました",array(
                 "value" => $value,

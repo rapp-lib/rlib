@@ -34,7 +34,7 @@
             });
             if ($this->forms["bulk"]["action"]=="delete" && $items) {
                 foreach ($items as $item) table("<?=$table->getName()?>")<?=$pageset->getTableChainSource("find")?>->deleteById($item["id"]);
-                $this->flash->success(__("削除しました"));
+                $this->flash->success(___("削除しました"));
             }
             return $this->redirect("id://.", array("back"=>"1"));
         }

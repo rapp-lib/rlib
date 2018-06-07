@@ -73,7 +73,7 @@ class I18nDriver
             $this->enum_values[$locale] = file_exists($data_file) ? include($data_file) : array();
         }
         if (isset($this->enum_values[$locale][$key])) $value = $this->enum_values[$locale][$key];
-        elseif (is_string($value)) $value = __($value);
+        elseif (is_string($value)) $value = $this->getMessage($value);
         return $value;
     }
 }

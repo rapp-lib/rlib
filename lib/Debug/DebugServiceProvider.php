@@ -14,10 +14,37 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
         $this->app['debugbar'] = $this->app->share(function($app){
             return new Debugbar($app);
         });
+        if ( ! $this->app->debug->getDebugLevel()) return;
+        if ( ! $this->app->runningInConsole()) {
+            $this->app->config["http.global.middlewares.190"] = function($request, $next){
+                $response = $next($request);
+                // Report served info
+                if ( ! app('debugbar')->isDebugbarRequest()) {
+                    report_info("Http Served", array(
+                        "request_uri" => $request->getUri(),
+                        "input_values" => $request->getAttribute(\R\Lib\Http\InputValues::ATTRIBUTE_INDEX),
+                    ));
+                }
+                // Inject report info
+                if ( ! $this->app['config']["debug.no_inject_report"]) {
+                    $response = app("report")->rewriteHttpResponse($response);
+                }
+                if ( ! $this->app['config']["debug.no_inject_debugbar"]) {
+                    $response = app('debugbar')->modifyResponse($request, $response);
+                }
+                return $response;
+            };
+            $this->app->config["http.global.controller_class.debugbar"] = 'R\Lib\Debug\DebugbarController';
+            $routes = array(
+                array("debugbar.open", "/.devel/debugbar/open"),
+                array("debugbar.assets_css", "/.devel/debugbar/assets/stylesheets"),
+                array("debugbar.assets_js", "/.devel/debugbar/assets/javascript"),
+            );
+            foreach ($routes as $route) $this->app->config->push("http.global.routes", $route);
+        }
     }
     public function boot()
     {
-        return;
         if ( ! $this->app->debug->getDebugLevel()) return;
         if ($this->app->runningInConsole()) {
             if ($this->app->config["debug.capture_console"] && method_exists($this->app, 'shutdown')) {
@@ -34,18 +61,6 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
                 return new Console\ClearCommand($app['debugbar']);
             });
             $this->commands(array('command.debugbar.publish', 'command.debugbar.clear'));
-        } else {
-            $this->app->config["http.global.middlewares.200"] = function($request, $next){
-                $response = $next($request);
-                return app('debugbar')->modifyResponse($request, $response);
-            };
-            $this->app->config["http.global.controller_class.debugbar"] = 'R\Lib\Debug\DebugbarController';
-            $routes = (array)$this->app->config["http.global.routes"];
-            $this->app->config["http.global.routes"] = array_merge($routes, array(
-                array("debugbar.open", "/_debugbar/open"),
-                array("debugbar.assets_css", "/_debugbar/assets/stylesheets"),
-                array("debugbar.assets_js", "/_debugbar/assets/javascript"),
-            ));
         }
         if ($this->app['config']["debug.enabled"]) {
             $this->app["debugbar"]->boot();

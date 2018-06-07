@@ -93,24 +93,30 @@ class FarmEngine
         }
         // DEVELOPブランチからFARMマークされた直近のコミット（JOINTコミット）を探す
         // JOINT=` git rev-list --grep="<FARM>" develop | head -n1 `
-        $joint_commit = $this->cmdWork(array("git", "rev-list",
-            $this->getConfig("farm_mark_find"), $this->getConfig("develop_branch"),
-            "--", $this->getPipe(), "head", "-n1"));
+        if (is_array($this->getConfig("farm_mark_find"))) {
+            $joint_commit = $this->cmdWork(array("git", "rev-list",
+                $this->getConfig("farm_mark_find"), $this->getConfig("develop_branch"),
+                "--", $this->getPipe(), "head", "-n1"));
+        } elseif (is_callable($this->getConfig("farm_mark_find"))) {
+            $joint_commit = call_user_func($this->getConfig("farm_mark_find"), $this);
+        }
         // JOINTコミットがあれば、そこからROOTコミットを探索する
         if ($joint_commit) {
             // ROOTコミットを探す
-            if ($this->getConfig("root_find")) {
+            if (is_array($this->getConfig("root_find"))) {
                 // ROOT=` git rev-list --grep="<FARM>" $JOINT | tail -n1 `
                 $root_commit = $this->cmdWork(array("git", "rev-list",
                     $this->getConfig("root_find"), $joint_commit,
                     "--", $this->getPipe(), "tail", "-n1"));
-                // ROOTコミットが見つからなければエラー
-                if ( ! $root_commit) {
-                    report("ROOTコミットが見つかりません");
-                }
+            } elseif (is_callable($this->getConfig("root_find"))) {
+                $root_commit = call_user_func($this->getConfig("root_find"), $this, $joint_commit);
             // ROOTコミットを探索しない場合、JOINTコミットを代用する
             } else {
                 $root_commit = $joint_commit;
+            }
+            // ROOTコミットが見つからなければエラー
+            if ( ! $root_commit) {
+                report("ROOTコミットが見つかりません");
             }
             // ファイルの状態をROOTコミットにして、JOINTコミットをCO
             // git checkout -b farm/build $ROOT
@@ -169,8 +175,14 @@ class FarmEngine
             // git checkout develop
             $this->cmdApp(array("git", "checkout", $this->getConfig("develop_branch")));
         }
+        // git2.9以降では無関係のブランチのマージで追加オプションが必要
+        $version_string = $this->cmdApp(array("git", "--version"));
+        $version = preg_match('!version (\d+\.\d+)!', $version_string, $_) ? $_[1] : "2.14";
+        if (version_compare($version, "2.9.0")>=0) {
+            $append_option = array("--allow-unrelated-histories");
+        }
         // git merge --no-commit --allow-unrelated-histories farm/build
         $this->cmdApp(array("git", "merge",
-            "--no-commit", "--allow-unrelated-histories", $this->getConfig("farm_branch")));
+            "--no-commit", $append_option, $this->getConfig("farm_branch")));
     }
 }

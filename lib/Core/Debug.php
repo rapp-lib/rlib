@@ -17,7 +17,6 @@ class Debug
     {
         app()->config["app.debug"] = $debug_level;
         app("exception")->setDebug($debug_level);
-        ini_set("display_errors" , $debug_level & 2);
     }
     private $client_checked = false;
     private function checkClient ()

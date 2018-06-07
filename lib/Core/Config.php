@@ -25,6 +25,18 @@ class Config extends Repository
         }
         foreach (\R\Lib\Util\Arr::array_dot($values) as $k=>$v) $this[$k] = $v;
     }
+    public function prepend($key, $value)
+    {
+        $array = $this->get($key);
+        array_unshift($array, $value);
+        $this->set($key, $array);
+    }
+    public function push($key, $value)
+    {
+        $array = $this->get($key);
+        $array[] = $value;
+        $this->set($key, $array);
+    }
 	protected function load($group, $namespace, $collection)
 	{
         //

@@ -29,12 +29,12 @@
 <?php else: ?>
                 $t = $this->forms["apply"]->getValues();
 <?php endif; ?>
-                $this->flash->success(__("登録しました"));
+                $this->flash->success(___("登録しました"));
             } else {
                 report_warning("入力エラーがあります",array(
                     "form" => $this->forms["apply"]->exportState(),
                 ));
-                $this->flash->error(__("登録できません"));
+                $this->flash->error(___("登録できません"));
             }
         }
         return $this->redirect("id://<?=$pageset->getBackPage()->getFullPage($page)?>", array("back"=>"1"));

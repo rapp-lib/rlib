@@ -103,7 +103,7 @@ class Debugbar extends LaravelDebugbar
     public function collect()
     {
         /** @var Request $request */
-        $request = $this->app['request'];
+        $request = $this->app['request.fallback'];
         $server_params = $request->getServerParams();
         $this->data = array(
             '__meta' => array(
@@ -168,19 +168,19 @@ class Debugbar extends LaravelDebugbar
     {
         $this->enabled = false;
     }
-    protected function isDebugbarRequest()
+    public function isDebugbarRequest()
     {
-        return starts_with($this->app['request']->getUri()->getPageId(), "debugbar.");
+        return starts_with($this->app['request.fallback']->getUri()->getPageId(), "debugbar.");
     }
     protected function isJsonRequest($request)
     {
-        return $this->app['request']->isAjax() || $this->app['request']->wantsJson();
+        return $this->app['request.fallback']->isAjax() || $this->app['request.fallback']->wantsJson();
     }
     protected $js_renderer = null;
     public function getJavascriptRenderer($base_url = null, $base_path = null)
     {
         if ($this->js_renderer === null) {
-            $webroot = $this->app["request"]->getUri()->getWebroot();
+            $webroot = $this->app["request.fallback"]->getUri()->getWebroot();
             $this->js_renderer = new JavascriptRenderer($this, $base_url, $base_path);
             $this->js_renderer->setUrlGenerator($this);
         }
@@ -194,6 +194,6 @@ class Debugbar extends LaravelDebugbar
             "debugbar.assets.css"=>"debugbar.assets_css",
         );
         $page_id = $map[$laravel_page_id] ?: $laravel_page_id;
-        return $this->app['request']->getUri()->getWebroot()->uri("id://".$page_id, $params);
+        return $this->app['request.fallback']->getUri()->getWebroot()->uri("id://".$page_id, $params);
     }
 }
