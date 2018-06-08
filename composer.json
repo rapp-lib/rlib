@@ -12,6 +12,7 @@
         "phpmailer/phpmailer": "~5.0",
         "zendframework/zend-cache": "~2",
         "zendframework/zend-session": "~2",
+        "zendframework/zend-serializer": "~2",
         "symfony/event-dispatcher": "~2.0",
         "laravel/framework": "~4.1",
         "danbruce/fast-route": "^0.6.0",
@@ -20,8 +21,7 @@
         "commerceguys/guzzle-oauth2-plugin": "~1.0",
         "phpunit/phpunit": "~4",
         "rapp-lib/zend-diactoros": "~1",
-        "rapp-lib/middleman": "~2",
-        "hirak/prestissimo": "^0.3.7"
+        "rapp-lib/middleman": "~2"
     },
     "autoload": {
         "psr-4": {
