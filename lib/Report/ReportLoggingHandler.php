@@ -2,19 +2,27 @@
 namespace R\Lib\Report;
 use Monolog\Logger;
 use Monolog\Handler\AbstractProcessingHandler;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ReportLoggingHandler extends AbstractProcessingHandler
 {
     protected static $buffer = array();
     protected static $buffer_stash_status = "init";
     /**
-     * 終了前の処理
+     * 終了前のエラー応答処理
+     */
+    public function errorOutputBeforeShutdown()
+    {
+        if ( ! app()->runningInConsole()) header('HTTP/1.1 500 Internal Server Error');
+    }
+    /**
+     * 終了前のログ出力処理
      */
     public function autoFlushBeforeShutdown()
     {
         if (app()->debug->getDebugLevel()) {
             // cliの場合は常に終了時にflush
-            if (php_sapi_name()==="cli") {
+            if (app()->runningInConsole()) {
                 $this->flush();
             // http応答時はhtml出力の場合のみflush
             } else {
@@ -36,7 +44,9 @@ class ReportLoggingHandler extends AbstractProcessingHandler
     public function rewriteHttpResponse($response)
     {
         if (app()->debug->getDebugLevel()) {
-            if (preg_match('!^text/html!', $response->getHeaderLine('content-type'))) {
+            if ($response instanceof SymfonyResponse) $content_type = $response->headers->get('content-type');
+            else $content_type = $response->getHeaderLine('content-type');
+            if (preg_match('!^text/html!', $content_type)) {
                 $this->flush();
             } elseif ($response->getStatusCode()==302 || $response->getStatusCode()==301) {
                 $this->flush();
@@ -64,7 +74,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
     private function pushStash()
     {
         // stashへの待避
-        if (php_sapi_name()!=="cli" && app()->session->sessionExists()) {
+        if ( ! app()->runningInConsole()) {
             if (self::$buffer_stash_status==="open") {
                 app()->session("Report_Logging")->add("buffer", self::$buffer);
                 self::$buffer = array();
@@ -77,7 +87,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
      */
     private function popStash()
     {
-        if (php_sapi_name()!=="cli" && app()->session->sessionExists()) {
+        if ( ! app()->runningInConsole()) {
             if (self::$buffer_stash_status==="init") {
                 $stash_buffer = & app()->session("Report_Logging")->getRef("buffer");
                 if ($stash_buffer) foreach ($stash_buffer as $stash_record) {
@@ -93,9 +103,9 @@ class ReportLoggingHandler extends AbstractProcessingHandler
      */
     private function flush()
     {
-        if (php_sapi_name()==="cli") {
+        if (app()->runningInConsole()) {
             $text = ReportRenderer::renderAll(self::$buffer, "console");
-            app()->console->outputError($text);
+            file_put_contents("php://stderr", $text);
         } else {
             $html = ReportRenderer::renderAll(self::$buffer, "html");
             print $html;

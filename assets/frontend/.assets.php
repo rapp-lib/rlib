@@ -36,6 +36,7 @@
             "input_plugin.zero_option" => array('input_plugin/zero_option.js', array("jquery", "InputPluginRegistry")),
             "input_plugin.split_text" => array('input_plugin/split_text.js', array("jquery", "InputPluginRegistry")),
             "input_plugin.date_select" => array('input_plugin/date_select.js', array("jquery", "InputPluginRegistry")),
+            "input_plugin.bind_select" => array('input_plugin/bind_select.js', array("jquery", "InputPluginRegistry")),
             "input_plugin.radio_set_first" => array('input_plugin/radio_set_first.js', array("jquery", "InputPluginRegistry")),
             "input_plugin.ckeditor" => array('input_plugin/ckeditor.js', array("jquery", "ckeditor", "InputPluginRegistry")),
             "input_plugin.sync_select" => array('input_plugin/sync_select.js', array("jquery", "InputPluginRegistry")),

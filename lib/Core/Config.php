@@ -1,46 +1,44 @@
 <?php
 namespace R\Lib\Core;
 
-class Config
+use Illuminate\Config\Repository;
+
+class Config extends Repository
 {
     public function __invoke ($key)
     {
-        return $this->config($key);
+        return $this[$key];
     }
-    private $vars;
     public function __construct ()
     {
-        $this->vars = array();
+        $values = array();
+        // 設定ファイルの読み込み
         $config_dir = constant("R_APP_ROOT_DIR")."/config";
         foreach (glob($config_dir."/*.config.php") as $config_file) {
-            $this->config(include($config_file));
+            foreach ((array)include($config_file) as $k=>$v) \R\Lib\Util\Arr::array_add($values, $k, $v);
         }
-        if ($app_env = $this->config("app.env")) {
+        // 環境別設定ファイルの読み込み
+        if ($app_env = \R\Lib\Util\Arr::array_get($values, "app.env")) {
             foreach (glob($config_dir."/env/".$app_env."/*.config.php") as $config_file) {
-                $this->config(include($config_file));
+                foreach ((array)include($config_file) as $k=>$v) \R\Lib\Util\Arr::array_add($values, $k, $v);
             }
         }
+        foreach (\R\Lib\Util\Arr::array_dot($values) as $k=>$v) $this[$k] = $v;
     }
-    public function get ($key, $default=null)
+    public function prepend($key, $value)
     {
-        return \R\Lib\Util\Arr::array_get($this->vars, $key, 1);
+        $array = $this->get($key);
+        array_unshift($array, $value);
+        $this->set($key, $array);
     }
-    public function getAll ()
+    public function push($key, $value)
     {
-        return $this->vars;
+        $array = $this->get($key);
+        $array[] = $value;
+        $this->set($key, $array);
     }
-    public function set ($name, $value)
-    {
-        \R\Lib\Util\Arr::array_add($this->vars, $name, $value);
-    }
-    public function config ($value)
-    {
-        if (is_array($value)) {
-            foreach ($value as $k=>$v) {
-                $this->set($k, $v);
-            }
-        } else {
-            return $this->get($value);
-        }
+	protected function load($group, $namespace, $collection)
+	{
+        //
     }
 }

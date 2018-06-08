@@ -14,7 +14,7 @@ class FormCsvHandler extends \R\Lib\Util\CSVHandler
                 if ($field_def["csv_row"]===false) continue;
                 if (in_array($field_def["type"], array("fields","fieldset"))) continue;
                 $label = $field_def["label"] ?: $field_name;
-                $csv_setting["rows"][$field_name] = __($label);
+                $csv_setting["rows"][$field_name] = ___($label);
             }
         }
         parent::__construct($csv_file, $mode, $csv_setting);

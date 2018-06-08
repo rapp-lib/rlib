@@ -39,6 +39,16 @@ class TableElement extends Element_Base
         return $this->attrs["def"]["table_name"] ?: $this->getName();
     }
     /**
+     * 定義の取得
+     */
+    public function getExtraDefs ()
+    {
+        $def = $this->attrs["def"];
+        unset($def["table_name"]);
+        unset($def["indexes"]);
+        return $def;
+    }
+    /**
      * @getter children.col
      */
     public function getCols ()

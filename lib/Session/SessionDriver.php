@@ -38,8 +38,12 @@ class SessionDriver extends ZendSessionManager
     public function handle($request, $next)
     {
         $this->start();
-        app()->debug->getDebugLevel();
         return $next($request);
+    }
+    public function start()
+    {
+        parent::start();
+        app()->debug->getDebugLevel();
     }
 
 // --

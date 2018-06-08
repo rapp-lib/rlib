@@ -65,7 +65,6 @@
 <?php else: ?>
         $this->vars["t"] = $this->forms["entry"]->getValues();
 <?php endif; ?>
-        return $this->redirect("id://<?=$pageset->getPageByType("complete")->getLocalPage()?>");
     }
 <?=$pageset->getPageByType("complete")->getMethodDecSource()?>
     {

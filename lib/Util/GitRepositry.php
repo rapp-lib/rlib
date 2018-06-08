@@ -20,7 +20,7 @@ class GitRepositry
     {
         $dir = getcwd();
         chdir($this->dir);
-        $cmd = app()->console->cliEscape($cmd);
+        $cmd = \R\Lib\Util\Cli::escape($cmd);
         $this->cmd_log[] = "> ".$cmd;
         $result = shell_exec($cmd);
         chdir($dir);

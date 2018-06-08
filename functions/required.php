@@ -4,6 +4,7 @@
 
 // -- Container Facade
 
+    // @deprecated
     function app_set ($container)
     {
         \Illuminate\Support\Facades\Facade::setFacadeApplication($container);
@@ -12,15 +13,15 @@
     {
         return app()->table($table_name);
     }
-    function __ ($key, $values=array(), $locale=null)
+    function ___ ($key, $values=array(), $locale=null)
     {
         return app()->i18n->getMessage($key, $values, $locale);
     }
     function report ()
     {
-        $values = array();
-        foreach (func_get_args() as $k=>$v) $values["value #".$k] = $v;
-        app()->report->getLogger()->debug("DEBUG", $values);
+        $vars = array();
+        foreach (func_get_args() as $k=>$v) $vars["value #".$k] = $v;
+        app()->report->getLogger()->debug("DEBUG", $vars);
     }
     function report_info ($message, array $vars=array())
     {
@@ -49,10 +50,6 @@
     function tag ($name, $attrs=null, $content=null)
     {
         return \R\Lib\Util\HtmlBuilder::build($name, $attrs, $content);
-    }
-    function arr ( & $arr)
-    {
-        return new \R\Lib\Util\Arr($arr);
     }
 
 // -- String Util

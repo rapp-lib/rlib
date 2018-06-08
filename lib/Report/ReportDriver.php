@@ -12,7 +12,8 @@ class ReportDriver
     public function getLogger()
     {
         if ( ! isset($this->logger)) {
-            $this->logger = new Logger("rapp");
+            $this->logger = app("log")->getMonolog();
+            if ( ! $this->logger) $this->logger = new Logger("rapp");
             $this->logger->pushHandler($this->getLoggingHandler());
         }
         return $this->logger;
@@ -34,6 +35,7 @@ class ReportDriver
 
 // -- shutdown前の自動出力
 
+    protected $error_shutdown = false;
     protected $auto_flush_before_shutdown = true;
     public function setAutoFlushBeforeShutdown($auto_flush_before_shutdown)
     {
@@ -41,8 +43,8 @@ class ReportDriver
     }
     public function beforeShutdown()
     {
-        if ( ! $this->auto_flush_before_shutdown) return;
-        $this->getLoggingHandler()->autoFlushBeforeShutdown();
+        if ($this->error_shutdown) $this->getLoggingHandler()->errorOutputBeforeShutdown();
+        if ($this->auto_flush_before_shutdown) $this->getLoggingHandler()->autoFlushBeforeShutdown();
     }
 
 // -- http応答の書き換え
@@ -100,7 +102,7 @@ class ReportDriver
             $last_error['php_error_code'] = $last_error['type'];
             $e = ReportRenderer::createHandlableError($last_error);
             $this->logException($e);
-            $this->flushable = true;
+            $this->error_shutdown = true;
         }
         $this->beforeShutdown();
     }
@@ -110,6 +112,7 @@ class ReportDriver
     public function splExceptionHandler($e)
     {
         $this->logException($e);
+        $this->error_shutdown = true;
         if (is_callable($this->prev_spl_exception_handler)) {
             call_user_func($this->prev_spl_exception_handler, $e);
         }

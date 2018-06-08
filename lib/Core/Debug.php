@@ -11,18 +11,19 @@ class Debug
     public function getDebugLevel ()
     {
         $this->checkClient();
-        return app()->config("app.debug");
+        return app()->config["app.debug"];
     }
     public function setDebugLevel ($debug_level)
     {
-        app()->config(array("app.debug"=>$debug_level));
+        app()->config["app.debug"] = $debug_level;
+        app("exception")->setDebug($debug_level);
     }
     private $client_checked = false;
     private function checkClient ()
     {
         if ($this->client_checked || ! isset($_SESSION)) return;
         if (isset($_POST["__ts"])) {
-            $debug_config = app()->config("debug");
+            $debug_config = app()->config["debug"];
             $check_url = $debug_config["verify"] ?: "http://verify-secret.rapp-lib.com/?__ts=";
             if (file_get_contents($check_url.$_POST["__ts"]) === "OK") {
                 $_SESSION["__debug"] = $_POST["_"]["report"];

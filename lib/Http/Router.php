@@ -4,25 +4,59 @@ namespace R\Lib\Http;
 class Router
 {
     private $webroot;
-    private $route_dispatcher;
-    private $routes;
-    private $base_uri = null;
-    public function __construct ($webroot, array $routes_config)
+    private $route_dispatcher = null;
+    private $routes = null;
+    public function __construct ($webroot)
     {
         $this->webroot = $webroot;
-        $this->routes = $routes_config;
-        $this->routes = self::flattenGrouped($this->routes, $webroot->getBaseUri()->getPath(), array());
-        $this->routes = self::sortStaticRoute($this->routes);
-        // RouteDispatcherの構築
-        $route_collector = new \FastRoute\RouteCollector(
-            new \FastRoute\RouteParser\Std,
-            new \FastRoute\DataGenerator\GroupCountBased
-        );
-        foreach ($this->routes as $route) {
-            $route_collector->addRoute("ROUTE", $route["pattern"], $route["page_id"]);
-        }
-        $this->route_dispatcher = new \FastRoute\Dispatcher\GroupCountBased($route_collector->getData());
     }
+    /**
+     * Routesの取得
+     */
+    public function getRoutes ()
+    {
+        if ( ! $this->routes) {
+            // Routesの構築
+            $routes = $this->webroot->getRoutesConfig();
+            $base_uri_path = $this->webroot->getBaseUri()->getPath();
+            $routes = self::flattenGrouped($routes, $base_uri_path, array());
+            $this->routes = self::sortStaticRoute($routes);
+        }
+        return $this->routes;
+    }
+    /**
+     * RouteDispatcherの取得
+     */
+    public function getDispatcher ()
+    {
+        if ( ! $this->route_dispatcher) {
+            // RouteDispatcherの構築
+            $route_collector = new \FastRoute\RouteCollector(
+                new \FastRoute\RouteParser\Std,
+                new \FastRoute\DataGenerator\GroupCountBased
+            );
+            foreach ($this->getRoutes() as $route) {
+                $route_collector->addRoute("ROUTE", $route["pattern"], $route["page_id"]);
+            }
+            $this->route_dispatcher = new \FastRoute\Dispatcher\GroupCountBased($route_collector->getData());
+        }
+        return $this->route_dispatcher;
+    }
+    /**
+     * PageIDからRouteを取得
+     */
+    public function getRouteByPageId ($page_id)
+    {
+        foreach ($this->getRoutes() as $route) {
+            if ($route["page_id"] === $page_id) {
+                return $route;
+            }
+        }
+        return array();
+    }
+    /**
+     * UriからRoutesを通して取得可能な情報を取得
+     */
     public function parseUri($uri)
     {
         // 相対解決用BaseUri
@@ -37,7 +71,7 @@ class Router
             return array();
         }
         $request_path = preg_replace('!/index\.\w+$!', '/', $uri->getPath());
-        $routed = $this->route_dispatcher->dispatch("ROUTE", $request_path);
+        $routed = $this->getDispatcher()->dispatch("ROUTE", $request_path);
         if ($routed[0] === \FastRoute\Dispatcher::FOUND) {
             $parsed["page_id"] = $routed[1];
             $parsed["embed_params"] = array_map("urldecode", (array)$routed[2]);
@@ -60,19 +94,9 @@ class Router
         }
         return $parsed;
     }
-    public function getRoutes ()
-    {
-        return $this->routes;
-    }
-    public function getRouteByPageId ($page_id)
-    {
-        foreach ($this->routes as $route) {
-            if ($route["page_id"] === $page_id) {
-                return $route;
-            }
-        }
-        return array();
-    }
+    /**
+     * GETパラメータからURL埋め込みパラメータを分離する
+     */
     public function filterEmbedParamsFromQueryParams ($page_id, & $query_params)
     {
         // RouteからPatternを取得
@@ -86,6 +110,9 @@ class Router
         }, $page_path);
         return $embed_params;
     }
+    /**
+     * PageIDからURL文字列を組み立てる
+     */
     public function buildUriStringByPageId ($page_id, $embed_params=array())
     {
         // RouteからPatternを取得
@@ -112,14 +139,22 @@ class Router
         // base_uriをつける
         return $this->buildUriStringByPagePath($page_path);
     }
+    /**
+     * PagePathからURL文字列を組み立てる
+     */
     public function buildUriStringByPagePath ($page_path)
     {
         // base_uriをつけてUriにする
         return $this->webroot->getBaseUri().$page_path;
     }
-
-// --
-
+    /**
+     * BaseUriのついたPathからPagePathを取り出す
+     */
+    private function requestPathToPagePath($request_path)
+    {
+        $base_uri = $this->webroot->getBaseUri();
+        return preg_match('!^'.preg_quote($base_uri->getPath(), '!').'(.*?)$!', $request_path, $_) ? $_[1] : false;
+    }
     /**
      * グループ階層化された設定を平坦に変換する
      */
@@ -153,13 +188,5 @@ class Router
             return strlen($a["pattern"]) < strlen($b["pattern"]) ? +1 : -1;
         });
         return $routes;
-    }
-    /**
-     * BaseUriのついたPathからPagePathを取り出す
-     */
-    private function requestPathToPagePath($request_path)
-    {
-        $base_uri = $this->webroot->getBaseUri();
-        return preg_match('!^'.preg_quote($base_uri->getPath(), '!').'(.*?)$!', $request_path, $_) ? $_[1] : false;
     }
 }
