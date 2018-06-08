@@ -458,6 +458,17 @@ class PagesetElement extends Element_Base
         $param_fields = $this->getParamFields();
         return $param_fields[$name] ?: null;
     }
+    public function getDependParamField ()
+    {
+        $param_fields = $this->getParamFields("depend");
+        if ( ! $param_fields) return null;
+        $param_field = array_shift($param_fields);
+        if ($table = $this->getController()->getTable()) {
+            $param_field["col"] = $table->getColByName($param_field["field_name"]);
+            $param_field["enum_set"] = $param_field["col"]->getEnumSet();
+        }
+        return $param_field;
+    }
 
     /**
      * リンク先Pagesetへのリンク記述コードを取得

@@ -27,6 +27,7 @@
     <h2>Menu</h2>
     <dl>
 <?php foreach ($role->getTopLevelControllers() as $menu_controller): ?>
+<?php   $index_page = $menu_controller->getIndexPage(); ?>
 <?php   if ($menu_controller->getAttr("type")==="login"): ?>
 <?php       $login_page = $menu_controller->getPagesetByType("login")->getPageByType("login"); ?>
 <?php       $exit_page = $menu_controller->getPagesetByType("login")->getPageByType("exit"); ?>
@@ -35,15 +36,23 @@
         {{else}}
             <dt><a href='{{"<?=$login_page->getFullPage()?>"|page_to_url}}'>ログイン</a></dt>
         {{/if}}
+<?php   elseif ($param_field = $menu_controller->getIndexPageset()->getDependParamField()): ?>
+<?php       if ( ! $menu_controller->getIndexPageset()->getLinkFrom() && $param_field["enum_set"]): ?>
+        {{if "<?=$index_page->getFullPage()?>"|is_accessible}}
+            <dt>
+                <a href='javascript:void(0);'><?=$index_page->getTitle()?></a>
+                <dl>
+                    {{foreach $enum["<?=$param_field["enum_set"]->getFullName()?>"] as $k=>$v}}
+                        <dt><a href='{{"<?=$index_page->getFullPage()?>"|page_to_url:["<?=$param_field["param_name"]?>"=>$k]}}'>{{$v}}</a></dt>
+                    {{/foreach}}
+                </dl>
+            </dt>
+        {{/if}}
+<?php       endif; ?>
 <?php   else: ?>
-<?php       $index_page = $menu_controller->getIndexPage(); ?>
-<?php       if ($role->getName() == "guest"): ?>
-        <dt><a href='{{"<?=$index_page->getFullPage()?>"|page_to_url}}'><?=$index_page->getTitle()?></a></dt>
-<?php       else: ?>
         {{if "<?=$index_page->getFullPage()?>"|is_accessible}}
             <dt><a href='{{"<?=$index_page->getFullPage()?>"|page_to_url}}'><?=$index_page->getTitle()?></a></dt>
         {{/if}}
-<?php       endif ?>
 <?php   endif; ?>
 <?php endforeach; ?>
     </dl>

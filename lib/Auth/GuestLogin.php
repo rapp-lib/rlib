@@ -15,7 +15,7 @@ class GuestLogin
     }
     public function checkPriv($priv_req)
     {
-        return false;
+        return true;
     }
     public function getAuthTable()
     {
