@@ -93,24 +93,30 @@ class FarmEngine
         }
         // DEVELOPブランチからFARMマークされた直近のコミット（JOINTコミット）を探す
         // JOINT=` git rev-list --grep="<FARM>" develop | head -n1 `
-        $joint_commit = $this->cmdWork(array("git", "rev-list",
-            $this->getConfig("farm_mark_find"), $this->getConfig("develop_branch"),
-            "--", $this->getPipe(), "head", "-n1"));
+        if (is_array($this->getConfig("farm_mark_find"))) {
+            $joint_commit = $this->cmdWork(array("git", "rev-list",
+                $this->getConfig("farm_mark_find"), $this->getConfig("develop_branch"),
+                "--", $this->getPipe(), "head", "-n1"));
+        } elseif (is_callable($this->getConfig("farm_mark_find"))) {
+            $joint_commit = call_user_func($this->getConfig("farm_mark_find"), $this);
+        }
         // JOINTコミットがあれば、そこからROOTコミットを探索する
         if ($joint_commit) {
             // ROOTコミットを探す
-            if ($this->getConfig("root_find")) {
+            if (is_array($this->getConfig("root_find"))) {
                 // ROOT=` git rev-list --grep="<FARM>" $JOINT | tail -n1 `
                 $root_commit = $this->cmdWork(array("git", "rev-list",
                     $this->getConfig("root_find"), $joint_commit,
                     "--", $this->getPipe(), "tail", "-n1"));
-                // ROOTコミットが見つからなければエラー
-                if ( ! $root_commit) {
-                    report("ROOTコミットが見つかりません");
-                }
+            } elseif (is_callable($this->getConfig("root_find"))) {
+                $root_commit = call_user_func($this->getConfig("root_find"), $this, $joint_commit);
             // ROOTコミットを探索しない場合、JOINTコミットを代用する
             } else {
                 $root_commit = $joint_commit;
+            }
+            // ROOTコミットが見つからなければエラー
+            if ( ! $root_commit) {
+                report("ROOTコミットが見つかりません");
             }
             // ファイルの状態をROOTコミットにして、JOINTコミットをCO
             // git checkout -b farm/build $ROOT
