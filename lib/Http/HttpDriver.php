@@ -18,7 +18,8 @@ class HttpDriver
     public function createServerRequest ($request=array(), $webroot=false)
     {
         // Webroot作成
-        if ($webroot===false) $webroot = $_ENV["APP_WEBROOT"] ?: $_ENV["APP_WEBROOT_FALLBACK"] ?: "www";
+        if ( ! $webroot) $webroot = $_ENV["APP_WEBROOT"];
+        if ( ! $webroot) report_error("webrootが特定できません");
         if (is_string($webroot)) $webroot = $this->webroot($webroot);
         // ServedRequest作成
         $method_name = is_array($request) ? "fromGlobals" : "fromServerRequestInterface";
@@ -45,10 +46,6 @@ class HttpDriver
             if (app()->runningUnitTests()) throw $e;
             $response = app("exception")->handleException($e);
         }
-        report_info("Http Served", array(
-            "request_uri" => $request->getUri(),
-            "input_values" => $request->getAttribute(InputValues::ATTRIBUTE_INDEX),
-        ));
         return $response;
     }
 
@@ -140,8 +137,6 @@ class HttpDriver
     }
     public function emit ($response)
     {
-        // Inject report info
-        $response = app()->report->rewriteHttpResponse($response);
         return with($emitter = new SapiEmitter())->emit($response);
     }
 }

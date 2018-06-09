@@ -13,7 +13,7 @@
     {
         return app()->table($table_name);
     }
-    function __ ($key, $values=array(), $locale=null)
+    function ___ ($key, $values=array(), $locale=null)
     {
         return app()->i18n->getMessage($key, $values, $locale);
     }

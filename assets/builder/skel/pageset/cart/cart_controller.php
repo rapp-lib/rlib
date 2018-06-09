@@ -39,7 +39,7 @@
             if ($this->forms["cart"]->isValid()) {
                 $this->forms["cart"]->save();
             } else {
-                $this->flash->error(__("反映できませんでした"));
+                $this->flash->error(___("反映できませんでした"));
             }
             return $this->redirect("id://<?=$pageset->getPageByType("cart")->getLocalPage()?>");
         }
