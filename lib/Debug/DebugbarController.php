@@ -13,7 +13,7 @@ class DebugbarController extends HttpController
         }
         $openHandler = new OpenHandler($debugbar);
         $data = $openHandler->handle(null, false, false);
-        $response = app()->http->response("data", $data, array("headers"=>array(
+        return app()->http->response("data", $data, array("headers"=>array(
             'Content-Type' => 'application/json'
         )));
     }
@@ -40,8 +40,7 @@ class DebugbarController extends HttpController
      */
     protected function cacheResponse($response)
     {
-        $response->withMaxAge(31536000);
-        $response->withMaxAge(new \DateTime('+1 year'));
+        $response = $response->withMaxAge(new \DateTime('+1 year'));
         return $response;
     }
 }

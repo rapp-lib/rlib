@@ -94,23 +94,8 @@ class HttpController implements FormRepositry
         if ( ! $result["has_action"]) {
             report_warning("URLに対応するActionがありません",array("uri"=>$this->uri));
         }
-        // ResponseがあればHTMLを処理せず応答
         if ($result["response"]) return $result["response"];
-        $file = $this->uri->getPageFile();
-        // HTMLファイルがなければ404応答
-        if ( ! is_file($file)) return app()->http->response("notfound");
-        // varsの組み立て
-        $vars = $this->vars;
-        $vars["forms"] = $this->forms;
-        $vars["input"] = $this->input;
-        $vars["request"] = $this->request;
-        $vars["enum"] = app()->enum;
-        $vars["auth"] = app()->user;
-        // HTMLファイルを応答
-        $route = $this->uri->getRoute();
-        $view = app()->view($route["view"] ?: "default");
-        $html = $view->fetch($file, $vars);
-        return app()->http->response("html", $html);
+        return $this->makeResponse();
     }
     public function invokeAction ($request)
     {
@@ -129,5 +114,36 @@ class HttpController implements FormRepositry
         }
         $result["vars"] = $this->vars;
         return $result;
+    }
+    protected function makeResponse ()
+    {
+        // ajaxの指定があればJSONを応答
+        $isAjaxRoute = $this->uri->getRoute("ajax");
+        // またはajax=allowの指定があり、Ajax要求でなければテンプレートで応答
+        $isAjaxRequest = $this->request->isAjax() || $this->request->wantsJson();
+        if ($isAjaxRoute===true || ($isAjaxRoute==="allow" && $isAjaxRequest)) {
+            return app()->http->response('json', $this->vars);
+        }
+        // 指定がない場合テンプレートによりHTMLを応答
+        $file = $this->getTemplateFile();
+        // テンプレートファイルがなければ404応答
+        if ( ! is_file($file)) return app()->http->response("notfound");
+        $vars = $this->getTemplateVars();
+        $html = app()->view()->fetch($file, $vars);
+        return app()->http->response("html", $html);
+    }
+    protected function getTemplateFile ()
+    {
+        return $this->uri->getPageFile();
+    }
+    protected function getTemplateVars ()
+    {
+        $vars = $this->vars;
+        $vars["forms"] = $this->forms;
+        $vars["input"] = $this->input;
+        $vars["request"] = $this->request;
+        $vars["enum"] = app()->enum;
+        $vars["auth"] = app()->user;
+        return $vars;
     }
 }

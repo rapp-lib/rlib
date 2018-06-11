@@ -10,9 +10,15 @@ class HttpDriver
     {
         return app("request");
     }
+    public function getServedRequest ()
+    {
+        // @deprecated
+        return $this->getRequest();
+    }
     public function refreshRequest ($request)
     {
         app()->instance("request", $request);
+        app()->instance("request.fallback", $request);
 		Facade::clearResolvedInstance('request');
     }
     public function createServerRequest ($request=array(), $webroot=false)
@@ -47,45 +53,6 @@ class HttpDriver
             $response = app("exception")->handleException($e);
         }
         return $response;
-    }
-
-// -- serve
-
-    protected $served_request = null;
-    protected $served_request_stack = array();
-    public function serve ($webroot_name, $deligate, $request=array())
-    {
-        // Webroot作成
-        $webroot = $this->webroot($webroot_name);
-        // ServedRequest作成
-        if (is_array($request)) {
-            $served_request = ServerRequestFactory::fromGlobals($webroot, $request);
-        } elseif ($request instanceof ServerRequestInterface) {
-            $served_request = ServerRequestFactory::fromServerRequestInterface($webroot, $request);
-        }
-        array_push($this->served_request_stack, $this->served_request);
-        $this->served_request = $served_request;
-        // ErrorFallback
-        try {
-            // Dispatch処理
-            $response = $webroot->dispatch($served_request, $deligate);
-        } catch (\Exception $e) {
-            if (app()->runningUnitTests()) throw $e;
-            $response = app("exception")->handleException($e);
-        } catch (\Throwable $e) {
-            if (app()->runningUnitTests()) throw $e;
-            $response = app("exception")->handleException($e);
-        }
-        report_info("Http Served", array(
-            "request_uri"=>$this->served_request->getUri(),
-            "input_values"=>$this->served_request->getAttribute(InputValues::ATTRIBUTE_INDEX),
-        ));
-        $this->served_request = array_pop($this->served_request_stack);
-        return $response;
-    }
-    public function getServedRequest ()
-    {
-        return $this->served_request ?: $this->getRequest();
     }
 
 // -- Webroot
@@ -137,6 +104,17 @@ class HttpDriver
     }
     public function emit ($response)
     {
+        $response = $this->applyResponseFilters($response);
         return with($emitter = new SapiEmitter())->emit($response);
+    }
+    public function applyResponseFilters ($response)
+    {
+        try {
+            $filters = (array)app()->config["http.global.response_filters"];
+            foreach ($filters as $filter) $response = call_user_func($filter, $response);
+        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+        }
+        return $response;
     }
 }

@@ -1,0 +1,27 @@
+{{inc file=$header_file}}
+
+{{if $results}}
+{{foreach $results as $test=>$result}}
+<div class="tree">
+    <h2>{{$test}}</h2>
+    <div>
+        {{$result.output}}
+    </div>
+</div>
+{{/foreach}}
+{{/if}}
+
+<div class="tree">
+    <h2>Tests</h2>
+{{foreach $tests as $class=>$methods}}
+    <div>- <a href="{{'.'|page_to_url:["test"=>$class]}}">{{$class}}</a></div>
+    <div>
+{{foreach $methods as $method}}
+{{$test=implode('::',array($class,$method))}}
+        <div>- <a href="{{'.'|page_to_url:["test"=>$test]}}">{{$test}}</a></div>
+{{/foreach}}
+    </div>
+{{/foreach}}
+</div>
+
+{{inc file=$footer_file}}

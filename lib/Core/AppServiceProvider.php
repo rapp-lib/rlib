@@ -1,21 +1,17 @@
 <?php
 namespace R\Lib\Core;
 
-use R\Lib\Exception\ExceptionServiceProvider;
-use R\Lib\Debug\DebugServiceProvider;
 use Illuminate\Events\EventServiceProvider;
-use Illuminate\Log\LogServiceProvider;
+use R\Lib\Exception\ExceptionServiceProvider;
+use R\Lib\Log\LogServiceProvider;
 
-use Illuminate\Support\Facades\Facade;
 use Illuminate\Foundation\AliasLoader;
-use Illuminate\Config\EnvironmentVariables;
 use Dotenv\Dotenv;
 
 class AppServiceProvider extends ServiceProvider
 {
     protected $base_bindings = array(
         // 5.0
-        'config' => 'R\Lib\Core\Config',
         'debug' => 'R\Lib\Core\Debug',
         'report' => 'R\Lib\Report\ReportDriver',
         'builder' => '\R\Lib\Builder\WebappBuilder',
@@ -27,7 +23,6 @@ class AppServiceProvider extends ServiceProvider
         "security" => 'R\Lib\Core\Security',
         "enum" => 'R\Lib\Enum\EnumRepositry',
         "view" => 'R\Lib\View\ViewFactory',
-        "test" => 'R\Lib\Test\TestDriver',
         "doc" => 'R\Lib\Doc\DocDriver',
         // 4.0
         "http" => 'R\Lib\Http\HttpDriver',
@@ -42,6 +37,11 @@ class AppServiceProvider extends ServiceProvider
         'build:make'=>'\R\Lib\Builder\Command\BuildMakeCommand',
         'farm.publish'=>'\R\Lib\Farm\Command\FarmPublishCommand',
     );
+    protected $base_providers = array(
+        '\R\Lib\Debug\DebugServiceProvider',
+        '\R\Lib\Test\TestServiceProvider',
+        '\R\Lib\Doc\DocServiceProvider',
+    );
     public function register()
     {
         // パス設定
@@ -54,10 +54,14 @@ class AppServiceProvider extends ServiceProvider
         if (file_exists(constant("R_APP_ROOT_DIR")."/.env")) {
             with(new Dotenv(constant("R_APP_ROOT_DIR"),".env"))->load();
         }
-        // lib以下のbind登録
-        foreach ($this->base_bindings as $k=>$v) $this->app->singleton($k, $v);
+        // bindings設定
+        $this->app->singleton('config', 'R\Lib\Core\Config');
+        $bindings = (array)$this->app['config']['app.debug'] + $this->base_bindings;
+        foreach ($bindings as $k=>$v) $this->app->singleton($k, $v);
         // Consoleの場合自動的にapp.debug有効化
-        if ($this->app->runningInConsole()) $this->app['config']['app.debug'] = true;
+        if ($this->app->runningInConsole()) {
+            $this->app['config']['app.debug'] = true;
+        }
         // 環境名を設定
         $this->app->instance('env', $this->app->config["app.env"]);
         // Fallback用requestセットアップ
@@ -70,7 +74,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->register(new EventServiceProvider($this->app));
         // log/reportセットアップ
         $this->app->register(new LogServiceProvider($this->app));
-        // エラー停止処理セットアップ <= report依存
+        // エラー停止処理セットアップ
         $this->app->register(new ExceptionServiceProvider($this->app));
         $this->app['exception']->register($this->app["env"]);
         $this->app['exception']->setDebug($this->app['config']['app.debug']);
@@ -78,20 +82,31 @@ class AppServiceProvider extends ServiceProvider
         if ( ! $this->app->runningInConsole() && ! $this->app->config["session.prevent_auto_start"]) {
             $this->app->session->start();
         }
-        // Debugbar登録
-        $this->app->register(new DebugServiceProvider($this->app));
         // Aliases設定読み込み
         AliasLoader::getInstance((array)$this->app->config['app.aliases'])->register();
-        // Providers設定読み込み
-        foreach ((array)$this->app->config['app.providers'] as $provider_name) {
+        // Provider登録
+        $this->registerDefaultProviders();
+    }
+    protected function registerDefaultProviders()
+    {
+        foreach ((array)$this->base_providers as $provider_name) {
             $this->app->register($provider_name);
         }
-        if ($this->app->config['app.deffered_providers']) {
+        foreach ((array)$this->app->config['app.providers'] as $provider) {
+            $this->app->register($provider);
+        }
+        foreach (glob(constant("R_APP_ROOT_DIR").'/app/Service/*/*ServiceProvider.php') as $file) {
+            if (preg_match('!(\w+)/(\w+)ServiceProvider\.php$!', $file, $_) && $_[1]==$_[2]) {
+                $provider = '\R\App\Service\\'.$_[1].'\\'.$_[1].'ServiceProvider';
+                $this->app->register($provider);
+            }
+        }
+        if ($deffered_providers = $this->app->config['app.deffered_providers']) {
             $this->app->config['app.manifest'] = $this->app["path.storage"]."/meta";
             if ( ! file_exists($this->app->config['app.manifest'])) {
-                mkdir($this->app->config['app.manifest'], 0777, true);
+                mkdir($this->app->config['app.manifest'], 0775, true);
             }
-            $this->app->getProviderRepository()->load($this->app, $this->app->config['app.deffered_providers']);
+            $this->app->getProviderRepository()->load($this->app, $deffered_providers);
         }
     }
     public function boot()

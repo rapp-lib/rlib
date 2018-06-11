@@ -16,13 +16,12 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
         });
         if ( ! $this->app->debug->getDebugLevel()) return;
         if ( ! $this->app->runningInConsole()) {
-            $this->app->config["http.global.middlewares.190"] = function($request, $next){
-                $response = $next($request);
+            $this->app->config->push("http.global.response_filters", function($response){
                 // Report served info
                 if ( ! app('debugbar')->isDebugbarRequest()) {
                     report_info("Http Served", array(
-                        "request_uri" => $request->getUri(),
-                        "input_values" => $request->getAttribute(\R\Lib\Http\InputValues::ATTRIBUTE_INDEX),
+                        "request_uri" => app("request.fallback")->getUri(),
+                        "input_values" => app("request.fallback")->getAttribute(\R\Lib\Http\InputValues::ATTRIBUTE_INDEX),
                     ));
                 }
                 // Inject report info
@@ -33,7 +32,7 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
                     $response = app('debugbar')->modifyResponse($request, $response);
                 }
                 return $response;
-            };
+            });
             $this->app->config["http.global.controller_class.debugbar"] = 'R\Lib\Debug\DebugbarController';
             $routes = array(
                 array("debugbar.open", "/.devel/debugbar/open"),
