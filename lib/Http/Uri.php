@@ -117,7 +117,7 @@ class Uri extends \Zend\Diactoros\Uri
         if ( ! $this->page_controller) {
             $page_id = $this->getPageId();
             if ( ! $page_id) {
-                report_error("URLに対応するPageIDがありません", array("uri"=>$this));
+                report_error("URLに対応するPageIDがありません", array("uri"=>"".$this));
             }
             list($controller_name,) = explode('.', $page_id, 2);
             $controller_class = $this->webroot->getControllerClass($controller_name);
