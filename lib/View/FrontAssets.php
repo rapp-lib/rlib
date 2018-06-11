@@ -38,19 +38,18 @@ class FrontAssets
     {
         if (is_string($mod_names)) $mod_names = array($mod_names);
         foreach ((array)$mod_names as $mod_name) {
-            if ($this->loaded_mods[$mod_name]) continue;
+            if ($this->buffer[$mod_name]) continue;
             $mod = $this->def_mods[$mod_name];
             if ( ! $mod) {
                 report_warning("Front Assetが定義されていません",array("mod_name"=>$mod_name));
             }
-            $this->loaded($mod_name);
             $this->load($mod["deps"]);
-            $this->buffer[] = array("type"=>"js_uri", "uri"=>$mod["uri"]);
+            $this->buffer[$mod_name] = array("type"=>"js_uri", "uri"=>$mod["uri"]);
         }
     }
     public function loaded ($mod_name)
     {
-        $this->loaded_mods[$mod_name] = true;
+        $this->buffer[$mod_name] = array("type"=>"external");
     }
     public function script ($code, $dep_mod_names=array())
     {
@@ -66,6 +65,7 @@ class FrontAssets
     {
         $html = "<!-- assets-loading -->"."\n";
         foreach ($this->buffer as $data) {
+            if ($data["type"]=="external") continue;
             if ($data["type"]=="js_uri") $html .= tag('script',array("src"=>$data["uri"]),"");
             elseif ($data["type"]=="js_code") $html .= tag('script',array(),$data["code"]);
             $html .= "\n";
