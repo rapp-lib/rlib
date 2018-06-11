@@ -554,6 +554,7 @@ class FormContainer extends ArrayObject
 
     /**
      * Formの値をもとに、関連づけられたTableのRecordインスタンスを作成
+     * ※関係するdef : fields.*.read_col(or col)
      */
     public function getRecord ()
     {
@@ -564,7 +565,7 @@ class FormContainer extends ArrayObject
 
     /**
      * Recordインスタンスの値からFormの値を設定する
-     * ※関係するdef : fields.*.col
+     * ※関係するdef : fields.*.write_col(or col)
      */
     public function setRecord ($record)
     {
@@ -578,27 +579,27 @@ class FormContainer extends ArrayObject
     private function convertRecord ($record, $is_record_to_values)
     {
         foreach ($this->def["fields"] as $field_name => $field_def) {
+            $col_name = self::getDefColName($field_def, $is_record_to_values);
             // colがfalseであれば削除
-            if ($field_def["col"]===false) {
+            if ($col_name===false) {
                 continue;
             }
             // 下層の値は親で処理するのでスキップ
             if ($field_def["level"]==2 || $field_def["level"]==3) {
                 continue;
             }
-            $col_name = $field_def["col"];
             $table_name = $field_def["table"];
             // fields型の場合下層の要素を処理
             if ($field_def["type"]=="fields") {
                 // 要素別の処理
                 foreach ((array)$field_def["child_field_names"] as $child_field_name) {
                     $child_field_def = $this->def["fields"][$child_field_name];
+                    $child_col_name = self::getDefColName($child_field_def, $is_record_to_values);
                     // colがfalseであれば削除
-                    if ($child_field_def["col"]===false) {
+                    if ($child_col_name===false) {
                         continue;
                     }
                     $item_name = $child_field_def["item_name"];
-                    $child_col_name = $child_field_def["col"];
                     $child_table_name = $child_field_def["table"];
                     //TODO: テーブル定義の確認
                     // 値を登録
@@ -621,10 +622,10 @@ class FormContainer extends ArrayObject
                     // 要素別の処理
                     foreach ((array)$field_def["child_field_names"] as $child_field_name) {
                         $child_field_def = $this->def["fields"][$child_field_name];
+                        $child_col_name = self::getDefColName($child_field_def, $is_record_to_values);
                         // colがfalseであれば削除
-                        if ($child_field_def["col"]===false) continue;
+                        if ($child_col_name===false) continue;
                         $item_name = $child_field_def["item_name"];
-                        $child_col_name = $child_field_def["col"];
                         $child_table_name = $child_field_def["table"];
                         //TODO: テーブル定義の確認
                         // 値を登録
@@ -641,7 +642,7 @@ class FormContainer extends ArrayObject
                     $this[$field_name] = $values;
                 } else {
                     // assoc参照関係があれば下層をRecordに対応づける
-                    if ($assoc_col_name = $field_def["col"]) {
+                    if ($assoc_col_name = $col_name) {
                         $table_def = app()->table->getTableDef($this->def["table"]);
                         $assoc_table_name = $table_def["cols"][$assoc_col_name]["assoc"]["table"];
                         if ($assoc_table_name) {
@@ -666,6 +667,19 @@ class FormContainer extends ArrayObject
             }
         }
         return $record;
+    }
+    /**
+     * convertRecord内でfield_def.colを読み替える為の処理
+     * Form→Recordに変換する際はcolよりもwrite_colを優先して参照する
+     * Record→Formに変換する際はcolよりもread_colを優先して参照する
+     */
+    private static function getDefColName ($field_def, $is_record_to_values)
+    {
+        $col_name = $field_def["col"];
+        if (isset($field_def[$is_record_to_values ? "read_col" : "write_col"])) {
+            $col_name = $field_def[$is_record_to_values ? "read_col" : "write_col"];
+        }
+        return $col_name;
     }
 
     /**
