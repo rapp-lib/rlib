@@ -1,7 +1,9 @@
 <?php
 namespace R\Lib\Debug;
-
 use Barryvdh\Debugbar\LaravelDebugbar;
+use R\Lib\Debug\DataCollector\ReportCollector;
+use DebugBar\Storage\FileStorage;
+
 use Barryvdh\Debugbar\DataCollector\AuthCollector;
 use Barryvdh\Debugbar\DataCollector\EventCollector;
 use Barryvdh\Debugbar\DataCollector\FilesCollector;
@@ -25,72 +27,57 @@ use DebugBar\DataCollector\TimeDataCollector;
 
 class Debugbar extends LaravelDebugbar
 {
+    public function __construct($app = null)
+    {
+        parent::__construct($app);
+        $stack_dir = constant("R_APP_ROOT_DIR")."/tmp/debug/stack";
+        $this->setStorage(new \DebugBar\Storage\FileStorage($stack_dir));
+    }
     public function modifyResponse($request, $response)
     {
         $app = $this->app;
-        if ($app->runningInConsole() or !$this->isEnabled() || $this->isDebugbarRequest()) {
+
+        if ($app->runningInConsole() || ! $this->isEnabled() || $this->isDebugbarRequest()) {
             return $response;
         }
+        report_info("Http Served", array(
+            "request_uri" => app("request.fallback")->getUri(),
+            "input_values" => app("request.fallback")->getInputValues(),
+        ));
+        // Inject report info
+        // if ( ! $this->app['config']["debug.no_inject_report"]) {
+        //     $response = app("report")->rewriteHttpResponse($response);
+        // }
 
-        if ($this->shouldCollect('config', true)) {
-            try {
-                $configCollector = new ConfigCollector();
-                $configCollector->setData($app['config']->getItems());
-                $this->addCollector($configCollector);
-            } catch (\Exception $e) {
-                $this->addException(
-                    new Exception(
-                        'Cannot add ConfigCollector to Laravel Debugbar: ' . $e->getMessage(),
-                        $e->getCode(),
-                        $e
-                    )
-                );
-            }
+        if ($this->shouldCollect('report', true)) {
+            $this->addCollector(new ReportCollector());
         }
 
-        /** @var \Illuminate\Session\SessionManager $sessionManager */
-        // $sessionManager = $app['session'];
-        // $httpDriver = new SymfonyHttpDriver($sessionManager, $response);
-        // $this->setHttpDriver($httpDriver);
-
-        if ($this->shouldCollect('session')) {
-            try {
-                $this->addCollector(new SessionCollector($sessionManager));
-            } catch (\Exception $e) {
-                $this->addException(
-                    new Exception(
-                        'Cannot add SessionCollector to Laravel Debugbar: ' . $e->getMessage(),
-                        $e->getCode(),
-                        $e
-                    )
-                );
-            }
-        }
         if (in_array($response->getStatusCode(), array(301,302))) {
             try {
                 $this->stackData();
+                $location = $response->getHeaderLine("location");
+                $response = app()->http->response("html", '<a href="'.$location.'"><div style="padding:20px;'
+                    .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
+                    .'Location: '.$location.'</div></a>');
             } catch (\Exception $e) {
                 $app['log']->error('Debugbar exception: ' . $e->getMessage());
             }
-        } elseif (
-            $this->isJsonRequest($request) and
-            $app['config']->get('laravel-debugbar::config.capture_ajax', true)
-        ) {
+        }
+        if ($this->isJsonRequest($request)) {
             try {
                 $this->sendDataInHeaders(true);
             } catch (\Exception $e) {
                 $app['log']->error('Debugbar exception: ' . $e->getMessage());
             }
-        } elseif (
-            strpos($response->getHeaderLine('Content-Type'), 'html') === false
-        ) {
+        } elseif (strpos($response->getHeaderLine('Content-Type'), 'html') === false) {
             try {
                 // Just collect + store data, don't inject it.
                 $this->collect();
             } catch (\Exception $e) {
                 $app['log']->error('Debugbar exception: ' . $e->getMessage());
             }
-        } elseif ($app['config']->get('laravel-debugbar::config.inject', true)) {
+        } else {
             try {
                 $response = $this->injectDebugbar($response);
             } catch (\Exception $e) {
@@ -142,7 +129,7 @@ class Debugbar extends LaravelDebugbar
 
         $renderer = $this->getJavascriptRenderer();
         if ($this->getStorage()) {
-            $openHandlerUrl = $this->app['url']->route('debugbar.openhandler');
+            $openHandlerUrl = $this->route('debugbar.open');
             $renderer->setOpenHandlerUrl($openHandlerUrl);
         }
 
@@ -183,6 +170,8 @@ class Debugbar extends LaravelDebugbar
             $webroot = $this->app["request.fallback"]->getUri()->getWebroot();
             $this->js_renderer = new JavascriptRenderer($this, $base_url, $base_path);
             $this->js_renderer->setUrlGenerator($this);
+            $this->js_renderer->addAssets(array('widget.css'), array('widget.js'),
+                constant("R_LIB_ROOT_DIR")."/assets/debugbar/resources/", null);
         }
         return $this->js_renderer;
     }

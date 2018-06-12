@@ -8,9 +8,7 @@ class DebugbarController extends HttpController
     public function act_open()
     {
         $debugbar = app('debugbar');
-        if (!$debugbar->isEnabled()) {
-            $this->app->abort('500', 'Debugbar is not enabled');
-        }
+        if ( ! $debugbar->isEnabled()) $this->app->abort('500', 'Debugbar is not enabled');
         $openHandler = new OpenHandler($debugbar);
         $data = $openHandler->handle(null, false, false);
         return app()->http->response("data", $data, array("headers"=>array(

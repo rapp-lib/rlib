@@ -4,6 +4,7 @@ namespace R\Lib\Core;
 use Illuminate\Events\EventServiceProvider;
 use R\Lib\Exception\ExceptionServiceProvider;
 use R\Lib\Log\LogServiceProvider;
+use R\Lib\Debug\DebugServiceProvider;
 
 use Illuminate\Foundation\AliasLoader;
 use Dotenv\Dotenv;
@@ -38,7 +39,6 @@ class AppServiceProvider extends ServiceProvider
         'farm.publish'=>'\R\Lib\Farm\Command\FarmPublishCommand',
     );
     protected $base_providers = array(
-        '\R\Lib\Debug\DebugServiceProvider',
         '\R\Lib\Test\TestServiceProvider',
         '\R\Lib\Doc\DocServiceProvider',
     );
@@ -82,6 +82,8 @@ class AppServiceProvider extends ServiceProvider
         if ( ! $this->app->runningInConsole() && ! $this->app->config["session.prevent_auto_start"]) {
             $this->app->session->start();
         }
+        // デバッグ処理セットアップ
+        $this->app->register(new DebugServiceProvider($this->app));
         // Aliases設定読み込み
         AliasLoader::getInstance((array)$this->app->config['app.aliases'])->register();
         // Provider登録
