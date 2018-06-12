@@ -109,12 +109,8 @@ class HttpDriver
     }
     public function applyResponseFilters ($response)
     {
-        try {
-            $filters = (array)app()->config["http.global.response_filters"];
-            foreach ($filters as $filter) $response = call_user_func($filter, $response);
-        } catch (\Exception $e) {
-        } catch (\Throwable $e) {
-        }
+        $filters = (array)app()->config["http.global.response_filters"];
+        foreach ($filters as $filter) $response = call_user_func($filter, $response);
         return $response;
     }
 }

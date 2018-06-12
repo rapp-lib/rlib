@@ -79,7 +79,7 @@ class Debugbar extends LaravelDebugbar
             }
         } else {
             try {
-                $response = $this->injectDebugbar($response);
+                $response = $this->injectDebugbarResponse($response);
             } catch (\Exception $e) {
                 $app['log']->error('Debugbar exception: ' . $e->getMessage());
             }
@@ -123,7 +123,7 @@ class Debugbar extends LaravelDebugbar
 
         return $this->data;
     }
-    public function injectDebugbar($response)
+    public function injectDebugbarResponse($response)
     {
         $content = $response->getBody();
 
