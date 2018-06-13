@@ -85,7 +85,7 @@ class ReportRenderer
             $text .= $values["__type"];
             unset($values["__type"]);
         }
-        foreach ($values as $k=>$v) {
+        foreach ((array)$values as $k=>$v) {
             $text .= $br_code.str_repeat($tab_code, $level).$k." : ";
             if (is_array($v) && count($v)) {
                 $text .= self::indentValues($v,$format,$level+1);

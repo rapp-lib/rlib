@@ -13,5 +13,10 @@ class ServerRequest extends \Zend\Diactoros\ServerRequest
     }
     public function getRequestFormat ()
     {
+        //
+    }
+    public function getInputValues ()
+    {
+        return $this->getAttribute(InputValues::ATTRIBUTE_INDEX);
     }
 }

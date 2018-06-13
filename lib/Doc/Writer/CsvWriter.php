@@ -10,7 +10,18 @@ class CsvWriter extends Writer_Base
             "ignore_empty_line" => true,
         ))->writeLines($this->content->exportCsv());
     }
-    public function preview ()
+    public function getDownloadResponse ($filename)
+    {
+        $csv = csv_open("php://temp", "w", array(
+            "ignore_empty_line" => true,
+        ));
+        $csv->writeLines($this->content->exportCsv());
+        return app()->http->response("stream", $csv->getHandle(), array("headers"=>array(
+            'content-type' => 'application/octet-stream',
+            'content-disposition' => 'attachment; filename='.basename($filename)
+        )));
+    }
+    public function getPreviewHtml ()
     {
         $lines = $this->content->exportCsv();
         $html = '<table rules="all" border="1" style="font-size:small;">';

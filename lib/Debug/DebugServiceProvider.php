@@ -7,33 +7,19 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
 {
     public function register()
     {
-        $this->app->alias(
-            'DebugBar\DataFormatter\DataFormatter',
-            'DebugBar\DataFormatter\DataFormatterInterface'
-        );
         $this->app['debugbar'] = $this->app->share(function($app){
             return new Debugbar($app);
         });
         if ( ! $this->app->debug->getDebugLevel()) return;
+        // Loggerに関連付け
+        $this->app->singleton("debug.logging_handler", "R\Lib\Debug\LoggingHandler");
+        $this->app["log"]->getMonolog()->pushHandler($this->app["debug.logging_handler"]);
+        // Http Global Injection
         if ( ! $this->app->runningInConsole()) {
-            $this->app->config["http.global.middlewares.190"] = function($request, $next){
-                $response = $next($request);
-                // Report served info
-                if ( ! app('debugbar')->isDebugbarRequest()) {
-                    report_info("Http Served", array(
-                        "request_uri" => $request->getUri(),
-                        "input_values" => $request->getAttribute(\R\Lib\Http\InputValues::ATTRIBUTE_INDEX),
-                    ));
-                }
-                // Inject report info
-                if ( ! $this->app['config']["debug.no_inject_report"]) {
-                    $response = app("report")->rewriteHttpResponse($response);
-                }
-                if ( ! $this->app['config']["debug.no_inject_debugbar"]) {
-                    $response = app('debugbar')->modifyResponse($request, $response);
-                }
+            $this->app->config->push("http.global.response_filters", function($response){
+                $response = app('debugbar')->modifyResponse($request, $response);
                 return $response;
-            };
+            });
             $this->app->config["http.global.controller_class.debugbar"] = 'R\Lib\Debug\DebugbarController';
             $routes = array(
                 array("debugbar.open", "/.devel/debugbar/open"),

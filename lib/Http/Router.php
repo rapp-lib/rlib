@@ -66,7 +66,7 @@ class Router
             return $parsed;
         }
         if ($page_path = $this->requestPathToPagePath($uri->getPath())) {
-            $parsed["page_path"] = $page_path;
+            $parsed["page_path"] = urldecode($page_path);
         } else {
             return array();
         }

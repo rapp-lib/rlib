@@ -193,22 +193,26 @@ class SmartyView
         if ( ! $uri && $params["route"]) $uri = "path://".$params["route"];
         if ( ! $uri && $params["path"]) $uri = "path://".$params["path"];
         if ( ! $uri && $params["page"]) $uri = "id://".$params["page"];
-        $request = app()->http->getServedRequest();
-        $uri = $request->getUri()->getRelativeUri($uri);
-        // テンプレートのFetch
-        $smarty_sub = clone($smarty);
-        $file = $uri->getPageFile();
-        if ( ! is_file($file)) {
+        if ($uri) {
+            $request = app()->http->getServedRequest();
+            $uri = $request->getUri()->getRelativeUri($uri);
+            $file = $uri->getPageFile();
+        } elseif ($params["file"]) {
+            $file = $params["file"];
+        }
+        if ( ! $file || ! is_file($file)) {
             report_warning("incタグの対象となるファイルがありません",array(
                 "file" => $file,
                 "uri" => $uri,
             ));
         }
-        // actの呼び出し
-        if ($uri->getPageId()) {
+        $smarty_sub = clone($smarty);
+        if ($uri && $uri->getPageId()) {
+            // actの呼び出し
             $result = $uri->getPageController()->invokeAction($request);
             $smarty_sub->assign((array)$result["vars"]);
         }
+        // テンプレートのFetch
         return $smarty_sub->fetch($file);
     }
 

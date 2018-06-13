@@ -4,36 +4,34 @@
 
 // -- Container Facade
 
-    // @deprecated
-    function app_set ($container)
-    {
-        \Illuminate\Support\Facades\Facade::setFacadeApplication($container);
-    }
     function table ($table_name)
     {
         return app()->table($table_name);
     }
     function ___ ($key, $values=array(), $locale=null)
     {
-        return app()->i18n->getMessage($key, $values, $locale);
+        return app("i18n")->getMessage($key, $values, $locale);
     }
     function report ()
     {
         $vars = array();
         foreach (func_get_args() as $k=>$v) $vars["value #".$k] = $v;
-        app()->report->getLogger()->debug("DEBUG", $vars);
+        app("log")->getMonolog()->debug("DEBUG", $vars);
     }
     function report_info ($message, array $vars=array())
     {
-        app()->report->getLogger()->info($message, $vars);
+        app("log")->getMonolog()->info($message, $vars);
     }
     function report_warning ($message, array $vars=array())
     {
-        app()->report->getLogger()->warn($message, $vars);
+        app("log")->getMonolog()->warn($message, $vars);
     }
     function report_error ($message, array $vars=array())
     {
-        app()->report->raiseError($message, $vars);
+        throw \R\Lib\Report\ReportRenderer::createHandlableError(array(
+            "message"=>$message,
+            "params"=>$vars,
+        ));
     }
 
 // -- Util

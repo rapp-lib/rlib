@@ -1,0 +1,30 @@
+{{inc file=$header_file}}
+
+<div class="tree">
+    <h2>Docs</h2>
+{{foreach $docs as $doc_name=>$doc}}
+    <div>- {{$doc_name}}</div>
+    <div>
+{{if $doc.error}}
+    <div>
+        - ERROR
+    </div>
+{{/if}}
+{{foreach $doc.contents as $content_name=>$content}}
+{{$content_id=implode('::',array($doc_name,$content_name))}}
+        <div>
+            - {{$content_name}}
+            <a href="{{'.'|page_to_url:["content"=>$content_id, "action"=>"preview"]}}">[PV]</a>
+            <a href="{{'.'|page_to_url:["content"=>$content_id, "action"=>"download"]}}">[DL]</a>
+        </div>
+{{/foreach}}
+    </div>
+{{/foreach}}
+</div>
+
+{{if $preview}}
+<div class="tree">
+    <h2>{{$preview.title}}</h2>
+    <div>{{$preview.html nofilter}}</div>
+</div>
+{{/if}}
