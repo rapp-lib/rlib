@@ -148,7 +148,7 @@ class DBSchemaDoctrine2
                 $index["name"] = $_index->getName();
                 $index["cols"] = $_index->getColumns();
                 $index["flgs"] = $_index->getFlags();
-                $index["options"] = $_index->getOptions();
+                //$index["options"] = $_index->getOptions();
                 // pkのスキップ
                 if ($index["name"]==="PRIMARY") continue;
                 // 標準値の削除
