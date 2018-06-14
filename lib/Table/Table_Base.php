@@ -486,14 +486,18 @@ class Table_Base extends Table_Core
                         ));
                     }
                     // 値を引数に呼び出し
-                    $src_values = $this->result->getHashedBy($this->getIdColName(), $src_col_name);
+                    $src_values = $this->result->getHashedBy($src_col_name);
                     $values = call_user_func(array($this,$method_name), $src_values, $alias);
                     // 結果を統合する
-                    $this->result->mergeBy($alias_col_name, $values);
+                    //$this->result->mergeBy($alias_col_name, $values);
+                    foreach ($src_values as $k=>$v) {
+                        $this->result[$k][$col_name] = $values[$k];
+                    }
                     // 値の設定漏れがあった場合はnullで埋める
                     foreach ($this->result as $a_record) {
                         if ( ! isset($a_record[$col_name])) $a_record[$col_name] = null;
                     }
+                    report($this->result, $values, $src_values);
                     return true;
                 }
             }
