@@ -497,7 +497,6 @@ class Table_Base extends Table_Core
                     foreach ($this->result as $a_record) {
                         if ( ! isset($a_record[$col_name])) $a_record[$col_name] = null;
                     }
-                    report($this->result, $values, $src_values);
                     return true;
                 }
             }
