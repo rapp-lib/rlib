@@ -465,6 +465,13 @@ class PagesetElement extends Element_Base
         $param_field = array_shift($param_fields);
         if ($table = $this->getController()->getTable()) {
             $param_field["col"] = $table->getColByName($param_field["field_name"]);
+            if ( ! $param_field["col"]) {
+                report_error("param_fields.dependに指定したColが存在しません",array(
+                    "controller" => $this->getParent()->getName(),
+                    "table" => $this->getParent()->getTable(),
+                    "param_field" => $param_field,
+                ));
+            }
             $param_field["enum_set"] = $param_field["col"]->getEnumSet();
         }
         return $param_field;
