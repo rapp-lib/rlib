@@ -275,28 +275,37 @@ class FormContainer extends ArrayObject
                 // ファイルアップロード
                 if ($value instanceof \Psr\Http\Message\UploadedFileInterface) {
                     $storage_name = $field_def["storage"];
-                    if ($value->getError() !== UPLOAD_ERR_OK) {
-                        // ファイルをアップロードしていない、またはエラー
-                    } elseif ( ! $storage_name) {
-                        $value = null;
+                    if ($value->getError() === UPLOAD_ERR_NO_FILE) {
+                        // ファイルをアップロードしていない
+                    } elseif ($value->getError() !== UPLOAD_ERR_OK) {
+                        // PHPアップロードエラー
                         report_warning("File Upload Failure", array(
                             "field_name" => $field_name,
                             "field_def" => $field_def,
+                            "uploaded_file" => $value,
                         ));
+                        $value = new UploadedFile(null, $file);
+                    } elseif ( ! $storage_name) {
+                        report_warning("File Upload Failure", array(
+                            "field_name" => $field_name,
+                            "field_def" => $field_def,
+                            "uploaded_file" => $value,
+                        ));
+                        $value = new UploadedFile(null, $file);
                     } elseif ($file = app()->file->getStorage($storage_name)->upload($value)) {
-                        $value = $file->getUri();
                         report_info("File Uploaded",array(
                             "field_name" => $field_name,
                             "uri" => $value,
                             "field_def" => $field_def,
                         ));
+                        $value = new UploadedFile($file->getUri(), $file);
                     } else {
-                        $value = null;
                         report_warning("File Upload Failure",array(
                             "field_name" => $field_name,
                             "uploaded_file" => $value,
                             "field_def" => $field_def,
                         ));
+                        $value = new UploadedFile(null, $file);
                     }
                 }
                 return $value;

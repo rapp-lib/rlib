@@ -489,7 +489,6 @@ class Table_Base extends Table_Core
                     $src_values = $this->result->getHashedBy($src_col_name);
                     $values = call_user_func(array($this,$method_name), $src_values, $alias);
                     // 結果を統合する
-                    //$this->result->mergeBy($alias_col_name, $values);
                     foreach ($src_values as $k=>$v) {
                         $this->result[$k][$col_name] = $values[$k];
                     }
