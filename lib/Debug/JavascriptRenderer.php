@@ -17,7 +17,7 @@ class JavascriptRenderer extends IlluminateJavascriptRenderer
 
         $jsRoute  = $this->url->route('debugbar.assets.js', [
             'v' => $this->getModifiedTime('js')
-       ]);
+        ]);
 
         $html  = '';
         $html .= "<link rel='stylesheet' type='text/css' href='{$cssRoute}'>";

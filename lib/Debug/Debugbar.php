@@ -98,8 +98,8 @@ class Debugbar extends LaravelDebugbar
                 'datetime' => date('Y-m-d H:i:s'),
                 'utime' => microtime(true),
                 'method' => $request->getMethod(),
-                'uri' => "".$request->getUri(),
-                'ip' => $server_params["REMOTE_HOST"]
+                'uri' => "".$request->getUri()->withoutAuthority(),
+                'ip' => $server_params["REMOTE_ADDR"]
             )
         );
 
@@ -122,6 +122,15 @@ class Debugbar extends LaravelDebugbar
         }
 
         return $this->data;
+    }
+    public function addException ($exception)
+    {
+        if ( ! $this->hasCollector('exceptions')) {
+            $exceptionCollector = new ExceptionsCollector();
+            $exceptionCollector->setChainExceptions(true);
+            $this->addCollector($exceptionCollector);
+        }
+        return parent::addException($exception);
     }
     public function injectDebugbarResponse($response)
     {
@@ -167,7 +176,6 @@ class Debugbar extends LaravelDebugbar
     public function getJavascriptRenderer($base_url = null, $base_path = null)
     {
         if ($this->js_renderer === null) {
-            $webroot = $this->app["request.fallback"]->getUri()->getWebroot();
             $this->js_renderer = new JavascriptRenderer($this, $base_url, $base_path);
             $this->js_renderer->setUrlGenerator($this);
             $this->js_renderer->addAssets(array('widget.css'), array('widget.js'),
@@ -183,6 +191,6 @@ class Debugbar extends LaravelDebugbar
             "debugbar.assets.css"=>"debugbar.assets_css",
         );
         $page_id = $map[$laravel_page_id] ?: $laravel_page_id;
-        return $this->app['request.fallback']->getUri()->getWebroot()->uri("id://".$page_id, $params);
+        return "".$this->app['request.fallback']->getUri()->getWebroot()->uri("id://".$page_id, $params);
     }
 }

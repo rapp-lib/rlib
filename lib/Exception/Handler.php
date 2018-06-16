@@ -5,22 +5,25 @@ use Symfony\Component\Debug\Exception\FatalErrorException as FatalError;
 
 class Handler extends IlluminateHandler
 {
+	public function handleException($exception)
+	{
+        app("debugbar")->addException($exception);
+        app("report")->logException($exception);
+        return parent::handleException($exception);
+    }
     public function handleUncaughtException($exception)
     {
-        app()->report->logException($exception);
-        if ( ! app()->runningInConsole()) {
-            $response = $this->handleException($exception);
-            app()->http->emit($response);
-        }
+        $response = $this->handleException($exception);
+        if ( ! app()->runningInConsole()) app()->http->emit($response);
     }
     public function handleShutdown()
     {
-        app()->report->beforeShutdown();
+        //app()->report->beforeShutdown();
         $error = error_get_last();
         if ( ! is_null($error)){
             $error['php_error_code'] = $error['type'];
-            $e = \R\Lib\Report\ReportRenderer::createHandlableError($error);
-            app()->report->logException($e);
+            // $e = \R\Lib\Report\ReportRenderer::createHandlableError($error);
+            // app()->report->logException($e);
             extract($error);
             if ( ! $this->isFatal($type)) return;
             if ( ! app()->runningInConsole()) {
