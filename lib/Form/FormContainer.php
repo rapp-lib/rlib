@@ -275,37 +275,28 @@ class FormContainer extends ArrayObject
                 // ファイルアップロード
                 if ($value instanceof \Psr\Http\Message\UploadedFileInterface) {
                     $storage_name = $field_def["storage"];
-                    if ($value->getError() === UPLOAD_ERR_NO_FILE) {
-                        // ファイルをアップロードしていない
-                    } elseif ($value->getError() !== UPLOAD_ERR_OK) {
-                        // PHPアップロードエラー
-                        report_warning("File Upload Failure", array(
-                            "field_name" => $field_name,
-                            "field_def" => $field_def,
-                            "uploaded_file" => $value,
-                        ));
-                        $value = new UploadedFile(null, $file);
+                    if ($value->getError() !== UPLOAD_ERR_OK) {
+                        // ファイルをアップロードしていない、またはエラー
                     } elseif ( ! $storage_name) {
+                        $value = null;
                         report_warning("File Upload Failure", array(
                             "field_name" => $field_name,
                             "field_def" => $field_def,
-                            "uploaded_file" => $value,
                         ));
-                        $value = new UploadedFile(null, $file);
                     } elseif ($file = app()->file->getStorage($storage_name)->upload($value)) {
+                        $value = $file->getUri();
                         report_info("File Uploaded",array(
                             "field_name" => $field_name,
                             "uri" => $value,
                             "field_def" => $field_def,
                         ));
-                        $value = new UploadedFile($file->getUri(), $file);
                     } else {
+                        $value = null;
                         report_warning("File Upload Failure",array(
                             "field_name" => $field_name,
                             "uploaded_file" => $value,
                             "field_def" => $field_def,
                         ));
-                        $value = new UploadedFile(null, $file);
                     }
                 }
                 return $value;
@@ -449,10 +440,6 @@ class FormContainer extends ArrayObject
         }
         return table($this->def["table"]);
     }
-    public function getTableWithValues ()
-    {
-        return $this->getTable()->values((array)$this->getRecord());
-    }
 
     /**
      * 検索条件を指定したTableを取得
@@ -568,27 +555,58 @@ class FormContainer extends ArrayObject
     public function getRecord ()
     {
         $record = $this->getTable()->createRecord();
-        $this->convertRecord($record, false);
+        $this->convertRecord($record, "record_values");
         return $record;
     }
-
+    /**
+     * Formの値をもとに、Values句を持ったTableインスタンスを作成
+     * ※関係するdef : fields.*.read_col(or col)
+     */
+    public function getTableWithValues ()
+    {
+        $record = $this->getTable()->createRecord();
+        $this->convertRecord($record, "values_clause");
+        return $this->getTable()->values((array)$record);
+    }
     /**
      * Recordインスタンスの値からFormの値を設定する
      * ※関係するdef : fields.*.write_col(or col)
      */
     public function setRecord ($record)
     {
-        $this->convertRecord($record, true);
+        $this->convertRecord($record, "form_values");
     }
-
+    /**
+     * convertRecord内でfield_def.colをtypeで読み替える為の処理
+     * record_values: Form→Recordに変換する際はcol_record_valuesを優先して参照する
+     * form_values: Record→Formに変換する際はcol_form_valuesを優先して参照する
+     * values_clause: getTableWithValues時のValues句への対応づけ、col_value_clauseを優先
+     */
+    private static function getDefColName ($field_def, $type)
+    {
+        $key = "col";
+        if ($type=="record_values" || $type===false) {
+            if (isset($field_def["col_record_values"])) $key = "col_record_values";
+        } elseif ($type=="form_values" || $type===false) {
+            if (isset($field_def["col_form_values"])) $key = "col_form_values";
+        } elseif ($type=="values_clause") {
+            if (isset($field_def["col_record_values"])) $key = "col_record_values";
+            if (isset($field_def["col_value_clause"])) $key = "col_value_clause";
+        }
+        return $field_def[$key];
+    }
+    private static function isRecordToValues ($type)
+    {
+        return $type=="form_values";
+    }
     /**
      * Recordとフォームの値の相互変換
      * @param bool $is_record_to_values ? Recordから値を取り込む : Recordに値を登録する
      */
-    private function convertRecord ($record, $is_record_to_values)
+    private function convertRecord ($record, $convert_type)
     {
         foreach ($this->def["fields"] as $field_name => $field_def) {
-            $col_name = self::getDefColName($field_def, $is_record_to_values);
+            $col_name = self::getDefColName($field_def, $convert_type);
             // colがfalseであれば削除
             if ($col_name===false) {
                 continue;
@@ -603,7 +621,7 @@ class FormContainer extends ArrayObject
                 // 要素別の処理
                 foreach ((array)$field_def["child_field_names"] as $child_field_name) {
                     $child_field_def = $this->def["fields"][$child_field_name];
-                    $child_col_name = self::getDefColName($child_field_def, $is_record_to_values);
+                    $child_col_name = self::getDefColName($child_field_def, $convert_type);
                     // colがfalseであれば削除
                     if ($child_col_name===false) {
                         continue;
@@ -612,7 +630,7 @@ class FormContainer extends ArrayObject
                     $child_table_name = $child_field_def["table"];
                     //TODO: テーブル定義の確認
                     // 値を登録
-                    if ($is_record_to_values) {
+                    if (self::isRecordToValues($convert_type)) {
                         $this[$field_name][$item_name] = $record[$col_name][$child_col_name];
                     } else {
                         $record[$col_name][$child_col_name] = $this[$field_name][$item_name];
@@ -622,7 +640,7 @@ class FormContainer extends ArrayObject
             } elseif ($field_def["type"]=="fieldset") {
                 $values = array();
                 // fieldsetの添え字を取得
-                if ($is_record_to_values) {
+                if (self::isRecordToValues($convert_type)) {
                     $fieldset_indexes = array_keys((array)$record[$col_name]);
                 } else {
                     $fieldset_indexes = array_keys((array)$this[$field_name]);
@@ -638,7 +656,7 @@ class FormContainer extends ArrayObject
                         $child_table_name = $child_field_def["table"];
                         //TODO: テーブル定義の確認
                         // 値を登録
-                        if ($is_record_to_values) {
+                        if (self::isRecordToValues($convert_type)) {
                             $values[$fieldset_index][$item_name]
                                 = $record[$col_name][$fieldset_index][$child_col_name];
                         } else {
@@ -647,7 +665,7 @@ class FormContainer extends ArrayObject
                         }
                     }
                 }
-                if ($is_record_to_values) {
+                if (self::isRecordToValues($convert_type)) {
                     $this[$field_name] = $values;
                 } else {
                     // assoc参照関係があれば下層をRecordに対応づける
@@ -668,7 +686,7 @@ class FormContainer extends ArrayObject
                 //TODO: テーブル定義の確認
                 // $col_def = table()->getDef($table_name,$col_name);
                 // 値を登録
-                if ($is_record_to_values) {
+                if (self::isRecordToValues($convert_type)) {
                     $this[$field_name] = $record->getColValue($col_name);
                 } else {
                     $record[$col_name] = $this[$field_name];
@@ -676,19 +694,6 @@ class FormContainer extends ArrayObject
             }
         }
         return $record;
-    }
-    /**
-     * convertRecord内でfield_def.colを読み替える為の処理
-     * Form→Recordに変換する際はcolよりもwrite_colを優先して参照する
-     * Record→Formに変換する際はcolよりもread_colを優先して参照する
-     */
-    private static function getDefColName ($field_def, $is_record_to_values)
-    {
-        $col_name = $field_def["col"];
-        if (isset($field_def[$is_record_to_values ? "read_col" : "write_col"])) {
-            $col_name = $field_def[$is_record_to_values ? "read_col" : "write_col"];
-        }
-        return $col_name;
     }
 
     /**
