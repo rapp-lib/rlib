@@ -113,6 +113,7 @@ class HttpController implements FormRepositry
             $result["response"] = call_user_func(array($this, $action_method_name));
         }
         $result["vars"] = $this->vars;
+        app("events")->fire('http.invoke_action', array($this->uri, $this->vars, $this->forms));
         return $result;
     }
     protected function makeResponse ()

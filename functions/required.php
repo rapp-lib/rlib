@@ -18,12 +18,14 @@
         foreach (func_get_args() as $k=>$v) $vars["value #".$k] = $v;
         app("log")->getMonolog()->debug("DEBUG", $vars);
     }
-    function report_info ($message, array $vars=array())
+    function report_info ($message, array $vars=array(), $category=null)
     {
+        if ($category!==null) $vars["__"]["category"] = $category;
         app("log")->getMonolog()->info($message, $vars);
     }
-    function report_warning ($message, array $vars=array())
+    function report_warning ($message, array $vars=array(), $category=null)
     {
+        if ($category!==null) $vars["__"]["category"] = $category;
         app("log")->getMonolog()->warn($message, $vars);
     }
     function report_error ($message, array $vars=array())

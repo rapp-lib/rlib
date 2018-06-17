@@ -41,6 +41,7 @@ class HttpDriver
                 $response = app('events')->until('illuminate.app.down');
                 if ( ! is_null($response)) return app()->prepareResponse($response, $request);
             }
+            app("events")->fire('http.dispatch_request', array($request));
             $stack = $request->getUri()->getWebroot()->getMiddlewareStack();
             $stack[] = $next;
             $dispatcher = new \mindplay\middleman\Dispatcher($stack);
@@ -100,14 +101,16 @@ class HttpDriver
 
     public function response ($type, $data=null, $params=array())
     {
+        app("events")->fire('http.create_response', array($type, $data, $params));
         return ResponseFactory::factory($type, $data, $params);
     }
     public function emit ($response)
     {
+        app("events")->fire('http.emit_response', array($response));
         $response = $this->applyResponseFilters($response);
         return with($emitter = new SapiEmitter())->emit($response);
     }
-    public function applyResponseFilters ($response)
+    protected function applyResponseFilters ($response)
     {
         $filters = (array)app()->config["http.global.response_filters"];
         foreach ($filters as $filter) $response = call_user_func($filter, $response);

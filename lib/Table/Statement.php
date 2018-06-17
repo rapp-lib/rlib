@@ -21,8 +21,8 @@ class Statement extends SQLStatement
     {
         $this->elapsed_ms = round((microtime(true) - $this->start_ms)*1000, 2);
         if ( ! $error && app()->debug()) list($warn, $info) = $this->analyze();
-        report_info('SQL Exec : '.$this, array("Table"=>$this->table, "Info"=>$info));
-        if ($warn) report_warning("SQL Warn : ".implode(' , ',$warn), array("SQL"=>"".$this));
+        report_info('SQL Exec : '.$this, array("Table"=>$this->table, "Info"=>$info), "SQL");
+        if ($warn) report_warning("SQL Warn : ".implode(' , ',$warn), array("SQL"=>"".$this), "SQL");
         if ($error) report_error('SQL Error : '.implode(' , ',$error), array("SQL"=>"".$this));
     }
     /**

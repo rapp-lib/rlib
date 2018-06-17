@@ -15,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
         // 5.0
         'debug' => 'R\Lib\Core\Debug',
         'report' => 'R\Lib\Report\ReportDriver',
-        'builder' => '\R\Lib\Builder\WebappBuilder',
+        // 'builder' => '\R\Lib\Builder\WebappBuilder',
         'table' => '\R\Lib\Table\TableFactory',
         "cache" => 'R\Lib\Cache\CacheDriver',
         "session" => 'R\Lib\Session\SessionDriver',
@@ -23,8 +23,8 @@ class AppServiceProvider extends ServiceProvider
         "i18n" => 'R\Lib\I18n\I18nDriver',
         "security" => 'R\Lib\Core\Security',
         "enum" => 'R\Lib\Enum\EnumRepositry',
-        "view" => 'R\Lib\View\ViewFactory',
-        "doc" => 'R\Lib\Doc\DocDriver',
+        // "view" => 'R\Lib\View\ViewFactory',
+        // "doc" => 'R\Lib\Doc\DocDriver',
         // 4.0
         "http" => 'R\Lib\Http\HttpDriver',
         "user" => 'R\Lib\Auth\UserLoginDriver',

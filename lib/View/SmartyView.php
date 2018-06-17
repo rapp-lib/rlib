@@ -208,7 +208,7 @@ class SmartyView
             ));
         }
         $smarty_sub = clone($smarty);
-        if ($uri && $uri->getPageId()) {
+        if ($uri && $uri->getPageId() && $uri->getRouteParam("include")) {
             // actの呼び出し
             $result = $uri->getPageController()->invokeAction($request);
             $smarty_sub->assign((array)$result["vars"]);

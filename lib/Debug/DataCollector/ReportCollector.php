@@ -7,7 +7,6 @@ use DebugBar\DataCollector\TimeDataCollector;
 
 class ReportCollector extends MessagesCollector implements Renderable
 {
-    protected $levels = array("debug", "info", "warning", "error");
     /**
      * 表示または記録するためのデータを用意する
      * 終端処理内で呼び出されるのでエラーを起こさないように注意
@@ -16,11 +15,10 @@ class ReportCollector extends MessagesCollector implements Renderable
     {
         try {
             $data = array();
-            $result = app("debug.logging_handler")->getRecordsByLevels();
-            foreach ($this->levels as $level) {
-                $records = (array)$result[$level];
-                $data[$level]["html"] = app("debug.logging_handler")->renderHtml($records);
-                $data[$level]["count"] = count($records);
+            $result = app("debug.logging_handler")->getRecordsByCategory();
+            foreach ($result as $category=>$records) {
+                $data[$category]["html"] = app("debug.logging_handler")->renderHtml($records);
+                $data[$category]["count"] = count($records);
             }
         } catch (\Exception $e) {var_dump($e);
             $data = null;
@@ -40,15 +38,15 @@ class ReportCollector extends MessagesCollector implements Renderable
     public function getWidgets()
     {
         $widgets = array();
-        foreach ($this->levels as $level) {
-            $widgets[$level] = array(
-                'icon' => $level,
+        foreach (app("debug.logging_handler")->getCategories() as $category) {
+            $widgets[$category] = array(
+                // 'icon' => $category,
                 'widget' => 'PhpDebugBar.Widgets.FreeHtmlWidget',
-                'map' => 'report.'.$level.".html",
+                'map' => 'report.'.$category.".html",
                 'default' => '{}',
             );
-            $widgets[$level.":badge"] = array(
-                'map' => 'report.'.$level.".count",
+            $widgets[$category.":badge"] = array(
+                'map' => 'report.'.$category.".count",
                 "default" => "null"
             );
         }

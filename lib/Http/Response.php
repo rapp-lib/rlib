@@ -4,6 +4,13 @@ use Zend\Diactoros\Response as DiactorosResponse;
 
 class Response extends DiactorosResponse
 {
+    public function getContentType()
+    {
+        return strtolower($this->getHeaderLine('Content-Type'));
+    }
+
+// -- キャッシュ設定
+
     public function withExpires($time)
     {
         return $this->withHeader('Expires', $this->getTimeFromValue($time));
@@ -28,5 +35,17 @@ class Response extends DiactorosResponse
             return $time->format($format);
         }
         return null;
+    }
+
+    public function __report()
+    {
+        $body = $this->getBody();
+        if (preg_match('!/json!', $this->getContentType())) $body = json_decode($this->getBody(), true);
+        return array(
+            "content-type"=>$this->getContentType(),
+            "status_code"=>$this->getStatusCode(),
+            "headers"=>$this->getHeaders(),
+            "body"=>$body,
+        );
     }
 }

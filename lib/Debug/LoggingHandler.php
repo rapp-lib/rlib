@@ -16,16 +16,28 @@ class LoggingHandler extends AbstractProcessingHandler
     {
         static::$records[] = ReportRenderer::compactRecord($record);
     }
-    public function getRecordsByLevels()
+    public function getRecordsByCategory()
     {
         $result = array();
-        foreach (static::$records as $record) {
-            if ($record["level"] >= \Monolog\Logger::ERROR) $result["error"][] = $record;
-            elseif ($record["level"] >= \Monolog\Logger::WARNING) $result["warning"][] = $record;
-            elseif ($record["level"] >= \Monolog\Logger::INFO) $result["info"][] = $record;
+        foreach (static::$records as &$record) {
+            $category = $record["context"]["__"]["category"];
+            if (isset($category)) $result[$category][] = $record;
+            elseif ($record["level"] >= \Monolog\Logger::ERROR) $result["Error"][] = $record;
+            elseif ($record["level"] >= \Monolog\Logger::WARNING) $result["Warning"][] = $record;
+            elseif ($record["level"] >= \Monolog\Logger::INFO) $result["Info"][] = $record;
             else $result["debug"][] = $record;
         }
         return $result;
+    }
+    public function getCategories()
+    {
+        $categories = array("Debug", "Info", "Warning", "Error");
+        foreach (static::$records as &$record) {
+            $category = $record["context"]["__"]["category"];
+            if ( ! isset($category)) continue;
+            if ( ! in_array($category, $categories)) $categories[] = $category;
+        }
+        return $categories;
     }
     public function renderHtml($records)
     {

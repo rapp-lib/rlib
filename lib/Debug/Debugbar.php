@@ -40,30 +40,15 @@ class Debugbar extends LaravelDebugbar
         if ($app->runningInConsole() || ! $this->isEnabled() || $this->isDebugbarRequest()) {
             return $response;
         }
-        report_info("Http Served", array(
-            "request_uri" => app("request.fallback")->getUri(),
-            "input_values" => app("request.fallback")->getInputValues(),
-        ));
+        // report_info("Http Served", array(
+        //     "request_uri" => app("request.fallback")->getUri(),
+        //     "input_values" => app("request.fallback")->getInputValues(),
+        // ));
         // Inject report info
         // if ( ! $this->app['config']["debug.no_inject_report"]) {
         //     $response = app("report")->rewriteHttpResponse($response);
         // }
 
-        if ($this->shouldCollect('report', true)) {
-            $this->addCollector(new ReportCollector());
-        }
-
-        if (in_array($response->getStatusCode(), array(301,302))) {
-            try {
-                $this->stackData();
-                $location = $response->getHeaderLine("location");
-                $response = app()->http->response("html", '<a href="'.$location.'"><div style="padding:20px;'
-                    .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
-                    .'Location: '.$location.'</div></a>');
-            } catch (\Exception $e) {
-                $app['log']->error('Debugbar exception: ' . $e->getMessage());
-            }
-        }
         if ($this->isJsonRequest($request)) {
             try {
                 $this->sendDataInHeaders(true);
@@ -78,6 +63,17 @@ class Debugbar extends LaravelDebugbar
                 $app['log']->error('Debugbar exception: ' . $e->getMessage());
             }
         } else {
+            if (in_array($response->getStatusCode(), array(301,302))) {
+                try {
+                    $this->stackData();
+                    $location = $response->getHeaderLine("location");
+                    $response = app()->http->response("html", '<a href="'.$location.'"><div style="padding:20px;'
+                        .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
+                        .'Location: '.$location.'</div></a>');
+                } catch (\Exception $e) {
+                    $app['log']->error('Debugbar exception: ' . $e->getMessage());
+                }
+            }
             try {
                 $response = $this->injectDebugbarResponse($response);
             } catch (\Exception $e) {

@@ -7,7 +7,7 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
 {
     public function register()
     {
-        $this->app['debugbar'] = $this->app->share(function($app){
+        $this->app->singleton('debugbar', function($app){
             return new Debugbar($app);
         });
         if ( ! $this->app->debug->getDebugLevel()) return;
@@ -28,6 +28,13 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
             );
             foreach ($routes as $route) $this->app->config->push("http.global.routes", $route);
         }
+        // ReportCollectorの登録
+        $this->app["debugbar"]->addCollector(new DataCollector\ReportCollector());
+        // EventCollectorの登録
+        $start_time = defined('LARAVEL_START') ? LARAVEL_START : null;
+        $event_collector = new DataCollector\EventCollector($start_time);
+        $this->app["debugbar"]->addCollector($event_collector);
+        $this->app['events']->subscribe($event_collector);
     }
     public function boot()
     {
