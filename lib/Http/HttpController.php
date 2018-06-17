@@ -129,7 +129,7 @@ class HttpController implements FormRepositry
         // テンプレートファイルがなければ404応答
         if ( ! is_file($file)) return app()->http->response("notfound");
         $vars = $this->getTemplateVars();
-        $html = app()->view()->fetch($file, $vars);
+        $html = app("view")->fetch($file, $vars);
         return app()->http->response("html", $html);
     }
     protected function getTemplateFile ()

@@ -88,7 +88,7 @@ class InputField
             $attrs["data-rui-plugins"] = json_encode($plugins);
             // 必要なプラグインの読み込み
             foreach ($plugins as $plugin_name => $plugin_params) {
-                app()->view()->getAssets()->load('input_plugin.'.$plugin_name);
+                app("view.assets")->load('input_plugin.'.$plugin_name);
             }
         }
         // type=selectであれば選択肢構築

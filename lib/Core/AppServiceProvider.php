@@ -41,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
     protected $base_providers = array(
         '\R\Lib\Test\TestServiceProvider',
         '\R\Lib\Doc\DocServiceProvider',
+        '\R\Lib\View\ViewServiceProvider',
     );
     public function register()
     {
@@ -56,11 +57,11 @@ class AppServiceProvider extends ServiceProvider
         }
         // bindings設定
         $this->app->singleton('config', 'R\Lib\Core\Config');
-        $bindings = (array)$this->app['config']['app.debug'] + $this->base_bindings;
+        $bindings = (array)$this->app->config['bindings'] + $this->base_bindings;
         foreach ($bindings as $k=>$v) $this->app->singleton($k, $v);
         // Consoleの場合自動的にapp.debug有効化
         if ($this->app->runningInConsole()) {
-            $this->app['config']['app.debug'] = true;
+            $this->app->config['app.debug'] = true;
         }
         // 環境名を設定
         $this->app->instance('env', $this->app->config["app.env"]);

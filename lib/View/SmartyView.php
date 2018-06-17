@@ -85,16 +85,17 @@ class SmartyView
 
 // -- Asset
 
-    protected $assets = null;
-    protected $repo_path = "path://.assets";
+    // protected $assets = null;
+    // protected $repo_path = "path://.assets";
     public function getAssets ()
     {
-        if ( ! $this->assets) {
-            $this->assets = new FrontAssets();
-            $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri($this->repo_path);
-            $this->assets->addRepo($uri);
-        }
-        return $this->assets;
+        return app("view.assets");
+        // if ( ! $this->assets) {
+        //     $this->assets = new FrontAssets();
+        //     $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri($this->repo_path);
+        //     $this->assets->addRepo($uri);
+        // }
+        // return $this->assets;
     }
 
 // -- 基本処理プラグイン
@@ -257,15 +258,15 @@ class SmartyView
     public static function smarty_block_script ($attrs, $content, $smarty, &$repeat)
     {
         if ( ! $repeat) {
-            if ($attrs["require"]) app()->view()->getAssets()->load($attrs["require"]);
-            if ($attrs["src"]) app()->view()->getAssets()->scriptUri($attrs["src"]);
-            if ($attrs["loaded"]) app()->view()->getAssets()->loaded($attrs["loaded"]);
-            if (strlen($content)) app()->view()->getAssets()->script($content);
+            if ($attrs["require"]) app("view.assets")->load($attrs["require"]);
+            if ($attrs["src"]) app("view.assets")->scriptUri($attrs["src"]);
+            if ($attrs["loaded"]) app("view.assets")->loaded($attrs["loaded"]);
+            if (strlen($content)) app("view.assets")->script($content);
         }
     }
     public static function smarty_function_render_assets ($attrs, $smarty)
     {
-        return app()->view()->getAssets()->render(array("clear"=>true));
+        return app("view.assets")->render(array("clear"=>true));
     }
 
 // -- FlashMessageプラグイン

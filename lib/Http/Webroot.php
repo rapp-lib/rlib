@@ -1,6 +1,6 @@
 <?php
 namespace R\Lib\Http;
-use R\Lib\Asset\AssetManager;
+// use R\Lib\Asset\AssetManager;
 
 class Webroot
 {
@@ -38,16 +38,16 @@ class Webroot
         }
         return $this->config["base_dir"];
     }
-    public function getAssets ()
-    {
-        if ( ! $this->assets) {
-            $this->assets = new AssetManager;
-            foreach ($this->config["assets_catalog_uris"] as $uri) {
-                $this->assets->loadAssetCatalog($this->uri($uri));
-            }
-        }
-        return $this->assets;
-    }
+    // public function getAssets ()
+    // {
+    //     if ( ! $this->assets) {
+    //         $this->assets = new AssetManager;
+    //         foreach ($this->config["assets_catalog_uris"] as $uri) {
+    //             $this->assets->loadAssetCatalog($this->uri($uri));
+    //         }
+    //     }
+    //     return $this->assets;
+    // }
     /**
      * ServerRequest::__construct内で設定を反映するために使う
      * @access private

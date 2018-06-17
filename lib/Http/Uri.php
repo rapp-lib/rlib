@@ -128,11 +128,11 @@ class Uri extends \Zend\Diactoros\Uri
         }
         return $this->page_controller;
     }
-    public function getPageView ()
-    {
-        $route = $this->getRoute();
-        return app()->view($route["view"] ?: "default");
-    }
+    // public function getPageView ()
+    // {
+    //     $route = $this->getRoute();
+    //     return app()->view($route["view"] ?: "default");
+    // }
     public function getPageAuth()
     {
         if ( ! $this->page_auth) {
