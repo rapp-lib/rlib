@@ -21,17 +21,17 @@ class LoggingHandler extends AbstractProcessingHandler
         $result = array();
         foreach (static::$records as &$record) {
             $category = $record["context"]["__"]["category"];
-            if (isset($category)) $result[$category][] = $record;
+            if (strlen($category)) $result[$category][] = $record;
             elseif ($record["level"] >= \Monolog\Logger::ERROR) $result["Error"][] = $record;
             elseif ($record["level"] >= \Monolog\Logger::WARNING) $result["Warning"][] = $record;
             elseif ($record["level"] >= \Monolog\Logger::INFO) $result["Info"][] = $record;
-            else $result["debug"][] = $record;
+            else $result["Debug"][] = $record;
         }
         return $result;
     }
     public function getCategories()
     {
-        $categories = array("Debug", "Info", "Warning", "Error");
+        $categories = array("Debug");
         foreach (static::$records as &$record) {
             $category = $record["context"]["__"]["category"];
             if ( ! isset($category)) continue;

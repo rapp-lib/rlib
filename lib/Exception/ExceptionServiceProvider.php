@@ -33,7 +33,7 @@ class ExceptionServiceProvider extends IlluminateExceptionServiceProvider
     protected function registerWhoopsHandler()
     {
         $this->app['whoops.handler'] = $this->app->share(function(){
-            if ($this->app->runningInConsole()) {
+            if (app()->runningInConsole()) {
                 return new CallbackHandler(function($e, $inspection, $whoops){
                 });
             } elseif (app("request.fallback")->isAjax() || app("request.fallback")->wantsJson()) {

@@ -7,8 +7,7 @@ class Handler extends IlluminateHandler
 {
 	public function handleException($exception)
 	{
-        app("debugbar")->addException($exception);
-        app("report")->logException($exception);
+        app("events")->fire("app.handle_exception", array($exception));
         return parent::handleException($exception);
     }
     public function handleUncaughtException($exception)
@@ -21,7 +20,7 @@ class Handler extends IlluminateHandler
         //app()->report->beforeShutdown();
         $error = error_get_last();
         if ( ! is_null($error)){
-            $error['php_error_code'] = $error['type'];
+            // $error['php_error_code'] = $error['type'];
             // $e = \R\Lib\Report\ReportRenderer::createHandlableError($error);
             // app()->report->logException($e);
             extract($error);

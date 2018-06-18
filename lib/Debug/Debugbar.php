@@ -121,6 +121,7 @@ class Debugbar extends LaravelDebugbar
     }
     public function addException ($exception)
     {
+        // ExceptionCollectorの処理
         if ( ! $this->hasCollector('exceptions')) {
             $exceptionCollector = new ExceptionsCollector();
             $exceptionCollector->setChainExceptions(true);

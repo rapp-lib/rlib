@@ -38,7 +38,7 @@ class EventCollector extends TimeDataCollector
             report_info("Dispatch Request", array(
                 "uri" => $request->getUri(),
                 "input" => $request->getInputValues(),
-            ), "Http");
+            ), "App");
         } elseif ($name==="http.invoke_action") {
             list($uri, $vars, $forms) = $args;
             report_info("Invoke Action", array(
@@ -46,7 +46,7 @@ class EventCollector extends TimeDataCollector
                 "page_path" => $uri->getPagePath(),
                 "vars" => $vars,
                 "forms" => $forms,
-            ), "Http");
+            ), "App");
         } elseif ($name==="http.create_response") {
             list($type, $data, $params) = $args;
             if ($type=="html") $data = "...";
@@ -54,17 +54,20 @@ class EventCollector extends TimeDataCollector
                 "type" => $type,
                 "data" => $data,
                 "params" => $params,
-            ), "Http");
+            ), "App");
         } elseif ($name==="http.emit_response") {
             list($response) = $args;
             report_info("Emit Response", array(
                 "response" => $response,
-            ), "Http");
+            ), "App");
         } elseif ($name==="sql.fetch_end") {
             list($table, $statement, $result) = $args;
             report_info("Fetch End ".$table->getAppTableName()."[".count($result)."] :".$statement, array(
                 "result"=>$result,
             ), "Fetch");
+        } elseif ($name==="app.handle_exception") {
+            list($exception) = $args;
+            app("debugbar")->addException($exception);
         }
     }
 
