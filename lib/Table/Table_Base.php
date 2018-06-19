@@ -490,7 +490,9 @@ class Table_Base extends Table_Core
                     $values = call_user_func(array($this,$method_name), $src_values, $alias);
                     // 結果を統合する
                     foreach ($src_values as $k=>$v) {
-                        $this->result[$k][$col_name] = $values[$k];
+                        $src_value = $this->result[$k][$src_col_name];
+                        $src_value = is_array($src_value) ? self::encodeKey($src_value) : "".$src_value;
+                        $this->result[$k][$col_name] = $values[$src_value];
                     }
                     // 値の設定漏れがあった場合はnullで埋める
                     foreach ($this->result as $a_record) {
@@ -520,11 +522,13 @@ class Table_Base extends Table_Core
             $map = app()->enum[$alias["enum"]]->map($reduced);
             $dest_values = array();
             foreach ($src_values as $k1=>$v1) {
-                $dest_values[$k1] = array();
+                $src_value = $v1;
+                $src_value = is_array($src_value) ? self::encodeKey($src_value) : "".$src_value;
+                $dest_values[self::encodeKey($v1)] = array();
                 foreach ((array)$v1 as $k2=>$v2) {
-                    $dest_values[$k1][$k2] = $map[$v2];
+                    $dest_values[$src_value][$k2] = $map[$v2];
                 }
-                if ($alias["glue"]) $dest_values[$k1] = implode($alias["glue"], $dest_values[$k1]);
+                if ($alias["glue"]) $dest_values[$src_value] = implode($alias["glue"], $dest_values[$src_value]);
             }
             return $dest_values;
         } else {
@@ -533,6 +537,11 @@ class Table_Base extends Table_Core
             foreach ($src_values as $k=>$v) $dest_values[$k] = $map[$v];
             return $dest_values;
         }
+    }
+    protected static function encodeKey($key)
+    {
+        if (is_array($key)) return json_encode($key);
+        return $key;
     }
     /**
      * @hook retreive_alias
