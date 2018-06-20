@@ -485,18 +485,12 @@ class Table_Base extends Table_Core
                             "table"=>$this, "alias"=>$alias, "method_name"=>$method_name,
                         ));
                     }
-                    // 値を引数に呼び出し
+                    // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
                     $src_values = $this->result->getHashedBy($src_col_name);
-                    $values = call_user_func(array($this,$method_name), $src_values, $alias);
+                    $dest_values = self::mapReduce(array($this,$method_name), $src_values, $alias);
                     // 結果を統合する
-                    foreach ($src_values as $k=>$v) {
-                        $src_value = $this->result[$k][$src_col_name];
-                        $src_value = is_array($src_value) ? self::encodeKey($src_value) : "".$src_value;
-                        $this->result[$k][$col_name] = $values[$src_value];
-                    }
-                    // 値の設定漏れがあった場合はnullで埋める
-                    foreach ($this->result as $a_record) {
-                        if ( ! isset($a_record[$col_name])) $a_record[$col_name] = null;
+                    foreach ($this->result as $record) {
+                        $record[$col_name] = $dest_values[self::encodeKey($record[$src_col_name])];
                     }
                     return true;
                 }
@@ -514,34 +508,33 @@ class Table_Base extends Table_Core
             report_error("aliasで指定されるenumがありません",array(
                 "enum"=>$alias["enum"], "table"=>$this, "alias"=>$alias,
             ));
+        }
+        return app()->enum[$alias["enum"]]->map($src_values);
+    }
+    protected static function mapReduce ($callback, $src_values, $alias)
+    {
         // checklistのように対象の値が複数となっている
-        } elseif ($alias["array"] || $alias["glue"]) {
-            $reduced = array_reduce($src_values, function($result, $item){
-                return array_merge($result, array_values((array)$item));
+        if ($alias["array"] || $alias["glue"]) {
+            $reduced = array_reduce($src_values, function($reduced, $src_value){
+                return array_merge($reduced, array_values((array)$src_value));
             }, array());
-            $map = app()->enum[$alias["enum"]]->map($reduced);
+            $map = call_user_func($callback, $reduced, $alias);
             $dest_values = array();
-            foreach ($src_values as $k1=>$v1) {
-                $src_value = $v1;
-                $src_value = is_array($src_value) ? self::encodeKey($src_value) : "".$src_value;
-                $dest_values[self::encodeKey($v1)] = array();
-                foreach ((array)$v1 as $k2=>$v2) {
-                    $dest_values[$src_value][$k2] = $map[$v2];
-                }
-                if ($alias["glue"]) $dest_values[$src_value] = implode($alias["glue"], $dest_values[$src_value]);
+            foreach ($src_values as $src_value) {
+                $key = self::encodeKey($src_value);
+                $dest_values[$key] = array();
+                foreach ((array)$src_value as $k=>$v) $dest_values[$key][$k] = $map[$v];
+                if ($alias["glue"]) $dest_values[$key] = implode($glue, $dest_values[$key]);
             }
             return $dest_values;
         } else {
-            $map = app()->enum[$alias["enum"]]->map($src_values);
-            $dest_values = array();
-            foreach ($src_values as $k=>$v) $dest_values[$k] = $map[$v];
+            $dest_values = call_user_func($callback, $src_values, $alias);
             return $dest_values;
         }
     }
     protected static function encodeKey($key)
     {
-        if (is_array($key)) return json_encode($key);
-        return $key;
+        return (is_array($key) || is_object($key)) ? json_encode($key) : "".$key;
     }
     /**
      * @hook retreive_alias
