@@ -591,7 +591,7 @@ class FormContainer extends ArrayObject
             if (isset($field_def["col_form_values"])) $key = "col_form_values";
         } elseif ($type=="values_clause") {
             if (isset($field_def["col_record_values"])) $key = "col_record_values";
-            if (isset($field_def["col_value_clause"])) $key = "col_value_clause";
+            if (isset($field_def["col_values_clause"])) $key = "col_values_clause";
         }
         return $field_def[$key];
     }

@@ -110,11 +110,12 @@ class DBConnectionDoctrine2 implements DBConnection
             $args[] = array("-B", $this->config["dbname"]);
             if ($this->config["host"]) $args[] = array("-h", $this->config["host"]);
             if ($this->config["port"]) $args[] = array("-P", $this->config["port"]);
-            if ($this->config["login"]) $args[] = array("-u", $this->config["login"]);
+            if ($this->config["user"]) $args[] = array("-u", $this->config["user"]);
             if ($this->config["password"]) $args[] = array("--password=".$this->config["password"]);
-            $outpipe = preg_match('!\.gz!',$filename) ? "| gzip >" : ">";
-            $cmd = Cli::escape(array("mysqldump", $args, $outpipe=>array($filename)));
-            list($ret, $out, $err) = Cli::exec($cmd);
+            list($ret, $out, $err, $cmd) = Cli::exec(array("mysqldump", $args, ">"=>array($filename)));
+            if ( ! $ret && preg_match('!\.gz$!', $filename)) {
+                list($ret, $out, $err, $cmd) = Cli::exec($cmd, array("gzip", $filename));
+            }
             if ($ret) {
                 report_warning("mysqldumpが正常に実行できませんでした",array(
                     "cmd" => $cmd,

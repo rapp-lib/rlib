@@ -1,29 +1,17 @@
 <?php
 namespace R\Lib\Debug;
 use Barryvdh\Debugbar\LaravelDebugbar;
-use R\Lib\Debug\DataCollector\ReportCollector;
 use DebugBar\Storage\FileStorage;
-
-use Barryvdh\Debugbar\DataCollector\AuthCollector;
+use R\Lib\Http\ResponseFactory;
+use R\Lib\Debug\DataCollector\ReportCollector;
 use Barryvdh\Debugbar\DataCollector\EventCollector;
+use DebugBar\DataCollector\ExceptionsCollector;
+
 use Barryvdh\Debugbar\DataCollector\FilesCollector;
-use Barryvdh\Debugbar\DataCollector\LaravelCollector;
-use Barryvdh\Debugbar\DataCollector\LogsCollector;
-use Barryvdh\Debugbar\DataCollector\QueryCollector;
-use Barryvdh\Debugbar\DataCollector\SessionCollector;
-use Barryvdh\Debugbar\DataCollector\SymfonyRequestCollector;
-use Barryvdh\Debugbar\DataCollector\ViewCollector;
-use Barryvdh\Debugbar\Storage\FilesystemStorage;
-use DebugBar\Bridge\MonologCollector;
 use DebugBar\Bridge\SwiftMailer\SwiftLogCollector;
 use DebugBar\Bridge\SwiftMailer\SwiftMailCollector;
-use DebugBar\DataCollector\ConfigCollector;
-use DebugBar\DataCollector\ExceptionsCollector;
 use DebugBar\DataCollector\MemoryCollector;
-use DebugBar\DataCollector\MessagesCollector;
 use DebugBar\DataCollector\PhpInfoCollector;
-use DebugBar\DataCollector\RequestDataCollector;
-use DebugBar\DataCollector\TimeDataCollector;
 
 class Debugbar extends LaravelDebugbar
 {
@@ -31,61 +19,41 @@ class Debugbar extends LaravelDebugbar
     {
         parent::__construct($app);
         $stack_dir = constant("R_APP_ROOT_DIR")."/tmp/debug/stack";
-        $this->setStorage(new \DebugBar\Storage\FileStorage($stack_dir));
+        $this->setStorage(new FileStorage($stack_dir));
     }
     public function modifyResponse($request, $response)
     {
-        $app = $this->app;
-
-        if ($app->runningInConsole() || ! $this->isEnabled() || $this->isDebugbarRequest()) {
+        if ($this->app->runningInConsole() || ! $this->isEnabled() || $this->isDebugbarRequest()) {
             return $response;
         }
-        // report_info("Http Served", array(
-        //     "request_uri" => app("request.fallback")->getUri(),
-        //     "input_values" => app("request.fallback")->getInputValues(),
-        // ));
-        // Inject report info
-        // if ( ! $this->app['config']["debug.no_inject_report"]) {
-        //     $response = app("report")->rewriteHttpResponse($response);
-        // }
-
-        if ($this->isJsonRequest($request)) {
-            try {
+        try {
+            if ($this->isJsonRequest($request)) {
                 $this->sendDataInHeaders(true);
-            } catch (\Exception $e) {
-                $app['log']->error('Debugbar exception: ' . $e->getMessage());
-            }
-        } elseif (strpos($response->getHeaderLine('Content-Type'), 'html') === false) {
-            try {
-                // Just collect + store data, don't inject it.
-                $this->collect();
-            } catch (\Exception $e) {
-                $app['log']->error('Debugbar exception: ' . $e->getMessage());
-            }
-        } else {
-            if (in_array($response->getStatusCode(), array(301,302))) {
-                try {
+            } elseif (in_array($response->getStatusCode(), array(301,302))) {
+                if ($this->app["config"]["debug.not_inject_redirect_page"]) {
                     $this->stackData();
+                } else {
                     $location = $response->getHeaderLine("location");
-                    $response = app()->http->response("html", '<a href="'.$location.'"><div style="padding:20px;'
+                    $response = $this->app->http->response("html",
+                        '<a href="'.$location.'"><div style="padding:20px;'
                         .'background-color:#f8f8f8;border:solid 1px #aaaaaa;">'
                         .'Location: '.$location.'</div></a>');
-                } catch (\Exception $e) {
-                    $app['log']->error('Debugbar exception: ' . $e->getMessage());
+                    $response = $this->injectDebugbarResponse($response);
                 }
-            }
-            try {
+            } elseif ($this->isHtmlResponse($response)) {
                 $response = $this->injectDebugbarResponse($response);
-            } catch (\Exception $e) {
-                $app['log']->error('Debugbar exception: ' . $e->getMessage());
+            } else {
+                // Just collect + store data, don't inject it.
+                $this->collect();
             }
+        } catch (\Exception $e) {
+            $this->app['log']->error('Debugbar exception: ' . $e->getMessage());
         }
         $this->disable();
         return $response;
     }
     public function collect()
     {
-        /** @var Request $request */
         $request = $this->app['request.fallback'];
         $server_params = $request->getServerParams();
         $this->data = array(
@@ -113,7 +81,7 @@ class Debugbar extends LaravelDebugbar
             }
         );
 
-        if ($this->storage !== null) {
+        if ($this->getStorage()) {
             $this->storage->save($this->getCurrentRequestId(), $this->data);
         }
 
@@ -132,8 +100,8 @@ class Debugbar extends LaravelDebugbar
     public function injectDebugbarResponse($response)
     {
         $content = $response->getBody();
-
         $renderer = $this->getJavascriptRenderer();
+
         if ($this->getStorage()) {
             $openHandlerUrl = $this->route('debugbar.open');
             $renderer->setOpenHandlerUrl($openHandlerUrl);
@@ -148,8 +116,9 @@ class Debugbar extends LaravelDebugbar
             $content = $content . $renderedContent;
         }
 
-        $body = \R\Lib\Http\ResponseFactory::createBody($content);
+        $body = ResponseFactory::createBody($content);
         $response = $response->withBody($body);
+
         return $response;
     }
     protected $enabled = true;
@@ -168,6 +137,11 @@ class Debugbar extends LaravelDebugbar
     protected function isJsonRequest($request)
     {
         return $this->app['request.fallback']->isAjax() || $this->app['request.fallback']->wantsJson();
+    }
+    protected function isHtmlResponse($response)
+    {
+        $content_type = $response->getHeaderLine('Content-Type');
+        return $content_type=="" || strpos($content_type, 'html') !== false;
     }
     protected $js_renderer = null;
     public function getJavascriptRenderer($base_url = null, $base_path = null)

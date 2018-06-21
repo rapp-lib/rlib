@@ -65,26 +65,34 @@ class Cli
      * execに渡す文字列の構築
      * ex) list($ret, $out, $err) = Cli::exec("test -v", "Hello");
      */
-    public static function exec ($cmd, $input=null)
+    public static function exec ($cmd)
     {
-        $desc = array();
-        if ($input) $desc[0] = array("pipe", "r");
-        $desc[1] = array("pipe", "w");
-        $desc[2] = array("pipe", "w");
-        $proc = proc_open($cmd, $desc, $pipes, $cwd=null, $env=array());
-        if (is_resource($proc)) {
-            if ($input) {
-                fwrite($pipes[0], $input);
-                fclose($pipes[0]);
-            }
-            $out = stream_get_contents($pipes[1]);
-            fclose($pipes[1]);
-            $err = stream_get_contents($pipes[2]);
-            fclose($pipes[2]);
-            $ret = proc_close($proc);
-            return array($ret, $out, $err);
-        }
-        return array();
+        if (is_array($cmd)) $cmd = self::escape($cmd);
+        $p = new \Symfony\Component\Process\Process($cmd);
+        $p->run();
+        $ret = $p->getExitCode();
+        $out = $p->getOutput();
+        $err = $p->getErrorOutput();
+        return array($ret, $out, $err, $cmd);
+
+        // $desc = array();
+        // if ($input) $desc[0] = array("pipe", "r");
+        // $desc[1] = array("pipe", "w");
+        // $desc[2] = array("pipe", "w");
+        // $proc = proc_open($cmd, $desc, $pipes, $cwd=null, $env=array());
+        // if (is_resource($proc)) {
+        //     if ($input) {
+        //         fwrite($pipes[0], $input);
+        //         fclose($pipes[0]);
+        //     }
+        //     $out = stream_get_contents($pipes[1]);
+        //     fclose($pipes[1]);
+        //     $err = stream_get_contents($pipes[2]);
+        //     fclose($pipes[2]);
+        //     $ret = proc_close($proc);
+        //     return array($ret, $out, $err, $cmd);
+        // }
+        // return array();
     }
 }
 class CliNoEscape
