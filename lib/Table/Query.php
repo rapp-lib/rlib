@@ -223,7 +223,7 @@ class Query extends ArrayObject
     /**
      * @getter
      */
-    public function getAlias ($alias)
+    public function getAlias ()
     {
         if (is_array($this["table"]) && $this["table"][0]!==$this["table"][1]) return $this["table"][1];
     }
