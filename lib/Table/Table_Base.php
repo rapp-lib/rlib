@@ -53,7 +53,10 @@ class Table_Base extends Table_Core
      */
     public function chain_join ($table, $on=array(), $type="LEFT")
     {
+        // Tableに変換する
+        if (is_array($table)) list($table, $alias) = $table;
         if (is_string($table)) $table = table($table);
+        if ($alias) $table->setAlias($alias);
         $this->query->join($table, $on, $type);
     }
     /**
@@ -62,7 +65,10 @@ class Table_Base extends Table_Core
      */
     public function chain_joinBelongsTo ($table, $fkey=null, $type="LEFT")
     {
+        // Tableに変換する
+        if (is_array($table)) list($table, $alias) = $table;
         if (is_string($table)) $table = table($table);
+        if ($alias) $table->setAlias($alias);
         // fkeyの設定がなければ、tableのfkey_forを参照
         if ( ! isset($fkey)) $fkey = $this->getColNameByAttr("fkey_for", $table->getAppTableName());
         $on = $this->getQueryTableName().".".$fkey
@@ -510,6 +516,45 @@ class Table_Base extends Table_Core
             ));
         }
         return app()->enum[$alias["enum"]]->map($src_values);
+    }
+    /**
+     * @hook retreive_alias
+     * hasMany関係先テーブルの情報を取得
+     */
+    protected function retreive_aliasHasMany ($src_values, $alias)
+    {
+        if ( ! $alias["table"]) {
+            report_error("aliasで指定されるtableがありません",array(
+                "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
+            ));
+        }
+        $assoc_table = table($alias["table"]);
+        $assoc_fkey = $alias["fkey"]
+            ?: $assoc_table->getColNameByAttr("fkey_for", $this->getAppTableName());
+        if ( ! $assoc_fkey) {
+            report_error("Table間にHasMany関係がありません",array(
+                "table"=>$this, "assoc_table"=>$assoc_table, "alias"=>$alias,
+            ));
+        }
+        $assoc_table->findBy($assoc_fkey, $src_values);
+        if ($alias["where"]) $assoc_table->findBy($alias["where"]);
+        return $assoc_table->select()->getGroupedBy($assoc_fkey);
+    }
+    /**
+     * @hook retreive_alias
+     * belongsTo関係先テーブルの情報を取得
+     */
+    protected function retreive_aliasBelongsTo ($src_values, $alias)
+    {
+        if ( ! $alias["table"]) {
+            report_error("aliasで指定されるtableがありません",array(
+                "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
+            ));
+        }
+        $assoc_table = table($alias["table"]);
+        $assoc_table->findBy($assoc_table->getIdColName(), $src_values);
+        if ($alias["where"]) $assoc_table->findBy($alias["where"]);
+        return $assoc_table->select()->getMappedBy($assoc_table->getIdColName());
     }
     protected static function mapReduce ($callback, $src_values, $alias)
     {

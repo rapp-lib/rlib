@@ -43,9 +43,9 @@ class Statement extends SQLStatement
             // Joinsのサブクエリ展開
             if (is_object($v[0]) && method_exists($v[0],"buildQuery")) {
                 $v[0]->modifyQuery(function($sub_query) use (&$query, $k){
-                    $sub_query_statement = $query["joins"][$k][0]->buildQuery("select");
                     if ($sub_query->getGroup()) {
                         //TODO: GroupBy付きのJOINでも異なるDB間でJOINできるようにする
+                        $sub_query_statement = $query["joins"][$k][0]->buildQuery("select");
                         $query["joins"][$k][0] = array("(".$sub_query_statement.")", $sub_query->getTableName());
                     } else {
                         $table_name = $sub_query->getTable();
@@ -53,7 +53,8 @@ class Statement extends SQLStatement
                         if ($query["dbname"]!==$sub_query["dbname"]) {
                             $table_name = $sub_query["dbname"].".".$table_name;
                         }
-                        $query["joins"][$k][0] = $table_name;
+                        $alias = $sub_query->getAlias();
+                        $query["joins"][$k][0] = $alias ? array($table_name, $alias) : $table_name;
                         if ($sub_query["where"]) $query["joins"][$k][1][] = $sub_query["where"];
                     }
                 });

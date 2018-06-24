@@ -201,9 +201,9 @@ class Query extends ArrayObject
     /**
      * @getter
      */
-    public function getTableName ()
+    public function getTable ()
     {
-        return is_array($this["table"]) ? $this["table"][1] : $this["table"];
+        return is_array($this["table"]) ? $this["table"][0] : $this["table"];
     }
     /**
      * @setter
@@ -212,6 +212,20 @@ class Query extends ArrayObject
     {
         if (is_array($this["table"])) $this["table"][1] = $alias;
         else $this["table"] = array($table, $alias);
+    }
+    /**
+     * @getter
+     */
+    public function getTableName ()
+    {
+        return is_array($this["table"]) ? $this["table"][1] : $this["table"];
+    }
+    /**
+     * @getter
+     */
+    public function getAlias ($alias)
+    {
+        if (is_array($this["table"]) && $this["table"][0]!==$this["table"][1]) return $this["table"][1];
     }
     /**
      * @setter
@@ -237,15 +251,7 @@ class Query extends ArrayObject
      */
     public function join ($table, $on=array(), $type="LEFT")
     {
-        if ($table instanceof Table_Base) {
-            $alias = $table->getQueryTableName();
-            if ($alias && is_string($table) && $alias!==$table) {
-                $table = array($table, $alias);
-            }
-        }
-        if ( ! is_array($on)) {
-            $on = array($on);
-        }
+        if ( ! is_array($on)) $on = array($on);
         $this["joins"][] = array($table, $on, $type);
     }
     /**
