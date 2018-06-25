@@ -3,16 +3,16 @@ namespace R\Lib\Builder;
 
 class CodeRenderer
 {
-    public static function elementLines($height, $lines)
+    public static function elementLines($height, $lines, $o=array())
     {
         $code = "";
-        foreach ($lines as $k=>$v) $code .= self::elementLine($height, $k, $v);
+        foreach ($lines as $k=>$v) $code .= self::elementLine($height, $k, $v, $o);
         return $code;
     }
-    public static function elementLine($height, $k, $v)
+    public static function elementLine($height, $k, $v, $o=array())
     {
         if ( ! isset($v)) return;
-        return self::indent($height).self::key($height, $k).self::value($height, $v).','."\n";
+        return self::indent($height).self::key($height, $k).self::value($height, $v, $o).','."\n";
     }
     public static function indent($height)
     {
@@ -22,16 +22,20 @@ class CodeRenderer
     {
         return ($k && ! is_numeric($k) ? self::value($height, $k).'=>': "");
     }
-    public static function value($height, $v)
+    public static function value($height, $v, $o=array())
     {
         if ($v instanceof CodeFragment){
             return (string)$v;
         } elseif (is_array($v)) {
             $v = array_filter($v, function($v2){ return isset($v2); });
-            if (count($v) < 4) {
+            $breaks = 4;
+            if ($o["breaks"]) $breaks = $o["breaks"];
+            if ($o["breaks_first"] && $o["nest"]==0) $breaks = $o["breaks_first"];
+            if (count($v) < $breaks) {
                 foreach ($v as $k2=>$v2) {
                     if (isset($v2)) {
-                        $v[$k2] = self::key($height, $k2).self::value($height, $v2);
+                        $o["nest"]++;
+                        $v[$k2] = self::key($height, $k2).self::value($height, $v2, $o);
                     } else {
                         unset($v[$k2]);
                     }
@@ -39,7 +43,8 @@ class CodeRenderer
                 $v = 'array('.implode(', ',$v).')';
             } else {
                 foreach ($v as $k2=>$v2) {
-                    $v[$k2] = self::elementLine($height+1, $k2, $v2);
+                    $o["nest"]++;
+                    $v[$k2] = self::elementLine($height+1, $k2, $v2, $o);
                 }
                 $v = 'array('."\n".implode('',$v).str_repeat('    ', $height).')';
             }

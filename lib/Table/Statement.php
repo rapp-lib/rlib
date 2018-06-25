@@ -53,7 +53,8 @@ class Statement extends SQLStatement
                         if ($query["dbname"]!==$sub_query["dbname"]) {
                             $table_name = $sub_query["dbname"].".".$table_name;
                         }
-                        $query["joins"][$k][0] = $table_name;
+                        $alias = $sub_query->getAlias();
+                        $query["joins"][$k][0] = $alias ? array($table_name, $alias) : $table_name;
                         if ($sub_query["where"]) $query["joins"][$k][1][] = $sub_query["where"];
                     }
                 });

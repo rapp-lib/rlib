@@ -21,6 +21,7 @@ class Table_Core
     protected static $ds_name = "default";
     protected static $def = array();
     protected static $cols = array();
+    protected static $aliases = array();
     /**
      * クエリ発行時のTransactionの自動Begin/Commit設定
      */

@@ -7,6 +7,7 @@ class Handler extends IlluminateHandler
 {
 	public function handleException($exception)
 	{
+        if ( ! app()->config["app.no_cleanup_on_exception"]) ob_end_clean();
         app("events")->fire("app.handle_exception", array($exception));
         return parent::handleException($exception);
     }
@@ -17,12 +18,8 @@ class Handler extends IlluminateHandler
     }
     public function handleShutdown()
     {
-        //app()->report->beforeShutdown();
         $error = error_get_last();
         if ( ! is_null($error)){
-            // $error['php_error_code'] = $error['type'];
-            // $e = \R\Lib\Report\ReportRenderer::createHandlableError($error);
-            // app()->report->logException($e);
             extract($error);
             if ( ! $this->isFatal($type)) return;
             if ( ! app()->runningInConsole()) {
