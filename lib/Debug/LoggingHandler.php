@@ -31,7 +31,7 @@ class LoggingHandler extends AbstractProcessingHandler
     }
     public function getCategories()
     {
-        $categories = array("Debug");
+        $categories = array("Debug", "Error");
         foreach (static::$records as &$record) {
             $category = $record["context"]["__"]["category"];
             if ( ! isset($category)) continue;

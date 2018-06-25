@@ -35,6 +35,15 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
         $event_collector = new DataCollector\EventCollector($start_time);
         $this->app["debugbar"]->addCollector($event_collector);
         $this->app['events']->subscribe($event_collector);
+        $this->app['events']->listen("app.handle_exception", function($e){
+            if ( ! $e instanceof \R\Lib\Report\HandlableError) {
+                $e = \R\Lib\Report\ReportRenderer::createHandlableError(array("exception"=>$e));
+            }
+            $message = $e->getMessage();
+            $params = $e->getParams();
+            $level = $params["level"];
+            app("log")->getMonolog()->log($level, $message, $params);
+        });
     }
     public function boot()
     {
