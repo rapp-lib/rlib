@@ -224,6 +224,7 @@ class ReportRenderer
         if (is_array($value) || is_object($value)) {
             if ($value instanceof \ArrayObject) {
                 $r["__type"] = "object(".get_class($value).')['.count($value).']';
+                $value = method_exists($value,"__report") ? (array)$value->__report() : $value;
             } elseif (is_object($value)) { 
                 $r["__type"] = "object(".get_class($value).')';
                 $value = method_exists($value,"__report") ? (array)$value->__report() : get_object_vars($value);

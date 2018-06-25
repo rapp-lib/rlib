@@ -35,4 +35,9 @@ class FormCollection implements ArrayAccess
         $def["tmp_storage_name"] = $def["tmp_storage_name"]."__".$key;
         $this->forms[$key] = new FormContainer($def);
     }
+
+    public function __report ()
+    {
+        return $this->forms;
+    }
 }
