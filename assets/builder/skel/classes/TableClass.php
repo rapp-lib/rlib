@@ -12,6 +12,11 @@ class <?=$table->getClassName()?> extends Table_App
 <?=$col->getColDefSource()?>
 <?php endforeach; ?>
     );
+    protected static $aliases = array(
+<?php foreach ($table->getCols() as $col): ?>
+<?=$col->getAliasDefSource()?>
+<?php endforeach; ?>
+    );
     protected static $def = array(
         "comment" => "<?=$table->getAttr("label")?>",
         "indexes" => array(

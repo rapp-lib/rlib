@@ -592,6 +592,7 @@ class Table_Base extends Table_Core
         $assoc_table->findBy($assoc_fkey, $src_values);
         if ($alias["mine"]) $assoc_table->findMine();
         if ($alias["where"]) $assoc_table->findBy($alias["where"]);
+        if ($alias["order"]) $assoc_table->orderBy($alias["order"]);
         if ($alias["summary"]) return $assoc_table->selectSummary($alias["summary"], $assoc_fkey);
         $result = $assoc_table->select();
         if ($alias["single"]) return $result->getMappedBy($assoc_fkey);

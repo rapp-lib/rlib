@@ -108,13 +108,41 @@ class ColElement extends Element_Base
         if ($this->getAttr("type")=="checklist" && $def["type"]=="text" && ! $def["format"]) {
             $def["format"] = "json";
         }
+        return CodeRenderer::elementLine(2, $this->getName(), $def);
+    }
+    /**
+     * $colsの定義行の取得
+     */
+    public function getAliasDefSource ($o=array())
+    {
+        if ( ! $this->hasColDef()) return;
+        // aliasesで記述されているものを登録
+        $def = (array)$this->getAttr("aliases");
+        // enum参照先を登録
         if ($enum_set = $this->getEnumSet()) {
-            $def["alias"][$this->getEnumAliasColName()]["enum"] = $enum_set->getFullName();
+            $def[$this->getEnumAliasColName()]["enum"] = $enum_set->getFullName();
             if ($this->getAttr("type")=="checklist") {
-                $def["alias"][$this->getEnumAliasColName()]["array"] = true;
+                $def[$this->getEnumAliasColName()]["array"] = true;
             }
         }
-        return CodeRenderer::elementLine(2, $this->getName(), $def);
+        // 外部キーであれば参照先を登録
+        if ($fkey_for = $this->getAttr("def.fkey_for")) {
+            $key = str_singular(snake_case($fkey_for));
+            $def[$key] = array("type"=>"belongs_to", "table"=>$fkey_for);
+        }
+        // 主キーであれば参照元を登録
+        if ($this->getAttr("def.id")) {
+            foreach ($this->getSchema()->getTables() as $table) {
+                foreach ($table->getCols() as $col) {
+                    if ($this->getTable()->getName() == $col->getAttr("def.fkey_for")) {
+                        $key = str_plural(snake_case($table->getName()));
+                        $def[$key] = array("type"=>"has_many", "table"=>$table->getName());
+                    }
+                }
+            }
+        }
+        if ( ! $def) return;
+        return CodeRenderer::elementLine(2, $this->getName(), $def, array("breaks_first"=>1));
     }
     /**
      * form.field_def中でのrule定義行の取得
