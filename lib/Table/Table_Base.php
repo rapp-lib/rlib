@@ -56,7 +56,7 @@ class Table_Base extends Table_Core
         // Tableに変換する
         if (is_array($table)) list($table, $alias) = $table;
         if (is_string($table)) $table = table($table);
-        if ($alias) $table->setAlias($alias);
+        if ($alias) $table->alias($alias);
         $this->query->join($table, $on, $type);
     }
     /**
@@ -454,6 +454,7 @@ class Table_Base extends Table_Core
         }
     }
     /**
+     * @deprecated
      * @hook on_getBlankCol
      * retreiveメソッドが定義されていたら参照する
      */
@@ -479,82 +480,47 @@ class Table_Base extends Table_Core
      */
     protected function on_getBlankCol_alias ($record, $col_name)
     {
-        foreach (static::$cols as $src_col_name=>$src_col) {
+        foreach ((array)static::$aliases as $src_col_name=>$aliases) {
+            foreach ((array)$aliases as $alias_col_name=>$alias) {
+                if ($alias_col_name===$col_name) {
+                    $this->mergeAlias($alias_col_name, $src_col_name, $alias);
+                    return true;
+                }
+            }
+        }
+        // @deprecated 旧仕様に従ってcolのaliasを参照する機能も残す
+        foreach ((array)static::$cols as $src_col_name=>$src_col) {
             foreach ((array)$src_col["alias"] as $alias_col_name=>$alias) {
                 if ($alias_col_name===$col_name) {
-                    if ( ! $alias["type"] && $alias["enum"]) $alias["type"] = "enum";
-                    $alias["src_col_name"] = $src_col_name;
-                    $alias["alias_col_name"] = $alias_col_name;
-                    $method_name = "retreive_alias".str_camelize($alias["type"]);
-                    if ( ! method_exists($this, $method_name)) {
-                        report_error("aliasに対応する処理がありません",array(
-                            "table"=>$this, "alias"=>$alias, "method_name"=>$method_name,
-                        ));
-                    }
-                    // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
-                    $src_values = $this->result->getHashedBy($src_col_name);
-                    $dest_values = self::mapReduce(array($this,$method_name), $src_values, $alias);
-                    // 結果を統合する
-                    foreach ($this->result as $record) {
-                        $record[$col_name] = $dest_values[self::encodeKey($record[$src_col_name])];
-                    }
+                    $this->mergeAlias($alias_col_name, $src_col_name, $alias);
                     return true;
                 }
             }
         }
     }
     /**
-     * @hook retreive_alias
-     * aliasにenum指定がある場合の処理
+     * @hook result
+     * aliasを適用する
      */
-    protected function retreive_aliasEnum ($src_values, $alias)
+    protected function mergeAlias ($alias_col_name, $src_col_name, $alias)
     {
-        // 指定が不正
-        if ( ! $alias["enum"] || ! app()->enum[$alias["enum"]]) {
-            report_error("aliasで指定されるenumがありません",array(
-                "enum"=>$alias["enum"], "table"=>$this, "alias"=>$alias,
+        if ( ! $alias["type"] && $alias["enum"]) $alias["type"] = "enum";
+        $alias["src_col_name"] = $src_col_name;
+        $alias["alias_col_name"] = $alias_col_name;
+        $method_name = "retreive_alias".str_camelize($alias["type"]);
+        if ( ! method_exists($this, $method_name)) {
+            report_error("aliasに対応する処理がありません",array(
+                "table"=>$this, "alias"=>$alias, "method_name"=>$method_name,
             ));
         }
-        return app()->enum[$alias["enum"]]->map($src_values);
-    }
-    /**
-     * @hook retreive_alias
-     * hasMany関係先テーブルの情報を取得
-     */
-    protected function retreive_aliasHasMany ($src_values, $alias)
-    {
-        if ( ! $alias["table"]) {
-            report_error("aliasで指定されるtableがありません",array(
-                "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
-            ));
+        // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
+        $src_values = $this->result->getHashedBy($src_col_name);
+        $dest_values = self::mapReduce(array($this, $method_name), $src_values, $alias);
+        // 結果を統合する
+        foreach ($this->result as $record) {
+            $key = self::encodeKey($record->getColValue($src_col_name));
+            $record[$alias_col_name] = $dest_values[$key];
         }
-        $assoc_table = table($alias["table"]);
-        $assoc_fkey = $alias["fkey"]
-            ?: $assoc_table->getColNameByAttr("fkey_for", $this->getAppTableName());
-        if ( ! $assoc_fkey) {
-            report_error("Table間にHasMany関係がありません",array(
-                "table"=>$this, "assoc_table"=>$assoc_table, "alias"=>$alias,
-            ));
-        }
-        $assoc_table->findBy($assoc_fkey, $src_values);
-        if ($alias["where"]) $assoc_table->findBy($alias["where"]);
-        return $assoc_table->select()->getGroupedBy($assoc_fkey);
-    }
-    /**
-     * @hook retreive_alias
-     * belongsTo関係先テーブルの情報を取得
-     */
-    protected function retreive_aliasBelongsTo ($src_values, $alias)
-    {
-        if ( ! $alias["table"]) {
-            report_error("aliasで指定されるtableがありません",array(
-                "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
-            ));
-        }
-        $assoc_table = table($alias["table"]);
-        $assoc_table->findBy($assoc_table->getIdColName(), $src_values);
-        if ($alias["where"]) $assoc_table->findBy($alias["where"]);
-        return $assoc_table->select()->getMappedBy($assoc_table->getIdColName());
     }
     protected static function mapReduce ($callback, $src_values, $alias)
     {
@@ -580,6 +546,73 @@ class Table_Base extends Table_Core
     protected static function encodeKey($key)
     {
         return (is_array($key) || is_object($key)) ? json_encode($key) : "".$key;
+    }
+    /**
+     * @hook retreive_alias
+     * aliasにenum指定がある場合の処理
+     */
+    protected function retreive_aliasEnum ($src_values, $alias)
+    {
+        // 指定が不正
+        if ( ! $alias["enum"] || ! app()->enum[$alias["enum"]]) {
+            report_error("aliasで指定されるenumがありません",array(
+                "enum"=>$alias["enum"], "table"=>$this, "alias"=>$alias,
+            ));
+        }
+        return app()->enum[$alias["enum"]]->map($src_values);
+    }
+    /**
+     * @hook retreive_alias
+     * hasMany関係先テーブルの情報を1件のみ取得
+     */
+    protected function retreive_aliasHasOne ($src_values, $alias)
+    {
+        $alias["single"] = true;
+        return $this->retreive_aliasHasMany($src_values, $alias);
+    }
+    /**
+     * @hook retreive_alias
+     * hasMany関係先テーブルの情報を取得
+     */
+    protected function retreive_aliasHasMany ($src_values, $alias)
+    {
+        if ( ! $alias["table"]) {
+            report_error("aliasで指定されるtableがありません",array(
+                "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
+            ));
+        }
+        $assoc_table = table($alias["table"]);
+        $assoc_fkey = $alias["fkey"]
+            ?: $assoc_table->getColNameByAttr("fkey_for", $this->getAppTableName());
+        if ( ! $assoc_fkey) {
+            report_error("Table間にHasMany関係がありません",array(
+                "table"=>$this, "assoc_table"=>$assoc_table, "alias"=>$alias,
+            ));
+        }
+        $assoc_table->findBy($assoc_fkey, $src_values);
+        if ($alias["mine"]) $assoc_table->findMine();
+        if ($alias["where"]) $assoc_table->findBy($alias["where"]);
+        if ($alias["summary"]) return $assoc_table->selectSummary($alias["summary"], $assoc_fkey);
+        $result = $assoc_table->select();
+        if ($alias["single"]) return $result->getMappedBy($assoc_fkey);
+        return $result->getGroupedBy($assoc_fkey);
+    }
+    /**
+     * @hook retreive_alias
+     * belongsTo関係先テーブルの情報を取得
+     */
+    protected function retreive_aliasBelongsTo ($src_values, $alias)
+    {
+        if ( ! $alias["table"]) {
+            report_error("aliasで指定されるtableがありません",array(
+                "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
+            ));
+        }
+        $assoc_table = table($alias["table"]);
+        $assoc_table->findBy($assoc_table->getIdColName(), $src_values);
+        if ($alias["mine"]) $assoc_table->findMine();
+        if ($alias["where"]) $assoc_table->findBy($alias["where"]);
+        return $assoc_table->select()->getMappedBy($assoc_table->getIdColName());
     }
     /**
      * @hook retreive_alias
