@@ -9,6 +9,7 @@ class Handler extends IlluminateHandler
 	{
         if ( ! app()->config["app.no_cleanup_on_exception"]) ob_end_clean();
         app("events")->fire("app.handle_exception", array($exception));
+        if (app()->runningInConsole()) return null;
         return parent::handleException($exception);
     }
     public function handleUncaughtException($exception)
@@ -22,10 +23,8 @@ class Handler extends IlluminateHandler
         if ( ! is_null($error)){
             extract($error);
             if ( ! $this->isFatal($type)) return;
-            if ( ! app()->runningInConsole()) {
-                $response = $this->handleException(new FatalError($message, $type, 0, $file, $line));
-                app()->http->emit($response);
-            }
+            $response = $this->handleException(new FatalError($message, $type, 0, $file, $line));
+            if ( ! app()->runningInConsole()) app()->http->emit($response);
         }
     }
 

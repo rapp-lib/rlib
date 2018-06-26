@@ -64,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
             $this->app->config['app.debug'] = true;
         }
         // 環境名を設定
-        $this->app->instance('env', $this->app->config["app.env"]);
+        $this->app->instance('env', $this->app->config["app.env"] ?: "");
         // Fallback用requestセットアップ
         $this->app->singleton('request.fallback', function($app){
             if ($app->bound("request")) return $app["request"];

@@ -69,7 +69,7 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
                 $this->retreived = true;
                 foreach ($values as $k=>$v) $this->values[self::encodeKey($k)] = $v;
             } else {
-                foreach ($keys as $k) $this->values[self::encodeKey($k)] = $values[$k];
+                foreach ($keys as $k) $this->values[self::encodeKey($k)] = $values[self::encodeKey($k)];
             }
         } elseif (property_exists($this, $prop_name)) {
             $this->values = static::$$prop_name;
@@ -86,7 +86,6 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
 
     protected static function encodeKey($key)
     {
-        if (is_array($key)) return json_encode($key);
-        return $key;
+        return (is_array($key) || is_object($key)) ? json_encode($key) : "".$key;
     }
 }
