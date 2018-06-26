@@ -150,8 +150,20 @@ class Table_Base extends Table_Core
      */
     public function chain_findBySearchFields ($form, $search_fields)
     {
+        // 適用済みフラグ
         $applied = false;
+        // Yield集約対象
+        $yields = array();
         foreach ($search_fields as $search_field) {
+            // Yield集約対象は別Tableに対して処理するために一次待避
+            if ($search_yield = $search_field["yield"]) {
+                $yield_id = $search_yield["yield_id"] ?: count($yields);
+                if ( ! is_array($yields[$yield_id])) $yields[$yield_id] = array();
+                $yields[$yield_id] += $search_yield;
+                unset($search_field["yield"]);
+                $yields[$yield_id]["search_fields"][] = $search_field;
+                continue;
+            }
             $search_type = $search_field["type"];
             $field_def = $search_field["field_def"];
             $value = $search_field["value"];
@@ -159,14 +171,22 @@ class Table_Base extends Table_Core
             $search_method_name = "search_type".str_camelize($search_type);
             if ( ! method_exists($this, $search_method_name)) {
                 report_error("検索メソッドが定義されていません",array(
-                    "search_method_name" => $search_method_name,
-                    "table" => $this,
+                    "search_method_name" => $search_method_name, "table" => $this,
                 ));
             }
             $result = call_user_func(array($this,$search_method_name), $form, $field_def, $value);
-            if ($result!==false) {
-                $applied = true;
+            if ($result!==false) $applied = true;
+        }
+        foreach ($yields as $yield) {
+            // search_yieldXxx($form, $yield)メソッドを呼び出す
+            $search_method_name = "search_yield".str_camelize($yield["type"]);
+            if ( ! method_exists($this, $search_method_name)) {
+                report_error("検索メソッドが定義されていません",array(
+                    "search_method_name" => $search_method_name, "table" => $this,
+                ));
             }
+            $result = call_user_func(array($this,$search_method_name), $form, $yield);
+            if ($result!==false) $applied = true;
         }
         return $applied;
     }
@@ -925,6 +945,7 @@ class Table_Base extends Table_Core
         elseif (count($conditions_or)>1) $this->query[$query_part][] = array("OR"=>$conditions_or);
     }
     /**
+     * @deprecated search_yieldExists
      * @hook search exists
      * 別Tableをサブクエリとして条件指定する
      */
@@ -980,6 +1001,20 @@ class Table_Base extends Table_Core
         if ( ! $value) $value = 1;
         $this->query->setOffset(($value-1)*$volume);
         $this->query->setLimit($volume);
+    }
+    /**
+     * @hook search_yield exists
+     * 別Tableをサブクエリとして条件指定する
+     */
+    public function search_yieldExists ($form, $yield)
+    {
+        $table = table($yield["table"]);
+        $fkey = $yield["fkey"] ?: $table->getColNameByAttr("fkey_for", $this->getAppTableName());
+        $table->findBy($this->getQueryTableName().".".$this->getIdColName()."=".$table->getQueryTableName().".".$fkey);
+        if ($yield["joins"]) foreach ($yield["joins"] as $join) $table->join($join);
+        if ($yield["where"]) $table->findBy($yield["where"]);
+        $result = $table->chain_findBySearchFields($form, $yield["search_fields"]);
+        if ($result) $this->query->where("EXISTS(".$table->buildQuery("select").")");
     }
 
 // -- 基本的な認証処理の定義

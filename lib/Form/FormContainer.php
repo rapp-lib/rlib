@@ -450,6 +450,7 @@ class FormContainer extends ArrayObject
         $search_fields = array();
         foreach ((array)$this->def["fields"] as $field_name => $field_def) {
             $search_type = $field_def["search"];
+            $search_yield = $field_def["search_yield"];
             if ( ! isset($search_type)) {
                 continue;
             }
@@ -472,6 +473,7 @@ class FormContainer extends ArrayObject
                 $field_def["search_fields"] = $child_search_fields;
                 $search_fields[] = array(
                     "type" => $search_type,
+                    "yield" => $search_yield,
                     "field_def" => $field_def,
                     "value" => $this[$field_name],
                 );
@@ -479,6 +481,7 @@ class FormContainer extends ArrayObject
             } elseif ($field_def["level"]==1) {
                 $search_fields[] = array(
                     "type" => $search_type,
+                    "yield" => $search_yield,
                     "field_def" => $field_def,
                     "value" => $this[$field_name],
                 );
