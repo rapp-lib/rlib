@@ -36,6 +36,8 @@ class ReportRenderer
         $level = $record["level"];
         $pos = $params["__"]["pos"];
         $bts = $params["__"]["bts"];
+        $category = $params["__"]["category"];
+        if ( ! $category && $level >= Logger::ERROR) $category = "Error";
         unset($params["__"]);
         // HTML形式
         if ($format=="html") {
@@ -58,18 +60,22 @@ class ReportRenderer
                 .'<div style="margin:0 0 0 10px;display:none;" id="'.$elm_id.'_detail">'
                 .'Backtraces '.self::indentValues($bts, $format).'</div></div>';
         // Console形式
-        } elseif ($format=="console") {
+        } elseif ($format=="console" || $format=="console_middle" || $format=="console_short") {
             $text = "";
-            $text .= "*\n* ".$message."\n*";
-            $text .= "\n[PARAM] ".self::indentValues($params, $format);
-            $text .= "\n[TRACE] ".self::indentValues($bts, $format);
+            $text .= "# ".$message;
+            if ($format=="console" || $format=="console_middle") {
+                $text .= self::indentValues($params, $format);
+            }
+            if ($format=="console") {
+                $text .= "\n[TRACE] ".self::indentValues($bts, $format);
+            }
             // 色の指定
             // http://qiita.com/hidai@github/items/1704bf2926ab8b157a4f
             $cn = "\033[0m";
             $c = array("bg"=>"\033[30;42m", "fg"=>"\033[32;40m");
             if ($level >= Logger::ERROR) $c = array("bg"=>"\033[97;41m", "fg"=>"\033[31;40m");
             elseif ($level >= Logger::WARNING) $c = array("bg"=>"\033[30;43m", "fg"=>"\033[33;40m");
-            return $c["bg"]."[".$level."] ".$pos.$cn."\n"
+            return $c["bg"]."[".$category."] ".$pos.$cn."\n"
                 .$c["fg"].$text.$cn."\n";
         }
     }
