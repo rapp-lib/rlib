@@ -54,4 +54,5 @@
             return $this->redirect("id://<?=$pageset->getPageByType("cart")->getLocalPage()?>");
 <?php endif; ?>
         }
+        $this->vars["t"] = $this->forms["cart"]->getRecord();
     }

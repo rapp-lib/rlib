@@ -37,7 +37,7 @@ InputPluginRegistry.registerPlugin("split_text", function ($elm, params) {
         for (var i in bind_elms) {
             var $bind_elm = bind_elms[i];
             value += $bind_elm.val();
-            if (i < bind_elms.length-1 && $bind_elm.val()) {
+            if (i < bind_elms.length-1) {
                 value += params.delim;
             }
         }

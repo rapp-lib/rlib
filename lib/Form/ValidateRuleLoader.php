@@ -25,7 +25,7 @@ class ValidateRuleLoader
         "number" => array('!^\d+$!', "半角数字のみで入力してください"),
         "alphanum" => array('!^[a-zA-Z0-9]+$!', "半角英数字のみで入力してください"),
         "kana" => array('!^(ア|イ|ウ|エ|オ|カ|キ|ク|ケ|コ|サ|シ|ス|セ|ソ|タ|チ|ツ|テ|ト|ナ|ニ|ヌ|ネ|ノ|ハ|ヒ|フ|ヘ|ホ|マ|ミ|ム|メ|モ|ヤ|ユ|ヨ|ラ|リ|ル|レ|ロ|ワ|ヲ|ン|ァ|ィ|ゥ|ェ|ォ|ッ|ャ|ュ|ョ|ー|ガ|ギ|グ|ゲ|ゴ|ザ|ジ|ズ|ゼ|ゾ|ダ|ヂ|ヅ|デ|ド|バ|ビ|ブ|ベ|ボ|パ|ピ|プ|ペ|ポ|ヴ| |　|・)*$!u', "全角カナのみで入力してください"),
-        "date" => array('!^(\d+)[/-]+(\d+)[/-](\d+)$!', "YYYY/MM/DD形式で正しい日付を入力してください"),
+        "date" => array('!^(\d{4})[/-]+(\d+)[/-](\d+)$!', "YYYY/MM/DD形式で正しい日付を入力してください"),
     );
     /**
      * 必須チェック
@@ -58,7 +58,11 @@ class ValidateRuleLoader
         list($regex, $message) = self::$format_enable[$rule["format"]];
         // regexの指定があれば正規表現を上書き
         if ($rule["regex"]) $regex = $rule["regex"];
-        if (preg_match($regex,$value)) return false;
+        if ($rule["format"]==="date") {
+            if (preg_match($regex,$value,$_) && checkdate($_[2], $_[3], $_[1])) return false;
+        } else {
+            if (preg_match($regex,$value)) return false;
+        }
         return array("message"=>___($message));
     }
     /**
