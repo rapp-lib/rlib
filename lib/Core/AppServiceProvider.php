@@ -11,7 +11,7 @@ use Dotenv\Dotenv;
 
 class AppServiceProvider extends ServiceProvider
 {
-    protected $base_bindings = array(
+    protected $base_singletons = array(
         // 5.0
         'debug' => 'R\Lib\Core\Debug',
         'report' => 'R\Lib\Report\ReportDriver',
@@ -57,14 +57,12 @@ class AppServiceProvider extends ServiceProvider
         }
         // bindings設定
         $this->app->singleton('config', 'R\Lib\Core\Config');
-        $bindings = (array)$this->app->config['bindings'] + $this->base_bindings;
-        foreach ($bindings as $k=>$v) $this->app->singleton($k, $v);
-        // Consoleの場合自動的にapp.debug有効化
-        if ($this->app->runningInConsole()) {
-            $this->app->config['app.debug'] = true;
-        }
+        $singletons = (array)$this->app->config['app.singletons'] + $this->base_singletons;
+        foreach ($singletons as $k=>$v) $this->app->singleton($k, $v);
         // 環境名を設定
         $this->app->instance('env', $this->app->config["app.env"] ?: "");
+        // Debug設定の検証
+        $this->app->debug->check();
         // Fallback用requestセットアップ
         $this->app->singleton('request.fallback', function($app){
             if ($app->bound("request")) return $app["request"];
@@ -73,18 +71,18 @@ class AppServiceProvider extends ServiceProvider
         });
         // eventセットアップ
         $this->app->register(new EventServiceProvider($this->app));
-        // log/reportセットアップ
+        // logセットアップ
         $this->app->register(new LogServiceProvider($this->app));
         // エラー停止処理セットアップ
         $this->app->register(new ExceptionServiceProvider($this->app));
         $this->app['exception']->register($this->app["env"]);
         $this->app['exception']->setDebug($this->app['config']['app.debug']);
-        // Session自動Start
-        if ( ! $this->app->runningInConsole() && ! $this->app->config["session.prevent_auto_start"]) {
-            $this->app->session->start();
-        }
         // デバッグ処理セットアップ
         $this->app->register(new DebugServiceProvider($this->app));
+        // Session自動Start
+        // if ( ! $this->app->runningInConsole() && ! $this->app->config["session.prevent_auto_start"]) {
+        //     $this->app->session->start();
+        // }
         // Aliases設定読み込み
         AliasLoader::getInstance((array)$this->app->config['app.aliases'])->register();
         // Provider登録

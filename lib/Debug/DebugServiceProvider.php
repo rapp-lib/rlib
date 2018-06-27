@@ -10,7 +10,9 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
         $this->app->singleton('debugbar', function($app){
             return new Debugbar($app);
         });
+
         if ( ! $this->app->debug->getDebugLevel()) return;
+
         // Loggerに関連付け
         $this->app->singleton("debug.logging_handler", "R\Lib\Debug\LoggingHandler");
         $this->app["log"]->getMonolog()->pushHandler($this->app["debug.logging_handler"]);
@@ -48,6 +50,7 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
     public function boot()
     {
         if ( ! $this->app->debug->getDebugLevel()) return;
+
         if ($this->app->runningInConsole()) {
             if ($this->app->config["debug.capture_console"] && method_exists($this->app, 'shutdown')) {
                 $this->app->shutdown(function ($app) {
