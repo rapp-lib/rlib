@@ -1009,8 +1009,12 @@ class Table_Base extends Table_Core
     public function search_yieldExists ($form, $yield)
     {
         $table = table($yield["table"]);
-        $fkey = $yield["fkey"] ?: $table->getColNameByAttr("fkey_for", $this->getAppTableName());
-        $table->findBy($this->getQueryTableName().".".$this->getIdColName()."=".$table->getQueryTableName().".".$fkey);
+        if ($yield["on"]) {
+            $table->findBy($yield["on"]);
+        } else {
+            $fkey = $yield["fkey"] ?: $table->getColNameByAttr("fkey_for", $this->getAppTableName());
+            $table->findBy($this->getQueryTableName().".".$this->getIdColName()."=".$table->getQueryTableName().".".$fkey);
+        }
         if ($yield["joins"]) foreach ($yield["joins"] as $join) $table->join($join);
         if ($yield["where"]) $table->findBy($yield["where"]);
         $result = $table->chain_findBySearchFields($form, $yield["search_fields"]);
