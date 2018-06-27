@@ -1,7 +1,7 @@
 <?php foreach ($controller->getInputCols() as $col): ?>
 <?php   if ($col->getAttr("type")=="assoc"): ?>
 <?php       if ($param_field = $pageset->getParamFieldByName($col->getName())): ?>
-{{if count($forms.cart.<?=$col->getName()?>)==0}}
+{{if count($t.<?=$col->getName()?>)==0}}
 
 <p>選択されていません</p>
 
@@ -14,7 +14,7 @@
 <?php           endforeach;?>
         <th>&nbsp;</th>
     </tr>
-    {{foreach $forms.cart.<?=$col->getName()?> as $key=>$item}}
+    {{foreach $t.<?=$col->getName()?> as $key=>$item}}
     <tr>
 <?php           foreach ($controller->getAssocInputCols($col) as $assoc_col): ?>
         <td><?=$assoc_col->getShowSource(array("page"=>$page, "var_name"=>'$item'))?></td>
