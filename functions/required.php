@@ -2,6 +2,10 @@
 
     define("R_LIB_ROOT_DIR", realpath(__DIR__."/.."));
 
+    if ( ! defined("R_DEVEL_ROOT_DIR") && $devel_root_dir=realpath(__DIR__."/../../rlib-devel")){
+        define("R_DEVEL_ROOT_DIR", $devel_root_dir);
+    }
+
 // -- Container Facade
 
     function table ($table_name)

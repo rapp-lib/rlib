@@ -1,5 +1,6 @@
 <?php
 namespace R\Lib\Core;
+use DebugBar\Storage\FileStorage;
 
 class Debug
 {
@@ -7,33 +8,64 @@ class Debug
     {
         return $this->getDebugLevel();
     }
-    private $debug_level = false;
     public function getDebugLevel ()
     {
-        $this->checkClient();
         return app()->config["app.debug"];
     }
     public function setDebugLevel ($debug_level)
     {
         app()->config["app.debug"] = $debug_level;
-        app("exception")->setDebug($debug_level);
+        //app("exception")->setDebug($debug_level);
     }
-    private $client_checked = false;
-    private function checkClient ()
+
+    protected $name = "DSESSID";
+    protected $ttl = 604800;
+    protected $verify_secret_url = "http://verify-secret.rapp-lib.com/?__ts=";
+    protected $storage = null;
+    public function check()
     {
-        if ($this->client_checked || ! isset($_SESSION)) return;
-        if (isset($_POST["__ts"])) {
-            $debug_config = app()->config["debug"];
-            $check_url = $debug_config["verify"] ?: "http://verify-secret.rapp-lib.com/?__ts=";
-            if (file_get_contents($check_url.$_POST["__ts"]) === "OK") {
-                $_SESSION["__debug"] = $_POST["_"]["report"];
-                if (function_exists("apc_clear_cache")) apc_clear_cache();
+        // Consoleの場合自動的にapp.debug有効化
+        if (app()->runningInConsole()) {
+            app()->config["app.debug"] = true;
+        // 新規クライアント設定
+        } elseif (isset($_POST["__ts"]) && file_get_contents($this->verify_secret_url.$_POST["__ts"])==="OK") {
+            $debug_enabled = (boolean)$_POST["_"]["report"];
+            app()->config["app.debug"] = $debug_enabled;
+            $this->getStorage()->save($this->getId(), array(
+                "debug.dev_client"=>true,
+                "debug.enabled"=>$debug_enabled,
+            ));
+        // クライアント設定済みの場合
+        } elseif ($this->isStarted()) {
+            $data = $this->getStorage()->get($this->getId());
+            if ($data["debug.dev_client"]) {
+                app("debug")->setDebugLevel($data["debug.enabled"]);
             }
         }
-        if (isset($_SESSION["__debug"])) $this->setDebugLevel($_SESSION["__debug"]);
-        $this->client_checked = true;
-        if ($this->getDebugLevel() && $int = $_REQUEST["__intercept"]) {
-            if (method_exists(app()->$int, "runIntercept")) app()->$int->runIntercept();
+    }
+    protected function isStarted()
+    {
+        return strlen($_COOKIE[$this->name]) ? true : false;
+    }
+    protected function start()
+    {
+        if ( ! $this->isStarted()) {
+            $id = str_random(16);
+            $_COOKIE[$this->name] = $id;
+            setcookie($this->name, $id, time() + $this->ttl, "/");
         }
+    }
+    protected function getId()
+    {
+        return $this->isStarted() ? $_COOKIE[$this->name] : '';
+    }
+    protected function getStorage()
+    {
+        $this->start();
+        if ( ! $this->storage) {
+            $session_dir = constant("R_APP_ROOT_DIR")."/tmp/debug/session";
+            $this->storage = new FileStorage($session_dir);
+        }
+        return $this->storage;
     }
 }
