@@ -22,6 +22,7 @@ class Table_Core
     protected static $def = array();
     protected static $cols = array();
     protected static $aliases = array();
+    protected static $fkey_routes = array();
     /**
      * クエリ発行時のTransactionの自動Begin/Commit設定
      */
@@ -147,6 +148,8 @@ class Table_Core
         $table_def["table_name"] = static::$table_name;
         $table_def["ds_name"] = static::$ds_name;
         $table_def["cols"] = (array)static::$cols;
+        $table_def["aliases"] = (array)static::$aliases;
+        $table_def["fkey_routes"] = (array)static::$fkey_routes;
         return $table_def;
     }
     /**

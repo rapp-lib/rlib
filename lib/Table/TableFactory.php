@@ -11,7 +11,6 @@ class TableFactory
         return $this->factory($table_name);
     }
 
-    private $reserved_attrs = array();
     /**
      * Tableのインスタンスを作成
      */
@@ -24,7 +23,6 @@ class TableFactory
             if ( ! $def["class"]) $def["class"] = '\R\Lib\Table\Table_Base';
         }
         $table = new $def["class"];
-        foreach ($this->reserved_attrs as $key=>$value) $table->setAttr($key, $value);
         return $table;
     }
 
@@ -35,16 +33,24 @@ class TableFactory
      */
     public function getTableDef($table_name)
     {
-        $class = 'R\App\Table\\'.str_camelize($table_name)."Table";
-        if ( ! class_exists($class)) {
-            report_error("Tableクラスがありません",array(
-                "table_name" => $table_name,
-                "class" => $class,
-            ));
-        }
+        $class = $this->getClassByAppTableName($table_name);
         $def = $class::getDef();
         $def["class"] = $class;
         return $def;
+    }
+    /**
+     * Table名からクラス名を正引き
+     */
+    public function getClassByAppTableName($app_table_name)
+    {
+        $class = 'R\App\Table\\'.str_camelize($app_table_name)."Table";
+        if ( ! class_exists($class)) {
+            report_error("Tableクラスがありません",array(
+                "table_name" => $app_table_name,
+                "class" => $class,
+            ));
+        }
+        return $class;
     }
     /**
      * クラス名からTable名を逆引き

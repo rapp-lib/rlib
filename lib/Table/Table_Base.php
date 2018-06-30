@@ -63,7 +63,7 @@ class Table_Base extends Table_Core
      * @hook chain
      * JOIN句の設定 主テーブル側が持つ外部キーでJOIN
      */
-    public function chain_joinBelongsTo ($table, $fkey=null, $type="LEFT")
+    public function chain_joinBelongsToOld ($table, $fkey=null, $type="LEFT")
     {
         // Tableに変換する
         if (is_array($table)) list($table, $alias) = $table;
@@ -1075,22 +1075,25 @@ class Table_Base extends Table_Core
     {
         $role = app()->user->getCurrentRole();
         $user_id = app()->user->id($role);
+        // ログイン中でなければ何も取得しない
+        if ( ! $user_id) {
+            $this->findNothing();
+            return;
+        }
         $role_table_name = app()->user->getAuthTable($role);
         if ( ! $role_table_name) {
             report_error("Roleに対応するTableがありません", array("role"=>$role));
         }
-        $col_name = $role_table_name == $this->getAppTableName()
-            ? $this->getIdColName() : $this->getColNameByAttr("fkey_for", $role_table_name);
-        if ( ! $col_name) {
-            report_error("RoleのTableに対する所有関係を示すキーの設定がありません",
-                array("role_tabel"=>$role_table_name, "table"=>$this));
-        }
-        if ($user_id) {
-            // ログイン中のIDを条件を追加する
-            $this->query->where($this->getQueryTableName().".".$col_name, $user_id);
+        // 自己参照の特定
+        if ($this->getAppTableName() == $role_table_name) {
+            // ログイン中のID = 主キーを条件に追加する
+            $this->query->where($this->getQueryTableName().".".$this->getIdColName(), $user_id);
+        // 関係先を経由して条件を指定
+        } elseif ($this->chain_findByRoute($role_table_name, $user_id)) {
+            //
         } else {
-            // ログイン中でなければ何も取得しない
-            $this->findNothing();
+            report_error("無効なfindMine, 所有関係を示す経路がありません",
+                array("role_tabel"=>$role_table_name, "table"=>$this));
         }
     }
     /**
@@ -1102,6 +1105,7 @@ class Table_Base extends Table_Core
         $user_id = app()->user->id($role);
         $role_table_name = app()->user->getAuthTable($role);
         $id_col_name = $this->getIdColName();
+        $fkey_col_name = $this->getColNameByAttr("fkey_for", $role_table_name);
         if ( ! $role_table_name) {
             report_error("Roleに対応するTableがありません", array("role"=>$role));
         }
@@ -1111,21 +1115,121 @@ class Table_Base extends Table_Core
         // Roleのテーブル自身である場合は、主キーを指定
         if ($role_table_name == $this->getAppTableName()) {
             $this->query->setValue($id_col_name, $user_id);
-        // 外部キーで参照されている場合
-        } elseif ($fkey_col_name = $this->getColNameByAttr("fkey_for", $role_table_name)) {
-            // Updateが発行される場合は、Whereを指定
+        // 関係がある場合
+        } elseif (app("table.resolver")->getFkeyRoute($this->getAppTableName(), $role_table_name)) {
+            // 直接関係があればValueを上書き
+            if ($fkey_col_name) $this->query->setValue($fkey_col_name, $user_id);
+            // Updateが発行される場合、関係先を探索して条件に追加
             if ($this->query->getValue($id_col_name)) {
-                $this->query->removeValue($fkey_col_name);
-                $this->query->setWhere($fkey_col_name, $user_id);
-            // Insertが発行される場合は、Valueに指定
-            } else {
-                $this->query->setValue($fkey_col_name, $user_id);
+                $this->chain_findByRoute($role_table_name, $user_id);
             }
         } else {
-            report_error("RoleのTableに対する所有関係を示すキーの設定がありません",
+            report_error("無効なsaveMine, 所有関係を示す経路がありません",
                 array("role_tabel"=>$role_table_name, "table"=>$this));
         }
         // saveを呼び出す
         return $this->save();
+    }
+    /**
+     * 経路を探索して指定した関係先テーブルの値を条件に指定する
+     *
+     * @param string $target_table_name 関係先テーブル名
+     * @param mixed $value 条件に指定する値
+     * @param string $col_name 値を対応づけるカラム名。指定がない場合、主キーを対応づける
+     * @return bool
+     */
+    public function chain_findByRoute($target_table_name, $value, $col_name=false)
+    {
+        // 経路を取得
+        $self_table_name = $this->getAppTableName();
+        $route = app("table.resolver")->getFkeyRoute($self_table_name, $target_table_name);
+        // 経路が存在しない場合は処理を行わない
+        if ( ! $route) return false;
+        // 目的関係先に近い順に登録する
+        foreach (array_reverse($route) as $edge) {
+            // 関係元からの参照であれば、テーブルの名前はクエリ内のものを使用する
+            if ($edge[0] == $self_table_name) $edge[0] = $this->getQueryTableName();
+            // 目的関係先の主キーを条件に登録する場合、経由先を使用するのでJOIN不要
+            if ($edge[2] == $target_table_name && $col_name===false) {
+                // 最終経由先の外部キー＝値を条件に指定する
+                $this->query->where($edge[0].".".$edge[1], $value);
+            // 経由関係先への参照は、JOINを指定する
+            } else {
+                $join_table = table($edge[2]);
+                // ASの解決
+                if ($edge["as"]) $join_table->alias($edge["as"]);
+                $join_table_name = $join_table->getQueryTableName();
+                // Join済みであれば以降は対応付けを行わない
+                if ($this->query->getJoinByName($join_table_name)) break;
+                $on = array($edge[0].".".$edge[1]."=".$join_table_name.".".$edge[3]);
+                // 目的関係先の主キー以外のカラム＝値を条件に指定する
+                if ($edge[2] == $target_table_name && $col_name!==false) {
+                    $on[] = array($join_table_name.".".$col_name, $value);
+                }
+                // 経由関係先をJoin登録する
+                $this->query->join($join_table, $on);
+            }
+            // 追加条件を指定する
+            if ($edge[4]) $this->query->where($edge[4]);
+        }
+        return true;
+    }
+    /**
+     * @hook chain
+     * JOIN句の設定 主テーブル側が持つ外部キーでJOIN
+     */
+    public function chain_joinBelongsTo ($target_table_name, $fkey=false)
+    {
+        if (is_array($target_table_name)) list($target_table_name, $target_as) = $target_table_name;
+        // 経路を取得
+        $self_table_name = $this->getAppTableName();
+        $route = app("table.resolver")->getFkeyRoute($self_table_name, $target_table_name);
+        // 経路が存在しない場合は処理を行わない
+        if ( ! $route) return false;
+        // 目的関係先に近い順に登録する
+        foreach (array_reverse($route) as $edge) {
+            $join_table = table($edge[2]);
+            // 関係元からの参照であれば、テーブルの名前はクエリ内のものを使用する
+            if ($edge[0] == $self_table_name) $edge[0] = $this->getQueryTableName();
+            // ASの解決
+            if ($edge[2] == $target_table_name && $target_as) $join_table->alias($target_table_as);
+            elseif ($edge["as"]) $join_table->alias($edge["as"]);
+            $join_table_name = $join_table->getQueryTableName();
+            // Join済みであれば以降は対応付けを行わない
+            if ($this->query->getJoinByName($join_table_name)) break;
+            $on = array($edge[0].".".$edge[1]."=".$join_table_name.".".$edge[3]);
+            // 経由関係先をJoin登録する
+            $this->query->join($join_table, $on);
+            // 追加条件を指定する
+            if ($edge[4]) $this->query->where($edge[4]);
+        }
+        return true;
+    }
+    /**
+     * 関係先テーブルに経路を持つ外部キーの値が所定のレコードを参照しているか確認する
+     *
+     * @param string $target_table_name 関係先テーブル名
+     * @param mixed $value 条件に指定する値
+     * @return bool
+     */
+    public function checkFkeyValuesByRoute($target_table_name, $value)
+    {
+        // 外部キーの値を逐次チェック
+        foreach ($this->getValues() as $k=>$v) {
+            if ($assoc_table_name = static::$cols[$k]["fkey_for"]) {
+                $route = app("table.resolver")->getFkeyRoute($assoc_table_name, $target_table_name);
+                // 関係先テーブルに関係しない外部キーはスキップ
+                if ( ! $route) continue;
+                // 関係先に指定したレコードが存在しない場合false
+                $id_col_name = app("table.resolver")->getIdColName($target_table_name);
+                $record = table($assoc_table_name)
+                    ->findByid($v)
+                    ->findByRoute($target_table_name, $value, $id_col_name)
+                    ->selectOne();
+                if ( ! $record) return false;
+            }
+        }
+        // 関係先の参照に問題がない場合true
+        return true;
     }
 }

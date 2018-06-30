@@ -13,6 +13,7 @@ class AppServiceProvider extends ServiceProvider
 {
     protected $base_bindings = array(
         // 5.0
+        'table.resolver' => '\R\Lib\Table\TableResolver',
         'debug' => 'R\Lib\Core\Debug',
         'report' => 'R\Lib\Report\ReportDriver',
         // 'builder' => '\R\Lib\Builder\WebappBuilder',
