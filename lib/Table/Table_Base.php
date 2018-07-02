@@ -1122,6 +1122,10 @@ class Table_Base extends Table_Core
             // Updateが発行される場合、関係先を探索して条件に追加
             if ($this->query->getValue($id_col_name)) {
                 $this->chain_findByRoute($role_table_name, $user_id);
+            // Insertであり、直接関係がない場合エラー
+            } elseif ($fkey_col_name) {
+                report_error("無効なsaveMine, 直接関係がなければ新規作成を行う条件の指定は出来ません",
+                    array("role_tabel"=>$role_table_name, "table"=>$this));
             }
         } else {
             report_error("無効なsaveMine, 所有関係を示す経路がありません",
@@ -1144,7 +1148,11 @@ class Table_Base extends Table_Core
         $self_table_name = $this->getAppTableName();
         $route = app("table.resolver")->getFkeyRoute($self_table_name, $target_table_name);
         // 経路が存在しない場合は処理を行わない
-        if ( ! $route) return false;
+        if ( ! $route) {
+            report_warning("無効なfindByRoute, 有効な経路がありません", array(
+                "from_table"=>$self_table_name, "to_table"=>$target_table_name), "Error");
+            return false;
+        }
         // 目的関係先に近い順に登録する
         foreach (array_reverse($route) as $edge) {
             // 関係元からの参照であれば、テーブルの名前はクエリ内のものを使用する

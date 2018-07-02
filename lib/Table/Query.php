@@ -260,7 +260,7 @@ class Query extends ArrayObject
      */
     public function getJoinByName ($table)
     {
-        foreach ($this["joins"] as $join) {
+        foreach ((array)$this["joins"] as $join) {
             if (is_string($join[0]) && $join[0]==$table) return $join;
             elseif (is_array($join[0]) && $join[0][1]==$table) return $join;
             elseif (is_object($join[0]) && $join[0]->getQueryTableName()==$table) return $join;

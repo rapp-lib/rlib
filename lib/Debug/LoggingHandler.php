@@ -35,8 +35,7 @@ class LoggingHandler extends AbstractProcessingHandler
         foreach (static::$records as &$record) {
             $category = $record["context"]["__"]["category"];
             if (strlen($category)) $result[$category][] = $record;
-            elseif ($record["level"] >= \Monolog\Logger::ERROR) $result["Error"][] = $record;
-            elseif ($record["level"] >= \Monolog\Logger::WARNING) $result["Warning"][] = $record;
+            elseif ($record["level"] >= \Monolog\Logger::WARNING) $result["Error"][] = $record;
             elseif ($record["level"] >= \Monolog\Logger::INFO) $result["Info"][] = $record;
             else $result["Debug"][] = $record;
         }
