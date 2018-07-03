@@ -474,7 +474,6 @@ class Table_Base extends Table_Core
         }
     }
     /**
-     * @deprecated
      * @hook on_getBlankCol
      * retreiveメソッドが定義されていたら参照する
      */
@@ -483,15 +482,9 @@ class Table_Base extends Table_Core
         // メソッドの探索
         $method_name = "retreive_col".str_camelize($col_name);
         if ( ! method_exists($this, $method_name)) return false;
-        // idsを引数に呼び出し
-        $ids = $this->result->getHashedBy($this->getIdColName());
-        $values = call_user_func(array($this,$method_name), $ids);
-        // 結果を統合する
-        $this->result->mergeBy($col_name, $values);
-        // 値の設定漏れがあった場合はnullで埋める
-        foreach ($this->result as $a_record) {
-            if ( ! isset($a_record[$col_name])) $a_record[$col_name] = null;
-        }
+        // resultを引数に呼び出し
+        $values = call_user_func(array($this,$method_name), $this->result);
+        foreach ($this->result as $key=>$a_record) $a_record[$col_name] = $values[$key];
         return true;
     }
     /**
