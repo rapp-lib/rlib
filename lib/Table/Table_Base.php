@@ -138,6 +138,14 @@ class Table_Base extends Table_Core
     }
     /**
      * @hook chain
+     * 絞り込み条件にEXSISTSを指定する
+     */
+    public function chain_findByExists ($table)
+    {
+        $this->query->where("EXISTS(".$table->buildQuery("select").")");
+    }
+    /**
+     * @hook chain
      * 絞り込み結果を空にする
      */
     public function chain_findNothing ()
