@@ -7,6 +7,10 @@ class Handler extends IlluminateHandler
 {
 	public function handleException($exception)
 	{
+        // PHP7以降でThrowableが発行された際にLaravelException/Debugbarともに非対応なのでExceptionに変換
+        if ( ! $exception instanceof \Exception) {
+            $exception = new FatalError("Exception ".get_class($exception)." : ".$exception->getMessage());
+        }
         if ( ! app()->config["app.no_cleanup_on_exception"]) ob_end_clean();
         app("events")->fire("app.handle_exception", array($exception));
         if (app()->runningInConsole()) return null;

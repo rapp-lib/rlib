@@ -138,6 +138,14 @@ class Table_Base extends Table_Core
     }
     /**
      * @hook chain
+     * 絞り込み条件にEXSISTSを指定する
+     */
+    public function chain_findByExists ($table)
+    {
+        $this->query->where("EXISTS(".$table->buildQuery("select").")");
+    }
+    /**
+     * @hook chain
      * 絞り込み結果を空にする
      */
     public function chain_findNothing ()
@@ -1116,7 +1124,7 @@ class Table_Base extends Table_Core
             if ($this->query->getValue($id_col_name)) {
                 $this->chain_findByRoute($role_table_name, $user_id);
             // Insertであり、直接関係がない場合エラー
-            } elseif ($fkey_col_name) {
+            } elseif ( ! $fkey_col_name) {
                 report_error("無効なsaveMine, 直接関係がなければ新規作成を行う条件の指定は出来ません",
                     array("role_tabel"=>$role_table_name, "table"=>$this));
             }

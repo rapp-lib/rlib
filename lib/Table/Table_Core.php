@@ -344,12 +344,13 @@ class Table_Core
         $query_table_name = $this->getQueryTableName();
         // QueryのFROMとなったテーブル以外の値は階層を下げてHydrate
         foreach ((array)$data as $table_name => $values) {
-            $table_data = array();
+            // $table_data = array();
             foreach ((array)$values as $col_name => $value) {
                 if ($query_table_name == $table_name) $record[$col_name] = $value;
-                else $table_data[$col_name] = $value;
+                // else $table_data[$col_name] = $value;
+                else $record[$table_name.".".$col_name] = $value;
             }
-            if ($query_table_name != $table_name) $record[$table_name] = $table_data;
+            // if ($query_table_name != $table_name) $record[$table_name] = $table_data;
         }
     }
     /**
