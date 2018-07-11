@@ -43,12 +43,12 @@ class LoggingHandler extends AbstractProcessingHandler
     }
     public function getCategories()
     {
-        $categories = array("Debug", "Error");
-        foreach (static::$records as &$record) {
-            $category = $record["context"]["__"]["category"];
-            if ( ! isset($category)) continue;
-            if ( ! in_array($category, $categories)) $categories[] = $category;
-        }
+        $categories = app()->config["debug.categories"] ?: array("Debug", "Error", "App", "SQL", "Fetch");
+        // foreach (static::$records as &$record) {
+        //     $category = $record["context"]["__"]["category"];
+        //     if ( ! isset($category)) continue;
+        //     if ( ! in_array($category, $categories)) $categories[] = $category;
+        // }
         return $categories;
     }
     public function renderHtml($records)

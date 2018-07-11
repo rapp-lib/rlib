@@ -152,8 +152,8 @@ class InputField
                 "value" => $value,
             ));
             $this->html = tag("input",$attrs).$hidden_html;
-        // type=checkboxであれば、checkedに値を反映
-        } elseif ($this->attrs["type"]=="checkbox") {
+        // type=checkbox,radioであれば、checkedに値を反映
+        } elseif ($this->attrs["type"]=="checkbox" || $this->attrs["type"]=="radio") {
             if ( ! strlen($attrs["value"])) {
                 $attrs["value"] = "1";
             }
