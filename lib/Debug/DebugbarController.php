@@ -22,7 +22,7 @@ class DebugbarController extends HttpController
         $response = app()->http->response("data", $content, array("headers"=>array(
             'Content-Type' => 'text/javascript',
         )));
-        return $this->cacheResponse($response);
+        return $response;
     }
     public function act_assets_css()
     {
@@ -31,7 +31,7 @@ class DebugbarController extends HttpController
         $response = app()->http->response("data", $content, array("headers"=>array(
             'Content-Type' => 'text/css',
         )));
-        return $this->cacheResponse($response);
+        return $response;
     }
     /**
      * Cache the response 1 year (31536000 sec)

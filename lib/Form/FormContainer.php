@@ -277,26 +277,27 @@ class FormContainer extends ArrayObject
                     $storage_name = $field_def["storage"];
                     if ($value->getError() !== UPLOAD_ERR_OK) {
                         // ファイルをアップロードしていない、またはエラー
+                        $value = new UploadedFile(null, $value);
                     } elseif ( ! $storage_name) {
-                        $value = null;
+                        $value = new UploadedFile(null, $value);
                         report_warning("File Upload Failure", array(
                             "field_name" => $field_name,
                             "field_def" => $field_def,
-                        ));
+                        ), "Error");
                     } elseif ($file = app()->file->getStorage($storage_name)->upload($value)) {
-                        $value = $file->getUri();
+                        $value = new UploadedFile($file->getUri(), $value);
                         report_info("File Uploaded",array(
                             "field_name" => $field_name,
                             "uri" => $value,
                             "field_def" => $field_def,
-                        ));
+                        ), "App");
                     } else {
-                        $value = null;
+                        $value = new UploadedFile(null, $value);
                         report_warning("File Upload Failure",array(
                             "field_name" => $field_name,
                             "uploaded_file" => $value,
                             "field_def" => $field_def,
-                        ));
+                        ), "Error");
                     }
                 }
                 return $value;

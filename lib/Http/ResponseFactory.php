@@ -6,7 +6,7 @@ class ResponseFactory
 {
     private static $fallback_status_codes = array(
         "empty" => 204,
-        "redirect" => "302",
+        "redirect" => 302,
         "badrequest" => 400,
         "forbidden" => 403,
         "notfound" => 404,
@@ -14,6 +14,7 @@ class ResponseFactory
     );
     public static function factory ($type, $data=null, $params=array())
     {
+        //self::debug($type);
         $headers = $params["headers"] ?: array();
         $fallback_status_code = self::$fallback_status_codes[$type];
         $status_code = $params["status"] ?: $fallback_status_code ?: 200;
@@ -71,5 +72,25 @@ class ResponseFactory
         ob_start();
         include($error_file);
         return ob_get_clean();
+    }
+    public static function debug($type)
+    {
+        foreach (debug_backtrace() as $k1=>$v1){
+            if (is_object($v1)) $v1 = (array)$v1; 
+            if (!is_array($v1)) $debug[$k1] = $v1;
+            else foreach ($v1 as $k2=>$v2) {
+            if (is_object($v2)) $v2 = (array)$v2;
+                if (!is_array($v2)) $debug[$k1][$k2] = $v2;
+                else foreach ($v2 as $k3=>$v3){
+                    if (is_object($v3)) $v3 = (array)$v3;
+                    if (!is_array($v3)) $debug[$k1][$k2][$k3] = $v3;
+                    else foreach ($v3 as $k4=>$v4){
+                        if (is_object($v4)) $v4 = (array)$v4;
+                        if (!is_array($v4)) $debug[$k1][$k2][$k3][$k4] = $v4;
+                    }
+                }
+            }
+        }
+        file_put_contents(R_APP_ROOT_DIR."/tmp/debug_test".$type.".txt", date("H:i:s NF\n").print_r($debug,1));
     }
 }
