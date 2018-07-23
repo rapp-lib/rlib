@@ -106,16 +106,16 @@ class EventCollector extends TimeDataCollector
     protected function prepareParams($params)
     {
         $data = array();
-        foreach ($params as $key => $value) {
-            $data[$key] = htmlentities($this->exporter->exportValue($value), ENT_QUOTES, 'UTF-8', false);
-        }
+        // foreach ($params as $key => $value) {
+        //     $data[$key] = htmlentities($this->exporter->exportValue($value), ENT_QUOTES, 'UTF-8', false);
+        // }
         return $data;
     }
 
     public function collect()
     {
-        $data = parent::collect();
-        $data['nb_measures'] = count($data['measures']);
+        // $data = parent::collect();
+        // $data['nb_measures'] = count($data['measures']);
         return $data;
     }
 

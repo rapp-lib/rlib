@@ -64,6 +64,10 @@ class LoggingHandler extends AbstractProcessingHandler
     {
         return ReportRenderer::renderAll($records, "html");
     }
+    public function renderArray($records)
+    {
+        return ReportRenderer::renderAll($records, "array");
+    }
     public function clear()
     {
         self::$records = array();

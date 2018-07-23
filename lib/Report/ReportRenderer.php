@@ -22,9 +22,15 @@ class ReportRenderer
             foreach (array_slice($records,-$limit/2) as $record) $records_tmp[] = $record;
             $records = $records_tmp;
         }
-        $res = "";
-        foreach ($records as $record) $res .= self::render($record, $format);
-        return $res;
+        if ($format=="array") {
+            $res = array();
+            foreach ($records as $record) $res []= self::render($record, $format);
+            return $res;
+        } else {
+            $res = "";
+            foreach ($records as $record) $res .= self::render($record, $format);
+            return $res;
+        }
     }
     /**
      * Recordをテキストに変換
@@ -39,8 +45,25 @@ class ReportRenderer
         $category = $params["__"]["category"];
         if ( ! $category && $level >= Logger::ERROR) $category = "Error";
         unset($params["__"]);
+        // Array形式
+        if ($format=="array") {
+            $data = array();
+            $data["id"] = substr(md5(mt_rand()),0,6);
+            $data["category"] = $category;
+            $data["message"] = $message;
+            $data["params"] = $params;
+            $data["pos"] = $pos;
+            if ($level >= Logger::ERROR) {
+                $data["color"] = "#ff0000";
+                $data["bts"] = $bts;
+            } elseif ($level >= Logger::WARNING) {
+                $data["color"] = "#ffff00";
+            } else {
+                $data["color"] = "#00ff00";
+            }
+            return $data;
         // HTML形式
-        if ($format=="html") {
+        } elseif ($format=="html") {
             // 色の指定
             $c = "#00ff00";
             if ($level >= Logger::ERROR) $c ="#ff0000";
