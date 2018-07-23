@@ -995,7 +995,9 @@ class Table_Base extends Table_Core
             if ($desc) $value = $value[1];
             else $value = $value[0];
         }
-        $this->query->addOrder($value);
+        // 複数指定に対応
+        if ( ! is_array($value)) $value = array($value);
+        foreach ($value as $a_value) $this->query->addOrder($a_value);
     }
     /**
      * @hook search page
