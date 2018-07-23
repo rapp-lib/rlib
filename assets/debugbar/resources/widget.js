@@ -19,7 +19,10 @@
             this.bindAttr('data', function(html) { this.$el.html(html); });
         }
     });
-    var htmlspecialchars = function htmlspecialchars(ch){
+    var is_array = function ($v){
+        return $.isArray($v) || $v instanceof Object;
+    };
+    var htmlspecialchars = function (ch){
         if (typeof ch !="string") return ch;
         ch = ch.replace(/&/g,"&amp;") ;
         ch = ch.replace(/"/g,"&quot;") ;
@@ -41,9 +44,9 @@
         for (var $k in $values) {
             var $v = $values[$k];
             $text += $br_code+$tab_code.repeat($level)+$k+" : ";
-            if (typeof $v=="object" && $v && $v.length>0) {
+            if (is_array($v) && $v) {
                 $text += indentValues($v, $level+1);
-            } else if (typeof $v=="object") {
+            } else if (is_array($v)) {
                 $text += "array[0]";
             } else {
                 $text += htmlspecialchars($v);
@@ -61,7 +64,6 @@
                 height: "100%"
             });
             this.bindAttr('data', function(data_list) {
-                console.log(data_list);
                 var html = "";
                 for (var i in data_list) {
                     var data = data_list[i];
@@ -76,10 +78,11 @@
                         +'#000000;cursor:hand;line-height:20px;height:40px;color:'+data.color+'">'+data.pos
                         +'<div style="margin:0 0 0 10px">'+data.message+indentValues(data.params)+'</div>'
                     ;
+                    html += '<div style="margin:0 0 0 10px;display:none;" id="'+data.id+'_detail">';
                     if (data.bts) {
-                        html += '<div style="margin:0 0 0 10px;display:none;" id="'+data.id+'_detail">'
-                            +'Backtraces '+indentValues(data.bts)+'</div>';
+                        html += 'Backtraces '+indentValues(data.bts);
                     }
+                    html += '</div>';
                     html += '</div>';
                 }
                 this.$el.html(html);
