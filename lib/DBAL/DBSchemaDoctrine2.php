@@ -82,9 +82,10 @@ class DBSchemaDoctrine2
                     // 外部キー制約
                     if ($fkey_for = $col["fkey_for"]) {
                         $fkey_for_table = $schema->getTable($defs[$fkey_for]["table_name"]);
-                        $index = $fkey_for_table->getPrimaryKey();
-                        $fkey_for_ids = $index->getColumns();
-                        $table->addForeignKeyConstraint($fkey_for_table, array($col_name), array($fkey_for_ids[0]));
+                        $fkey_for_ids = $fkey_for_table->getPrimaryKey()->getColumns();
+                        $fkey_options = $col["fkey_options"] ?: array();
+                        $table->addForeignKeyConstraint($fkey_for_table, array($col_name),
+                            array($fkey_for_ids[0]), $fkey_options);
                     }
                 }
             }

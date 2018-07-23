@@ -22,7 +22,6 @@ class ResponseFactory
         if ($fallback_status_code && $data===null) {
             if ($data = self::getFallbackHtml($type)) {
                 $data = self::createBody($data);
-                $headers = self::injectContentType('text/html', $headers);
             } else {
                 $data = new Stream('php://temp', 'r');
             }
@@ -32,7 +31,7 @@ class ResponseFactory
             $headers = self::injectContentType('text/html', $headers);
         } elseif ($type==="json") {
             $data = self::createBody(json_encode($data, 15));
-            $headers = self::injectContentType('text/html', $headers);
+            $headers = self::injectContentType('application/json', $headers);
         } elseif ($type==="data") {
             $data = self::createBody($data);
         } elseif ($type==="readfile" || $type==="stream") {
