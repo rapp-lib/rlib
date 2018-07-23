@@ -60,11 +60,32 @@ class EventCollector extends TimeDataCollector
             report_info("Emit Response", array(
                 "response" => $response,
             ), "App");
-        } elseif ($name==="sql.fetch_end") {
+        } elseif ($name==="table.fetch_end") {
             list($table, $statement, $result) = $args;
-            report_info("Fetch End ".$table->getAppTableName()."[".count($result)."] :".$statement, array(
+            report_info("Fetch End ".$table->getAppTableName()."[".count($result)."] : ".$statement, array(
                 "result"=>$result,
-            ), "Fetch");
+            ), "T_Fetch");
+        } elseif ($name==="table.merge_alias") {
+            list($table, $statement, $result, $src_col_name, $alias_col_name, $dest_values) = $args;
+            report_info("Merge Alias ".$table->getAppTableName().".".$alias_col_name."[".count($dest_values)."] : ".$statement, array(
+                "alias_col_name"=>$alias_col_name,
+                "src_col_name"=>$src_col_name,
+                "dest_values"=>$dest_values,
+            ), "T_Alias");
+        } elseif ($name==="table.hook") {
+            list($table, $statement, $result, $method_name, $method_args) = $args;
+            if ($method_name != "on_getBlankCol_alias") {
+                $method_args_short = array();
+                foreach ($method_args as $arg) {
+                    if (is_string($arg)) $method_args_short[] = '"'.$arg.'"';
+                    elseif (is_object($arg)) $method_args_short[] = get_class($arg);
+                    else $method_args_short[] = gettype($arg);
+                }
+                report_info("Hook ".$table->getAppTableName().".".$method_name."(".implode(' , ', $method_args_short).") : ".$statement, array(
+                    "method_name"=>$method_name,
+                    "method_args"=>$method_args,
+                ), "T_Hook");
+            }
         } elseif ($name==="app.handle_exception") {
             list($exception) = $args;
             app("debugbar")->addException($exception);
@@ -106,12 +127,12 @@ class EventCollector extends TimeDataCollector
     public function getWidgets()
     {
         return array(
-            "Events" => array(
-                "icon" => "tasks",
-                "widget" => "PhpDebugBar.Widgets.TimelineWidget",
-                "map" => "event",
-                "default" => "{}"
-            ),
+            // "Events" => array(
+            //     "icon" => "tasks",
+            //     "widget" => "PhpDebugBar.Widgets.TimelineWidget",
+            //     "map" => "event",
+            //     "default" => "{}"
+            // ),
             // 'events:badge' => array(
             //     'map' => 'event.nb_measures',
             //     'default' => 0

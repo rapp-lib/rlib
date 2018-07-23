@@ -54,7 +54,7 @@ class AppServiceProvider extends ServiceProvider
         //$this->app->instance('path.public', constant("R_APP_ROOT_DIR")."/public");
         // 環境変数の読み込み
         if (file_exists(constant("R_APP_ROOT_DIR")."/.env")) {
-            with(new Dotenv(constant("R_APP_ROOT_DIR"),".env"))->load();
+            with(new Dotenv(constant("R_APP_ROOT_DIR"),".env"))->overload();
         }
         // bindings設定
         $this->app->singleton('config', 'R\Lib\Core\Config');

@@ -24,9 +24,12 @@ class Debug
     protected $storage = null;
     public function check()
     {
+        // Debugが有効である場合処理不要
+        if (app("debug")->getDebugLevel()) {
+            return;
         // Consoleの場合自動的にapp.debug有効化
-        if (app()->runningInConsole()) {
-            app()->config["app.debug"] = true;
+        } elseif (app()->runningInConsole()) {
+            app("debug")->setDebugLevel(true);
         // 新規クライアント設定
         } elseif (isset($_POST["__ts"]) && file_get_contents($this->verify_secret_url.$_POST["__ts"])==="OK") {
             $debug_enabled = (boolean)$_POST["_"]["report"];

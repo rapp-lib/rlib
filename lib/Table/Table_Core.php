@@ -33,10 +33,6 @@ class Table_Core
      */
     protected static $defined_listener_method = array();
     /**
-     * Hook処理の呼び出し履歴
-     */
-    private $hook_history = array();
-    /**
      * DBIのSQL実行結果リソース
      */
     private $result_res = null;
@@ -284,7 +280,7 @@ class Table_Core
             // on_fetchEnd_*を呼び出す
             $this->callListenerMethod("fetchEnd");
 
-            app("events")->fire("sql.fetch_end", array($this, $this->statement, $this->result));
+            app("events")->fire("table.fetch_end", array($this, $this->statement, $this->result));
 
             $this->fetch_done = true;
             return false;
@@ -297,6 +293,7 @@ class Table_Core
         return $record;
     }
     /**
+     * @deprecated chunkに統合予定
      * @hook result
      * selectNoFetchと組み合わせて使用する
      * 常にResult上にRecordが1件のみとなるようにして、1結果レコードのFetch
@@ -715,7 +712,8 @@ class Table_Core
             $result = call_user_func_array(array($this,$method_name),$args);
             if ($result!==false) {
                 // 履歴への登録
-                $this->hook_history[] = $method_name;
+                app("events")->fire("table.hook", array($this, $this->statement, $this->result,
+                    $method_name, $args));
                 return true;
             }
         }
@@ -732,7 +730,6 @@ class Table_Core
     {
         return array(
             "query" => $this->query,
-            "history" => (array)$this->hook_history,
         );
     }
 }
