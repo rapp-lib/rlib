@@ -21,8 +21,7 @@ class Debugbar extends LaravelDebugbar
     {
         parent::__construct($app);
         $stack_dir = constant("R_APP_ROOT_DIR")."/tmp/debug/stack";
-        $this->setStorage(new FilesystemStorage(new Filesystem, $stack_dir));
-        //$this->setStorage(new FileStorage($stack_dir));
+        $this->setStorage(new FilesystemStorage(new Storage\GzipFilesystem, $stack_dir));
     }
     public function modifyResponse($request, $response)
     {

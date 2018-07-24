@@ -397,6 +397,23 @@ class Table_Base extends Table_Core
         }
     }
     /**
+     * @hook on_write
+     * notnullでdefault値があるカラムにNULLを入れた際に値を補完する
+     */
+    protected function on_write_setDefaultValueInNotnull ()
+    {
+        $result = false;
+        foreach ($this->query->getValues() as $col_name=>$value) {
+            if ($value === null) {
+                if (static::$cols[$col_name]["notnull"] && isset(static::$cols[$col_name]["default"])) {
+                    $this->query->setValue($col_name, static::$cols[$col_name]["default"]);
+                    $result = true;
+                }
+            }
+        }
+        return $result;
+    }
+    /**
      * @hook on_read
      * 削除フラグを関連づける
      */
