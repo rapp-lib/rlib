@@ -397,6 +397,23 @@ class Table_Base extends Table_Core
         }
     }
     /**
+     * @hook on_write
+     * notnullでdefault値があるカラムにNULLを入れた際に値を補完する
+     */
+    protected function on_write_setDefaultValueInNotnull ()
+    {
+        $result = false;
+        foreach ($this->query->getValues() as $col_name=>$value) {
+            if ($value === null) {
+                if (static::$cols[$col_name]["notnull"] && isset(static::$cols[$col_name]["default"])) {
+                    $this->query->setValue($col_name, static::$cols[$col_name]["default"]);
+                    $result = true;
+                }
+            }
+        }
+        return $result;
+    }
+    /**
      * @hook on_read
      * 削除フラグを関連づける
      */
@@ -542,6 +559,9 @@ class Table_Base extends Table_Core
             $key = self::encodeKey($record->getColValue($src_col_name));
             $record[$alias_col_name] = $dest_values[$key];
         }
+
+        app("events")->fire("table.merge_alias", array($this, $this->statement,
+            $this->result, $src_col_name, $alias_col_name, $dest_values));
     }
     protected static function mapReduce ($callback, $src_values, $alias)
     {
@@ -716,12 +736,15 @@ class Table_Base extends Table_Core
      */
     protected function on_fetch_geometryType_300 ($record)
     {
+        $result = false;
         foreach ($this->getColNamesByAttr("type", "geometry") as $col_name) {
             if (isset($record[$col_name])) {
                 $unpacked = unpack('Lpadding/corder/Lgtype/dlatitude/dlongitude', $record[$col_name]);
                 $record[$col_name] = $unpacked["latitude"]." , ".$unpacked["longitude"];
+                $result = true;
             }
         }
+        return $result;
     }
 
 // -- on_* assoc仮想カラム処理 write+0/read-0
@@ -750,6 +773,7 @@ class Table_Base extends Table_Core
             $this->callAssocHookMethod("assoc_getBlankCol", $col_name);
             return true;
         }
+        return false;
     }
     /**
      * assoc処理 insert/updateの発行前
@@ -805,7 +829,7 @@ class Table_Base extends Table_Core
      */
     protected function assoc_getBlankCol_hasMany ($col_name)
     {
-        $this->result->mergeAssoc($col_name, static::$cols[$col_name]["assoc"]);
+        return $this->result->mergeAssoc($col_name, static::$cols[$col_name]["assoc"]);
     }
     protected function assoc_afterWrite_hasMany ($col_name, $values)
     {

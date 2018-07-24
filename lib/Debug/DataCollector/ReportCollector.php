@@ -17,7 +17,7 @@ class ReportCollector extends MessagesCollector implements Renderable
             $data = array();
             $result = app("debug.logging_handler")->getRecordsByCategory();
             foreach ($result as $category=>$records) {
-                $data[$category]["html"] = app("debug.logging_handler")->renderHtml($records);
+                $data[$category]["data"] = app("debug.logging_handler")->renderArray($records);
                 $data[$category]["count"] = count($records);
             }
         } catch (\Exception $e) {var_dump($e);
@@ -41,8 +41,8 @@ class ReportCollector extends MessagesCollector implements Renderable
         foreach (app("debug.logging_handler")->getCategories() as $category) {
             $widgets[$category] = array(
                 // 'icon' => $category,
-                'widget' => 'PhpDebugBar.Widgets.FreeHtmlWidget',
-                'map' => 'report.'.$category.".html",
+                'widget' => 'PhpDebugBar.Widgets.ReportListWidget',
+                'map' => 'report.'.$category.".data",
                 'default' => '{}',
             );
             $widgets[$category.":badge"] = array(
