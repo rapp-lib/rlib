@@ -1,9 +1,6 @@
 <?php
 namespace R\Lib\Debug;
 use Barryvdh\Debugbar\LaravelDebugbar;
-use DebugBar\Storage\FileStorage;
-use Barryvdh\Debugbar\Storage\FilesystemStorage;
-use Illuminate\Filesystem\Filesystem;
 use R\Lib\Http\ResponseFactory;
 use R\Lib\Debug\DataCollector\ReportCollector;
 use Barryvdh\Debugbar\DataCollector\EventCollector;
@@ -21,7 +18,7 @@ class Debugbar extends LaravelDebugbar
     {
         parent::__construct($app);
         $stack_dir = constant("R_APP_ROOT_DIR")."/tmp/debug/stack";
-        $this->setStorage(new FilesystemStorage(new Storage\GzipFilesystem, $stack_dir));
+        $this->setStorage(new Storage\FilesystemStorage(new Storage\GzipFilesystem, $stack_dir));
     }
     public function modifyResponse($request, $response)
     {
