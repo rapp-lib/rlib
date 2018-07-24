@@ -55,17 +55,19 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
     // selectフィールドの値の初期化
     var preset_value = $elm.val();
     if (preset_value.match(/^\d+:\d+(:\d+)$/)) preset_value = "1970/1/1 "+preset_value;
-    var date = new Date(preset_value);
-    var values = {
-        year : date.getFullYear(),
-        month : date.getMonth() + 1,
-        day : date.getDate(),
-        hour : date.getHours(),
-        min : date.getMinutes(),
-        sec : date.getSeconds()
-    };
-    for (var i in bind_elms) {
-        bind_elms[i].val(values[i]);
+    if (preset_value) {
+        var date = new Date(preset_value);
+        var values = {
+            year : date.getFullYear(),
+            month : date.getMonth() + 1,
+            day : date.getDate(),
+            hour : date.getHours(),
+            min : date.getMinutes(),
+            sec : date.getSeconds()
+        };
+        for (var i in bind_elms) {
+            bind_elms[i].val(values[i]);
+        }
     }
     // 値の更新時の処理
     var on_update_bind_input = function (e) {
