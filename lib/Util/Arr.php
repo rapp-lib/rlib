@@ -2,32 +2,8 @@
 namespace R\Lib\Util;
 use ArrayObject;
 
-class Arr extends ArrayObject
+class Arr
 {
-    /**
-     * ドット記法で配列の値が設定されているか確認
-     */
-    public function exists($key, $flag=0)
-    {
-        return \R\Lib\Util\Arr::array_isset($this, $key, $flag);
-    }
-    /**
-     * ドット記法で配列の値を取得する
-     */
-    public function get($key)
-    {
-        return \R\Lib\Util\Arr::array_get($this, $key, $flag);
-    }
-    /**
-     * ドット記法で配列の値を再帰的に追加する
-     */
-    public function add($key, $value=array())
-    {
-        return \R\Lib\Util\Arr::array_add($this, $key, $value);
-    }
-
-// -- 配列操作
-
     /**
      * is_arrayをオブジェクト配列も許容できるように拡張
      */
@@ -169,5 +145,17 @@ class Arr extends ArrayObject
             }
         }
         return $result;
+    }
+    /**
+     * {K:V}構造の配列を[[K,V]]構造に変換する
+     */
+    public static function kvdict ( & $arr)
+    {
+        if ( ! \R\Lib\Util\Arr::is_arraylike($arr)) return $arr;
+        $kvdict = array();
+        foreach ($arr as $k=> & $v) {
+            $kvdict[] = array($k, \R\Lib\Util\Arr::kvdict($v));
+        }
+        return $kvdict;
     }
 }
