@@ -182,9 +182,19 @@ class Router
      */
     private static function sortStaticRoute ($routes)
     {
+        // static_route以外を優先で記載順
         $routes_sorted = array();
         foreach ($routes as $route) if ( ! $route["static_route"]) $routes_sorted[] = $route;
-        foreach ($routes as $route) if (   $route["static_route"]) $routes_sorted[] = $route;
+        // static_routeはパターン文字数の少ない順
+        $routes_static = array();
+        foreach ($routes as $route) if (   $route["static_route"]) $routes_static[] = $route;
+        usort($routes_static, function($a, $b){
+            $a_length = strlen(preg_replace('!\{.*?\}!','',$a["pattern"]));
+            $b_length = strlen(preg_replace('!\{.*?\}!','',$b["pattern"]));
+            if ($a_length == $b_length) return 0;
+            return $a_length > $b_length ? +1 : -1;
+        });
+        foreach ($routes_static as $route) $routes_sorted[] = $route;
         return $routes_sorted;
     }
 }
