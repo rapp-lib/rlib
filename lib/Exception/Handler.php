@@ -21,6 +21,16 @@ class Handler extends IlluminateHandler
         $response = $this->handleException($exception);
         if ( ! app()->runningInConsole()) app()->http->emit($response);
     }
+	public function handleError($level, $message, $file = '', $line = 0, $context = array())
+	{
+		if (self::isFatal($level)) {
+			throw new \ErrorException($message, 0, $level, $file, $line);
+		} elseif (self::isWarning($level)) {
+            report_warning("PHP Warning : ".$message, array(
+                "file"=>$file, "line"=>$line, "context"=>$context 
+            ));
+        }
+	}
     public function handleShutdown()
     {
         $error = error_get_last();
@@ -31,5 +41,8 @@ class Handler extends IlluminateHandler
             if ( ! app()->runningInConsole()) app()->http->emit($response);
         }
     }
-
+	protected function isWarning($type)
+	{
+        return in_array($type, array(E_WARNING, E_CORE_WARNING, E_COMPILE_WARNING, E_USER_WARNING));
+	}
 }
