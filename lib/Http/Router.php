@@ -182,12 +182,9 @@ class Router
      */
     private static function sortStaticRoute ($routes)
     {
-        usort($routes, function($a, $b){
-            if ($a["static_route"] && ! $b["static_route"]) return +1;
-            if ( ! $a["static_route"] && $b["static_route"]) return -1;
-            if ( ! $a["static_route"] && ! $b["static_route"]) return 0;
-            return strlen($a["pattern"]) < strlen($b["pattern"]) ? +1 : -1;
-        });
-        return $routes;
+        $routes_sorted = array();
+        foreach ($routes as $route) if ( ! $route["static_route"]) $routes_sorted[] = $route;
+        foreach ($routes as $route) if (   $route["static_route"]) $routes_sorted[] = $route;
+        return $routes_sorted;
     }
 }
