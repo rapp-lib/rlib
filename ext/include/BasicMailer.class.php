@@ -459,29 +459,29 @@ class BasicMailer {
         $mime =new Mail_Mime("\n");
 
         // 本文の76桁自動改行処理
-        $message_wrap = "";
-        $count_col = 0;
+        // $message_wrap = "";
+        // $count_col = 0;
 
-        for ($i=0; $i<mb_strlen($message, $this->get_mail_charset()); $i++) {
+        // for ($i=0; $i<mb_strlen($message, $this->get_mail_charset()); $i++) {
 
-            $substr= mb_substr($message, $i, 1, $this->get_mail_charset());
-            $message_wrap .= $substr;
+        //     $substr= mb_substr($message, $i, 1, $this->get_mail_charset());
+        //     $message_wrap .= $substr;
 
-            // 改行コードを検知した場合は、桁数をリセット
-            if($substr == "\n") { $count_col = 0; }
+        //     // 改行コードを検知した場合は、桁数をリセット
+        //     if($substr == "\n") { $count_col = 0; }
 
-            // 切り出された文字のバイト数
-            $count_col += strlen($substr)==1 ? 1 : 2;
+        //     // 切り出された文字のバイト数
+        //     $count_col += strlen($substr)==1 ? 1 : 2;
 
-            // 76桁目で改行コードを挿入
-            if($count_col >= 76) {
+        //     // 76桁目で改行コードを挿入
+        //     if($count_col >= 76) {
 
-                $count_col=0;
-                $message_wrap .= "\n";
-            }
-        }
+        //         $count_col=0;
+        //         $message_wrap .= "\n";
+        //     }
+        // }
 
-        $message =$message_wrap;
+        // $message =$message_wrap;
 
         // 本文登録
         $mime->setTxtBody($message);
@@ -494,27 +494,27 @@ class BasicMailer {
                 continue;
             }
 
-            $filename =mb_encode_mimeheader($attach_file["filename"]);
-            $mimetype =$attach_file["mimetype"]
-                    ? $attach_file["mimetype"]
-                    : "application/octet-stream";
+            $filename =$attach_file["filename"];
+            $mimetype =$attach_file["mimetype"] ?: "application/octet-stream";
+            $attach_data = $attach_file["data"] ?: $attach_file["data_file"];
+            $attach_mode =  $attach_file["data"] ? false : true;
+            if ( ! $attach_data) continue;
 
-            if ($attach_file["data"]) {
-
-                $mime->addAttachment(
-                        $attach_file["data"],
-                        $mimetype,
-                        $filename,
-                        false);
-
-            } elseif (file_exists($attach_file["data_file"])) {
-
-                $mime->addAttachment(
-                        $attach_file["data_file"],
-                        $mimetype,
-                        $filename,
-                        true);
-            }
+            $mime->addAttachment(
+                    $attach_data,
+                    $mimetype,
+                    $filename,
+                    $attach_mode
+                    ,'base64' // encoding
+                    ,'attachment' // disposition attachment
+                    ,'utf8' // charset
+                    ,'' // language
+                    ,'' // location
+                    ,'base64' // n_encoding
+                    ,'base64' // f_encoding Encoding of the attachment's filename in Content-Disposition header.
+                    ,'' // description
+                    ,'utf8' // h_charset
+                );
         }
 
         // HEADER構築
