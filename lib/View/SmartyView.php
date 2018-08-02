@@ -213,6 +213,7 @@ class SmartyView
             $result = $uri->getPageController()->invokeAction($request);
             $smarty_sub->assign((array)$result["vars"]);
         }
+        if ($params["vars"]) $smarty_sub->assign((array)$params["vars"]);
         // テンプレートのFetch
         return $smarty_sub->fetch($file);
     }

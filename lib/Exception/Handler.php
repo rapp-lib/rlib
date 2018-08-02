@@ -5,8 +5,8 @@ use Symfony\Component\Debug\Exception\FatalErrorException as FatalError;
 
 class Handler extends IlluminateHandler
 {
-	public function handleException($exception)
-	{
+    public function handleException($exception)
+    {
         // PHP7以降でThrowableが発行された際にLaravelException/Debugbarともに非対応なのでExceptionに変換
         if ( ! $exception instanceof \Exception) {
             $exception = new FatalError("Exception ".get_class($exception)." : ".$exception->getMessage());
@@ -21,16 +21,16 @@ class Handler extends IlluminateHandler
         $response = $this->handleException($exception);
         if ( ! app()->runningInConsole()) app()->http->emit($response);
     }
-	public function handleError($level, $message, $file = '', $line = 0, $context = array())
-	{
-		if (self::isFatal($level)) {
-			throw new \ErrorException($message, 0, $level, $file, $line);
-		} elseif (self::isWarning($level)) {
+    public function handleError($level, $message, $file = '', $line = 0, $context = array())
+    {
+        if (self::isFatal($level)) {
+            throw new \ErrorException($message, 0, $level, $file, $line);
+        } elseif (self::isWarning($level)) {
             report_warning("PHP Warning : ".$message, array(
                 "file"=>$file, "line"=>$line, "context"=>$context 
             ));
         }
-	}
+    }
     public function handleShutdown()
     {
         $error = error_get_last();
@@ -41,8 +41,8 @@ class Handler extends IlluminateHandler
             if ( ! app()->runningInConsole()) app()->http->emit($response);
         }
     }
-	protected function isWarning($type)
-	{
+    protected function isWarning($type)
+    {
         return in_array($type, array(E_WARNING, E_CORE_WARNING, E_COMPILE_WARNING, E_USER_WARNING));
-	}
+    }
 }
