@@ -31,12 +31,12 @@ class SchemaDiffCommand extends Command
                 ));
             }
             $this->line("-- Backup: ".$dump_filename);
-            $this->line("-- Apply");
+            $this->line("-- Apply start");
             foreach ($sqls as $sql) {
-                $this->line($sql.";");
                 $result = $db->exec($sql);
                 if ( ! $result && $error = $db->getErrorInfo()) {
-                    report_error('SQL Error : '.implode(' , ',$error), array("SQL"=>$sql));
+                    $this->line("ERROR : ".implode(' , ',$error));
+                    $this->line("SKIP : ".$sql.";");
                 }
             }
         }
