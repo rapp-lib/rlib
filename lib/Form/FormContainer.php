@@ -850,7 +850,7 @@ class FormContainer extends ArrayObject
             "form_name" => $this->def["form_name"],
             "tmp_storage_name" => $this->def["tmp_storage_name"],
             "values" => $this->getValues(),
-            "def" => $this->def,
+            "errors" => $this->getErrors(),
             "forms" => $this->sub_forms,
         );
     }

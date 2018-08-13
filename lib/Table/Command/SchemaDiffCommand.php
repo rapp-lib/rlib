@@ -1,5 +1,5 @@
 <?php
-namespace R\Lib\table\Command;
+namespace R\Lib\Table\Command;
 use R\Lib\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use R\Lib\DBAL\DBSchemaDoctrine2;

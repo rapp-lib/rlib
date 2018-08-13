@@ -5,6 +5,16 @@ use Barryvdh\Debugbar\JavascriptRenderer as IlluminateJavascriptRenderer;
 
 class JavascriptRenderer extends IlluminateJavascriptRenderer
 {
+    public function __construct(DebugBar $debugBar, $baseUrl = null, $basePath = null)
+    {
+        parent::__construct($debugBar, $baseUrl, $basePath);
+        $assets_dir = constant("R_LIB_ROOT_DIR")."/assets/debugbar/resources";
+        $this->jsFiles[0] = $assets_dir."/".'debugbar.js';
+        $this->jsFiles['rlib-widget'] = $assets_dir."/".'widget.js';
+        $this->cssFiles['rlib-widget'] = $assets_dir."/".'widget.css';
+        // $this->addAssets(array('widget.css'), array('widget.js'),
+        //     constant("R_LIB_ROOT_DIR")."/assets/debugbar/resources/", null);
+    }
     public function renderHead()
     {
         if (!$this->url) {

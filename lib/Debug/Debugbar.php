@@ -148,8 +148,6 @@ class Debugbar extends LaravelDebugbar
         if ($this->js_renderer === null) {
             $this->js_renderer = new JavascriptRenderer($this, $base_url, $base_path);
             $this->js_renderer->setUrlGenerator($this);
-            $this->js_renderer->addAssets(array('widget.css'), array('widget.js'),
-                constant("R_LIB_ROOT_DIR")."/assets/debugbar/resources/", null);
         }
         return $this->js_renderer;
     }

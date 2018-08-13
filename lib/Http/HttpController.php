@@ -143,6 +143,7 @@ class HttpController implements FormRepositry
         $vars["forms"] = $this->forms;
         $vars["input"] = $this->input;
         $vars["request"] = $this->request;
+        $vars["app"] = app();
         $vars["enum"] = app()->enum;
         $vars["auth"] = app()->user;
         return $vars;
