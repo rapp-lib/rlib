@@ -20,10 +20,11 @@ class SchemaDiffCommand extends Command
         foreach ($sqls as $sql) $this->line($sql.";");
         // 差分の適応
         if ($sqls && $apply) {
+            $db = app()->db($ds_name);
             $dump_dir = constant("R_APP_ROOT_DIR")."/tmp/dump";
             if ( ! file_exists($dump_dir)) mkdir($dump_dir, 0775);
             $dump_filename = $dump_dir."/".$ds_name.date("_Ymd-His").".sql.gz";
-            $dump_result = app()->db($ds_name)->dumpData($dump_filename);
+            $dump_result = $db->dumpData($dump_filename);
             if ( ! $dump_result) {
                 report_error("DBのダンプデータが作成できませんでした", array(
                     "dump_filename" => $dump_filename,
@@ -31,7 +32,13 @@ class SchemaDiffCommand extends Command
             }
             $this->line("-- Backup: ".$dump_filename);
             $this->line("-- Apply");
-            app()->db($ds_name)->exec(implode('; ', $sqls));
+            foreach ($sqls as $sql) {
+                $this->line($sql.";");
+                $result = $db->exec($sql);
+                if ( ! $result && $error = $db->getErrorInfo()) {
+                    report_error('SQL Error : '.implode(' , ',$error), array("SQL"=>$sql));
+                }
+            }
         }
     }
     protected function getOptions()

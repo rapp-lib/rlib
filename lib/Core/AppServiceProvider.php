@@ -36,7 +36,6 @@ class AppServiceProvider extends ServiceProvider
     );
     protected $base_commands = array(
         'schema:diff'=>'\R\Lib\Table\Command\SchemaDiffCommand',
-        'build:make'=>'\R\Lib\Builder\Command\BuildMakeCommand',
         'farm.publish'=>'\R\Lib\Farm\Command\FarmPublishCommand',
     );
     protected $base_providers = array(

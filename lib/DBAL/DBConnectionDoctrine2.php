@@ -65,12 +65,20 @@ class DBConnectionDoctrine2 implements DBConnection
         try {
             $stmt = $this->getDS()->query("".$st);
         } catch (\Exception $e) {
-            $error = $this->getDS()->errorInfo();
-            if ($error[0]==="00000") unset($error);
+            $error = $this->getErrorInfo();
         }
         if ( ! $stmt) $error[] = "Query failed";
         if ($st instanceof SQLStatement) $st->logEnd($error);
         return $stmt;
+    }
+    /**
+     * 最後に発生したエラーを取得
+     */
+    public function getErrorInfo ()
+    {
+        $error = $this->getDS()->errorInfo();
+        if ($error && $error[0]==="00000") unset($error);
+        return $error;
     }
     /**
      * Select結果の次の1件を取得

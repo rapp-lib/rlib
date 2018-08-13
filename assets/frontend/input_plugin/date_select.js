@@ -34,8 +34,12 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
         }
         // 相対年の解決
         var now = new Date();
-        if (config.year[0].match(/^[\+\-]/)) { config.year[0] = now.getFullYear() + parseInt(config.year[0]); }
-        if (config.year[1].match(/^[\+\-]/)) { config.year[1] = now.getFullYear() + parseInt(config.year[1]); }
+        if (config.year[0].match(/^[\+\-]/)) {
+            config.year[0] = now.getFullYear() + parseInt(config.year[0]);
+        }
+        if (config.year[1].match(/^[\+\-]/)) {
+            config.year[1] = now.getFullYear() + parseInt(config.year[1]);
+        }
         // プルダウンの生成
         for (var _i in format) {
             var i = format[_i];
@@ -50,11 +54,23 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
         }
     }
     // bind_elmsの様式として日付、時刻を持つかどうか
-    var has_date = bind_elms["year"] && bind_elms["month"] && bind_elms["day"];
-    var has_time = bind_elms["hour"] && bind_elms["min"];
+    var has_date = bind_elms["year"] || bind_elms["month"] || bind_elms["day"];
+    var has_time = bind_elms["hour"] || bind_elms["min"];
+    // プルダウンの補完
+    for (var i in config) {
+        var crit_date = has_date && (i=="year" || i=="month" || i=="day");
+        var crit_time = has_time && (i=="hour" || i=="min");
+        if ((crit_date || crit_time) && ! bind_elms[i]) {
+            var $select = $('<select style="display:none"></select>').addClass(i);
+            $select.append('<option value="' + config[i][0] + '">' + config[i][0] + '</option>');
+            bind_elms[i] = $select;
+        }
+    }
     // selectフィールドの値の初期化
     var preset_value = $elm.val();
-    if (preset_value.match(/^\d+:\d+(:\d+)$/)) preset_value = "1970/1/1 "+preset_value;
+    if (preset_value.match(/^\d+:\d+(:\d+)$/)) {
+        preset_value = "1970/1/1 "+preset_value;
+    }
     if (preset_value) {
         var date = new Date(preset_value);
         var values = {
