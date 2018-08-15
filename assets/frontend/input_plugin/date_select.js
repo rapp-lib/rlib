@@ -18,7 +18,7 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
     //TODO:指定の様式のselectフィールドを作成
     } else {
         var config = {
-            year : [2010, "+3", "年"],
+            year : ["2010", "+3", "年"],
             month : [1, 12, "月"],
             day : [1, 31, "日"],
             hour : [0, 23, "時"],

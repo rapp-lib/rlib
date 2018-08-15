@@ -33,12 +33,23 @@ InputPluginRegistry.registerPlugin("split_text", function ($elm, params) {
     }
     // 値の更新時の処理
     var on_update_bind_input = function () {
-        var value = "";
+        // 値が入っていない時はDelimが入らないようにする
+        var flg = false;
         for (var i in bind_elms) {
-            var $bind_elm = bind_elms[i];
-            value += $bind_elm.val();
-            if (i < bind_elms.length-1) {
-                value += params.delim;
+            if(bind_elms[i].val()) {
+                flg = true;
+                break;
+            }
+        }
+        // 値をDelimで区切った文字を組み立てる
+        var value = "";
+        if(flg) {
+            for (var i in bind_elms) {
+                var $bind_elm = bind_elms[i];
+                value += $bind_elm.val();
+                if (i < bind_elms.length-1) {
+                    value += params.delim;
+                }
             }
         }
         $elm.val(value);
