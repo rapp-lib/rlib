@@ -69,4 +69,20 @@ class ConfigBasedLogin
     {
         return $this->config["auth_table"];
     }
+    public function onFindMine($table)
+    {
+        if ($callback = $this->config["on_find_mine"]) {
+            return $callback($table);
+        } else {
+            return false;
+        }
+    }
+    public function onSaveMine($table)
+    {
+        if ($callback = $this->config["on_save_mine"]) {
+            return $callback($table);
+        } else {
+            return false;
+        }
+    }
 }

@@ -21,6 +21,14 @@ class GuestLogin
     {
         return null;
     }
+    public function onFindMine()
+    {
+        return false;
+    }
+    public function onSaveMine()
+    {
+        return false;
+    }
     public function authenticate($params)
     {
         return false;

@@ -87,6 +87,20 @@ class UserLoginDriver
         return $this->getLoginProvider($role)->getAuthTable();
     }
     /**
+     * 所有要素の検索処理
+     */
+    public function onFindMine($role, $table)
+    {
+        return $this->getLoginProvider($role)->onFindMine($table);
+    }
+    /**
+     * 所有要素の更新処理
+     */
+    public function onSaveMine($role, $table)
+    {
+        return $this->getLoginProvider($role)->onSaveMine($table);
+    }
+    /**
      * 認証試行を行って得られた権限を取得
      * ロールへの権限設定、切り替えは行わない
      */

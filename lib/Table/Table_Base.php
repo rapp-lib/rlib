@@ -1086,7 +1086,6 @@ class Table_Base extends Table_Core
     /**
      * @hook chain
      * ログインID/PWを条件に指定する
-     * @deprecated
      */
     public function chain_findByLoginIdPw ($login_id, $login_pw)
     {
@@ -1110,26 +1109,10 @@ class Table_Base extends Table_Core
     public function chain_findMine ()
     {
         $role = app()->user->getCurrentRole();
-        $user_id = app()->user->id($role);
-        // ログイン中でなければ何も取得しない
-        if ( ! $user_id) {
-            $this->findNothing();
-            return;
-        }
-        $role_table_name = app()->user->getAuthTable($role);
-        if ( ! $role_table_name) {
-            report_error("Roleに対応するTableがありません", array("role"=>$role));
-        }
-        // 自己参照の特定
-        if ($this->getAppTableName() == $role_table_name) {
-            // ログイン中のID = 主キーを条件に追加する
-            $this->query->where($this->getQueryTableName().".".$this->getIdColName(), $user_id);
-        // 関係先を経由して条件を指定
-        } elseif ($this->chain_findByRoute($role_table_name, $user_id)) {
-            //
-        } else {
-            report_error("無効なfindMine, 所有関係を示す経路がありません",
-                array("role_tabel"=>$role_table_name, "table"=>$this));
+        $result = app()->user->onFindMine($role, $this);
+        if ( ! $result) $result = self::defaultOnFindMine($role, $this);
+        if ( ! $result) {
+            $table->findNothing();
         }
     }
     /**
@@ -1138,37 +1121,68 @@ class Table_Base extends Table_Core
     public function saveMine ()
     {
         $role = app()->user->getCurrentRole();
+        $result = app()->user->onSaveMine($role, $this);
+        if ( ! $result) $result = self::defaultOnSaveMine($role, $this);
+        if ( ! $result) {
+            report_error("無効なsaveMine", array("role_tabel"=>$role, "table"=>$this));
+        } else {
+            $this->save();
+        }
+    }
+    protected static function defaultOnFindMine ($role, $table)
+    {
+        $user_id = app()->user->id($role);
+        // ログイン中でなければ何も取得しない
+        if ( ! $user_id) return false;
+        $role_table_name = app()->user->getAuthTable($role);
+        if ( ! $role_table_name) return false;
+        // 自己参照の特定
+        if ($table->getAppTableName() == $role_table_name) {
+            // ログイン中のID = 主キーを条件に追加する
+            $table->query->where($table->getQueryTableName().".".$table->getIdColName(), $user_id);
+        // 関係先を経由して条件を指定
+        } elseif ($table->chain_findByRoute($role_table_name, $user_id)) {
+            //
+        } else {
+            report_warning("無効なfindMine, 所有関係を示す経路がありません",
+                array("role_tabel"=>$role_table_name, "table"=>$table));
+            return false;
+        }
+        return true;
+    }
+    protected static function defaultOnSaveMine ($role, $table)
+    {
         $user_id = app()->user->id($role);
         $role_table_name = app()->user->getAuthTable($role);
-        $id_col_name = $this->getIdColName();
-        $fkey_col_name = $this->getColNameByAttr("fkey_for", $role_table_name);
-        if ( ! $role_table_name) {
-            report_error("Roleに対応するTableがありません", array("role"=>$role));
-        }
+        $id_col_name = $table->getIdColName();
+        $fkey_col_name = $table->getColNameByAttr("fkey_for", $role_table_name);
+        if ( ! $role_table_name) return false;
         if ( ! $user_id) {
-            report_error("非ログイン中のsaveMineの呼び出しは不正です", array("table"=>$this));
+            report_warning("非ログイン中のsaveMineの呼び出しは不正です", array("table"=>$table));
+            return false;
         }
         // Roleのテーブル自身である場合は、主キーを指定
-        if ($role_table_name == $this->getAppTableName()) {
-            $this->query->setValue($id_col_name, $user_id);
+        if ($role_table_name == $table->getAppTableName()) {
+            $table->query->setValue($id_col_name, $user_id);
         // 関係がある場合
-        } elseif (app("table.resolver")->getFkeyRoute($this->getAppTableName(), $role_table_name)) {
+        } elseif (app("table.resolver")->getFkeyRoute($table->getAppTableName(), $role_table_name)) {
             // 直接関係があればValueを上書き
-            if ($fkey_col_name) $this->query->setValue($fkey_col_name, $user_id);
+            if ($fkey_col_name) $table->query->setValue($fkey_col_name, $user_id);
             // Updateが発行される場合、関係先を探索して条件に追加
-            if ($this->query->getValue($id_col_name)) {
-                $this->chain_findByRoute($role_table_name, $user_id);
+            if ($table->query->getValue($id_col_name)) {
+                $table->chain_findByRoute($role_table_name, $user_id);
             // Insertであり、直接関係がない場合エラー
             } elseif ( ! $fkey_col_name) {
-                report_error("無効なsaveMine, 直接関係がなければ新規作成を行う条件の指定は出来ません",
-                    array("role_tabel"=>$role_table_name, "table"=>$this));
+                report_warning("無効なsaveMine, 直接関係がなければ新規作成を行う条件の指定は出来ません",
+                    array("role_tabel"=>$role_table_name, "table"=>$table));
+                return false;
             }
         } else {
-            report_error("無効なsaveMine, 所有関係を示す経路がありません",
-                array("role_tabel"=>$role_table_name, "table"=>$this));
+            report_warning("無効なsaveMine, 所有関係を示す経路がありません",
+                array("role_tabel"=>$role_table_name, "table"=>$table));
+            return false;
         }
-        // saveを呼び出す
-        return $this->save();
+        return true;
     }
     /**
      * 経路を探索して指定した関係先テーブルの値を条件に指定する
