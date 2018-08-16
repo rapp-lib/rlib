@@ -55,11 +55,11 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
     }
     // bind_elmsの様式として日付、時刻を持つかどうか
     var has_date = bind_elms["year"] || bind_elms["month"] || bind_elms["day"];
-    var has_time = bind_elms["hour"] || bind_elms["min"];
+    var has_time = bind_elms["hour"] || bind_elms["min"] || bind_elms["sec"];
     // プルダウンの補完
     for (var i in config) {
         var crit_date = has_date && (i=="year" || i=="month" || i=="day");
-        var crit_time = has_time && (i=="hour" || i=="min");
+        var crit_time = has_time && (i=="hour" || i=="min" || i=="sec");
         if ((crit_date || crit_time) && ! bind_elms[i]) {
             var $select = $('<select style="display:none"></select>').addClass(i);
             $select.append('<option value="' + config[i][0] + '">' + config[i][0] + '</option>');
@@ -120,7 +120,9 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
         for (var i in bind_elms) {
             values[i] = bind_elms[i].val();
         }
-        if (has_date && ! (values.year && values.month && values.day)) {
+        var crit_date = has_date && ! (values.year && values.month && values.day);
+        var crit_time = has_time && ! (values.hour && values.min && values.sec);
+        if (crit_date || crit_time) {
             $elm.attr("value", "");
         } else {
             var date = new Date(values.year, values.month-1, values.day, values.hour, values.min, values.sec);
