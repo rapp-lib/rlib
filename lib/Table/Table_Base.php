@@ -378,6 +378,13 @@ class Table_Base extends Table_Core
         if ( ! isset($assoc_fkey)) {
             $table_name = $this->getAppTableName();
             $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
+            if ( ! $assoc_fkey) {
+                report_error("外部キーによる参照がないassoc関係", array(
+                    "table_name"=>$this->getAppTableName(),
+                    "assoc_table_name"=>$assoc_table_name,
+                    "assoc"=>$assoc,
+                ));
+            }
         }
         // singleの指定があれば1レコードに制限
         if ($assoc_single) $values = array_slice((array)$values, 0, 1, true);
