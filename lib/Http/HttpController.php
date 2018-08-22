@@ -99,21 +99,26 @@ class HttpController implements FormRepositry
     }
     public function invokeAction ($request)
     {
-        $result = array();
         // 入力
         $this->request = $request;
         $this->input = $request->getAttribute(InputValues::ATTRIBUTE_INDEX);
         $this->forms = app()->form->addRepositry($this);
         $this->flash = app()->session->getFlash();
         list(,$action_name) = explode('.', $this->uri->getPageId(), 2);
+        $result = $this->callActionMethod($action_name);
+        $result["vars"] = $this->vars;
+        app("events")->fire('http.invoke_action', array($this->uri, $this->vars, $this->forms));
+        return $result;
+    }
+    public function callActionMethod ($action_name)
+    {
+        $result = array();
         // 処理呼び出し
         $action_method_name = "act_".$action_name;
         if (method_exists($this, $action_method_name)) {
             $result["has_action"] = true;
             $result["response"] = call_user_func(array($this, $action_method_name));
         }
-        $result["vars"] = $this->vars;
-        app("events")->fire('http.invoke_action', array($this->uri, $this->vars, $this->forms));
         return $result;
     }
     protected function makeResponse ()

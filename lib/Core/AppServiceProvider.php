@@ -13,6 +13,7 @@ class AppServiceProvider extends ServiceProvider
 {
     protected $base_singletons = array(
         // 5.0
+        'url' => '\R\Lib\Http\UrlGenerator',
         'table.resolver' => '\R\Lib\Table\TableResolver',
         'debug' => 'R\Lib\Core\Debug',
         'report' => 'R\Lib\Report\ReportDriver',

@@ -578,6 +578,9 @@ class FormContainer extends ArrayObject
      */
     public function setRecord ($record)
     {
+        if ( ! $record) {
+            report_error("setRecordのパラメータがRecordオブジェクトではない");
+        }
         $this->convertRecord($record, "form_values");
     }
     /**
