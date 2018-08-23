@@ -1132,9 +1132,8 @@ class Table_Base extends Table_Core
         if ( ! $result) $result = self::defaultOnSaveMine($role, $this);
         if ( ! $result) {
             report_error("無効なsaveMine", array("role_tabel"=>$role, "table"=>$this));
-        } else {
-            $this->save();
         }
+        return $this->save();
     }
     protected static function defaultOnFindMine ($role, $table)
     {
