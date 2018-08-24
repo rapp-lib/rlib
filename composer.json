@@ -5,9 +5,6 @@
     "license": "MIT",
     "require": {
         "php": ">=5.3",
-        "laravel/framework": "~4",
-        "barryvdh/laravel-debugbar": "~1",
-        "zendframework/zend-cache": "~2",
         "zendframework/zend-session": "~2",
         "zendframework/zend-serializer": "~2",
         "danbruce/fast-route": "~0.6",
@@ -20,6 +17,9 @@
         "phpmailer/phpmailer": "~5",
         "airmanbzh/php-html-generator": "~1",
         "rapp-lib/zend-diactoros": "~1",
+        "rapp-lib/zend-cache": "~2",
+        "rapp-lib/laravel-framework": "~4.1",
+        "rapp-lib/laravel-debugbar": "~1",
         "rapp-lib/middleman": "~2"
     },
     "autoload": {
