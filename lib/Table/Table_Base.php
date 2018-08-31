@@ -587,7 +587,7 @@ class Table_Base extends Table_Core
      */
     protected function on_write_generatorIdInit ()
     {
-        if ($col_name = $this->getColNameByAttr("generator", "idInit")) {
+        if ($col_name = $this->getColNameByAttr("generator", "id_init")) {
             $col_def = $this->getColDef($col_name);
             $id_init_col_name = $col_def["id_init_col"] ?: "id_init";
             $value = $this->query["values"][$id_init_col_name];
