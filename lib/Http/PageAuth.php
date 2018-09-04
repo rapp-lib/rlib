@@ -13,7 +13,7 @@ class PageAuth
         // guestは認証不可
         if ($this->role==="guest" && isset($this->priv_req)) $this->priv_req = false;
         // priv_reqはホワイトリスト方式
-        if ($this->role!=="guest" && $this->priv_req!==false) $this->priv_req = true;
+        // if ($this->role!=="guest" && $this->priv_req!==false) $this->priv_req = true;
     }
     public function getRole ()
     {

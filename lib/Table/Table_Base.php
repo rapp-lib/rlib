@@ -753,11 +753,43 @@ class Table_Base extends Table_Core
         if ($alias["mine"]) $assoc_table->findMine();
         if ($alias["where"]) $assoc_table->findBy($alias["where"]);
         if ($alias["order"]) $assoc_table->orderBy($alias["order"]);
-        if ($alias["limit"]) $assoc_table->limit($alias["limit"]);
+        // if ($alias["limit"]) $assoc_table->limit($alias["limit"]);
         if ($alias["summary"]) return $assoc_table->selectSummary($alias["summary"], $assoc_fkey);
         $result = $assoc_table->select();
         if ($alias["single"]) return $result->getMappedBy($assoc_fkey);
         return $result->getGroupedBy($assoc_fkey);
+    }
+    /**
+     * @hook retreive_alias
+     * hasMany関係先テーブルの情報をLIMIT付きで取得する
+     */
+    protected function retreive_aliasHasManyEach ($src_values, $alias)
+    {
+        if ( ! $alias["table"]) {
+            report_error("aliasで指定されるtableがありません",array(
+                "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
+            ));
+        }
+        $values = array();
+        foreach ($src_values as $src_value) {
+            $assoc_table = table($alias["table"]);
+            $assoc_fkey = $alias["fkey"]
+                ?: $assoc_table->getColNameByAttr("fkey_for", $this->getAppTableName());
+            if ( ! $assoc_fkey) {
+                report_error("Table間にHasMany関係がありません",array(
+                    "table"=>$this, "assoc_table"=>$assoc_table, "alias"=>$alias,
+                ));
+            }
+            $assoc_table->findBy($assoc_fkey, $src_value);
+            if ($alias["mine"]) $assoc_table->findMine();
+            if ($alias["where"]) $assoc_table->findBy($alias["where"]);
+            if ($alias["order"]) $assoc_table->orderBy($alias["order"]);
+            if ($alias["summary"]) return $assoc_table->selectSummary($alias["summary"], $assoc_fkey);
+            if ($alias["limit"]) $assoc_table->limit($alias["limit"]);
+            if ($alias["single"]) $values[$src_value] = $assoc_table->selectOne();
+            else $values[$src_value] = $assoc_table->select();
+        }
+        return $values;
     }
     /**
      * @hook retreive_alias
