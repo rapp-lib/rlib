@@ -14,6 +14,7 @@ class Handler extends IlluminateHandler
         if ( ! app()->config["app.no_cleanup_on_exception"]) ob_end_clean();
         app("events")->fire("app.handle_exception", array($exception));
         if (app()->runningInConsole()) return null;
+        if (method_exists($exception, "render")) return $exception->render();
         return parent::handleException($exception);
     }
     public function handleUncaughtException($exception)

@@ -268,45 +268,41 @@ class FormContainer extends ArrayObject
      */
     public function setInputValues ($input_values)
     {
-        // 入力値の変換処理
-        foreach ($this->def["fields"] as $field_name => $field_def) {
-            // 変換処理の逐次適用
-            self::applyFieldFilter($input_values, $field_name, function($value, $field_name) use ($field_def) {
-                // ファイルアップロード
-                if ($value instanceof \Psr\Http\Message\UploadedFileInterface) {
-                    $storage_name = $field_def["storage"];
-                    if ($value->getError() !== UPLOAD_ERR_OK) {
-                        // ファイルをアップロードしていない、またはエラー
-                        $value = new UploadedFile(null, $value);
-                    } elseif ( ! $storage_name) {
-                        $value = new UploadedFile(null, $value);
-                        report_warning("File Upload Failure", array(
-                            "field_name" => $field_name,
-                            "field_def" => $field_def,
-                        ), "Error");
-                    } elseif ($file = app()->file->getStorage($storage_name)->upload($value)) {
-                        $value = new UploadedFile($file->getUri(), $value);
-                        report_info("File Uploaded",array(
-                            "field_name" => $field_name,
-                            "uri" => $value,
-                            "field_def" => $field_def,
-                        ), "App");
-                    } else {
-                        $value = new UploadedFile(null, $value);
-                        report_warning("File Upload Failure",array(
-                            "field_name" => $field_name,
-                            "uploaded_file" => $value,
-                            "field_def" => $field_def,
-                        ), "Error");
-                    }
-                }
-                return $value;
-            });
-        }
-        // formタグの仕様により混入する非正規な空データを削除
+        // formタグの仕様により混入する非正規な空データを削除してからデータを登録
         \R\Lib\Util\Arr::array_clean($input_values);
-        // 処理済みの値を設定
         $this->setValues($input_values);
+        // 入力変換処理
+        $this->mapFields(function($value, $field_name, $field_def){
+            // ファイルアップロード
+            if ($value instanceof \Psr\Http\Message\UploadedFileInterface) {
+                $storage_name = $field_def["storage"];
+                if ($value->getError() !== UPLOAD_ERR_OK) {
+                    // ファイルをアップロードしていない、またはエラー
+                    $value = new UploadedFile(null, $value);
+                } elseif ( ! $storage_name) {
+                    $value = new UploadedFile(null, $value);
+                    report_warning("File Upload Failure", array(
+                        "field_name" => $field_name,
+                        "field_def" => $field_def,
+                    ), "FileUpload");
+                } elseif ($file = app()->file->getStorage($storage_name)->upload($value)) {
+                    $value = new UploadedFile($file->getUri(), $value);
+                    report_info("File Uploaded",array(
+                        "field_name" => $field_name,
+                        "uri" => $value,
+                        "field_def" => $field_def,
+                    ), "FileUpload");
+                } else {
+                    $value = new UploadedFile(null, $value);
+                    report_warning("File Upload Failure",array(
+                        "field_name" => $field_name,
+                        "uploaded_file" => $value,
+                        "field_def" => $field_def,
+                    ), "FileUpload");
+                }
+            }
+            return $value;
+        });
     }
 
     /**
@@ -578,6 +574,9 @@ class FormContainer extends ArrayObject
      */
     public function setRecord ($record)
     {
+        if ( ! $record) {
+            report_error("setRecordのパラメータがRecordオブジェクトではない");
+        }
         $this->convertRecord($record, "form_values");
     }
     /**
@@ -701,35 +700,29 @@ class FormContainer extends ArrayObject
     }
 
     /**
-     * field_nameに対応する値の書き換え関数を対象の配列内で逐次適用する
-     * @param $function function ($field_value, $field_name_parts) => $field_value
+     * Fieldの定義に従ってcallbackを逐次呼び出して値を書き換える
+     * @param $callback function($value, $field_name, $field_def) => $value
      */
-    private static function applyFieldFilter ( & $values, $field_name, $function)
+    public function mapFields ($callback)
     {
-        $parts = explode('.',$field_name);
-        // 対象が配列ではない
-        if (count($parts)==1) {
-            if ( ! isset($values[$parts[0]])) {
-                return;
-            }
-            $values[$parts[0]] = call_user_func($function, $values[$parts[0]], $field_name);
-        // 対象が1次配列
-        } elseif (count($parts)==2) {
-            if ( ! \R\Lib\Util\Arr::is_arraylike($values[$parts[0]]) || ! isset($values[$parts[0]][$parts[1]])) {
-                return;
-            }
-            $values[$parts[0]][$parts[1]] = call_user_func($function, $values[$parts[0]][$parts[1]], $field_name);
-        // 対象が2次配列
-        } elseif (count($parts)==3) {
-            if ( ! \R\Lib\Util\Arr::is_arraylike($values[$parts[0]]) || count($values[$parts[0]])==0) {
-                return;
-            }
-            foreach ($values[$parts[0]] as $fieldset_index => $fieldset) {
-                $parts[1] = $fieldset_index;
-                if ( ! isset($values[$parts[0]][$parts[1]][$parts[2]])) {
-                    continue;
+        $values = $this;
+        // 入力値の変換処理
+        foreach ($this->def["fields"] as $field_name => $field_def) {
+            $parts = explode('.',$field_name);
+            // 対象が配列ではない
+            if (count($parts)==1) {
+                $values[$parts[0]] = call_user_func($callback, $values[$parts[0]], $field_name, $field_def);
+            // 対象が1次配列
+            } elseif (count($parts)==2) {
+                $values[$parts[0]][$parts[1]] = call_user_func($callback, $values[$parts[0]][$parts[1]], $field_name, $field_def);
+            // 対象が2次配列
+            } elseif (count($parts)==3) {
+                if ( ! \R\Lib\Util\Arr::is_arraylike($values[$parts[0]])) continue;
+                if (count($values[$parts[0]])==0) continue;
+                if ($parts[1]!="*") continue;
+                foreach ($values[$parts[0]] as & $fieldset) {
+                    $fieldset[$parts[2]] = call_user_func($callback, $fieldset[$parts[2]], $field_name, $field_def);
                 }
-                $values[$parts[0]][$parts[1]][$parts[2]] = call_user_func($function, $values[$parts[0]][$parts[1]][$parts[2]], $field_name);
             }
         }
     }

@@ -619,11 +619,19 @@ class Table_Base extends Table_Core
      */
     protected function on_getBlankCol_alias ($record, $col_name)
     {
+        $found = false;
         foreach ((array)static::$aliases as $src_col_name=>$aliases) {
             foreach ((array)$aliases as $alias_col_name=>$alias) {
                 if ($alias_col_name===$col_name) {
-                    $this->mergeAlias($alias_col_name, $src_col_name, $alias);
-                    return true;
+                    if ($found) {
+                        report_error("同名のaliasが重複して登録されています", array(
+                            "table"=>$this->getAppTableName(),
+                            "alias_col_name"=>$alias_col_name,
+                            "src_col_name_1"=>$found[1],
+                            "src_col_name_2"=>$src_col_name,
+                        ));
+                    }
+                    $found = array($alias_col_name, $src_col_name, $alias);
                 }
             }
         }
@@ -631,11 +639,21 @@ class Table_Base extends Table_Core
         foreach ((array)static::$cols as $src_col_name=>$src_col) {
             foreach ((array)$src_col["alias"] as $alias_col_name=>$alias) {
                 if ($alias_col_name===$col_name) {
-                    $this->mergeAlias($alias_col_name, $src_col_name, $alias);
-                    return true;
+                    if ($found) {
+                        report_error("同名のaliasが重複して登録されています", array(
+                            "table"=>$this->getAppTableName(),
+                            "alias_col_name"=>$alias_col_name,
+                            "src_col_name_1"=>$found[1],
+                            "src_col_name_2"=>$src_col_name,
+                        ));
+                    }
+                    $found = array($alias_col_name, $src_col_name, $alias);
                 }
             }
         }
+        if ( ! $found) return false;
+        $this->mergeAlias($found[0], $found[1], $found[2]);
+        return true;
     }
     /**
      * @hook result
@@ -735,11 +753,43 @@ class Table_Base extends Table_Core
         if ($alias["mine"]) $assoc_table->findMine();
         if ($alias["where"]) $assoc_table->findBy($alias["where"]);
         if ($alias["order"]) $assoc_table->orderBy($alias["order"]);
-        if ($alias["limit"]) $assoc_table->limit($alias["limit"]);
+        // if ($alias["limit"]) $assoc_table->limit($alias["limit"]);
         if ($alias["summary"]) return $assoc_table->selectSummary($alias["summary"], $assoc_fkey);
         $result = $assoc_table->select();
         if ($alias["single"]) return $result->getMappedBy($assoc_fkey);
         return $result->getGroupedBy($assoc_fkey);
+    }
+    /**
+     * @hook retreive_alias
+     * hasMany関係先テーブルの情報をLIMIT付きで取得する
+     */
+    protected function retreive_aliasHasManyEach ($src_values, $alias)
+    {
+        if ( ! $alias["table"]) {
+            report_error("aliasで指定されるtableがありません",array(
+                "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
+            ));
+        }
+        $values = array();
+        foreach ($src_values as $src_value) {
+            $assoc_table = table($alias["table"]);
+            $assoc_fkey = $alias["fkey"]
+                ?: $assoc_table->getColNameByAttr("fkey_for", $this->getAppTableName());
+            if ( ! $assoc_fkey) {
+                report_error("Table間にHasMany関係がありません",array(
+                    "table"=>$this, "assoc_table"=>$assoc_table, "alias"=>$alias,
+                ));
+            }
+            $assoc_table->findBy($assoc_fkey, $src_value);
+            if ($alias["mine"]) $assoc_table->findMine();
+            if ($alias["where"]) $assoc_table->findBy($alias["where"]);
+            if ($alias["order"]) $assoc_table->orderBy($alias["order"]);
+            if ($alias["summary"]) return $assoc_table->selectSummary($alias["summary"], $assoc_fkey);
+            if ($alias["limit"]) $assoc_table->limit($alias["limit"]);
+            if ($alias["single"]) $values[$src_value] = $assoc_table->selectOne();
+            else $values[$src_value] = $assoc_table->select();
+        }
+        return $values;
     }
     /**
      * @hook retreive_alias
@@ -1119,7 +1169,7 @@ class Table_Base extends Table_Core
         $result = app()->user->onFindMine($role, $this);
         if ( ! $result) $result = self::defaultOnFindMine($role, $this);
         if ( ! $result) {
-            $table->findNothing();
+            $this->findNothing();
         }
     }
     /**

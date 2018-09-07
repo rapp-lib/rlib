@@ -5,7 +5,7 @@
     "license": "MIT",
     "require": {
         "php": ">=5.3",
-        "laravel/framework": "~4.1",
+        "laravel/framework": "4.1.31",
         "zendframework/zend-session": "~2",
         "zendframework/zend-serializer": "~2",
         "zendframework/zend-cache": "~2",
@@ -15,6 +15,7 @@
         "monolog/monolog": "~1",
         "guzzlehttp/guzzle": "~3",
         "phpunit/phpunit": "~4",
+        "gumlet/php-image-resize": "1.7.*",
         "vlucas/phpdotenv": "~2",
         "phpmailer/phpmailer": "~5",
         "airmanbzh/php-html-generator": "~1",
