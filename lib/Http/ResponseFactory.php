@@ -35,6 +35,29 @@ class ResponseFactory
         } elseif ($type==="data") {
             $data = self::createBody($data);
         } elseif ($type==="readfile" || $type==="stream") {
+            if ($params["range"]) {
+                $size = filesize($data);
+                // 要求された開始位置と終了位置を取得
+                list($start, $end) = sscanf($params["range"], "bytes=%d-%d");
+                // 終了位置が指定されていない場合(適当に1000000bytesづつ出す)
+                if(empty($end)) $end = $start + 1000000 - 1;
+                // 終了位置がファイルサイズを超えた場合
+                if($end >= ($size-1)) $end = $size - 1;
+                // 実際に送信するコンテンツ長: 終了位置 - 開始位置 + 1
+                $size = $end - $start + 1;
+                // ファイルポインタの開始位置からコンテンツ長だけ出力
+                if($size) {
+                    // 部分コンテンツであることを伝える
+                    $status_code = 206;
+                    $headers["Content-Range"] = "bytes {$start}-{$end}/{$size}";
+                    $headers["Content-Length"] = "{$size}";
+                    // header("Etag: \"{$etag}\"");
+                    $stream = fopen($data, "rb");
+                    fseek($stream, $start);
+                    $data = new \Zend\Diactoros\Stream('php://temp', 'wb+');
+                    $data->write(fread($stream, $size));
+                }
+            }
             if ( ! $data instanceof Stream) $data = new Stream($data, 'r');
         } elseif ($type==="redirect") {
             $headers['location'] = array((string)$data);

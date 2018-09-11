@@ -627,8 +627,12 @@ class Table_Core
         $this->result = new Result($this);
         // LastInsertIdの確保
         if ($type=="insert") {
-            $this->last_insert_id = $this->getConnection()
-                ->lastInsertId(static::$table_name, $this->getIdColName());
+            if (static::$cols[$this->getIdColName()]["autoincrement"]) {
+                $this->last_insert_id = $this->getConnection()
+                    ->lastInsertId(static::$table_name, $this->getIdColName());
+            } else {
+                $this->last_insert_id = $this->query->getvalue($this->getIdColName());
+            }
         }
         // on_afterWrite_*を呼び出す
         if ($type=="insert" || $type=="update") {

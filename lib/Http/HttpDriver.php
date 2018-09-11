@@ -104,6 +104,11 @@ class HttpDriver
         app("events")->fire('http.create_response', array($type, $data, $params));
         return ResponseFactory::factory($type, $data, $params);
     }
+    public function responseException ($type, $data=null, $params=array())
+    {
+        $response = $this->response($type, $data, $params);
+        return new ResponseException($response);
+    }
     public function emit ($response)
     {
         app("events")->fire('http.emit_response', array($response));
