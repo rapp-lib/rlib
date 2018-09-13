@@ -12,6 +12,9 @@ class ConfigBasedLogin
     }
     public function setPriv($priv)
     {
+        if ($callback = $this->config["on_logout"]) {
+            if ( ! $priv) $priv = $callback($this->getPriv());
+        }
         if ($priv && ! is_array($priv)) $priv = (array)$priv;
         if ($this->config["persist"]=="session") {
             app()->session("Auth_LoginSession_".$this->role)->set("priv", $priv);

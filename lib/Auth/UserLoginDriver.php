@@ -71,6 +71,7 @@ class UserLoginDriver
     public function setPriv($role, $priv)
     {
         $this->getLoginProvider($role)->setPriv($priv);
+        report_info("Auth setPriv", array("role"=>$role, "priv"=>$priv), "Auth");
     }
     /**
      * 指定ロールで要求される権限を満たしているか確認
@@ -106,6 +107,7 @@ class UserLoginDriver
      */
     public function authenticate($role, $params)
     {
+        report_info("Auth authenticate", array("role"=>$role, "priv"=>$params), "Auth");
         return $this->getLoginProvider($role)->authenticate($params);
     }
     /**
