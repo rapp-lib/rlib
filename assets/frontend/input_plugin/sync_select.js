@@ -1,5 +1,9 @@
 InputPluginRegistry.registerPlugin("sync_select", function ($elm, params) {
-    var $parent = $elm.closest("form").find(params["parent_elm"]);
+    var $parents = [];
+    if (typeof params["parent_elm"] !== "object") params["parent_elm"] = [ params["parent_elm"] ];
+    for (var i in params["parent_elm"]) {
+        $parents[i] = $elm.closest("form").find(params["parent_elm"][i]);
+    }
     var ajax_url = params["ajax_url"];
     var ajax_key_param = params["ajax_key_param"] || "key";
     var dataset = params["dataset"] || {}; // {PARENT_ID : [[K:V], ...], ...}
@@ -12,24 +16,33 @@ InputPluginRegistry.registerPlugin("sync_select", function ($elm, params) {
             }
         }
     }
+    var getParentValue = function(){
+        if ($parents.length==1) return $parents[0].val();
+        else return $parents.map(function($elm){ return $elm.val(); });
+    };
+    var encodeValue = function(value){
+        if ( ! value instanceof Array) return value;
+        else return JSON.stringify(value);
+    };
     var loadValues = function(set_id, after){
-        if ( ! dataset[set_id] && ajax_url) {
+        if ( ! dataset[encodeValue(set_id)] && ajax_url) {
             $.ajax({
                 url: ajax_url,
                 data: {key:set_id},
                 dataType: 'json',
                 success: function(data){
-                    dataset[set_id] = data;
-                    if (after) after(dataset[set_id] || {});
+                    dataset[encodeValue(set_id)] = data;
+                    if (after) after(dataset[encodeValue(set_id)] || {});
                 }
             });
         } else {
-            if (after) after(dataset[set_id] || {});
+            if (after) after(dataset[encodeValue(set_id)] || {});
         }
     };
     var syncOptions = function(e){
-        loadValues($parent.val(), function(values){
+        loadValues(getParentValue(), function(values){
             $elm.children('[value]').remove();
+            $elm.trigger("replace");
             for (var i in values) {
                 $elm.append($("<option>").attr("value",values[i][0]).text(values[i][1]));
             }
@@ -37,7 +50,7 @@ InputPluginRegistry.registerPlugin("sync_select", function ($elm, params) {
             if (e.afterSyncOptions) e.afterSyncOptions();
         });
     };
-    $parent.on("change", syncOptions);
+    for (var i in $parents) $parents[i].on("change", syncOptions);
     var preset_value = $elm.val();
     syncOptions({afterSyncOptions:function(){
         $elm.val(preset_value);
