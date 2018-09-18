@@ -49,7 +49,11 @@ class MailHandler
     }
     public function to ($mail, $name=null)
     {
-        $this->mailer->addAddress($mail,$name);
+        if (is_array($mail)) {
+            foreach ($mail as $a_mail) $this->mailer->addAddress($a_mail);
+        } else {
+            $this->mailer->addAddress($mail,$name);
+        }
         return $this;
     }
     public function cc ($mail, $name=null)
