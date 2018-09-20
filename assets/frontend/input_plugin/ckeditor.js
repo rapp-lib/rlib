@@ -1,7 +1,7 @@
 InputPluginRegistry.registerPlugin("ckeditor", function ($elm, params) {
     var $editor = $elm;
     var editorId = $editor.attr("id");
-    var ckeditorOptions = {};
+    var ckeditorOptions = params["options"] || {};
     if ( ! editorId) {
         editorId = "editor-"+(Math.random().toString(36).slice(-8));
         $editor.attr("id", editorId);

@@ -567,9 +567,9 @@ class Table_Base extends Table_Core
      * @hook on_insert
      * ランダム文字列からIDを生成
      */
-    protected function on_insert_generatorRandString ()
+    protected function on_insert_generatorRandString_100 ()
     {
-        if ($col_name = $this->getColNameByAttr("generator", "randString")) {
+        if ($col_name = $this->getColNameByAttr("generator", "rand_string")) {
             if ($this->query->getValue($col_name) !== null) return false;
             $col_def = $this->getColDef($col_name);
             $length = $col_def["length"] ?: 32;
@@ -585,7 +585,7 @@ class Table_Base extends Table_Core
      * @hook on_write
      * id_initの値からIDを生成
      */
-    protected function on_write_generatorIdInit ()
+    protected function on_write_generatorIdInit_100 ()
     {
         if ($col_name = $this->getColNameByAttr("generator", "id_init")) {
             $col_def = $this->getColDef($col_name);
