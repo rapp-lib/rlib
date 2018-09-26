@@ -6,10 +6,15 @@ class Webroot
 {
     private $config;
     private $base_uri;
+    private $base_uri_aliases;
     private $router;
     public function __construct (array $webroot_config)
     {
         $this->config = $webroot_config;
+    }
+    public function __toString()
+    {
+        return $this->config["base_uri"];
     }
     public function uri ($uri, $query_params=array(), $fragment="")
     {
@@ -28,6 +33,26 @@ class Webroot
             $this->base_uri = $this->uri($this->config["base_uri"] ?: "");
         }
         return $this->base_uri;
+    }
+    public function getBaseUriAliases ()
+    {
+        if ($this->base_uri_aliases === null) {
+            $this->base_uri_aliases = array();
+            foreach ((array)$this->config["base_uri_aliases"] as $k=>$base_uri) {
+                $this->base_uri_aliases[$k] = $this->uri($base_uri);
+            }
+        }
+        return $this->base_uri_aliases;
+    }
+    public function inUri ($uri)
+    {
+        if (is_string($uri)) $uri = $this->uri($uri);
+        if ( ! strlen($uri->getHost())) return false;
+        if ($uri->getHost() === $this->getBaseUri()->getHost()) return true;
+        foreach ($this->getBaseUriAliases() as $base_uri_aliase) {
+            if ($uri->getHost() === $base_uri_aliase->getHost()) return true;
+        }
+        return false;
     }
     public function getBaseDir ()
     {
