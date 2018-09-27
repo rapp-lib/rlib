@@ -46,7 +46,8 @@ class I18nDriver
     {
         $locale = $locale ?: $this->locale;
         if ( ! isset($this->messages[$locale])) {
-            $data_file = constant("R_APP_ROOT_DIR")."/locale/".$locale."/message.php";
+            $locale_dir = app()->config("i18n.locale_dir") ?: constant("R_APP_ROOT_DIR")."/resources/locale"; 
+            $data_file = $locale_dir."/".$locale."/message.php";
             $this->messages[$locale] = file_exists($data_file) ? include($data_file) : array();
         }
         $message = $this->messages[$locale][$key];
