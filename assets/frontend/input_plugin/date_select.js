@@ -56,6 +56,7 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
     // bind_elmsの様式として日付、時刻を持つかどうか
     var has_date = bind_elms["year"] || bind_elms["month"] || bind_elms["day"];
     var has_time = bind_elms["hour"] || bind_elms["min"] || bind_elms["sec"];
+    var has_sec = bind_elms["sec"];
     // プルダウンの補完
     for (var i in config) {
         var crit_date = has_date && (i=="year" || i=="month" || i=="day");
@@ -79,7 +80,7 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
             day : date.getDate(),
             hour : date.getHours(),
             min : date.getMinutes(),
-            sec : date.getSeconds()
+            sec : has_sec ? date.getSeconds() : 0
         };
         for (var i in bind_elms) {
             bind_elms[i].val(values[i]);
@@ -131,7 +132,7 @@ InputPluginRegistry.registerPlugin("date_select", function ($elm, params) {
             var dd = ('0'+date.getDate()).slice(-2);
             var hh = ('0'+date.getHours()).slice(-2);
             var ii = ('0'+date.getMinutes()).slice(-2);
-            var ss = ('0'+date.getSeconds()).slice(-2);
+            var ss = has_sec ? ('0'+date.getSeconds()).slice(-2) : "00";
             if (has_date && has_time) {
                 $elm.attr("value", yyyy+"-"+mm+"-"+dd+"T"+hh+":"+ii+":"+ss);
             } else if (has_date) {
