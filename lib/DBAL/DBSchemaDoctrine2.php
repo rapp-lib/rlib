@@ -49,6 +49,7 @@ class DBSchemaDoctrine2
         $schema = new Schema($ignore_tables);
         try {
             foreach ($defs as $def) {
+                if ($def["table_name"]===false) continue;
                 $table = $schema->createTable($def["table_name"]);
                 // テーブルのコメント
                 if ($def["comment"]) $table->addOption("comment", $def["comment"]);
@@ -75,6 +76,7 @@ class DBSchemaDoctrine2
             }
             // 相互参照関係の登録
             foreach ($defs as $def) {
+                if ($def["table_name"]===false) continue;
                 $table = $schema->getTable($def["table_name"]);
                 foreach ((array)$def["cols"] as $col_name => $col) {
                     // 型の指定のないカラムは定義されていないものと見なす
