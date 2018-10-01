@@ -23,6 +23,7 @@ class Table_Core
     protected static $cols = array();
     protected static $aliases = array();
     protected static $fkey_routes = array();
+    protected static $rules = array();
     /**
      * クエリ発行時のTransactionの自動Begin/Commit設定
      */
@@ -146,6 +147,7 @@ class Table_Core
         $table_def["cols"] = (array)static::$cols;
         $table_def["aliases"] = (array)static::$aliases;
         $table_def["fkey_routes"] = (array)static::$fkey_routes;
+        $table_def["rules"] = (array)static::$rules;
         return $table_def;
     }
     /**
@@ -255,6 +257,15 @@ class Table_Core
         // Pager組み立て
         $this->pager = new Pager($total, $this->query["offset"], $this->query["limit"]);
         return $this->pager;
+    }
+    /**
+     * @hook result
+     * Pagerの取得、但しレコードが1件もなければnullを返す
+     */
+    public function result_getPagerIfHasRecord ($result)
+    {
+        $pager = $result->getPager();
+        return $pager && $pager->get("count") > 0 ? $pager : null;
     }
     /**
      * @hook result

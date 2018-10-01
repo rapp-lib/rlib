@@ -166,7 +166,13 @@ class FormContainer extends ArrayObject
     public function clear ()
     {
         $this->clearValues();
-        // 一時保存領域が有効である場合、消去する
+        $this->clearSaved();
+    }
+    /**
+     * 一時保存領域が有効である場合消去する
+     */
+    public function clearSaved ()
+    {
         if (isset($this->tmp_storage)) {
             $this->getTmpStorage()->delete("values");
         }
@@ -753,6 +759,7 @@ class FormContainer extends ArrayObject
                 $fields[$k] = $v;
             }
         }
+        $table_def = $def["table"] ? app("table")->getTableDef($def["table"]) : array();
         $def["fields"] = $fields;
         // fieldの補完処理
         foreach ($def["fields"] as $field_name => & $field_def) {
@@ -788,19 +795,19 @@ class FormContainer extends ArrayObject
                 } elseif ($field_def["level"]==3) {
                     $parent_field_def["type"] = "fieldset";
                 }
+                // tableの補完
+                if ($assoc_table = $table_def["cols"][$field["col"]]["assoc"]["table"]) {
+                    $field_def["table"] = $assoc_table;
+                    if ( ! $parent_field_def["table"]) $parent_field_def["table"] = $assoc_table;
+                }
                 // 親Fieldのchild_field_namesを補完
                 $parent_field_def["child_field_names"][] = $field_name;
             }
-            // tableに関連付いている場合のtable/colの補完
-            if (isset($def["table"])) {
-                // tableの補完
-                if ( ! isset($field_def["table"])) {
-                    $field_def["table"] = $def["table"];
-                }
+            // tableの補完
+            if ($def["table"]) {
+                if ( ! isset($field_def["table"])) $field_def["table"] = $def["table"];
                 // colの補完
-                if ( ! isset($field_def["col"])) {
-                    $field_def["col"] = $field_col_name;
-                }
+                if ( ! isset($field_def["col"])) $field_def["col"] = $field_col_name;
             }
             // valid_file ruleの補完
             if (isset($field_def["storage"])) {
@@ -824,6 +831,47 @@ class FormContainer extends ArrayObject
             if ($rule[1] && ! isset($rule["type"])) {
                 $rule["type"] = $rule[1];
                 unset($rule[1]);
+            }
+        }
+        // tableに関連付いている場合のrulesの補完
+        if (isset($def["table"])) {
+            // tableのRules索引作成
+            $table_rules_idx = array($def["table"]=>(array)$table_def["rules"]);
+            foreach ($def["fields"] as $field) {
+                if ($field["table"] && ! $table_rules_idx[$field["table"]]) {
+                    $assoc_table_def = app("table")->getTableDef($field["table"]);
+                    $table_rules_idx[$field["table"]] = (array)$assoc_table_def["rules"];
+                }
+            }
+            // 登録済みRuleチェック用の索引作成
+            $rule_idx = array();
+            foreach ($def["rules"] as $rule) $rule_idx[$rule["field_name"]][$rule["type"]] = true;
+            // 名前解決用の索引作成
+            $col_idx = array();
+            foreach ($def["fields"] as $field) {
+                $col_idx[$field["table"]][$field["col"]] = $field["field_name"];
+            }
+            // Tableごとに処理
+            foreach ($table_rules_idx as $table_name=>$table_rules) {
+                foreach ($table_rules as $rule) {
+                    // field_nameの補完
+                    if ($rule[0] && ! isset($rule["field_name"])) {
+                        $rule["field_name"] = $rule[0];
+                        unset($rule[0]);
+                    }
+                    // typeの補完
+                    if ($rule[1] && ! isset($rule["type"])) {
+                        $rule["type"] = $rule[1];
+                        unset($rule[1]);
+                    }
+                    $rule["field_name"] = $col_idx[$table_name][$rule["field_name"]];
+                    // colの対応がなければ登録しない
+                    if ( ! $rule["field_name"] || ! $rule["type"]) continue;
+                    // 登録済みのRuleは上書きしない
+                    if ($rule_idx[$rule["field_name"]][$rule["type"]]) continue;
+                    // 登録
+                    $def["rules"][] = $rule;
+                }
             }
         }
         // 補完済みのdefを返す

@@ -7,6 +7,8 @@ window.FormObserver = function ($form, state, o) {
     self.rules = self.state.rules || [];
     self.errors = self.state.errors || [];
     self.refresh_callback = self.o.refresh_callback || function(self, $input, rules, errors){};
+    self.submit_callback = self.o.submit_callback || function(self, e){};
+    self.changed = false;
 
     self.getValidator = function(){
         if ( ! self.validator) self.validator = new FormValidator(self);
@@ -73,7 +75,7 @@ window.FormObserver = function ($form, state, o) {
         return errors;
     };
 
-// -- 更新制御
+// -- 更新・送信制御
 
     // 表示の更新
     self.refresh = function(){
@@ -98,12 +100,17 @@ window.FormObserver = function ($form, state, o) {
             self.$form.on('change', selector, function(){
                 var $input = $(this);
                 $input.addClass("changed");
+                self.changed = true;
                 self.refresh();
             });
         }
         // DOM追加時の更新
         new DOMChangeListener(self.$form, "insert", function($form, nodes){
             self.refresh();
+        });
+        // フォームの送信
+        self.$form.on('submit', function(e){
+            self.submit_callback(self, e);
         });
     };
     self.init();
