@@ -47,7 +47,8 @@ InputPluginRegistry.registerPlugin("sync_select", function ($elm, params) {
             for (var i in values) {
                 $elm.append($("<option>").attr("value",values[i][0]).text(values[i][1]));
             }
-            if ($elm.children('[value="'+preset_value+'"]')) $elm.val(preset_value);
+            if ($elm.children('[value="'+preset_value+'"]').length > 0) $elm.val(preset_value);
+            else $elm.val("");
             $elm.trigger("change");
         });
     };
