@@ -2,6 +2,7 @@
 namespace R\Lib\Core;
 
 use Illuminate\Events\EventServiceProvider;
+use Illuminate\Filesystem\FilesystemServiceProvider;
 use R\Lib\Exception\ExceptionServiceProvider;
 use R\Lib\Log\LogServiceProvider;
 use R\Lib\Debug\DebugServiceProvider;
@@ -17,7 +18,6 @@ class AppServiceProvider extends ServiceProvider
         'table.resolver' => '\R\Lib\Table\TableResolver',
         'debug' => 'R\Lib\Core\Debug',
         'report' => 'R\Lib\Report\ReportDriver',
-        // 'builder' => '\R\Lib\Builder\WebappBuilder',
         'table' => '\R\Lib\Table\TableFactory',
         "cache" => 'R\Lib\Cache\CacheDriver',
         "session" => 'R\Lib\Session\SessionDriver',
@@ -25,8 +25,6 @@ class AppServiceProvider extends ServiceProvider
         "i18n" => 'R\Lib\I18n\I18nDriver',
         "security" => 'R\Lib\Core\Security',
         "enum" => 'R\Lib\Enum\EnumRepositry',
-        // "view" => 'R\Lib\View\ViewFactory',
-        // "doc" => 'R\Lib\Doc\DocDriver',
         // 4.0
         "http" => 'R\Lib\Http\HttpDriver',
         "user" => 'R\Lib\Auth\UserLoginDriver',
@@ -43,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
         '\R\Lib\Test\TestServiceProvider',
         '\R\Lib\Doc\DocServiceProvider',
         '\R\Lib\View\ViewServiceProvider',
+        '\R\Lib\Mail\MailServiceProvider',
     );
     public function register()
     {
@@ -74,6 +73,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->register(new EventServiceProvider($this->app));
         // logセットアップ
         $this->app->register(new LogServiceProvider($this->app));
+        // filesセットアップ
+        $this->app->register(new FilesystemServiceProvider($this->app));
         // エラー停止処理セットアップ
         $this->app->register(new ExceptionServiceProvider($this->app));
         $this->app['exception']->register($this->app["env"]);

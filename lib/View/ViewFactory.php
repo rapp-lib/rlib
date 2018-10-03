@@ -1,20 +1,7 @@
 <?php
 namespace R\Lib\View;
+use Illuminate\View\Factory as IlluminateViewFactory;
 
-class ViewFactory
+class ViewFactory extends IlluminateViewFactory
 {
-    protected $instances = array();
-    public function __invoke ($name="default")
-    {
-        return $this->getView($name);
-    }
-    public function getView ($name="default")
-    {
-        if ( ! $this->instances[$name]) {
-            $class = app()->config("view.driver.".$name.".class");
-            if ( ! $class) $class = 'R\App\View\View_App';
-            $this->instances[$name] = new $class();
-        }
-        return $this->instances[$name];
-    }
 }
