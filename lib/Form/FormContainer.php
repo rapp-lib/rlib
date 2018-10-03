@@ -422,6 +422,25 @@ class FormContainer extends ArrayObject
         return $this->def["rules"];
     }
 
+    /**
+     * isValidの処理結果の内、必須制約以外のエラーがなければTrueを返す
+     */
+    public function isValidExceptRequired ()
+    {
+        return count($this->getErrorsExceptRequired()) ? false : true;
+    }
+    /**
+     * getErrorsの処理結果の内、必須制約以外のエラーを返す
+     */
+    public function getErrorsExceptRequired ()
+    {
+        // validateを行う
+        if ( ! isset($this->is_valid)) $this->isValid();
+        return array_filter((array)$this->errors, function($error){
+            return $error["type"] !== "required";
+        });
+    }
+
 // -- Table/Record関連
 
     /**

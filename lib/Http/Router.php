@@ -62,7 +62,7 @@ class Router
         // 相対解決用BaseUri
         $base_uri = $this->webroot->getBaseUri();
         $parsed = array();
-        if (strlen($uri->getHost()) && $uri->getHost() !== $base_uri->getHost()) {
+        if (strlen($uri->getHost()) && ! $this->webroot->inUri($uri)) {
             return $parsed;
         }
         if ($page_path = $this->requestPathToPagePath($uri->getPath())) {
