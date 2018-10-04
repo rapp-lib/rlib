@@ -25,7 +25,6 @@ class ViewServiceProvider extends IlluminateViewServiceProvider
             $this->registerPhpEngine($resolver);
             $this->registerBladeEngine($resolver);
             $resolver->register('smarty', function() { return new SmartyEngine; });
-            $resolver->register('smarty_mail', function() { return new SmartyEngine; });
             return $resolver;
         });
 		$this->app->bindShared('view.finder', function($app){
@@ -33,13 +32,12 @@ class ViewServiceProvider extends IlluminateViewServiceProvider
 		});
 		$this->app->bindShared('view', function($app)
 		{
-			$resolver = $app['view.engine.resolver'];
-			$finder = $app['view.finder'];
-			$factory = new Factory($resolver, $finder, $app['events']);
+			$factory = new Factory($app['view.engine.resolver'], $app['view.finder'], $app['events']);
 			$factory->setContainer($app);
 			$factory->share('app', $app);
+			$factory->addExtension("php", "php");
+			$factory->addExtension("mail.txt", "smarty");
 			$factory->addExtension("html", "smarty");
-			$factory->addExtension("mail", "smarty_mail");
 			return $factory;
 		});
     }

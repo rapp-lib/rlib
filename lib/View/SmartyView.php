@@ -277,4 +277,15 @@ class SmartyView
         $flash = app()->session->getFlash()->get($options);
         return $flash;
     }
+
+// -- SwiftMailer処理プラグイン
+
+    public static function smarty_function_mailer ($params, $smarty)
+    {
+        $message = $smarty->getTemplateVars("message");
+        if ( ! is_object($message)) return null;
+        if (is_string($params["to"])) $message->to($params["to"]);
+        if (is_array($params["tos"])) foreach ($params["tos"] as $to) $message->to($to);
+        if (is_string($params["subject"])) $message->subject($params["subject"]);
+    }
 }

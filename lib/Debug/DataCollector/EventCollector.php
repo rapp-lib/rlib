@@ -86,12 +86,14 @@ class EventCollector extends TimeDataCollector
                     "method_args"=>$method_args,
                 ), "T_Hook");
             }
+        } elseif ($name==='mailer.sending') {
+            list($message) = $args;
+            report_info("Mail sending", $this->parseMailMessage($message), "Mail");
         } elseif ($name==="app.handle_exception") {
             list($exception) = $args;
             app("debugbar")->addException($exception);
         }
     }
-
 
     protected function getCurrentEvent($args)
     {
@@ -137,6 +139,49 @@ class EventCollector extends TimeDataCollector
             //     'map' => 'event.nb_measures',
             //     'default' => 0
             // )
+        );
+    }
+
+    /**
+     * 送信メールのMessage情報の解析
+     *
+     * @param SwSwift_Message $message
+     * @return array
+     */
+    private function parseMailMessage($message)
+    {
+        // 宛先の加工
+        $to = $message->getTo();
+        if (is_array($to)) {
+            $tos = array();
+            foreach ($to as $k => $v) $tos[] = (empty($v) ? '' : "$v ") . "<$k>";
+            $to =  implode(', ', $tos);
+        }
+        $headers = $message->getHeaders();
+        $bodies = array();
+        if ($body = $message->getBody()) {
+            $content_type = $message->getContentType();
+            $body = (preg_match('!^text/!', $content_type)) ? explode("\n", $body) : count($body)."bytes";
+            $bodies[] = array(
+                "content_type"=>$content_type,
+                "data"=>$body,
+            );
+        }
+        foreach ((array)$message->getChildren() as $child) {
+            if ($body = $child->getBody()) {
+                $content_type = $child->getContentType();
+                $body = (preg_match('!^text/!', $content_type)) ? explode("\n", $body) : count($body)."bytes";
+                $bodies[] = array(
+                    "content_type"=>$content_type,
+                    "data"=>$body,
+                );
+            }
+        }
+        return array(
+            'to' => $to,
+            'subject' => $message->getSubject(),
+            'body' => $bodies,
+            'header' => explode("\n", "".$headers),
         );
     }
 }
