@@ -41,18 +41,17 @@ InputPluginRegistry.registerPlugin("sync_select", function ($elm, params) {
     };
     var syncOptions = function(e){
         loadValues(getParentValue(), function(values){
+            var preset_value = $elm.val();
             $elm.children('[value]').remove();
             $elm.trigger("replace");
             for (var i in values) {
                 $elm.append($("<option>").attr("value",values[i][0]).text(values[i][1]));
             }
+            if ($elm.children('[value="'+preset_value+'"]').length > 0) $elm.val(preset_value);
+            else $elm.val("");
             $elm.trigger("change");
-            if (e.afterSyncOptions) e.afterSyncOptions();
         });
     };
     for (var i in $parents) $parents[i].on("change", syncOptions);
-    var preset_value = $elm.val();
-    syncOptions({afterSyncOptions:function(){
-        $elm.val(preset_value);
-    }});
+    syncOptions();
 });

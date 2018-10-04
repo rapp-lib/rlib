@@ -109,6 +109,7 @@ class SmartyView
     {
         $res = array();
         if ($values) {
+            if ($values instanceof \R\Lib\Enum\EnumValueRepositry) $values = (array)$values->getIterator();
             if (is_string($array)) $array = app()->enum[$array];
             if ($array instanceof \R\Lib\Enum\EnumValueRepositry) $res = $array->map($values);
             else foreach ($values as $v) if (isset($array[$v])) $res[$v] = $array[$v];
