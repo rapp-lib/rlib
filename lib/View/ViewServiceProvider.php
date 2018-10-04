@@ -1,7 +1,6 @@
 <?php
 namespace R\Lib\View;
 use Illuminate\View\ViewServiceProvider as IlluminateViewServiceProvider;
-use Illuminate\View\Factory;
 use Illuminate\View\Engines\EngineResolver;
 use R\Lib\View\Engines\SmartyEngine;
 
@@ -32,7 +31,8 @@ class ViewServiceProvider extends IlluminateViewServiceProvider
 		});
 		$this->app->bindShared('view', function($app)
 		{
-			$factory = new Factory($app['view.engine.resolver'], $app['view.finder'], $app['events']);
+            $class = class_exists('\Illuminate\View\Factory') ? '\Illuminate\View\Factory' : '\Illuminate\View\Environment';
+			$factory = new $class($app['view.engine.resolver'], $app['view.finder'], $app['events']);
 			$factory->setContainer($app);
 			$factory->share('app', $app);
 			$factory->addExtension("php", "php");
