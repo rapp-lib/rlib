@@ -243,9 +243,9 @@ class Table_Base extends Table_Core
     public function result_getHashedBy ($result, $col_name, $col_name_sub=false, $col_name_sub_ex=false)
     {
         $hashed_result = array();
-        foreach ($result as $record) {
+        foreach ($result as $i=>$record) {
             if ($col_name_sub === false) {
-                $hashed_result[] = $record->getColValue($col_name);
+                $hashed_result[$i] = $record->getColValue($col_name);
             } elseif ($col_name_sub_ex === false) {
                 $hashed_result[$record->getColValue($col_name)]
                     = $record->getColValue($col_name_sub);
@@ -670,13 +670,22 @@ class Table_Base extends Table_Core
                 "table"=>$this, "alias"=>$alias, "method_name"=>$method_name,
             ));
         }
-        // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
-        $src_values = $this->result->getHashedBy($src_col_name);
-        $dest_values = self::mapReduce(array($this, $method_name), $src_values, $alias);
-        // 結果を統合する
-        foreach ($this->result as $record) {
-            $key = self::encodeKey($record->getColValue($src_col_name));
-            $record[$alias_col_name] = $dest_values[$key];
+        if ($src_col_name==="*") {
+            // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
+            $dest_values = self::mapReduce(array($this, $method_name), $this->result, $alias);
+            // 結果を統合する
+            foreach ($this->result as $key=>$record) {
+                $record[$alias_col_name] = $dest_values[$key];
+            }
+        } else {
+            // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
+            $src_values = $this->result->getHashedBy($src_col_name);
+            $dest_values = self::mapReduce(array($this, $method_name), $src_values, $alias);
+            // 結果を統合する
+            foreach ($this->result as $record) {
+                $key = self::encodeKey($record->getColValue($src_col_name));
+                $record[$alias_col_name] = $dest_values[$key];
+            }
         }
 
         app("events")->fire("table.merge_alias", array($this, $this->statement,
