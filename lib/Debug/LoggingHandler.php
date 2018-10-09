@@ -14,6 +14,25 @@ class LoggingHandler extends AbstractProcessingHandler
      */
     protected function write(array $record)
     {
+        // 記録の制限チェック（メモリ制限、件数制限）
+        $memory_usage = app("debug.memory_usage")->getMemoryUsage();
+        $memory_limit = app("debug.memory_usage")->getMemoryLimit();
+        $report_memory_limit_factor = app()->config["debug.report_memory_limit_factor"] ?: 0.3;
+        $report_count_limit = app()->config["debug.report_count_limit"] ?: 200;
+        if ($memory_usage > $memory_limit * $report_memory_limit_factor) {
+            $memory_usage_f = app("debug.memory_usage")->formatBytes($memory_usage);
+            $record = array(
+                "message"=>"[REPORT_MEMORY_LIMIT_OVER:".$memory_usage_f."] ".$record["message"]
+            );
+        }
+        if (count(static::$records) == $report_count_limit) {
+            $record = array(
+                "message"=>"[REPORT_COUNT_LIMIT_OVER:".$report_count_limit."] Report log dissabled.",
+                "level"=>Logger::ERROR,
+            );
+        } elseif (count(static::$records) > $report_count_limit) {
+            return;
+        }
         // HTTP実行時にはRecordは一旦記録する
         if ( ! app()->runningInConsole()) {
             static::$records[] = ReportRenderer::compactRecord($record);

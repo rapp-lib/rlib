@@ -20,7 +20,7 @@ class ReportCollector extends MessagesCollector implements Renderable
                 $data[$category]["data"] = app("debug.logging_handler")->renderArray($records);
                 $data[$category]["count"] = count($records);
             }
-        } catch (\Exception $e) {var_dump($e);
+        } catch (\Exception $e) {
             $data = null;
         }
         return $data;
