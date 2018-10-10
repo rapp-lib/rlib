@@ -67,11 +67,11 @@ class Statement extends SQLStatement
         }
         // SQLBuilderの作成
         $db = $this->table->getConnection();
-        $this->builder = new SQLBuilder(array(
+        $builder = new SQLBuilder(array(
             "quote_name" => array($db,"quoteName"),
             "quote_value" => array($db,"quoteValue"),
         ));
-        return $this->builder->render($query);
+        return $builder->render($query);
     }
     /**
      * SQLの実行結果の解析
@@ -140,6 +140,15 @@ class Statement extends SQLStatement
                 }
             }
             if ($msg) $warn[] = $msg." on ".$t["table"];
+        }
+    }
+    /**
+     * メモリ解放
+     */
+    public function __release ()
+    {
+        if ($this->table) {
+            unset($this->table);
         }
     }
 }
