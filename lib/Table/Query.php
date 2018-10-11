@@ -302,18 +302,4 @@ class Query extends ArrayObject
             }
         }
     }
-
-    private $__release_status = 0;
-    /**
-     * メモリ解放
-     */
-    public function __release ()
-    {
-        if ($this->__release_status) return;
-        $this->__release_status = 1;
-        if (is_object($this["table"])) {
-            $this["table"]->__release();
-            unset($this["table"]);
-        }
-    }
 }

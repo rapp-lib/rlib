@@ -17,13 +17,6 @@ class Result extends ArrayObject
         $this->table = $table;
     }
     /**
-     * @getter
-     */
-    public function getTable ()
-    {
-        return $this->table;
-    }
-    /**
      * @override
      */
     public function __call ($method_name, $args=array())
@@ -40,23 +33,5 @@ class Result extends ArrayObject
     {
         if ( ! $this->offsetExists($key)) $this->table->beforeGetResultValue($this, $key);
         return parent::offsetGet($key);
-    }
-
-    private $__release_status = 0;
-    /**
-     * メモリ解放
-     */
-    public function __release ()
-    {
-        if ($this->__release_status) return;
-        $this->__release_status = 1;
-        foreach ($this as $k=>$v) {
-            if (is_object($v)) $v->__release();
-            unset($this[$k]);
-        }
-        if ($this->table) {
-            $this->table->__release();
-            unset($this->table);
-        }
     }
 }
