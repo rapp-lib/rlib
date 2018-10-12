@@ -736,4 +736,12 @@ class Table_Core
             "query" => $this->query,
         );
     }
+    /**
+     * Tableのメモリ解放の問題が発生していた際の代替処理
+     * @deprecated
+     */
+    public function scoped ($callback)
+    {
+        return $callback($this);
+    }
 }
