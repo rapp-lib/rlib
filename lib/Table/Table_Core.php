@@ -129,7 +129,7 @@ class Table_Core
         }
         // Resultへのマッピング
         if ( ! $this->result) $this->result = new Result($this);
-        $this->result[] = $record;
+        array_push($this->result, $record);
         return $record;
     }
 

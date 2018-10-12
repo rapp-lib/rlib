@@ -1,7 +1,7 @@
 <?php
 namespace R\Lib\Table;
 
-use ArrayObject;
+use R\Lib\Core\ArrayObject;
 
 /**
  * SQLの結果
