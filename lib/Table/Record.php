@@ -1,7 +1,8 @@
 <?php
 namespace R\Lib\Table;
 
-use ArrayObject;
+//use \ArrayObject;
+use R\Lib\Core\ArrayObject;
 
 /**
  * SELECT文の結果 1行の結果レコード

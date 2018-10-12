@@ -40,6 +40,12 @@
             "params"=>$vars,
         ));
     }
+    function to_array ($value)
+    {
+        if (is_object($value) && method_exists($value, "toArray")) return $value->toArray();
+        return (array)$value;
+    }
+
 
 // -- Util
 

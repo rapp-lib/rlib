@@ -354,12 +354,12 @@ class Table_Base extends Table_Core
             // value_col指定=1項目の値のみに絞り込む場合
             if (isset($assoc_value_col)) {
                 $values = array();
-                foreach ((array)$assoc_result_set[$record[$pkey]] as $assoc_record) {
+                foreach (to_array($assoc_result_set[$record[$pkey]]) as $assoc_record) {
                     $values[] = $assoc_record[$assoc_value_col];
                 }
                 $record[$col_name] = $assoc_single ? current($values) : $values;
             } else {
-                $record[$col_name] = (array)$assoc_result_set[$record[$pkey]];
+                $record[$col_name] = to_array($assoc_result_set[$record[$pkey]]);
             }
         }
     }
@@ -387,7 +387,7 @@ class Table_Base extends Table_Core
             }
         }
         // singleの指定があれば1レコードに制限
-        if ($assoc_single) $values = array_slice((array)$values, 0, 1, true);
+        if ($assoc_single) $values = array_slice(to_arraty($values), 0, 1, true);
         // 書き込んだIDを確認
         $id = null;
         if ($this->query->getType() == "insert") {
@@ -417,7 +417,7 @@ class Table_Base extends Table_Core
             // singleの指定があれば削除対象の1レコード目を更新対象とする
             if ($assoc_single) {
                 $record = array($assoc_fkey=>$id, $assoc_value_col=>current($values));
-                foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
+                foreach (to_array($assoc_extra_values) as $k=>$v) $record[$k] = $v;
                 if ($delete_assoc_ids) {
                     $record[$assoc_id_col] = current($delete_assoc_ids);
                     unset($delete_assoc_ids[key($delete_assoc_ids)]);
@@ -425,14 +425,14 @@ class Table_Base extends Table_Core
                 table($assoc_table_name)->save($record);
                 $values = array();
             } else {
-                foreach ((array)$values as $value) {
+                foreach (to_array($values) as $value) {
                     // 入力値が登録済みであれば、削除対象から除外
                     if (isset($delete_assoc_ids[$value])) {
                         unset($delete_assoc_ids[$value]);
                     // 入力値が未登録であれば、新規登録
                     } else {
                         $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
-                        foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
+                        foreach (to_array($assoc_extra_values) as $k=>$v) $record[$k] = $v;
                         table($assoc_table_name)->save($record);
                     }
                 }
@@ -448,14 +448,14 @@ class Table_Base extends Table_Core
             if ($assoc_single) {
                 $values[key($values)][$assoc_id_col] = current($delete_assoc_ids);
             }
-            foreach ((array)$values as $key => $record) {
+            foreach (to_array($values) as $key => $record) {
                 // 入力レコードのIDが空白で無ければ、削除対象から除外
                 if (strlen($record[$assoc_id_col])) {
                     unset($delete_assoc_ids[$record[$assoc_id_col]]);
                 }
                 // 新規/上書き
                 $record[$assoc_fkey] = $id;
-                foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
+                foreach (to_array($assoc_extra_values) as $k=>$v) $record[$k] = $v;
                 table($assoc_table_name)->save($record);
             }
             // 削除
@@ -504,7 +504,7 @@ class Table_Base extends Table_Core
     protected function on_write_setDefaultValueInNotnull ()
     {
         $result = false;
-        foreach ((array)$this->query->getValues() as $col_name=>$value) {
+        foreach (to_array($this->query->getValues()) as $col_name=>$value) {
             if ($value === null) {
                 if (static::$cols[$col_name]["notnull"] && isset(static::$cols[$col_name]["default"])) {
                     $this->query->setValue($col_name, static::$cols[$col_name]["default"]);
@@ -620,8 +620,8 @@ class Table_Base extends Table_Core
     protected function on_getBlankCol_alias ($record, $col_name)
     {
         $found = false;
-        foreach ((array)static::$aliases as $src_col_name=>$aliases) {
-            foreach ((array)$aliases as $alias_col_name=>$alias) {
+        foreach (to_array(static::$aliases) as $src_col_name=>$aliases) {
+            foreach (to_array($aliases) as $alias_col_name=>$alias) {
                 if ($alias_col_name===$col_name) {
                     if ($found) {
                         report_error("同名のaliasが重複して登録されています", array(
@@ -636,8 +636,8 @@ class Table_Base extends Table_Core
             }
         }
         // @deprecated 旧仕様に従ってcolのaliasを参照する機能も残す
-        foreach ((array)static::$cols as $src_col_name=>$src_col) {
-            foreach ((array)$src_col["alias"] as $alias_col_name=>$alias) {
+        foreach (to_array(static::$cols) as $src_col_name=>$src_col) {
+            foreach (to_array($src_col["alias"]) as $alias_col_name=>$alias) {
                 if ($alias_col_name===$col_name) {
                     if ($found) {
                         report_error("同名のaliasが重複して登録されています", array(
@@ -696,14 +696,14 @@ class Table_Base extends Table_Core
         // checklistのように対象の値が複数となっている
         if ($alias["array"] || $alias["glue"]) {
             $reduced = array_reduce($src_values, function($reduced, $src_value){
-                return array_merge($reduced, array_values((array)$src_value));
+                return array_merge($reduced, array_values(to_array($src_value)));
             }, array());
             $map = call_user_func($callback, $reduced, $alias);
             $dest_values = array();
             foreach ($src_values as $src_value) {
                 $key = self::encodeKey($src_value);
                 $dest_values[$key] = array();
-                foreach ((array)$src_value as $k=>$v) $dest_values[$key][$k] = $map[$v];
+                foreach (to_array($src_value) as $k=>$v) $dest_values[$key][$k] = $map[$v];
                 if ($alias["glue"]) $dest_values[$key] = implode($glue, $dest_values[$key]);
             }
             return $dest_values;
@@ -827,7 +827,7 @@ class Table_Base extends Table_Core
     {
         $q = table($alias["table"]);
         $q->findBy($alias["key"], $src_values);
-        foreach ((array)$alias["joins"] as $join) $q->join($join);
+        foreach (to_array($alias["joins"]) as $join) $q->join($join);
         if ($alias["where"]) $q->findBy($alias["where"]);
         return $q->selectSummary($alias["value"], $alias["key"], $alias["key_sub"] ?: false);
     }
@@ -844,7 +844,7 @@ class Table_Base extends Table_Core
             foreach ($col_names as $col_name) {
                 $value = $this->query->getValue($col_name);
                 if (is_array($value)) {
-                    $this->query->setValue($col_name, json_encode((array)$value));
+                    $this->query->setValue($col_name, json_encode(to_array($value)));
                 }
             }
         } else {
@@ -861,7 +861,7 @@ class Table_Base extends Table_Core
             foreach ($col_names as $col_name) {
                 $value = $record[$col_name];
                 if (strlen($value)) {
-                    $record[$col_name] = (array)json_decode($record[$col_name]);
+                    $record[$col_name] = to_array(json_decode($record[$col_name]));
                 }
             }
         } else {
@@ -941,7 +941,7 @@ class Table_Base extends Table_Core
     protected function on_write_assoc ()
     {
         $this->assoc_values = array();
-        foreach ((array)$this->query->getValues() as $col_name => $value) {
+        foreach (to_array($this->query->getValues()) as $col_name => $value) {
             if (static::$cols[$col_name]["assoc"]) {
                 // values→assoc_valuesに項目を移動
                 $this->query->removeValue($col_name);
@@ -957,7 +957,7 @@ class Table_Base extends Table_Core
      */
     protected function on_afterWrite_assoc ()
     {
-        foreach ((array)$this->assoc_values as $col_name => $value) {
+        foreach (to_array($this->assoc_values) as $col_name => $value) {
             $this->callAssocHookMethod("assoc_afterWrite", $col_name, array($value));
         }
         return $this->assoc_values ? true : false;
@@ -1066,7 +1066,7 @@ class Table_Base extends Table_Core
         // @deprecated 旧仕様との互換処理
         if (isset($field_def["default"])) array_unshift($cols, $field_def["default"]);
         // colsの解析
-        foreach ((array)$field_def["cols"] as $k=>$v) {
+        foreach (to_array($field_def["cols"]) as $k=>$v) {
             if ( ! isset($value)) $value = is_array($v) ? $k : $v;
             if (is_numeric($k) && is_string($v)) $cols[$v] = $v;
             else $cols[$k] = $v;

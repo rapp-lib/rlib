@@ -140,12 +140,12 @@ class Table_Core
      */
     public static function getDef ()
     {
-        $table_def = (array)static::$def;
+        $table_def = to_array(static::$def);
         $table_def["table_name"] = static::$table_name;
         $table_def["ds_name"] = static::$ds_name;
-        $table_def["cols"] = (array)static::$cols;
-        $table_def["aliases"] = (array)static::$aliases;
-        $table_def["fkey_routes"] = (array)static::$fkey_routes;
+        $table_def["cols"] = to_array(static::$cols);
+        $table_def["aliases"] = to_array(static::$aliases);
+        $table_def["fkey_routes"] = to_array(static::$fkey_routes);
         return $table_def;
     }
     /**
@@ -340,9 +340,9 @@ class Table_Core
         // QueryのFROMとなったテーブル名の確認
         $query_table_name = $this->getQueryTableName();
         // QueryのFROMとなったテーブル以外の値は階層を下げてHydrate
-        foreach ((array)$data as $table_name => $values) {
+        foreach (to_array($data) as $table_name => $values) {
             // $table_data = array();
-            foreach ((array)$values as $col_name => $value) {
+            foreach (to_array($values) as $col_name => $value) {
                 if ($query_table_name == $table_name) $record[$col_name] = $value;
                 // else $table_data[$col_name] = $value;
                 else $record[$table_name.".".$col_name] = $value;
@@ -356,7 +356,7 @@ class Table_Core
      */
     public function record_save ($record)
     {
-        $values = (array)$record;
+        $values = to_array($record);
         // IDが指定されていれば削除してIDを条件に指定する
         $id_col_name = $this->getIdColName();
         $id = $values[$id_col_name];
@@ -487,7 +487,7 @@ class Table_Core
      */
     public function save ($values=array())
     {
-        $this->query->addValues((array)$values);
+        $this->query->addValues(to_array($values));
         // IDが指定されていればUpdate
         $id_col_name = $this->getIdColName();
         if ($id = $this->query->getValue($id_col_name)) {
@@ -503,7 +503,7 @@ class Table_Core
      */
     public function insert ($values=array())
     {
-        $this->query->addValues((array)$values);
+        $this->query->addValues(to_array($values));
         return $this->execQuery("insert");
     }
     /**
@@ -512,14 +512,14 @@ class Table_Core
     public function updateById ($id, $values=array())
     {
         $this->findById($id);
-        return $this->updateAll((array)$values);
+        return $this->updateAll(to_array($values));
     }
     /**
      * UPDATE文の発行
      */
     public function updateAll ($values=array())
     {
-        $this->query->addValues((array)$values);
+        $this->query->addValues(to_array($values));
         return $this->execQuery("update");
     }
     /**
@@ -697,7 +697,7 @@ class Table_Core
         }
         // Hookを呼び出す
         $method_names = array();
-        foreach ($hooks as $hook) $method_names = array_merge($method_names, (array)$defined[$hook]);
+        foreach ($hooks as $hook) $method_names = array_merge($method_names, to_array($defined[$hook]));
         usort($method_names, function($a, $b){
             $a_priority = preg_match('!_(\d+)$!', $a, $_) ? $_[1] : 500;
             $b_priority = preg_match('!_(\d+)$!', $b, $_) ? $_[1] : 500;
