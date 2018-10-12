@@ -585,7 +585,7 @@ class FormContainer extends ArrayObject
     {
         $record = $this->getTable()->createRecord();
         $this->convertRecord($record, "values_clause");
-        return $this->getTable()->values((array)$record);
+        return $this->getTable()->values(to_array($record));
     }
     /**
      * Recordインスタンスの値からFormの値を設定する
@@ -655,7 +655,7 @@ class FormContainer extends ArrayObject
                     if (self::isRecordToValues($convert_type)) {
                         $this[$field_name][$item_name] = $record[$col_name][$child_col_name];
                     } else {
-                        $record[$col_name][$child_col_name] = $this[$field_name][$item_name];
+                        $record->set(array($col_name,$child_col_name), $this[$field_name][$item_name]);
                     }
                 }
             // fieldset型の場合2階層下の要素を処理
@@ -682,8 +682,8 @@ class FormContainer extends ArrayObject
                             $values[$fieldset_index][$item_name]
                                 = $record[$col_name][$fieldset_index][$child_col_name];
                         } else {
-                            $values[$fieldset_index][$child_col_name]
-                                = $this[$field_name][$fieldset_index][$item_name];
+                            $values->set(array($fieldset_index, $child_col_name),
+                                $this[$field_name][$fieldset_index][$item_name]);
                         }
                     }
                 }
