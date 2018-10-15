@@ -573,9 +573,9 @@ class FormContainer extends ArrayObject
      */
     public function getRecord ()
     {
-        $record = $this->getTable()->createRecord();
+        $record = $this->getTable()->createResult()->createRecord();
         $this->convertRecord($record, "record_values");
-        return $record;
+        return $record->getArrayCopy();
     }
     /**
      * Formの値をもとに、Values句を持ったTableインスタンスを作成
@@ -583,11 +583,9 @@ class FormContainer extends ArrayObject
      */
     public function getTableWithValues ()
     {
-        $values = $this->getTable()->scoped(function($table){
-            $record = $table->createRecord();
-            return (array)$this->convertRecord($record, "values_clause");
-        });
-        return $this->getTable()->values($values);
+        $record = $this->getTable()->createResult()->createRecord();
+        $this->convertRecord($record, "values_clause");
+        return $this->getTable()->values($record->getArrayCopy());
     }
     /**
      * Recordインスタンスの値からFormの値を設定する
@@ -697,9 +695,11 @@ class FormContainer extends ArrayObject
                         $table_def = app()->table->getTableDef($this->def["table"]);
                         $assoc_table_name = $table_def["cols"][$assoc_col_name]["assoc"]["table"];
                         if ($assoc_table_name) {
-                            $assoc_table = table($assoc_table_name);
+                            $assoc_table_result = table($assoc_table_name)->createResult();
                             foreach ($values as $k=>$v) {
-                                $values[$k] = $assoc_table->createRecord($v);
+                                $assoc_table_record = $assoc_table_result->createRecord($v);
+                                $assoc_table_result[] = $assoc_table_record;
+                                $values[$k] = $assoc_table_record;
                             }
                         }
                     }
