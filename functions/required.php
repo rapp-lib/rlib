@@ -70,7 +70,11 @@
     function str_date ($string, $format="Y/m/d")
     {
         if ( ! strlen($string)) return "";
-        $date = new \DateTime($string);
+        try {
+            $date = new \DateTime($string);
+        } catch (\Exception $e) {
+            return null;
+        }
         // 日本語の曜日 x
         if (preg_match('/x/', $format)) {
             $w = $date->format("w");

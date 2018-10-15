@@ -204,6 +204,22 @@ class ValidateRuleLoader
         return false;
     }
     /**
+     * 日付のエラーチェック
+     */
+    public static function callbackValidDate ($validator, $value, $rule)
+    {
+        $error = array("message"=>___("正しい日付を入力してください"));
+        if ( ! preg_match('!^(\d{4})[/-]+(\d+)[/-](\d+)(\s+\d+:\d+(:\d+))?$!', $value)) {
+            return $error;
+        }
+        try {
+            new \DateTime($value);
+        } catch (\Exception $e) {
+            return $error;
+        }
+        return false;
+    }
+    /**
      * ファイルアップロードのエラーチェック
      */
     public static function callbackValidFile ($validator, $value, $rule)
