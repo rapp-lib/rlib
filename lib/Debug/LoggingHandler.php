@@ -14,21 +14,27 @@ class LoggingHandler extends AbstractProcessingHandler
      */
     protected function write(array $record)
     {
-        // 記録の制限チェック（メモリ制限、件数制限）
-        $memory_usage = app("debug.memory_usage")->getMemoryUsage();
-        $memory_limit = app("debug.memory_usage")->getMemoryLimit();
-        $report_memory_limit_factor = app()->config["debug.report_memory_limit_factor"] ?: 0.3;
-        $report_count_limit = app()->config["debug.report_count_limit"] ?: 200;
+        // 記録の制限チェック（メモリ制限）
+        $memory_usage = app("memory_usage")->getMemoryUsage();
+        $memory_limit = app("memory_usage")->getMemoryLimit();
+        $report_memory_limit_factor = app()->config["debug.report_memory_limit_factor"];
+        if ( ! strlen($report_memory_limit_factor)) $report_memory_limit_factor = 0.8;
         if ($memory_usage > $memory_limit * $report_memory_limit_factor) {
-            $memory_usage_f = app("debug.memory_usage")->formatBytes($memory_usage);
+            $memory_usage_f = app("memory_usage")->formatBytes($memory_usage);
             $record = array(
-                "message"=>"[REPORT_MEMORY_LIMIT_OVER:".$memory_usage_f."] ".$record["message"]
+                "message"=>"[REPORT_MEMORY_LIMIT_OVER:".$memory_usage_f."] ".$record["message"],
+                "level"=>$record["level"],
+                "context"=>array(),
             );
         }
+        // 記録の制限チェック（件数制限）
+        $report_count_limit = app()->config["debug.report_count_limit"];
+        if ( ! strlen($report_count_limit)) $report_count_limit = 200;
         if (count(static::$records) == $report_count_limit) {
             $record = array(
                 "message"=>"[REPORT_COUNT_LIMIT_OVER:".$report_count_limit."] Report log dissabled.",
                 "level"=>Logger::ERROR,
+                "context"=>array(),
             );
         } elseif (count(static::$records) > $report_count_limit) {
             return;
