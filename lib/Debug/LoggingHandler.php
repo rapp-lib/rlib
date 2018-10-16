@@ -12,6 +12,23 @@ class LoggingHandler extends AbstractProcessingHandler
     /**
      * {@inheritdoc}
      */
+    public function handle(array $record)
+    {
+        if (!$this->isHandling($record)) {
+            return false;
+        }
+
+        $record = $this->processRecord($record);
+
+        // $record['formatted'] = $this->getFormatter()->format($record);
+
+        $this->write($record);
+
+        return false === $this->bubble;
+    }
+    /**
+     * {@inheritdoc}
+     */
     protected function write(array $record)
     {
         // 記録の制限チェック（メモリ制限）

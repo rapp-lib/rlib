@@ -46,7 +46,7 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
             $message = $e->getMessage();
             $params = $e->getParams();
             $level = $params["level"];
-            app("log")->getMonolog()->log($level, $message, $params);
+            app("log")->write($level, $message, $params);
         });
     }
     public function boot()
