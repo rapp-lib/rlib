@@ -62,9 +62,28 @@ class I18nDriver
 
 // -- Enum値
 
+    /**
+     * Enumクラスの取得
+     */
+    public function getEnumClass ($class)
+    {
+        if (preg_match('!^(?:\\\?R\\\App\\\Enum\\\)(.+)$!', $class, $_)) {
+            $alt_class_file = constant("R_APP_ROOT_DIR").'/resources/locale/'.$this->getLocale()."/Enum/".$_[1].".php";
+            $alt_class = 'R\Locale\\'.str_camelize($this->getLocale()).'\Enum\\'.$_[1];
+            if (class_exists($alt_class)) {
+                return $alt_class;
+            }
+            if (file_exists($alt_class_file)) {
+                require_once $alt_class_file;
+                return $alt_class;
+            }
+        }
+        return null;
+    }
     protected $enum_values = array();
     /**
      * Enum値の取得
+     * @deprecated
      */
     public function getEnumValue ($key, $value, $locale=null)
     {

@@ -55,7 +55,7 @@ class Table_Base extends Table_Core
     {
         // Tableに変換する
         if (is_array($table)) list($table, $alias) = $table;
-        if (is_string($table)) $table = table($table);
+        if (is_string($table)) $table = $this->releasable(table($table));
         if ($alias) $table->alias($alias);
         $this->query->join($table, $on, $type);
     }
@@ -67,7 +67,7 @@ class Table_Base extends Table_Core
     {
         // Tableに変換する
         if (is_array($table)) list($table, $alias) = $table;
-        if (is_string($table)) $table = table($table);
+        if (is_string($table)) $table = $this->releasable(table($table));
         if ($alias) $table->setAlias($alias);
         // fkeyの設定がなければ、tableのfkey_forを参照
         if ( ! isset($fkey)) $fkey = $this->getColNameByAttr("fkey_for", $table->getAppTableName());
@@ -243,9 +243,9 @@ class Table_Base extends Table_Core
     public function result_getHashedBy ($result, $col_name, $col_name_sub=false, $col_name_sub_ex=false)
     {
         $hashed_result = array();
-        foreach ($result as $record) {
+        foreach ($result as $i=>$record) {
             if ($col_name_sub === false) {
-                $hashed_result[] = $record->getColValue($col_name);
+                $hashed_result[$i] = $record->getColValue($col_name);
             } elseif ($col_name_sub_ex === false) {
                 $hashed_result[$record->getColValue($col_name)]
                     = $record->getColValue($col_name_sub);
@@ -293,7 +293,7 @@ class Table_Base extends Table_Core
      */
     public function result_getBelongsToTable ($result, $assoc_table_name, $assoc_fkey=false)
     {
-        $assoc_table = table($assoc_table_name);
+        $assoc_table = $this->releasable(table($assoc_table_name));
         $assoc_fkey = $assoc_fkey ?: $this->getColNameByAttr("fkey_for", $assoc_table_name);
         if ( ! $assoc_fkey) {
             report_error("Table間にBelongsTo関係がありません",array(
@@ -310,7 +310,7 @@ class Table_Base extends Table_Core
      */
     public function result_getHasManyTable ($result, $assoc_table_name, $assoc_fkey=false)
     {
-        $assoc_table = table($assoc_table_name);
+        $assoc_table = $this->releasable(table($assoc_table_name));
         $assoc_fkey = $assoc_fkey ?: $assoc_table->getColNameByAttr("fkey_for", $this->getAppTableName());
         if ( ! $assoc_fkey) {
             report_error("Table間にHasMany関係がありません",array(
@@ -338,7 +338,7 @@ class Table_Base extends Table_Core
         // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
         if ( ! isset($assoc_fkey)) {
             $table_name = $this->getAppTableName();
-            $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
+            $assoc_fkey = $this->releasable(table($assoc_table_name))->getColNameByAttr("fkey_for", $table_name);
         }
         $table = $result->getHasManyTable($assoc_table_name, $assoc_fkey);
         // ExtraValueを条件に設定
@@ -377,7 +377,7 @@ class Table_Base extends Table_Core
         // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
         if ( ! isset($assoc_fkey)) {
             $table_name = $this->getAppTableName();
-            $assoc_fkey = table($assoc_table_name)->getColNameByAttr("fkey_for", $table_name);
+            $assoc_fkey = $this->releasable(table($assoc_table_name))->getColNameByAttr("fkey_for", $table_name);
             if ( ! $assoc_fkey) {
                 report_error("外部キーによる参照がないassoc関係", array(
                     "table_name"=>$this->getAppTableName(),
@@ -405,7 +405,7 @@ class Table_Base extends Table_Core
             return;
         }
         // 対象のIDに関係する関係先のレコードを差分削除
-        $table = table($assoc_table_name)->findBy($assoc_fkey, $id);
+        $table = $this->releasable(table($assoc_table_name))->findBy($assoc_fkey, $id);
         // ExtraValueを条件に設定
         if ($assoc_extra_values) $table->findBy($assoc_extra_values);
         $assoc_result = $table->select();
@@ -422,7 +422,7 @@ class Table_Base extends Table_Core
                     $record[$assoc_id_col] = current($delete_assoc_ids);
                     unset($delete_assoc_ids[key($delete_assoc_ids)]);
                 }
-                table($assoc_table_name)->save($record);
+                $this->releasable(table($assoc_table_name))->save($record);
                 $values = array();
             } else {
                 foreach ((array)$values as $value) {
@@ -433,13 +433,13 @@ class Table_Base extends Table_Core
                     } else {
                         $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
                         foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                        table($assoc_table_name)->save($record);
+                        $this->releasable(table($assoc_table_name))->save($record);
                     }
                 }
             }
             // 削除
             if ($delete_assoc_ids) {
-                table($assoc_table_name)->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
+                $this->releasable(table($assoc_table_name))->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
             }
         } else {
             // 既存の情報をID→IDでハッシュ
@@ -456,11 +456,11 @@ class Table_Base extends Table_Core
                 // 新規/上書き
                 $record[$assoc_fkey] = $id;
                 foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                table($assoc_table_name)->save($record);
+                $this->releasable(table($assoc_table_name))->save($record);
             }
             // 削除
             if ($delete_assoc_ids) {
-                table($assoc_table_name)->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
+                $this->releasable(table($assoc_table_name))->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
             }
         }
     }
@@ -670,13 +670,22 @@ class Table_Base extends Table_Core
                 "table"=>$this, "alias"=>$alias, "method_name"=>$method_name,
             ));
         }
-        // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
-        $src_values = $this->result->getHashedBy($src_col_name);
-        $dest_values = self::mapReduce(array($this, $method_name), $src_values, $alias);
-        // 結果を統合する
-        foreach ($this->result as $record) {
-            $key = self::encodeKey($record->getColValue($src_col_name));
-            $record[$alias_col_name] = $dest_values[$key];
+        if ($src_col_name==="*") {
+            // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
+            $dest_values = self::mapReduce(array($this, $method_name), $this->result, $alias);
+            // 結果を統合する
+            foreach ($this->result as $key=>$record) {
+                $record[$alias_col_name] = $dest_values[$key];
+            }
+        } else {
+            // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
+            $src_values = $this->result->getHashedBy($src_col_name);
+            $dest_values = self::mapReduce(array($this, $method_name), $src_values, $alias);
+            // 結果を統合する
+            foreach ($this->result as $record) {
+                $key = self::encodeKey($record->getColValue($src_col_name));
+                $record[$alias_col_name] = $dest_values[$key];
+            }
         }
 
         app("events")->fire("table.merge_alias", array($this, $this->statement,
@@ -741,7 +750,7 @@ class Table_Base extends Table_Core
                 "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
             ));
         }
-        $assoc_table = table($alias["table"]);
+        $assoc_table = $this->releasable(table($alias["table"]));
         $assoc_fkey = $alias["fkey"]
             ?: $assoc_table->getColNameByAttr("fkey_for", $this->getAppTableName());
         if ( ! $assoc_fkey) {
@@ -772,7 +781,7 @@ class Table_Base extends Table_Core
         }
         $values = array();
         foreach ($src_values as $src_value) {
-            $assoc_table = table($alias["table"]);
+            $assoc_table = $this->releasable(table($alias["table"]));
             $assoc_fkey = $alias["fkey"]
                 ?: $assoc_table->getColNameByAttr("fkey_for", $this->getAppTableName());
             if ( ! $assoc_fkey) {
@@ -802,7 +811,7 @@ class Table_Base extends Table_Core
                 "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
             ));
         }
-        $assoc_table = table($alias["table"]);
+        $assoc_table = $this->releasable(table($alias["table"]));
         $assoc_table->findBy($assoc_table->getIdColName(), $src_values);
         if ($alias["mine"]) $assoc_table->findMine();
         if ($alias["where"]) $assoc_table->findBy($alias["where"]);
@@ -816,7 +825,7 @@ class Table_Base extends Table_Core
      */
     public function retreive_aliasSummary ($src_values, $alias)
     {
-        $q = table($alias["table"]);
+        $q = $this->releasable(table($alias["table"]));
         $q->findBy($alias["key"], $src_values);
         foreach ((array)$alias["joins"] as $join) $q->join($join);
         if ($alias["where"]) $q->findBy($alias["where"]);
@@ -1043,7 +1052,7 @@ class Table_Base extends Table_Core
     public function search_typeExists ($form, $field_def, $value)
     {
         if ( ! isset($value)) return false;
-        $table = table($field_def["search_table"]);
+        $table = $this->releasable(table($field_def["search_table"]));
         $table->findBy($this->getQueryTableName().".".$this->getIdColName()."=".$table->getQueryTableName().".".$field_def["fkey"]);
         $table->findBySearchFields($form, $field_def["search_fields"]);
         $this->query->where("EXISTS(".$table->buildQuery("select").")");
@@ -1101,7 +1110,7 @@ class Table_Base extends Table_Core
      */
     public function search_yieldExists ($form, $yield)
     {
-        $table = table($yield["table"]);
+        $table = $this->releasable(table($yield["table"]));
         if ($yield["on"]) {
             $table->findBy($yield["on"]);
         } else {
@@ -1269,7 +1278,7 @@ class Table_Base extends Table_Core
                 $this->query->where($edge[0].".".$edge[1], $value);
             // 経由関係先への参照は、JOINを指定する
             } else {
-                $join_table = table($edge[2]);
+                $join_table = $this->releasable(table($edge[2]));
                 // ASの解決
                 if ($edge["as"]) $join_table->alias($edge["as"]);
                 $join_table_name = $join_table->getQueryTableName();
@@ -1302,7 +1311,7 @@ class Table_Base extends Table_Core
         if ( ! $route) return false;
         // 目的関係先に近い順に登録する
         foreach (array_reverse($route) as $edge) {
-            $join_table = table($edge[2]);
+            $join_table = $this->releasable(table($edge[2]));
             // 関係元からの参照であれば、テーブルの名前はクエリ内のものを使用する
             if ($edge[0] == $self_table_name) $edge[0] = $this->getQueryTableName();
             // ASの解決
@@ -1336,7 +1345,7 @@ class Table_Base extends Table_Core
                 if ( ! $route) continue;
                 // 関係先に指定したレコードが存在しない場合false
                 $id_col_name = app("table.resolver")->getIdColName($target_table_name);
-                $record = table($assoc_table_name)
+                $record = $this->releasable(table($assoc_table_name))
                     ->findByid($v)
                     ->findByRoute($target_table_name, $value, $id_col_name)
                     ->selectOne();

@@ -27,7 +27,7 @@ class EventCollector extends TimeDataCollector
         $args = func_get_args();
         $name = $this->getCurrentEvent($args);
         $time = microtime(true);
-        $this->addMeasure($name, $time, $time, $this->prepareParams($args) );
+        // $this->addMeasure($name, $time, $time, $this->prepareParams($args) );
     }
     public function onReportableEvent()
     {

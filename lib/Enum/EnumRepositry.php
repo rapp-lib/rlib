@@ -17,6 +17,9 @@ class EnumRepositry implements ArrayAccess
             if ( ! class_exists($class_name)) {
                 report_error("Enum参照先Classが定義されていません", array("class_name"=>$class_name));
             }
+            if ($alt_class = app("i18n")->getEnumClass($class_name)) {
+                $class_name = $alt_class;
+            }
             $this->value_repos[$key] = new $class_name($parts[0], $parts[1]);
         }
         return isset($this->value_repos[$key]);

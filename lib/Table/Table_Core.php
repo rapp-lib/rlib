@@ -116,7 +116,9 @@ class Table_Core
      */
     public function createRecord ($values=null, $id=null)
     {
-        $record = new Record($this);
+        if ( ! $this->result) $this->result = new Result($this);
+        $record = new Record($this->result);
+        $this->result[] = $record;
         // 値の設定
         if (isset($values)) {
             foreach ($values as $k => $v) {
@@ -128,9 +130,6 @@ class Table_Core
             $id_col_name = $this->getIdColName();
             $record[$id_col_name] = $id;
         }
-        // Resultへのマッピング
-        if ( ! $this->result) $this->result = new Result($this);
-        $this->result[] = $record;
         return $record;
     }
 
@@ -747,4 +746,51 @@ class Table_Core
             "query" => $this->query,
         );
     }
+
+    private $__release_status = 0;
+    private $__release_pool = array();
+    /**
+     * メモリ解放
+     */
+    public function __release ()
+    {
+        if ($this->__release_status) return;
+        $this->__release_status = 1;
+        if ($this->statement) {
+            $this->statement->__release();
+            unset($this->statement);
+        }
+        if ($this->query) {
+            $this->query->__release();
+            unset($this->query);
+        }
+        if ($this->result) {
+            $this->result->__release();
+            unset($this->result);
+        }
+        foreach ($this->__release_pool as $object) {
+            $object->__release();
+        }
+    }
+    /**
+     * 同時にメモリ解放すべきオブジェクトの収集
+     */
+    protected function releasable ($object)
+    {
+        $this->__release_pool[] = $object;
+        return $object;
+    }
+    /**
+     * 同時にメモリ解放すべきオブジェクトの収集
+     */
+    public function scoped ($callback)
+    {
+        $values = $callback($this);
+        $this->__release();
+        return $values;
+    }
+    // public function __destruct ()
+    // {
+    //     if ( ! $this->__release_status) print "(".static::$table_name.")";
+    // }
 }

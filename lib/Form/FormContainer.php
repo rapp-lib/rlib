@@ -589,9 +589,11 @@ class FormContainer extends ArrayObject
      */
     public function getTableWithValues ()
     {
-        $record = $this->getTable()->createRecord();
-        $this->convertRecord($record, "values_clause");
-        return $this->getTable()->values((array)$record);
+        $values = $this->getTable()->scoped(function($table){
+            $record = $table->createRecord();
+            return (array)$this->convertRecord($record, "values_clause");
+        });
+        return $this->getTable()->values($values);
     }
     /**
      * Recordインスタンスの値からFormの値を設定する
