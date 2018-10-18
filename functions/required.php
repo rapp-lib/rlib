@@ -21,17 +21,17 @@
         $vars = array();
         foreach (func_get_args() as $k=>$v) $vars["value #".$k] = $v;
         $vars["__"]["category"] = "Debug";
-        app("log")->getMonolog()->debug("DEBUG", $vars);
+        app("log")->write("debug", "DEBUG", $vars);
     }
     function report_info ($message, array $vars=array(), $category=null)
     {
         $vars["__"]["category"] = strlen($category) ? $category : "Info";
-        app("log")->getMonolog()->info($message, $vars);
+        app("log")->write("info", $message, $vars);
     }
     function report_warning ($message, array $vars=array(), $category=null)
     {
         $vars["__"]["category"] = strlen($category) ? $category : "Warning";
-        app("log")->getMonolog()->warn($message, $vars);
+        app("log")->write("warning", $message, $vars);
     }
     function report_error ($message, array $vars=array())
     {

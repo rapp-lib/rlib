@@ -8,13 +8,13 @@ use ArrayObject;
  */
 class Record extends ArrayObject
 {
-    protected $result = null;
+    const RESULT_INDEX = "*RESULT*";
     /**
      * @override
      */
     public function __construct ($result)
     {
-        $this->result = $result;
+        $this[static::RESULT_INDEX] = $result;
     }
     /**
      * @getter
@@ -28,7 +28,16 @@ class Record extends ArrayObject
      */
     public function getResult ()
     {
-        return $this->result;
+        return $this[static::RESULT_INDEX];
+    }
+    /**
+     * @getter
+     */
+    public function getValues ()
+    {
+        $values = array();
+        foreach (parent::getIterator() as $k=>$v) if ($k !== static::RESULT_INDEX) $values[$k] = $v;
+        return $values;
     }
     /**
      * @override
@@ -36,7 +45,7 @@ class Record extends ArrayObject
     public function __call ($method_name, $args=array())
     {
         // Table::record_メソッドの呼び出し
-        array_unshift($args,$this);
+        array_unshift($args, $this);
         $record_method_name = "record_".$method_name;
         return call_user_func_array(array($this->getTable(),$record_method_name),$args);
     }
@@ -47,6 +56,20 @@ class Record extends ArrayObject
     {
         if ( ! $this->offsetExists($key)) $this->getTable()->beforeGetRecordValue($this, $key);
         return parent::offsetGet($key);
+    }
+    /**
+     * @getter
+     */
+    public function getArrayCopy ()
+    {
+        return $this->getValues();
+    }
+    /**
+     * @getter
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator($this->getValues());
     }
 
     private $__release_status = 0;

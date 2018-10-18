@@ -55,11 +55,13 @@ class ReportRenderer
             $data["pos"] = $pos;
             if ($level >= Logger::ERROR) {
                 $data["color"] = "#ff0000";
-                $data["bts"] = $bts;
             } elseif ($level >= Logger::WARNING) {
                 $data["color"] = "#ffff00";
             } else {
                 $data["color"] = "#00ff00";
+            }
+            if ($level >= Logger::ERROR || app()->config["app.debug"] >= 2) {
+                $data["bts"] = $bts;
             }
             return $data;
         // HTML形式
@@ -253,7 +255,7 @@ class ReportRenderer
         if (is_array($value) || is_object($value)) {
             if ($value instanceof \ArrayObject) {
                 $r["__type"] = "object(".get_class($value).')['.count($value).']';
-                $value = method_exists($value,"__report") ? (array)$value->__report() : $value;
+                $value = method_exists($value,"__report") ? (array)$value->__report() : $value->getArrayCopy();
             } elseif (is_object($value)) { 
                 $r["__type"] = "object(".get_class($value).')';
                 $value = method_exists($value,"__report") ? (array)$value->__report() : get_object_vars($value);

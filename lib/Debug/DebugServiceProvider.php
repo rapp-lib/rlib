@@ -14,7 +14,7 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
         if ( ! $this->app->debug->getDebugLevel()) return;
 
         // メモリ消費量の計測
-        $this->app->singleton('debug.memory_usage', "R\Lib\Debug\MemoryUsageTracer");
+        $this->app->singleton('memory_usage', "R\Lib\Debug\MemoryUsageTracer");
         // Loggerに関連付け
         $this->app->singleton("debug.logging_handler", "R\Lib\Debug\LoggingHandler");
         $this->app["log"]->getMonolog()->pushHandler($this->app["debug.logging_handler"]);
@@ -46,7 +46,7 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
             $message = $e->getMessage();
             $params = $e->getParams();
             $level = $params["level"];
-            app("log")->getMonolog()->log($level, $message, $params);
+            app("log")->write($level, $message, $params);
         });
     }
     public function boot()

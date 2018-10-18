@@ -40,7 +40,7 @@ class SessionDriver extends ZendSessionManager
         $this->start();
         return $next($request);
     }
-    public function start()
+    public function start($preserveStorage = false)
     {
         parent::start();
         app()->debug->getDebugLevel();

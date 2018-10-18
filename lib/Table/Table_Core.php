@@ -65,10 +65,9 @@ class Table_Core
     /**
      * @override
      */
-    public function __construct ($query=array(), $result=null)
+    public function __construct ($query=array())
     {
         $this->query = new Query($query);
-        $this->result = $result;
         // テーブル名を関連づける
         $this->query->setDbname($this->getConnection()->getDbname());
         $this->query->setTable(array($this->getDefTableName(), $this->getAppTableName()));
@@ -112,13 +111,18 @@ class Table_Core
         return new $class($query, $reult);
     }
     /**
+     * Resultオブジェクトを作成する
+     */
+    public function createResult ()
+    {
+        return new Result($this);
+    }
+    /**
      * Recordオブジェクトを作成する
      */
-    public function createRecord ($values=null, $id=null)
+    public function result_createRecord ($result, $values=null, $id=null)
     {
-        if ( ! $this->result) $this->result = new Result($this);
-        $record = new Record($this->result);
-        $this->result[] = $record;
+        $record = new Record($result);
         // 値の設定
         if (isset($values)) {
             foreach ($values as $k => $v) {
@@ -290,13 +294,14 @@ class Table_Core
             // on_fetchEnd_*を呼び出す
             $this->callListenerMethod("fetchEnd");
 
-            app("events")->fire("table.fetch_end", array($this, $this->statement, $this->result));
+            app("events")->fire("table.fetch_end", array($this, $this->statement, $result));
 
             $this->fetch_done = true;
             return false;
         }
         // 結果レコードを組み立てて値をHydrateする
-        $record = $this->createRecord();
+        $record = $result->createRecord();
+        $result[] = $record;
         $record->hydrate($data);
         // on_fetch_*を呼び出す
         $this->callListenerMethod("fetch",array($record));
@@ -334,7 +339,7 @@ class Table_Core
             $id_col_name = $this->getIdColName();
             $id = $this->query->getWhere($id_col_name);
         } elseif ($this->query->getType()=="insert") {
-            $id = $this->result->getLastInsertId();
+            $id = $result->getLastInsertId();
         }
         return $id ? $this->createTable()->selectById($id) : null;
     }
@@ -383,14 +388,6 @@ class Table_Core
     }
     /**
      * @hook record
-     * Resultの取得
-     */
-    public function record_getResult ($record)
-    {
-        return $this->result;
-    }
-    /**
-     * @hook record
      * カラムの値の取得（"テーブル名.カラム名"の様式解決）
      */
     public function record_getColValue ($record, $col_name)
@@ -424,9 +421,9 @@ class Table_Core
     public function selectOne ($fields=array())
     {
         $this->query->addFields($fields);
-        $this->execQuery("select");
-        $record = $this->result->fetch();
-        if (count($this->result->fetchAll()) > 1) {
+        $result = $this->execQuery("select");
+        $record = $result->fetch();
+        if (count($result->fetchAll()) > 1) {
             report_warning("selectOneで複数件取得する処理は値を返しません",array(
                 "table" => $this,
             ));
@@ -626,15 +623,16 @@ class Table_Core
     public function execQuery ($type=null)
     {
         // 実行済みであれば結果を返す
-        if ($this->result) return $this->result;
-        // Trunsactionの自動開始
-        if (static::$auto_begin && $this->in_transaction===null) $this->begin();
-        // Query組み立ての仕上げ処理
-        $statement = $this->buildQuery($type);
-        // SQLの実行
-        $this->result_res = $this->getConnection()->exec($statement, array("table"=>$this));
+        if ( ! $this->result_res) {
+            // Trunsactionの自動開始
+            if (static::$auto_begin && $this->in_transaction===null) $this->begin();
+            // Query組み立ての仕上げ処理
+            $statement = $this->buildQuery($type);
+            // SQLの実行
+            $this->result_res = $this->getConnection()->exec($statement, array("table"=>$this));
+        }
         // Resultの組み立て
-        $this->result = new Result($this);
+        $result = new Result($this);
         // LastInsertIdの確保
         if ($type=="insert") {
             if (static::$cols[$this->getIdColName()]["autoincrement"]) {
@@ -646,11 +644,11 @@ class Table_Core
         }
         // on_afterWrite_*を呼び出す
         if ($type=="insert" || $type=="update") {
-            $this->callListenerMethod("afterWrite",array());
+            $this->callListenerMethod("afterWrite",array($result));
         }
         // Trunsactionの自動完了
         if (static::$auto_commit && $this->in_transaction==="begin") $this->commit();
-        return $this->result;
+        return $result;
     }
 
 // -- hookメソッド呼び出し関連処理
@@ -726,7 +724,7 @@ class Table_Core
             $result = call_user_func_array(array($this,$method_name),$args);
             if ($result!==false) {
                 // 履歴への登録
-                app("events")->fire("table.hook", array($this, $this->statement, $this->result,
+                app("events")->fire("table.hook", array($this, $this->statement, null,
                     $method_name, $args));
                 return true;
             }
@@ -764,10 +762,10 @@ class Table_Core
             $this->query->__release();
             unset($this->query);
         }
-        if ($this->result) {
-            $this->result->__release();
-            unset($this->result);
-        }
+        // if ($this->result) {
+        //     $this->result->__release();
+        //     unset($this->result);
+        // }
         foreach ($this->__release_pool as $object) {
             $object->__release();
         }
@@ -777,7 +775,7 @@ class Table_Core
      */
     protected function releasable ($object)
     {
-        $this->__release_pool[] = $object;
+        //$this->__release_pool[] = $object;
         return $object;
     }
     /**
@@ -786,11 +784,12 @@ class Table_Core
     public function scoped ($callback)
     {
         $values = $callback($this);
-        $this->__release();
+        //$this->__release();
         return $values;
     }
     // public function __destruct ()
     // {
-    //     if ( ! $this->__release_status) print "(".static::$table_name.")";
+    //     $this->__callee = app("memory_usage")->getCalleeLocation(7);
+    //     print "(".static::$table_name.":".$this->__callee.")";
     // }
 }

@@ -211,17 +211,9 @@ class Table_Base extends Table_Core
      * @hook chain
      * Queryを操作する関数を指定する
      */
-    public function chain_modifyQuery ($query)
+    public function chain_modifyQuery ($callback)
     {
-        call_user_func($query, $this->query);
-    }
-    /**
-     * @hook chain
-     * attr属性値を設定する
-     */
-    public function chain_attr ($name, $value)
-    {
-        $this->setAttr($name, $value);
+        call_user_func($callback, $this->query);
     }
 
 // -- 基本的なresultに対するHook
@@ -391,7 +383,7 @@ class Table_Base extends Table_Core
         // 書き込んだIDを確認
         $id = null;
         if ($this->query->getType() == "insert") {
-            $id = $this->result->getLastInsertId();
+            $id = $result->getLastInsertId();
         } elseif ($this->query->getType() == "update") {
             $id = $this->query->getWhere($this->getQueryTableName().".".$this->getIdColName());
             if ( ! isset($id)) {
@@ -609,8 +601,8 @@ class Table_Base extends Table_Core
         $method_name = "retreive_col".str_camelize($col_name);
         if ( ! method_exists($this, $method_name)) return false;
         // resultを引数に呼び出し
-        $values = call_user_func(array($this,$method_name), $this->result);
-        foreach ($this->result as $key=>$a_record) $a_record[$col_name] = $values[$key];
+        $values = call_user_func(array($this,$method_name), $record->getResult());
+        foreach ($record->getResult() as $key=>$a_record) $a_record[$col_name] = $values[$key];
         return true;
     }
     /**
@@ -652,14 +644,14 @@ class Table_Base extends Table_Core
             }
         }
         if ( ! $found) return false;
-        $this->mergeAlias($found[0], $found[1], $found[2]);
+        $this->mergeAlias($record->getResult(), $found[0], $found[1], $found[2]);
         return true;
     }
     /**
      * @hook result
      * aliasを適用する
      */
-    protected function mergeAlias ($alias_col_name, $src_col_name, $alias)
+    protected function mergeAlias ($result, $alias_col_name, $src_col_name, $alias)
     {
         if ( ! $alias["type"] && $alias["enum"]) $alias["type"] = "enum";
         $alias["src_col_name"] = $src_col_name;
@@ -672,24 +664,24 @@ class Table_Base extends Table_Core
         }
         if ($src_col_name==="*") {
             // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
-            $dest_values = self::mapReduce(array($this, $method_name), $this->result, $alias);
+            $dest_values = self::mapReduce(array($this, $method_name), $result, $alias);
             // 結果を統合する
-            foreach ($this->result as $key=>$record) {
+            foreach ($result as $key=>$record) {
                 $record[$alias_col_name] = $dest_values[$key];
             }
         } else {
             // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
-            $src_values = $this->result->getHashedBy($src_col_name);
+            $src_values = $result->getHashedBy($src_col_name);
             $dest_values = self::mapReduce(array($this, $method_name), $src_values, $alias);
             // 結果を統合する
-            foreach ($this->result as $record) {
+            foreach ($result as $record) {
                 $key = self::encodeKey($record->getColValue($src_col_name));
                 $record[$alias_col_name] = $dest_values[$key];
             }
         }
 
         app("events")->fire("table.merge_alias", array($this, $this->statement,
-            $this->result, $src_col_name, $alias_col_name, $dest_values));
+            $result, $src_col_name, $alias_col_name, $dest_values));
     }
     protected static function mapReduce ($callback, $src_values, $alias)
     {
@@ -930,7 +922,7 @@ class Table_Base extends Table_Core
     protected function on_getBlankCol_assoc ($record, $col_name)
     {
         if (static::$cols[$col_name]["assoc"]) {
-            $this->callAssocHookMethod("assoc_getBlankCol", $col_name);
+            $this->callAssocHookMethod("assoc_getBlankCol", $col_name, array($record));
             return true;
         }
         return false;
@@ -940,27 +932,28 @@ class Table_Base extends Table_Core
      */
     protected function on_write_assoc ()
     {
-        $this->assoc_values = array();
+        $assoc_values = array();
         foreach ((array)$this->query->getValues() as $col_name => $value) {
             if (static::$cols[$col_name]["assoc"]) {
                 // values→assoc_valuesに項目を移動
                 $this->query->removeValue($col_name);
-                $this->assoc_values[$col_name] = $value;
+                $assoc_values[$col_name] = $value;
                 // assoc処理の呼び出し
                 $this->callAssocHookMethod("assoc_write", $col_name);
             }
         }
-        return $this->assoc_values ? true : false;
+        $this->query["assoc_values"] = $assoc_values;
+        return $this->query["assoc_values"] ? true : false;
     }
     /**
      * assoc処理 insert/updateの発行後
      */
-    protected function on_afterWrite_assoc ()
+    protected function on_afterWrite_assoc ($result)
     {
-        foreach ((array)$this->assoc_values as $col_name => $value) {
-            $this->callAssocHookMethod("assoc_afterWrite", $col_name, array($value));
+        foreach ((array)$this->query["assoc_values"] as $col_name => $values) {
+            $this->callAssocHookMethod("assoc_afterWrite", $col_name, array($result, $values));
         }
-        return $this->assoc_values ? true : false;
+        return $this->query["assoc_values"] ? true : false;
     }
 
 // -- 基本的なassoc hookの定義
@@ -987,14 +980,13 @@ class Table_Base extends Table_Core
      *          singleの指定があれば、既存1レコード目を一致させて更新する
      *          extra_valuesの指定があれば絞り込みと、値の設定に使用する
      */
-    protected function assoc_getBlankCol_hasMany ($col_name)
+    protected function assoc_getBlankCol_hasMany ($col_name, $record)
     {
-        return $this->result->mergeAssoc($col_name, static::$cols[$col_name]["assoc"]);
+        return $record->getResult()->mergeAssoc($col_name, static::$cols[$col_name]["assoc"]);
     }
-    protected function assoc_afterWrite_hasMany ($col_name)
+    protected function assoc_afterWrite_hasMany ($col_name, $result, $values)
     {
-        $values = $this->assoc_values[$col_name];
-        return $this->result->affectAssoc($col_name, static::$cols[$col_name]["assoc"], $values);
+        return $result->affectAssoc($col_name, static::$cols[$col_name]["assoc"], $values);
     }
 
 // -- 基本的なsearch hookの定義
