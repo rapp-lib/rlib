@@ -28,16 +28,7 @@ class Record extends ArrayObject
      */
     public function getResult ()
     {
-        return $this[static::RESULT_INDEX];
-    }
-    /**
-     * @getter
-     */
-    public function getValues ()
-    {
-        $values = array();
-        foreach (parent::getIterator() as $k=>$v) if ($k !== static::RESULT_INDEX) $values[$k] = $v;
-        return $values;
+        return parent::offsetGet(static::RESULT_INDEX);
     }
     /**
      * @override
@@ -62,27 +53,15 @@ class Record extends ArrayObject
      */
     public function getArrayCopy ()
     {
-        return $this->getValues();
+        $values = array();
+        foreach (parent::getIterator() as $k=>$v) if ($k !== static::RESULT_INDEX) $values[$k] = $v;
+        return $values;
     }
     /**
      * @getter
      */
     public function getIterator()
     {
-        return new \ArrayIterator($this->getValues());
-    }
-
-    private $__release_status = 0;
-    /**
-     * メモリ解放
-     */
-    public function __release ()
-    {
-        if ($this->__release_status) return;
-        $this->__release_status = 1;
-        if ($this->result) {
-            $this->result->__release();
-            unset($this->result);
-        }
+        return new \ArrayIterator($this->getArrayCopy());
     }
 }

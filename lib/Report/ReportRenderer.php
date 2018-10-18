@@ -310,7 +310,7 @@ class ReportRenderer
         $bts = array_reverse($bts);
         foreach ($bts as $i=>$bt) {
             // Monologの呼び出し以降は記録不要
-            if ($bt['class']=='Monolog\Logger') break;
+            // if ($bt['class']=='Monolog\Logger') break;
             // 動的呼び出しでファイルの場所が解決できない場合Reflectionで解決
             if ( ! $bt["line"] && ($bts[$i-1]["function"]==="call_user_func"
                 || $bts[$i-1]["function"]==="call_user_func_array")
@@ -342,7 +342,9 @@ class ReportRenderer
         $app_path = realpath($vendor_path."/..");
         $r = "";
         $bt['file'] = realpath($bt['file']);
-        if (strpos($bt['file'],$lib_path)===0) {
+        if (is_dir($bt['file'])) {
+            $r .= "(dir)";
+        } elseif (strpos($bt['file'],$lib_path)===0) {
             $r .= "(rlib)".mb_substr($bt['file'],mb_strlen($lib_path));
         } elseif (strpos($bt['file'],$laravel_path)===0) {
             $r .= "(laravel)".mb_substr($bt['file'],mb_strlen($laravel_path));

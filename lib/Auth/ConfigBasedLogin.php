@@ -12,6 +12,7 @@ class ConfigBasedLogin
     }
     public function setPriv($priv)
     {
+        if ($priv instanceof \ArrayObject) $priv = $priv->getArrayCopy();
         if ($callback = $this->config["on_logout"]) {
             if ( ! $priv) $priv = $callback($this->getPriv());
         }

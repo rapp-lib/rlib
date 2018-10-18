@@ -581,7 +581,7 @@ class FormContainer extends ArrayObject
     {
         $record = $this->getTable()->createResult()->createRecord();
         $this->convertRecord($record, "record_values");
-        return $record->getArrayCopy();
+        return $record;
     }
     /**
      * Formの値をもとに、Values句を持ったTableインスタンスを作成

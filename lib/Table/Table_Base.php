@@ -627,22 +627,6 @@ class Table_Base extends Table_Core
                 }
             }
         }
-        // @deprecated 旧仕様に従ってcolのaliasを参照する機能も残す
-        foreach ((array)static::$cols as $src_col_name=>$src_col) {
-            foreach ((array)$src_col["alias"] as $alias_col_name=>$alias) {
-                if ($alias_col_name===$col_name) {
-                    if ($found) {
-                        report_error("同名のaliasが重複して登録されています", array(
-                            "table"=>$this->getAppTableName(),
-                            "alias_col_name"=>$alias_col_name,
-                            "src_col_name_1"=>$found[1],
-                            "src_col_name_2"=>$src_col_name,
-                        ));
-                    }
-                    $found = array($alias_col_name, $src_col_name, $alias);
-                }
-            }
-        }
         if ( ! $found) return false;
         $this->mergeAlias($record->getResult(), $found[0], $found[1], $found[2]);
         return true;

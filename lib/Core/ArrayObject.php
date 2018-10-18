@@ -1,7 +1,11 @@
 <?php
 namespace R\Lib\Core;
 
-class ArrayObject implements \ArrayAccess, \IteratorAggregate, \Serializable, \Countable
+if ( ! interface_exists('\JsonSerializable')) {
+    interface JsonSerializable {}
+}
+
+class ArrayObject implements \ArrayAccess, \IteratorAggregate, \Serializable, \Countable, \JsonSerializable
 {
     protected $storage = array();
     public function offsetGet ($key)
@@ -10,7 +14,7 @@ class ArrayObject implements \ArrayAccess, \IteratorAggregate, \Serializable, \C
     }
     public function offsetExists ($key)
     {
-        return array_key_exists($key, $this->storage);
+        return array_key_exists($key, $this->storage) && isset($this->storage[$key]);
     }
     public function offsetSet ($key, $value)
     {
@@ -35,6 +39,10 @@ class ArrayObject implements \ArrayAccess, \IteratorAggregate, \Serializable, \C
     public function count ()
     {
         return count($this->storage);
+    }
+    public function jsonSerialize()
+    {
+        return $this->storage;
     }
 
     public function exchangeArray($array)

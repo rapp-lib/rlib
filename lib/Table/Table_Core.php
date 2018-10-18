@@ -122,7 +122,7 @@ class Table_Core
      */
     public function result_createRecord ($result, $values=null, $id=null)
     {
-        $record = new Record($result);
+        $result[] = $record = new Record($result);
         // 値の設定
         if (isset($values)) {
             foreach ($values as $k => $v) {
