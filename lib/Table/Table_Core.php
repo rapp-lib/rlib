@@ -301,7 +301,6 @@ class Table_Core
         }
         // 結果レコードを組み立てて値をHydrateする
         $record = $result->createRecord();
-        $result[] = $record;
         $record->hydrate($data);
         // on_fetch_*を呼び出す
         $this->callListenerMethod("fetch",array($record));

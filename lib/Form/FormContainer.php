@@ -838,7 +838,7 @@ class FormContainer extends ArrayObject
         }
         // rulesを補完してfieldsに統合
         $def["rules"] = (array)$def["rules"];
-        foreach ($def["rules"] as $i => & $rule) {
+        foreach ($def["rules"] as $i => $rule) {
             // requiredの省略記法の補完
             if (is_string($rule)) {
                 $rule = array("field_name"=>$rule, "type"=>"required");
@@ -853,6 +853,7 @@ class FormContainer extends ArrayObject
                 $rule["type"] = $rule[1];
                 unset($rule[1]);
             }
+            $def["rules"][$i] = $rule;
         }
         // tableに関連付いている場合のrulesの補完
         if (isset($def["table"])) {
