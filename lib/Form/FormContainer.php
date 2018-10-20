@@ -783,7 +783,7 @@ class FormContainer extends ArrayObject
         $table_def = $def["table"] ? app("table")->getTableDef($def["table"]) : array();
         $def["fields"] = $fields;
         // fieldの補完処理
-        foreach ($def["fields"] as $field_name => & $field_def) {
+        foreach ($def["fields"] as $field_name => $field_def) {
             $field_name_parts = explode('.',$field_name);
             $field_col_name = null;
             // 対象が配列ではない
@@ -805,7 +805,7 @@ class FormContainer extends ArrayObject
             }
             // Level2,3のFieldであれば親Fieldの定義を取得/補完
             if ($field_def["parent_field_name"]) {
-                $parent_field_def = & $def["fields"][$field_def["parent_field_name"]];
+                $parent_field_def = $def["fields"][$field_def["parent_field_name"]];
                 // 親Fieldの補完
                 if ( ! $parent_field_def) {
                     $parent_field_def = array("col"=>$field_def["parent_field_name"]);
@@ -823,6 +823,8 @@ class FormContainer extends ArrayObject
                 }
                 // 親Fieldのchild_field_namesを補完
                 $parent_field_def["child_field_names"][] = $field_name;
+                // 参照戻し
+                $def["fields"][$field_def["parent_field_name"]] = $parent_field_def;
             }
             // tableの補完
             if ($def["table"]) {
@@ -835,6 +837,8 @@ class FormContainer extends ArrayObject
                 $def["rules"][] = array($field_name, "valid_file");
             }
             $field_def["field_name"] = $field_name;
+            // 参照戻し
+            $def["fields"][$field_name] = $field_def;
         }
         // rulesを補完してfieldsに統合
         $def["rules"] = (array)$def["rules"];
@@ -853,6 +857,7 @@ class FormContainer extends ArrayObject
                 $rule["type"] = $rule[1];
                 unset($rule[1]);
             }
+            // 参照戻し
             $def["rules"][$i] = $rule;
         }
         // tableに関連付いている場合のrulesの補完
@@ -874,8 +879,13 @@ class FormContainer extends ArrayObject
                 $col_idx[$field["table"]][$field["col"]] = $field["field_name"];
             }
             // Tableごとに処理
+            $def_table_rules = array();
             foreach ($table_rules_idx as $table_name=>$table_rules) {
                 foreach ($table_rules as $rule) {
+                    // requiredの省略記法の補完
+                    if (is_string($rule)) {
+                        $rule = array("field_name"=>$rule, "type"=>"required");
+                    }
                     // field_nameの補完
                     if ($rule[0] && ! isset($rule["field_name"])) {
                         $rule["field_name"] = $rule[0];
@@ -892,10 +902,12 @@ class FormContainer extends ArrayObject
                     // 登録済みのRuleは上書きしない
                     if ($rule_idx[$rule["field_name"]][$rule["type"]]) continue;
                     // 登録
-                    $def["rules"][] = $rule;
+                    $def_table_rules[] = $rule;
                 }
             }
         }
+        // TableのRuleを登録
+        foreach ($def_table_rules as $rule) $def["rules"][] = $rule;
         // 補完済みのdefを返す
         return $def;
     }
