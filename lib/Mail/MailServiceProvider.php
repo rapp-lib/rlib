@@ -14,7 +14,13 @@ class MailServiceProvider extends IlluminateMailServiceProvider
 			$mailer = new Mailer(
 				$app['view'], $app['swift.mailer'], $app['events']
 			);
-			$this->setMailerDependencies($mailer, $app);
+			$mailer->setContainer($app);
+			if ($app->bound('log')) {
+				$mailer->setLogger($app['log']);
+			}
+			if ($app->bound('queue')) {
+				$mailer->setQueue($app['queue']);
+			}
 			$from = $app['config']['mail.from'];
 			if (is_array($from) && isset($from['address'])){
 				$mailer->alwaysFrom($from['address'], $from['name']);

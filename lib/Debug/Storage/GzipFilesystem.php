@@ -8,12 +8,12 @@ class GzipFilesystem extends LaravelFilesystem
 	public function get($path)
 	{
 		$contents = parent::get($path);
-		$contents = gzdecode($contents);
+		if (function_exists("gzdecode")) $contents = gzdecode($contents);
 		return $contents;
 	}
 	public function put($path, $contents, $lock = false)
 	{
-		$contents = gzencode($contents, 1);
+		if (function_exists("gzencode")) $contents = gzencode($contents, 1);
 		return parent::put($path, $contents, $lock);
 	}
 }
