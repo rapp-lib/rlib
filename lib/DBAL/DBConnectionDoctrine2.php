@@ -38,8 +38,38 @@ class DBConnectionDoctrine2 implements DBConnection
         return $this->getDS()->quote($value);
     }
 
+    private $builder = null;
+    public function getRenderer()
+    {
+        if ( ! $this->builder) {
+            $this->builder = new SQLBuilder(array(
+                "quote_name"=>array($this, "quoteName"),
+                "quote_value"=>array($this, "quoteValue"),
+            ));
+        }
+        return $this->builder;
+    }
+
 // -- トランザクション操作
 
+    private $transaction_nest = 0;
+    public function transaction ($callback, $args=array(), $retry=0)
+    {
+        try {
+            $current_transaction_nest = $this->transaction_nest;
+            $this->transaction_nest++;
+            $this->begin();
+            $result = call_user_func_array($callback, $args);
+            $this->transaction_nest--;
+            if ($this->transaction_nest < 1) $this->commit();
+            return $result;
+        } catch (\Exception $e) {
+            if ($this->transaction_nest > 0) $this->rollback();
+            if ( ! $e instanceof \R\Lib\DBAL\DBRollbackException) throw $e;
+            elseif ($current_transaction_nest > 0) throw $e;
+            return false;
+        }
+    }
     public function begin ()
     {
         $this->getDS()->beginTransaction();
@@ -48,9 +78,15 @@ class DBConnectionDoctrine2 implements DBConnection
     {
         $this->getDS()->commit();
     }
-    public function rollback ()
+    public function rollback ($raise_exception=false)
     {
         $this->getDS()->rollback();
+        if ($this->transaction_nest > 0) {
+            $this->transaction_nest--;
+            if ($raise_exception) {
+                throw new DBRollbackException("Rollback transaction ".$this->transaction_nest);
+            }
+        }
     }
 
 // -- SQL発行

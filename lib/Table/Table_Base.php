@@ -13,81 +13,65 @@ class Table_Base extends Table_Core
      * @hook chain
      * Insert/Update文のValues部を設定する
      */
-    public function chain_values ($values)
+    public function chain_values ($query, $values)
     {
-        $this->query->setValues($values);
+        $query->setValues($values);
     }
     /**
      * @hook chain
      * Select文のField部を指定する
      */
-    public function chain_fields ($fields)
+    public function chain_fields ($query, $fields)
     {
-        $this->query->setFields($fields);
+        $query->setFields($fields);
     }
     /**
      * @hook chain
      * Select文のField部を追加する
      * 何も指定されていなければ"*"を追加する
      */
-    public function chain_with ($col_name, $col_name_sub=false)
+    public function chain_with ($query, $col_name, $col_name_sub=false)
     {
-        if ( ! $this->query->getFields()) $this->query->addField("*");
+        if ( ! $query->getFields()) $query->addField("*");
         if ($col_name_sub === false) {
-            $this->query->addField($col_name);
+            $query->addField($col_name);
         } else {
-            $this->query->addField($col_name, $col_name_sub);
+            $query->addField($col_name, $col_name_sub);
         }
     }
     /**
      * @hook chain
      * FROMに対するAS句の設定
      */
-    public function chain_alias ($alias)
+    public function chain_alias ($query, $alias)
     {
-        $this->query->setAlias($alias);
+        $query->setAlias($alias);
     }
     /**
      * @hook chain
      * JOIN句の設定
      */
-    public function chain_join ($table, $on=array(), $type="LEFT")
+    public function chain_join ($query, $table, $on=array(), $type="LEFT")
     {
         // Tableに変換する
         if (is_array($table)) list($table, $alias) = $table;
         if (is_string($table)) $table = $this->releasable(table($table));
         if ($alias) $table->alias($alias);
-        $this->query->join($table, $on, $type);
-    }
-    /**
-     * @hook chain
-     * JOIN句の設定 主テーブル側が持つ外部キーでJOIN
-     */
-    public function chain_joinBelongsToOld ($table, $fkey=null, $type="LEFT")
-    {
-        // Tableに変換する
-        if (is_array($table)) list($table, $alias) = $table;
-        if (is_string($table)) $table = $this->releasable(table($table));
-        if ($alias) $table->setAlias($alias);
-        // fkeyの設定がなければ、tableのfkey_forを参照
-        if ( ! isset($fkey)) $fkey = $this->getColNameByAttr("fkey_for", $table->getAppTableName());
-        $on = $this->getQueryTableName().".".$fkey
-            ."=".$table->getQueryTableName().".".$table->getIdColName();
-        $this->chain_join($table, $on, $type);
+        $query->join($table, $on, $type);
     }
     /**
      * @hook chain
      * GROUP_BY句の設定
      */
-    public function chain_groupBy ($col_name)
+    public function chain_groupBy ($query, $col_name)
     {
-        $this->query->addGroup($col_name);
+        $query->addGroup($col_name);
     }
     /**
      * @hook chain
      * ORDER_BY句の設定
      */
-    public function chain_orderBy ($col_name, $order=null)
+    public function chain_orderBy ($query, $col_name, $order=null)
     {
         if ($order==="ASC" || $order==="asc" || $order===true) {
             $order = "ASC";
@@ -96,67 +80,67 @@ class Table_Base extends Table_Core
         } else {
             $order = null;
         }
-        $this->query->addOrder($col_name.(strlen($order) ? " ".$order : ""));
+        $query->addOrder($col_name.(strlen($order) ? " ".$order : ""));
     }
     /**
      * @hook chain
      * OFFSET/LIMIT句の設定
      */
-    public function chain_pagenate ($offset=false, $limit=false)
+    public function chain_pagenate ($query, $offset=false, $limit=false)
     {
         if ($offset !== false) {
-            $this->query->setOffset($offset);
+            $query->setOffset($offset);
         }
         if ($limit !== false) {
-            $this->query->setLimit($limit);
+            $query->setLimit($limit);
         }
     }
     /**
      * @hook chain
      * LIMIT句の設定
      */
-    public function chain_limit ($limit, $offset=0)
+    public function chain_limit ($query, $limit, $offset=0)
     {
-        $this->query->setLimit($limit);
-        $this->query->setOffset($offset);
+        $query->setLimit($limit);
+        $query->setOffset($offset);
     }
     /**
      * @hook chain
      * IDを条件に指定する
      */
-    public function chain_findById ($id)
+    public function chain_findById ($query, $id)
     {
-        $this->query->where($this->getQueryTableName().".".$this->getIdColName("id"), $id);
+        $query->where($this->getQueryTableName().".".$this->getIdColName("id"), $id);
     }
     /**
      * @hook chain
      * 絞り込み条件を指定する
      */
-    public function chain_findBy ($col_name, $value=false)
+    public function chain_findBy ($query, $col_name, $value=false)
     {
-        $this->query->where($col_name, $value);
+        $query->where($col_name, $value);
     }
     /**
      * @hook chain
      * 絞り込み条件にEXSISTSを指定する
      */
-    public function chain_findByExists ($table)
+    public function chain_findByExists ($query, $table)
     {
-        $this->query->where("EXISTS(".$table->buildQuery("select").")");
+        $query->where("EXISTS(".$table->buildQuery("select").")");
     }
     /**
      * @hook chain
      * 絞り込み結果を空にする
      */
-    public function chain_findNothing ()
+    public function chain_findNothing ($query)
     {
-        $this->query->addWhere("0=1");
+        $query->addWhere("0=1");
     }
     /**
      * 検索フォームによる絞り込み
      * search_typeXxx($form, $field_def, $value)メソッドを呼び出す
      */
-    public function chain_findBySearchFields ($form, $search_fields)
+    public function chain_findBySearchFields ($query, $form, $search_fields)
     {
         // 適用済みフラグ
         $applied = false;
@@ -182,7 +166,7 @@ class Table_Base extends Table_Core
                     "search_method_name" => $search_method_name, "table" => $this,
                 ));
             }
-            $result = call_user_func(array($this,$search_method_name), $form, $field_def, $value);
+            $result = call_user_func(array($this,$search_method_name), $query, $form, $field_def, $value);
             if ($result!==false) $applied = true;
         }
         foreach ($yields as $yield) {
@@ -193,7 +177,7 @@ class Table_Base extends Table_Core
                     "search_method_name" => $search_method_name, "table" => $this,
                 ));
             }
-            $result = call_user_func(array($this,$search_method_name), $form, $yield);
+            $result = call_user_func(array($this,$search_method_name), $query, $form, $yield);
             if ($result!==false) $applied = true;
         }
         return $applied;
@@ -202,18 +186,18 @@ class Table_Base extends Table_Core
      * @hook chain
      * offset/limit指定を削除する
      */
-    public function chain_removePagenation ()
+    public function chain_removePagenation ($query)
     {
-        $this->query->removeOffset();
-        $this->query->removeLimit();
+        $query->removeOffset();
+        $query->removeLimit();
     }
     /**
      * @hook chain
      * Queryを操作する関数を指定する
      */
-    public function chain_modifyQuery ($callback)
+    public function chain_modifyQuery ($query, $callback)
     {
-        call_user_func($callback, $this->query);
+        call_user_func($callback, $query);
     }
 
 // -- 基本的なresultに対するHook
@@ -441,6 +425,7 @@ class Table_Base extends Table_Core
                 $values[key($values)][$assoc_id_col] = current($delete_assoc_ids);
             }
             foreach ((array)$values as $key => $record) {
+                if ($record instanceof \ArrayObject) $record = $record->getArrayCopy();
                 // 入力レコードのIDが空白で無ければ、削除対象から除外
                 if (strlen($record[$assoc_id_col])) {
                     unset($delete_assoc_ids[$record[$assoc_id_col]]);
@@ -476,14 +461,14 @@ class Table_Base extends Table_Core
      * @hook on_write
      * ハッシュされたパスワードを関連づける
      */
-    protected function on_write_hashPw ()
+    protected function on_write_hashPw ($query)
     {
         if ($col_name = $this->getColNameByAttr("hash_pw")) {
-            $value = $this->query->getValue($col_name);
+            $value = $query->getValue($col_name);
             if (strlen($value)) {
-                $this->query->setValue($col_name, app()->security->passwordHash($value));
+                $query->setValue($col_name, app()->security->passwordHash($value));
             } else {
-                $this->query->removeValue($col_name);
+                $query->removeValue($col_name);
             }
         } else {
             return false;
@@ -493,13 +478,13 @@ class Table_Base extends Table_Core
      * @hook on_write
      * notnullでdefault値があるカラムにNULLを入れた際に値を補完する
      */
-    protected function on_write_setDefaultValueInNotnull ()
+    protected function on_write_setDefaultValueInNotnull ($query)
     {
         $result = false;
-        foreach ((array)$this->query->getValues() as $col_name=>$value) {
+        foreach ((array)$query->getValues() as $col_name=>$value) {
             if ($value === null) {
                 if (static::$cols[$col_name]["notnull"] && isset(static::$cols[$col_name]["default"])) {
-                    $this->query->setValue($col_name, static::$cols[$col_name]["default"]);
+                    $query->setValue($col_name, static::$cols[$col_name]["default"]);
                     $result = true;
                 }
             }
@@ -510,10 +495,10 @@ class Table_Base extends Table_Core
      * @hook on_read
      * 削除フラグを関連づける
      */
-    protected function on_read_attachDelFlg ()
+    protected function on_read_attachDelFlg ($query)
     {
         if ($col_name = $this->getColNameByAttr("del_flg")) {
-            $this->query->where($this->getQueryTableName().".".$col_name, 0);
+            $query->where($this->getQueryTableName().".".$col_name, 0);
         } else {
             return false;
         }
@@ -522,11 +507,11 @@ class Table_Base extends Table_Core
      * @hook on_update
      * 削除フラグを関連づける
      */
-    protected function on_update_attachDelFlg ()
+    protected function on_update_attachDelFlg ($query)
     {
-        if (($col_name = $this->getColNameByAttr("del_flg")) && $this->query->getDelete()) {
-            $this->query->setDelete(false);
-            $this->query->setValue($col_name, 1);
+        if (($col_name = $this->getColNameByAttr("del_flg")) && $query->getDelete()) {
+            $query->setDelete(false);
+            $query->setValue($col_name, 1);
         } else {
             return false;
         }
@@ -535,10 +520,10 @@ class Table_Base extends Table_Core
      * @hook on_insert
      * 登録日を関連づける
      */
-    protected function on_insert_attachRegDate ()
+    protected function on_insert_attachRegDate ($query)
     {
         if ($col_name = $this->getColNameByAttr("reg_date")) {
-            $this->query->setValue($col_name, date("Y/m/d H:i:s"));
+            $query->setValue($col_name, date("Y/m/d H:i:s"));
         } else {
             return false;
         }
@@ -547,10 +532,10 @@ class Table_Base extends Table_Core
      * @hook on_write
      * 更新日を関連づける
      */
-    protected function on_write_attachUpdateDate ()
+    protected function on_write_attachUpdateDate ($query)
     {
         if ($col_name = $this->getColNameByAttr("update_date")) {
-            $this->query->setValue($col_name, date("Y/m/d H:i:s"));
+            $query->setValue($col_name, date("Y/m/d H:i:s"));
         } else {
             return false;
         }
@@ -559,16 +544,16 @@ class Table_Base extends Table_Core
      * @hook on_insert
      * ランダム文字列からIDを生成
      */
-    protected function on_insert_generatorRandString_100 ()
+    protected function on_insert_generatorRandString_100 ($query)
     {
         if ($col_name = $this->getColNameByAttr("generator", "rand_string")) {
-            if ($this->query->getValue($col_name) !== null) return false;
+            if ($query->getValue($col_name) !== null) return false;
             $col_def = $this->getColDef($col_name);
             $length = $col_def["length"] ?: 32;
             $chars = str_split('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
             $value = "";
             for ($i=0; $i<$length; $i++) $value .= $chars[array_rand($chars)];
-            $this->query->setValue($col_name, $value);
+            $query->setValue($col_name, $value);
         } else {
             return false;
         }
@@ -577,16 +562,16 @@ class Table_Base extends Table_Core
      * @hook on_write
      * id_initの値からIDを生成
      */
-    protected function on_write_generatorIdInit_100 ()
+    protected function on_write_generatorIdInit_100 ($query)
     {
         if ($col_name = $this->getColNameByAttr("generator", "id_init")) {
             $col_def = $this->getColDef($col_name);
             $id_init_col_name = $col_def["id_init_col"] ?: "id_init";
-            $value = $this->query["values"][$id_init_col_name];
-            unset($this->query["values"][$id_init_col_name]);
-            if ($this->query->getType() == "update") return true;
-            if ($this->query->getValue($col_name) !== null) return true;
-            $this->query->setValue($col_name, $value);
+            $value = $query["values"][$id_init_col_name];
+            $query->removeValue($id_init_col_name);
+            if ($query->getType() == "update") return true;
+            if ($query->getValue($col_name) !== null) return true;
+            $query->setValue($col_name, $value);
         } else {
             return false;
         }
@@ -814,13 +799,13 @@ class Table_Base extends Table_Core
      * @hook on_write
      * JSON形式で保存するカラムの処理
      */
-    protected function on_write_jsonFormat_700 ()
+    protected function on_write_jsonFormat_700 ($query)
     {
         if ($col_names = $this->getColNamesByAttr("format", "json")) {
             foreach ($col_names as $col_name) {
-                $value = $this->query->getValue($col_name);
+                $value = $query->getValue($col_name);
                 if (is_array($value)) {
-                    $this->query->setValue($col_name, json_encode((array)$value));
+                    $query->setValue($col_name, json_encode((array)$value));
                 }
             }
         } else {
@@ -848,18 +833,18 @@ class Table_Base extends Table_Core
      * @hook on_write
      * GEOMETRY型の入出力変換
      */
-    protected function on_write_geometryType_700 ()
+    protected function on_write_geometryType_700 ($query)
     {
         $result = false;
         foreach ($this->getColNamesByAttr("type", "geometry") as $col_name) {
-            $value = $this->query->getValue($col_name);
+            $value = $query->getValue($col_name);
             if (isset($value)) {
                 if (preg_match('!\d+(\.\d+)?\s*,\s*\d+(\.\d+)?!', $value, $match)) {
-                    $this->query->removeValue($col_name);
-                    $this->query->setValue($col_name."=", 'POINT('.$match[0].')');
+                    $query->removeValue($col_name);
+                    $query->setValue($col_name."=", 'POINT('.$match[0].')');
                     $result = true;
                 } else {
-                    $this->query->setValue($col_name, null);
+                    $query->setValue($col_name, null);
                     $result = true;
                 }
             }
@@ -914,30 +899,28 @@ class Table_Base extends Table_Core
     /**
      * assoc処理 insert/updateの発行前
      */
-    protected function on_write_assoc ()
+    protected function on_write_assoc ($query)
     {
-        $assoc_values = array();
-        foreach ((array)$this->query->getValues() as $col_name => $value) {
+        foreach ((array)$query->getValues() as $col_name => $value) {
             if (static::$cols[$col_name]["assoc"]) {
                 // values→assoc_valuesに項目を移動
-                $this->query->removeValue($col_name);
-                $assoc_values[$col_name] = $value;
+                $query->removeValue($col_name);
+                $query->setAssocValues($col_name, $value);
                 // assoc処理の呼び出し
                 $this->callAssocHookMethod("assoc_write", $col_name);
             }
         }
-        $this->query["assoc_values"] = $assoc_values;
-        return $this->query["assoc_values"] ? true : false;
+        return $query->getAssocValues() ? true : false;
     }
     /**
      * assoc処理 insert/updateの発行後
      */
-    protected function on_afterWrite_assoc ($result)
+    protected function on_afterWrite_assoc ($query, $result)
     {
-        foreach ((array)$this->query["assoc_values"] as $col_name => $values) {
-            $this->callAssocHookMethod("assoc_afterWrite", $col_name, array($result, $values));
+        foreach ((array)$query->getAssocValues() as $col_name => $values) {
+            $this->callAssocHookMethod("assoc_afterWrite", $col_name, array($query, $result, $values));
         }
-        return $this->query["assoc_values"] ? true : false;
+        return $query->getAssocValues() ? true : false;
     }
 
 // -- 基本的なassoc hookの定義
@@ -968,7 +951,7 @@ class Table_Base extends Table_Core
     {
         return $record->getResult()->mergeAssoc($col_name, static::$cols[$col_name]["assoc"]);
     }
-    protected function assoc_afterWrite_hasMany ($col_name, $result, $values)
+    protected function assoc_afterWrite_hasMany ($col_name, $query, $result, $values)
     {
         return $result->affectAssoc($col_name, static::$cols[$col_name]["assoc"], $values);
     }
@@ -979,7 +962,7 @@ class Table_Base extends Table_Core
      * @hook search where
      * 一致、比較、IN（値を配列指定）
      */
-    public function search_typeWhere ($form, $field_def, $value)
+    public function search_typeWhere ($query, $form, $field_def, $value)
     {
         if ( ! isset($value)) return false;
         // 対象カラムは複数指定に対応
@@ -990,15 +973,16 @@ class Table_Base extends Table_Core
             $conditions_or[$i] = array($target_col => $value);
         }
         if (count($conditions_or)==0) return false;
-        $query_part = $field_def["having"] ? "having" : "where";
-        if (count($conditions_or)==1) $this->query[$query_part][] = array_pop($conditions_or);
+        if (count($conditions_or)==1) $conditions_or = array_pop($conditions_or);
         // 複数のカラムが有効であればはORで接続
-        elseif (count($conditions_or)>1) $this->query[$query_part][] = array("OR"=>$conditions_or);
+        elseif (count($conditions_or)>1) $conditions_or = array("OR"=>$conditions_or);
+        if ($field_def["having"]) $query->addHaving($conditions_or);
+        else $query->addWhere($conditions_or);
     }
     /**
      * @hook search word
      */
-    public function search_typeWord ($form, $field_def, $value)
+    public function search_typeWord ($query, $form, $field_def, $value)
     {
         if ( ! isset($value)) return false;
         // 対象カラムは複数指定に対応
@@ -1015,28 +999,30 @@ class Table_Base extends Table_Core
             }
         }
         if (count($conditions_or)==0) return false;
-        $query_part = $field_def["having"] ? "having" : "where";
-        if (count($conditions_or)==1) $this->query[$query_part][] = array_pop($conditions_or);
+        if (count($conditions_or)==1) $conditions_or = array_pop($conditions_or);
         // 複数のカラムが有効であればはORで接続
-        elseif (count($conditions_or)>1) $this->query[$query_part][] = array("OR"=>$conditions_or);
+        elseif (count($conditions_or)>1) $conditions_or = array("OR"=>$conditions_or);
+        // HAVINGまたはWHEREに追加
+        if ($field_def["having"]) $query->addHaving($conditions_or);
+        else $query->addWhere($conditions_or);
     }
     /**
      * @deprecated search_yieldExists
      * @hook search exists
      * 別Tableをサブクエリとして条件指定する
      */
-    public function search_typeExists ($form, $field_def, $value)
+    public function search_typeExists ($query, $form, $field_def, $value)
     {
         if ( ! isset($value)) return false;
         $table = $this->releasable(table($field_def["search_table"]));
         $table->findBy($this->getQueryTableName().".".$this->getIdColName()."=".$table->getQueryTableName().".".$field_def["fkey"]);
         $table->findBySearchFields($form, $field_def["search_fields"]);
-        $this->query->where("EXISTS(".$table->buildQuery("select").")");
+        $query->where("EXISTS(".$table->buildQuery("select").")");
     }
     /**
      * @hook search sort
      */
-    public function search_typeSort ($form, $field_def, $value)
+    public function search_typeSort ($query, $form, $field_def, $value)
     {
         $cols = array();
         // @deprecated 旧仕様との互換処理
@@ -1064,27 +1050,27 @@ class Table_Base extends Table_Core
         }
         // 複数指定に対応
         if ( ! is_array($value)) $value = array($value);
-        foreach ($value as $a_value) $this->query->addOrder($a_value);
+        foreach ($value as $a_value) $query->addOrder($a_value);
     }
     /**
      * @hook search page
      */
-    public function search_typePage ($form, $field_def, $value)
+    public function search_typePage ($query, $form, $field_def, $value)
     {
         // 1ページの表示件数
         $volume = $field_def["volume"];
         // 指定済みのlimitにより補完, 指定が無ければ20件とみなす
-        if ( ! $volume) $volume = $this->query->getLimit() ?: 20;
+        if ( ! $volume) $volume = $query->getLimit() ?: 20;
         // 1ページ目
         if ( ! $value) $value = 1;
-        $this->query->setOffset(($value-1)*$volume);
-        $this->query->setLimit($volume);
+        $query->setOffset(($value-1)*$volume);
+        $query->setLimit($volume);
     }
     /**
      * @hook search_yield exists
      * 別Tableをサブクエリとして条件指定する
      */
-    public function search_yieldExists ($form, $yield)
+    public function search_yieldExists ($query, $form, $yield)
     {
         $table = $this->releasable(table($yield["table"]));
         if ($yield["on"]) {
@@ -1095,8 +1081,8 @@ class Table_Base extends Table_Core
         }
         if ($yield["joins"]) foreach ($yield["joins"] as $join) $table->join($join);
         if ($yield["where"]) $table->findBy($yield["where"]);
-        $result = $table->chain_findBySearchFields($form, $yield["search_fields"]);
-        if ($result) $this->query->where("EXISTS(".$table->buildQuery("select").")");
+        $result = $table->findBySearchFields($form, $yield["search_fields"]);
+        if ($result) $query->where("EXISTS(".$table->buildQuery("select").")");
     }
 
 // -- 基本的な認証処理の定義
@@ -1127,9 +1113,10 @@ class Table_Base extends Table_Core
     }
     /**
      * @hook chain
+     * @deprecated authByLoginIdPw passwordVerifyへの整合のため
      * ログインID/PWを条件に指定する
      */
-    public function chain_findByLoginIdPw ($login_id, $login_pw)
+    public function chain_findByLoginIdPw ($query, $login_id, $login_pw)
     {
         $login_id_col_name = $this->getColNameByAttr("login_id");
         $login_pw_col_name = $this->getColNameByAttr("login_pw");
@@ -1141,14 +1128,14 @@ class Table_Base extends Table_Core
         if (static::$cols[$login_pw_col_name]["hash_pw"]) {
             $login_pw = app()->security->passwordHash($login_pw);
         }
-        $this->query->where($this->getQueryTableName().".".$login_id_col_name, (string)$login_id);
-        $this->query->where($this->getQueryTableName().".".$login_pw_col_name, (string)$login_pw);
+        $query->where($this->getQueryTableName().".".$login_id_col_name, (string)$login_id);
+        $query->where($this->getQueryTableName().".".$login_pw_col_name, (string)$login_pw);
     }
     /**
      * @hook chain
      * 現在のRoleのTableに対して所有関係があることを条件として指定する
      */
-    public function chain_findMine ()
+    public function chain_findMine ($query)
     {
         $role = app()->user->getCurrentRole();
         $result = app()->user->onFindMine($role, $this);
@@ -1182,7 +1169,7 @@ class Table_Base extends Table_Core
             // ログイン中のID = 主キーを条件に追加する
             $table->query->where($table->getQueryTableName().".".$table->getIdColName(), $user_id);
         // 関係先を経由して条件を指定
-        } elseif ($table->chain_findByRoute($role_table_name, $user_id)) {
+        } elseif ($table->findByRoute($role_table_name, $user_id)) {
             //
         } else {
             report_warning("無効なfindMine, 所有関係を示す経路がありません",
@@ -1211,7 +1198,7 @@ class Table_Base extends Table_Core
             if ($fkey_col_name) $table->query->setValue($fkey_col_name, $user_id);
             // Updateが発行される場合、関係先を探索して条件に追加
             if ($table->query->getValue($id_col_name)) {
-                $table->chain_findByRoute($role_table_name, $user_id);
+                $table->findByRoute($role_table_name, $user_id);
             // Insertであり、直接関係がない場合エラー
             } elseif ( ! $fkey_col_name) {
                 report_warning("無効なsaveMine, 直接関係がなければ新規作成を行う条件の指定は出来ません",
@@ -1233,7 +1220,7 @@ class Table_Base extends Table_Core
      * @param string $col_name 値を対応づけるカラム名。指定がない場合、主キーを対応づける
      * @return bool
      */
-    public function chain_findByRoute($target_table_name, $value, $col_name=false)
+    public function chain_findByRoute($query, $target_table_name, $value, $col_name=false)
     {
         // 経路を取得
         $self_table_name = $this->getAppTableName();
@@ -1251,7 +1238,7 @@ class Table_Base extends Table_Core
             // 目的関係先の主キーを条件に登録する場合、経由先を使用するのでJOIN不要
             if ($edge[2] == $target_table_name && $col_name===false) {
                 // 最終経由先の外部キー＝値を条件に指定する
-                $this->query->where($edge[0].".".$edge[1], $value);
+                $query->where($edge[0].".".$edge[1], $value);
             // 経由関係先への参照は、JOINを指定する
             } else {
                 $join_table = $this->releasable(table($edge[2]));
@@ -1259,17 +1246,17 @@ class Table_Base extends Table_Core
                 if ($edge["as"]) $join_table->alias($edge["as"]);
                 $join_table_name = $join_table->getQueryTableName();
                 // Join済みであれば以降は対応付けを行わない
-                if ($this->query->getJoinByName($join_table_name)) break;
+                if ($query->getJoinByName($join_table_name)) break;
                 $on = array($edge[0].".".$edge[1]."=".$join_table_name.".".$edge[3]);
                 // 目的関係先の主キー以外のカラム＝値を条件に指定する
                 if ($edge[2] == $target_table_name && $col_name!==false) {
                     $on[] = array($join_table_name.".".$col_name, $value);
                 }
                 // 経由関係先をJoin登録する
-                $this->query->join($join_table, $on);
+                $query->join($join_table, $on);
             }
             // 追加条件を指定する
-            if ($edge[4]) $this->query->where($edge[4]);
+            if ($edge[4]) $query->where($edge[4]);
         }
         return true;
     }
@@ -1277,7 +1264,7 @@ class Table_Base extends Table_Core
      * @hook chain
      * JOIN句の設定 主テーブル側が持つ外部キーでJOIN
      */
-    public function chain_joinBelongsTo ($target_table_name, $fkey=false)
+    public function chain_joinBelongsTo ($query, $target_table_name, $fkey=false)
     {
         if (is_array($target_table_name)) list($target_table_name, $target_as) = $target_table_name;
         // 経路を取得
@@ -1295,12 +1282,12 @@ class Table_Base extends Table_Core
             elseif ($edge["as"]) $join_table->alias($edge["as"]);
             $join_table_name = $join_table->getQueryTableName();
             // Join済みであれば以降は対応付けを行わない
-            if ($this->query->getJoinByName($join_table_name)) break;
+            if ($query->getJoinByName($join_table_name)) break;
             $on = array($edge[0].".".$edge[1]."=".$join_table_name.".".$edge[3]);
             // 経由関係先をJoin登録する
-            $this->query->join($join_table, $on);
+            $query->join($join_table, $on);
             // 追加条件を指定する
-            if ($edge[4]) $this->query->where($edge[4]);
+            if ($edge[4]) $query->where($edge[4]);
         }
         return true;
     }

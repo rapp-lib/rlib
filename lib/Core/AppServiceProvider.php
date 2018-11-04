@@ -42,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
         '\R\Lib\Doc\DocServiceProvider',
         '\R\Lib\View\ViewServiceProvider',
         '\R\Lib\Mail\MailServiceProvider',
+        '\R\Lib\Table\TableServiceProvider',
     );
     public function register()
     {

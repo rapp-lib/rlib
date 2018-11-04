@@ -80,6 +80,7 @@ class Table_Core
         // chain_メソッドの呼び出し
         $chain_method_name = "chain_".$method_name;
         if (method_exists($this, $chain_method_name)) {
+            array_unshift($args, $this->query);
             call_user_func_array(array($this,$chain_method_name),$args);
             return $this;
         }
@@ -292,7 +293,7 @@ class Table_Core
         // 結果セットの残りがなければ完了済みとする
         if ( ! $data) {
             // on_fetchEnd_*を呼び出す
-            $this->callListenerMethod("fetchEnd");
+            $this->callListenerMethod("fetchEnd", array($result));
 
             app("events")->fire("table.fetch_end", array($this, $this->statement, $result));
 
@@ -303,7 +304,7 @@ class Table_Core
         $record = $result->createRecord();
         $record->hydrate($data);
         // on_fetch_*を呼び出す
-        $this->callListenerMethod("fetch",array($record));
+        $this->callListenerMethod("fetch", array($record));
         return $record;
     }
     /**
@@ -316,7 +317,7 @@ class Table_Core
     {
         foreach ($result as $i=>$record) unset($result[$i]);
         $record = $result->fetch();
-        if ($record) $this->callListenerMethod("fetchEnd");
+        if ($record) $this->callListenerMethod("fetchEnd", array($result));
         return $record;
     }
     /**
@@ -643,7 +644,7 @@ class Table_Core
         }
         // on_afterWrite_*を呼び出す
         if ($type=="insert" || $type=="update") {
-            $this->callListenerMethod("afterWrite",array($result));
+            $this->callListenerMethod("afterWrite", array($this->query, $result));
         }
         // Trunsactionの自動完了
         if (static::$auto_commit && $this->in_transaction==="begin") $this->commit();
@@ -682,7 +683,7 @@ class Table_Core
         // 全て
         $hooks[] = "any";
         // 呼び出す
-        $this->callListenerMethod($hooks,array());
+        $this->callListenerMethod($hooks,array($this->query));
     }
     /**
      * on hookメソッドを呼び出す

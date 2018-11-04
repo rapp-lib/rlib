@@ -64,4 +64,11 @@ class Record extends ArrayObject
     {
         return new \ArrayIterator($this->getArrayCopy());
     }
+    /**
+     * @getter
+     */
+    public function __report()
+    {
+        return $this->getArrayCopy();
+    }
 }

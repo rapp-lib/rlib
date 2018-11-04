@@ -60,6 +60,23 @@ class EventCollector extends TimeDataCollector
             report_info("Emit Response", array(
                 "response" => $response,
             ), "App");
+        } elseif ($name==="table.executed") {
+            list($statement, $result_res, $start_ms) = $args;
+            $elapsed_ms = round((microtime(true) - $start_ms)*1000, 2);
+            if (app()->config["app.debug"]) {
+                if ($result_res) {
+                    list($warn, $info) = $this->analyzeExceutedStatement($statement, $elapsed_ms);
+                }
+                report_info('SQL Exec : '.$statement, array(
+                    "Query"=>$statement->getQuery(),
+                    "Info"=>$info,
+                ), "SQL");
+                if ($warn) {
+                    report_warning("SQL Warn : ".implode(' , ',$warn), array(
+                        "Statement"=>"".$statement,
+                    ), "SQL");
+                }
+            }
         } elseif ($name==="table.fetch_end") {
             list($table, $statement, $result) = $args;
             report_info("Fetch End ".$table->getAppTableName()."[".count($result)."] : ".$statement, array(
@@ -183,5 +200,73 @@ class EventCollector extends TimeDataCollector
             'body' => $bodies,
             'header' => explode("\n", "".$headers),
         );
+    }
+    /**
+     * SQL発行結果の解析
+     */
+    private function analyzeExceutedStatement($statement, $elapsed_ms)
+    {
+        try {
+            $db = $statement->getQuery()->getDef()->getConnection();
+            if ($statement->getQuery()->getType()==="select") {
+                if ($db->getConfig("driver")==="pdo_mysql") {
+                    $explain = $db->fetch($db->exec("EXPLAIN ".$statement));
+                    list($warn, $info) = $this->analyzeMysqlExplain($explain);
+                }
+            }
+        } catch (\PDOException $e) {
+            $warn[] = "EXPLAIN Failed : ".$e->getMessage();
+        }
+        if ($elapsed_ms && $elapsed_ms>1000) {
+            $warn[] = "Slow SQL tooks ".$elapsed_ms."ms";
+        }
+        return array($warn, $info);
+    }
+    /**
+     * MySQL Explainの解析
+     */
+    private function analyzeMysqlExplain($explain)
+    {
+        $warn = $info = array();
+        foreach ($explain as $t) {
+            // 1行EXPLAINの構築
+            $info["short_explain"]["#".$t["id"]] = $t["table"]." ".$t["type"]."/".$t["select_type"]." ".$t["Extra"];
+            // テーブル規模の決定
+            $target_scale = "midium";
+            $table_name = app("table.def_resolver")->getTableNameByDefTableName($t["table"]);
+            if ($table_name) {
+                $target_scale = app()->tables[$table_name]->getDefAttr("target_scale");
+            }
+            if (is_numeric($target_scale)) {
+                $target_scale = "xlarge";
+                $scales = array("small"=>100, "midium"=>10000, "large"=>100000);
+                foreach ($scales as $k=>$v) if ($target_scale<=$v) $target_scale = $k;
+            }
+            // EXPLAINからパラメータを抽出する
+            $t["Extra"] = array_map("trim",explode(';',$t["Extra"]));
+            $is_seq_scan = $t["type"] == "ALL" || $t["type"] == "index";
+            $is_no_possible_keys = ! $t["possible_keys"] && ! $t["key"];
+            $is_dep_sq = $t["select_type"] == "DEPENDENT SUBQUERY";
+            $is_seq_join = in_array("Using join buffer", $t["Extra"]);
+            $is_using_where = in_array("Using where", $t["Extra"]);
+            // テーブル規模対パラメータから警告を構成する
+            $msg = "";
+            if ($target_scale=="small") {
+            } elseif ($target_scale=="midium") {
+                if ($is_using_where && $is_seq_scan) {
+                    if ($is_no_possible_keys) {
+                        $msg = "INDEXが設定されていないWHERE句";
+                    }
+                }
+            } else {
+                if ($is_seq_scan && $is_using_where) {
+                    if ($is_dep_sq) $msg = "INDEXが適用されない相関サブクエリ";
+                    elseif ($is_seq_join) $msg = "INDEXが適用されないJOIN";
+                    else $msg = "全件走査になるWHERE句";
+                }
+            }
+            if ($msg) $warn[] = $msg." on ".$t["table"];
+        }
+        return array($warn, $info);
     }
 }

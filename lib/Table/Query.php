@@ -8,10 +8,10 @@ class Query extends ArrayObject
     static $keys = array(
         // DB名
         "dbname" => null,
+        // select/insert/updateのSQL文の種類
+        "type" => array(),
         // FROM/INTO句に指定される実テーブル名
         "table" => array(),
-        // AS句で指定されるテーブルの別名、Hydrate時にも参照される
-        // "alias" => array(),
         // JOIN句
         "joins" => array(),
         // SELECT構文の各SQL句
@@ -26,10 +26,10 @@ class Query extends ArrayObject
         // UPDATE文のSET句、INSERT文のINTO/VALUES句
         "values" => array(),
 
-        // select/insert/updateのSQL文の種類
-        "type" => array(),
-        // trueであればUPDATE文をDELETE文に変換する
         "delete" => array(),
+        "assoc_values" => array(),
+        "attrs" => array(),
+        "skip_before_render"=>array(),
     );
 
     /**
@@ -45,7 +45,7 @@ class Query extends ArrayObject
             if ($key=="field") { $key = "fields"; }
             if ($key=="value") { $key = "values"; }
             if ($key=="join") { $key = "joins"; }
-            if ($key=="where") { $key = "where"; }
+            if ($key=="attr") { $key = "attrs"; }
 
             if ( ! array_key_exists($key, static::$keys)) {
                 report_error("メソッドの定義がありません",array(

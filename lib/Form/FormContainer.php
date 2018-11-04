@@ -905,9 +905,9 @@ class FormContainer extends ArrayObject
                     $def_table_rules[] = $rule;
                 }
             }
+            // TableのRuleを登録
+            foreach ($def_table_rules as $rule) $def["rules"][] = $rule;
         }
-        // TableのRuleを登録
-        foreach ($def_table_rules as $rule) $def["rules"][] = $rule;
         // 補完済みのdefを返す
         return $def;
     }

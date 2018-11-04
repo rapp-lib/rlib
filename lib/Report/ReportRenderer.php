@@ -249,8 +249,9 @@ class ReportRenderer
     /**
      * 値を見やすい配列に変換
      */
-    public static function compactValue($value)
+    public static function compactValue($value, $level=0)
     {
+        if ($level>20) return "*LEVEL_LIMIT_OVER*";
         $r = null;
         if (is_array($value) || is_object($value)) {
             if ($value instanceof \ArrayObject) {
@@ -268,7 +269,7 @@ class ReportRenderer
                 foreach(array_slice((array)$value, -$limit, $limit, true) as $k=>$v) $value_copy[$k] = $v;
                 $value = $value_copy;
             }
-            foreach ($value as $k=>$v) $r[$k] = self::compactValue($v);
+            foreach ($value as $k=>$v) $r[$k] = self::compactValue($v, $level+1);
         /*
         if (is_array($value) || ($value instanceof \ArrayObject)) {
             if (is_object($value)) {
@@ -317,7 +318,14 @@ class ReportRenderer
                 && (is_callable($cb = $bts[$i-1]["args"][0]))) {
                 if (is_string($cb) && preg_match('!^(.*?)::(.*?)$!', $cb, $match)) $cb = array($match[1], $match[2]);
                 try {
-                    $ref = is_array($cb) ? new \ReflectionMethod($cb[0], $cb[1]) : new \ReflectionFunction($cb);
+                    if (is_array($cb)) $ref = new \ReflectionMethod($cb[0], $cb[1]);
+                    elseif (is_string($cb) || $cd instanceof \Closure) {
+                        $ref =new \ReflectionFunction($cb);
+                    } elseif (is_object($cb) && method_exists($cb, "__invoke")) {
+                        $ref = new \ReflectionMethod($cb, "__invoke");
+                    } else {
+                        report_error("解析不能");
+                    }
                     $bt["file"] = $ref->getFileName();
                     $bt["line"] = $ref->getStartLine();
                 } catch (\Exception $e) {
