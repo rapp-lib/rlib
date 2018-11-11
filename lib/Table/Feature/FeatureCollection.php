@@ -46,10 +46,10 @@ class FeatureCollection
     /**
      * Pluginクラスの登録
      */
-    public function registerPlugin($class)
+    public function registerProvider($class)
     {
         if ( ! is_object($class)) $class = app()->make($class);
-        $class->registerPlugin($this);
+        $class->register($this);
     }
 
 // -- 呼び出し
@@ -101,8 +101,7 @@ class FeatureCollection
         });
 
         // Feature呼び出し処理
-        $callback = $hook_point_def["callback"] ?: array($this, "defaultHookPointCallback");
-        return call_user_func($callback, $feature_defs, $args);
+        return call_user_func($hook_point_def["callback"], $feature_defs, $args);
     }
     /**
      * 名前を指定してFeatureを呼び出す
@@ -110,20 +109,6 @@ class FeatureCollection
     public function call($hook_point, $feature_name, $args)
     {
         return $this->emit($hook_point, $args, array("feature_name"=>$feature_name));
-    }
-    /**
-     * 基本HookPointCallback（Feature呼び出し）処理
-     */
-    public function defaultHookPointCallback($feature_defs, $args)
-    {
-        $return = null;
-        foreach ($feature_defs as $feature_def) {
-            $args_copy = $args;
-            $args_copy[] = $feature_def;
-            $args_copy[] = $return;
-            $return = call_user_func_array($feature_def["callback"], $args_copy);
-        }
-        return $return;
     }
     /**
      * Middlewareの適用処理

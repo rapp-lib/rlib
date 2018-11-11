@@ -10,8 +10,6 @@ class TableServiceProvider extends ServiceProvider
         $this->app->singleton("tables", $ns.'\Def\TableDefCollection');
         $this->app->singleton("table.def_resolver", $ns.'\Def\TableDefResolver');
         $this->app->bind("table.def", $ns.'\Def\TableDef');
-        $this->app->singleton("table.features", $ns.'\Feature\FeatureCollection');
-        $this->app->bind("table.callable_attr_set", $ns.'\Feature\CallableAttrSet');
         $this->app->bind("table.query_builder", $ns.'\Query\Builder');
         $this->app->bind("table.query_payload", $ns.'\Query\Payload');
         $this->app->bind("table.query_pager", $ns.'\Query\Pager');
@@ -20,5 +18,13 @@ class TableServiceProvider extends ServiceProvider
         $this->app->bind("table.query_record", $ns.'\Query\Record');
         $this->app->bind("table.query_result_pager", $ns.'\Query\ResultPager');
         $this->app->bind("table.query_executer", $ns.'\Query\Executer');
+        $this->app->singleton("table.features", $ns.'\Feature\FeatureCollection');
+        $this->app->bind("table.feature_std_provider", $ns.'\Feature\StdFeatureProvider');
+    }
+    public function boot()
+    {
+        $providers = (array)$this->app->config["table.feature_providers"];
+        array_unshift($providers, $this->app["table.feature_std_provider"]);
+        foreach ($providers as $provider) $this->app["table.features"]->registerProvider($provider);
     }
 }

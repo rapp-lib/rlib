@@ -1,7 +1,8 @@
 <?php
-namespace R\Lib\Table\Plugin;
+namespace R\Lib\Table\Feature\Provider;
+use R\Lib\Table\Feature\BaseFeatureProvider;
 
-class StdSearchProvider extends BasePluginProvider
+class SearchFeature extends BaseFeatureProvider
 {
     /**
      * 検索フォームによる絞り込み

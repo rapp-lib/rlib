@@ -10,6 +10,7 @@
 
     function table ($table_name)
     {
+        if (app()->config["app.switch.new_table"]) return app()->tables[$table_name];
         return app()->table($table_name);
     }
     function ___ ($key, $values=array(), $locale=null)

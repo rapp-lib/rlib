@@ -1,7 +1,8 @@
 <?php
-namespace R\Lib\Table\Plugin;
+namespace R\Lib\Table\Feature\Provider;
+use R\Lib\Table\Feature\BaseFeatureProvider;
 
-class StdResultProvider extends BasePluginProvider
+class ResultFeature extends BaseFeatureProvider
 {
 // -- resultに対するHook
 
@@ -131,5 +132,19 @@ class StdResultProvider extends BasePluginProvider
         $assoc_ids = $result->getHashedBy($table->getIdColName());
         return $assoc_table->findBy($assoc_fkey, $assoc_ids);
     }
-
+    /**
+     * @hook result
+     * save処理対象のRecordを取得
+     */
+    public function result_getSavedRecord($result)
+    {
+        $query = $result->getStatement()->getQuery();
+        if ($query->getType()=="update") {
+            $id_col_name = $query->getDef()->getIdColName();
+            $id = $query->getWhere($id_col_name);
+        } elseif ($query->getType()=="insert") {
+            $id = $result->getLastInsertId();
+        }
+        return $id ? $query->getDef()->selectById($id) : null;
+    }
 }

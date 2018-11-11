@@ -7,14 +7,14 @@ class Record extends \ArrayObject
     /**
      * @inheritdoc
      */
-    public function __construct ($result)
+    public function __construct($result)
     {
         $this[static::RESULT_INDEX] = $result;
     }
     /**
-     * @getter
+     * getter
      */
-    public function getResult ()
+    public function getResult()
     {
         return parent::offsetGet(static::RESULT_INDEX);
     }
@@ -29,7 +29,7 @@ class Record extends \ArrayObject
     /**
      * @inheritdoc
      */
-    public function offsetGet ($key)
+    public function offsetGet($key)
     {
         // 添え字が存在している場合はそのまま返す
         if (parent::offsetExists($key)) {
@@ -37,16 +37,16 @@ class Record extends \ArrayObject
         // Table.col形式であれば分割して探索
         } elseif (count($parts = explode(".", $key)) === 2) {
             return $this[$parts[0]][$parts[1]];
-        // 添え字が存在しなければread_blank_colを呼んでから返す
+        // 添え字が存在しなければblank_colを呼んでから返す
         } else {
-            app("table.features")->emit("read_blank_col", array($this, $key));
+            app("table.features")->emit("blank_col", array($this, $key));
             return parent::offsetGet($key);
         }
     }
     /**
      * @inheritdoc
      */
-    public function getArrayCopy ()
+    public function getArrayCopy()
     {
         $values = array();
         foreach (parent::getIterator() as $k=>$v) {
@@ -62,9 +62,21 @@ class Record extends \ArrayObject
         return new \ArrayIterator($this->getArrayCopy());
     }
     /**
+     * @inheritdoc
+     */
+    public function exchangeArray($input)
+    {
+        foreach (parent::getIterator() as $k=>$v) {
+            if ($k !== static::RESULT_INDEX) unset($values[$k]);
+        }
+        foreach ($input as $k=>$v) {
+            $this[$k] = $v;
+        }
+    }
+    /**
      * Fetch結果データのマッピング
      */
-    public function hydrate ($data)
+    public function hydrate($data)
     {
         // QueryのFROMとなったテーブル以外の値は階層を下げる
         $query_table_name = $this->getResult()->getStatement()->getQuery()->getTableName();

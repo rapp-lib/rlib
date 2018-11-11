@@ -1,7 +1,30 @@
 <?php
-namespace R\Lib\Table\Plugin;
+namespace R\Lib\Table\Feature\Provider;
+use R\Lib\Table\Feature\BaseFeatureProvider;
 
-class StdAssocProvider extends BasePluginProvider
+/**
+ * Assoc
+ * パラメータ例:
+ *     "type"=>"hasMany",
+ *     "table"=>"Product", // 必須 関係先テーブル名
+ *     "fkey"=>"owner_member_id", // 任意 関係先テーブル上のFK
+ *     // fkeyの設定がない場合、assoc.tableの参照先のfkey_forの設定されたカラムを使用する
+ *     "value_col"=>"status", // 任意 値を1項目に絞る場合
+ *     "extra_values"=>array("type"=>1), // 任意 このassocで関係づけるレコードに設定する値
+ *     "single"=>true, // 任意 trueが指定されると1レコードに対応付ける
+ *  読み込み時の動作:
+ *      Fetch完了後、結果全てのPKで関係先テーブルをSelectする
+ *          extra_valuesの指定があれば絞り込みに使用する
+ *          singleの指定があれば、既存1レコード目のみ取得する
+ *  書き込み時の動作:
+ *      ※書き込んだIDがわかることが必須なので、IDを指定しないUpdateではエラー
+ *      書き込み完了後、対象のIDに関係する関係先のレコードで削除/更新/登録する
+ *          assoc.tableのPKの一致で更新する
+ *          value_col指定があれば、対象のカラムの一致で更新する
+ *          singleの指定があれば、既存1レコード目を一致させて更新する
+ *          extra_valuesの指定があれば絞り込みと、値の設定に使用する
+ */
+class AssocFeature extends BaseFeatureProvider
 {
     /**
      * @hook result
@@ -9,6 +32,7 @@ class StdAssocProvider extends BasePluginProvider
      */
     public function result_mergeAssoc ($result, $col_name, $assoc)
     {
+        $def = $result->getStatement()->getQuery()->getDef();
         $assoc_table_name = $assoc["table"];
         $assoc_fkey = $assoc["fkey"];
         $assoc_extra_values = $assoc["extra_values"];
@@ -19,8 +43,8 @@ class StdAssocProvider extends BasePluginProvider
         if (count($result) === 0) return false;
         // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
         if ( ! isset($assoc_fkey)) {
-            $table_name = $this->getAppTableName();
-            $assoc_fkey = $this->releasable(table($assoc_table_name))->getColNameByAttr("fkey_for", $table_name);
+            $table_name = $def->getAppTableName();
+            $assoc_fkey = app()->tables[$assoc_table_name]->getColNameByAttr("fkey_for", $table_name);
         }
         $table = $result->getHasManyTable($assoc_table_name, $assoc_fkey);
         // ExtraValueを条件に設定
@@ -30,7 +54,7 @@ class StdAssocProvider extends BasePluginProvider
         // singleの指定があればレコード数に制限
         if ($assoc_single) $table->limit(count($result));
         $assoc_result_set = $table->select()->getGroupedBy($assoc_fkey);
-        $pkey = $this->getIdColName();
+        $pkey = $def->getIdColName();
         // 主テーブルのResultに関連づける
         foreach ($result as $i => $record) {
             // value_col指定=1項目の値のみに絞り込む場合
@@ -51,6 +75,8 @@ class StdAssocProvider extends BasePluginProvider
      */
     public function result_affectAssoc ($result, $col_name, $assoc, $values)
     {
+        $query = $result->getStatement()->getQuery();
+        $def = $query->getDef();
         $assoc_table_name = $assoc["table"];
         $assoc_fkey = $assoc["fkey"];
         $assoc_extra_values = $assoc["extra_values"];
@@ -58,11 +84,11 @@ class StdAssocProvider extends BasePluginProvider
         $assoc_single = (boolean)$assoc["single"];
         // assoc.fkeyの設定がなければ、assoc.tableのfkey_forを参照
         if ( ! isset($assoc_fkey)) {
-            $table_name = $this->getAppTableName();
-            $assoc_fkey = $this->releasable(table($assoc_table_name))->getColNameByAttr("fkey_for", $table_name);
+            $table_name = $def->getAppTableName();
+            $assoc_fkey = app()->tables[$assoc_table_name]->getColNameByAttr("fkey_for", $table_name);
             if ( ! $assoc_fkey) {
                 report_error("外部キーによる参照がないassoc関係", array(
-                    "table_name"=>$this->getAppTableName(),
+                    "table_name"=>$table_name,
                     "assoc_table_name"=>$assoc_table_name,
                     "assoc"=>$assoc,
                 ));
@@ -72,26 +98,26 @@ class StdAssocProvider extends BasePluginProvider
         if ($assoc_single) $values = array_slice((array)$values, 0, 1, true);
         // 書き込んだIDを確認
         $id = null;
-        if ($this->query->getType() == "insert") {
+        if ($query->getType() == "insert") {
             $id = $result->getLastInsertId();
-        } elseif ($this->query->getType() == "update") {
-            $id = $this->query->getWhere($this->getQueryTableName().".".$this->getIdColName());
+        } elseif ($query->getType() == "update") {
+            $id = $query->getWhere($query->getTableName().".".$def->getIdColName());
             if ( ! isset($id)) {
-                $id = $this->query->getWhere($this->getIdColName());
+                $id = $query->getWhere($def->getIdColName());
             }
         }
         if ( ! isset($id)) {
             report_error("IDの特定できないUpdate/Insertに対してAssoc処理は実行できません",array(
-                "table" => $this,
+                "query" => $query,
             ));
             return;
         }
         // 対象のIDに関係する関係先のレコードを差分削除
-        $table = $this->releasable(table($assoc_table_name))->findBy($assoc_fkey, $id);
+        $table = app()->tables[$assoc_table_name]->findBy($assoc_fkey, $id);
         // ExtraValueを条件に設定
         if ($assoc_extra_values) $table->findBy($assoc_extra_values);
         $assoc_result = $table->select();
-        $assoc_id_col = $table->getIdColName();
+        $assoc_id_col = $def->getIdColName();
         // value_col指定=1項目の値のみに絞り込む場合
         if (isset($assoc_value_col)) {
             // 既存の情報を値→IDでハッシュ
@@ -104,7 +130,7 @@ class StdAssocProvider extends BasePluginProvider
                     $record[$assoc_id_col] = current($delete_assoc_ids);
                     unset($delete_assoc_ids[key($delete_assoc_ids)]);
                 }
-                $this->releasable(table($assoc_table_name))->save($record);
+                app()->tables[$assoc_table_name]->save($record);
                 $values = array();
             } else {
                 foreach ((array)$values as $value) {
@@ -115,13 +141,16 @@ class StdAssocProvider extends BasePluginProvider
                     } else {
                         $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
                         foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                        $this->releasable(table($assoc_table_name))->save($record);
+                        app()->tables[$assoc_table_name]->save($record);
                     }
                 }
             }
             // 削除
             if ($delete_assoc_ids) {
-                $this->releasable(table($assoc_table_name))->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
+                app()->tables[$assoc_table_name]
+                    ->findBy($assoc_fkey, $id)
+                    ->findById($delete_assoc_ids)
+                    ->deleteAll();
             }
         } else {
             // 既存の情報をID→IDでハッシュ
@@ -139,102 +168,51 @@ class StdAssocProvider extends BasePluginProvider
                 // 新規/上書き
                 $record[$assoc_fkey] = $id;
                 foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                $this->releasable(table($assoc_table_name))->save($record);
+                app()->tables[$assoc_table_name]->save($record);
             }
             // 削除
             if ($delete_assoc_ids) {
-                $this->releasable(table($assoc_table_name))->findBy($assoc_fkey, $id)->findById($delete_assoc_ids)->deleteAll();
+                app()->tables[$assoc_table_name]
+                    ->findBy($assoc_fkey, $id)
+                    ->findById($delete_assoc_ids)
+                    ->deleteAll();
             }
         }
     }
 
-    // -- on_* assoc仮想カラム処理 write+0/read-0
+// -- on_* assoc仮想カラム処理 write+0/read-0
 
-    /**
-     * assoc指定されたFeieldに対応するValues
-     */
-    protected $assoc_values = null;
-    /**
-     * assoc hook処理の呼び出し
-     */
-    protected function callAssocHookMethod ($method_name, $col_name, $args=array())
-    {
-        $assoc = static::$cols[$col_name]["assoc"];
-        $method_name .= "_".($assoc["type"] ?: "hasMany");
-        if ( ! method_exists($this, $method_name)) return false;
-        array_unshift($args, $col_name);
-        return $this->callHookMethod($method_name, $args);
-    }
     /**
      * assoc処理 未初期化のRecord値の取得時
      */
-    protected function on_getBlankCol_assoc ($record, $col_name)
+    public function pre_on_blankCol_assoc($record, $col_name)
     {
-        if (static::$cols[$col_name]["assoc"]) {
-            $this->callAssocHookMethod("assoc_getBlankCol", $col_name, array($record));
-            return true;
-        }
-        return false;
+        $assoc = $record->getResult()->getStatement()
+            ->getQuery()->getDef()->getColAttr($col_name, "assoc");
+        return $assoc ?: false;
+    }
+    public function on_blankCol_assoc($record, $col_name, $assoc)
+    {
+        return $record->getResult()->mergeAssoc($col_name, $assoc);
     }
     /**
      * assoc処理 insert/updateの発行前
      */
-    protected function on_write_assoc ($query)
+    public function on_write_colAssoc ($query, $col_name)
     {
-        foreach ((array)$query->getValues() as $col_name => $value) {
-            if (static::$cols[$col_name]["assoc"]) {
-                // values→assoc_valuesに項目を移動
-                $query->removeValue($col_name);
-                $query->setAssocValues($col_name, $value);
-                // assoc処理の呼び出し
-                $this->callAssocHookMethod("assoc_write", $col_name);
-            }
-        }
-        return $query->getAssocValues() ? true : false;
+        // values→assoc_valuesに項目を移動
+        $query->setAssocValues($col_name, $query->getValue($col_name));
+        $query->removeValue($col_name);
     }
     /**
      * assoc処理 insert/updateの発行後
      */
-    protected function on_afterWrite_assoc ($query, $result)
+    public function on_afterWrite_colAssoc ($result, $col_name)
     {
-        foreach ((array)$query->getAssocValues() as $col_name => $values) {
-            $this->callAssocHookMethod("assoc_afterWrite", $col_name, array($query, $result, $values));
-        }
-        return $query->getAssocValues() ? true : false;
+        $query = $result->getStatement()->getQuery();
+        $value = $query->getAssocValues($col_name);
+        $assoc = $query->getDef()->getColAttr($col_name, "assoc");
+        return $result->affectAssoc($col_name, $assoc, $value);
     }
-
-// -- 基本的なassoc hookの定義
-
-    /**
-     * @hook assoc hasMany
-     * パラメータ例:
-     *     "type"=>"hasMany",
-     *     "table"=>"Product", // 必須 関係先テーブル名
-     *     "fkey"=>"owner_member_id", // 任意 関係先テーブル上のFK
-     *     // fkeyの設定がない場合、assoc.tableの参照先のfkey_forの設定されたカラムを使用する
-     *     "value_col"=>"status", // 任意 値を1項目に絞る場合
-     *     "extra_values"=>array("type"=>1), // 任意 このassocで関係づけるレコードに設定する値
-     *     "single"=>true, // 任意 trueが指定されると1レコードに対応付ける
-     *  読み込み時の動作:
-     *      Fetch完了後、結果全てのPKで関係先テーブルをSelectする
-     *          extra_valuesの指定があれば絞り込みに使用する
-     *          singleの指定があれば、既存1レコード目のみ取得する
-     *  書き込み時の動作:
-     *      ※書き込んだIDがわかることが必須なので、IDを指定しないUpdateではエラー
-     *      書き込み完了後、対象のIDに関係する関係先のレコードで削除/更新/登録する
-     *          assoc.tableのPKの一致で更新する
-     *          value_col指定があれば、対象のカラムの一致で更新する
-     *          singleの指定があれば、既存1レコード目を一致させて更新する
-     *          extra_valuesの指定があれば絞り込みと、値の設定に使用する
-     */
-    protected function assoc_getBlankCol_hasMany ($col_name, $record)
-    {
-        return $record->getResult()->mergeAssoc($col_name, static::$cols[$col_name]["assoc"]);
-    }
-    protected function assoc_afterWrite_hasMany ($col_name, $query, $result, $values)
-    {
-        return $result->affectAssoc($col_name, static::$cols[$col_name]["assoc"], $values);
-    }
-
 }
 

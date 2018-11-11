@@ -38,9 +38,7 @@ class Executer
             $db = $result->getStatement()->getQuery()->getDef()->getConnection();
             while ($data = $db->fetch($result_res)) {
                 // Recordの作成とFetch結果のHydrate
-                $record = app()->make("table.query_record", array($result));
-                $record->hydrate($data);
-                $result[] = $record;
+                $result->appendRecord()->hydrate($data);
             }
             return $result;
         });

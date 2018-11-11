@@ -1,14 +1,15 @@
 <?php
-namespace R\Lib\Table\Plugin;
+namespace R\Lib\Table\Feature\Provider;
+use R\Lib\Table\Feature\BaseFeatureProvider;
 
-class StdQueryModifierProvider extends BasePluginProvider
+class QueryModifier extends BaseFeatureProvider
 {
 // -- on_* 基本的な定義
 
     /**
      * ハッシュされたパスワードを関連づける
      */
-    protected function on_afterSelect_colHashPw($result, $col_name)
+    public function on_afterSelect_colHashPw($result, $col_name)
     {
         foreach ($result as $record) unset($record[$col_name]);
     }
@@ -30,17 +31,26 @@ class StdQueryModifierProvider extends BasePluginProvider
         }
     }
 
-    /**
-     * 削除フラグを関連づける
-     */
-    public function on_read_colDelFlg($query, $col_name)
-    {
-        $query->where($query->getTableName().".".$col_name, 0);
-    }
-    public function on_update_attachDelFlg ($query)
+    public function on_update_toDelete_999($query)
     {
         if ($query->getDelete()) {
             $query->setDelete(false);
+            $query->setType("delete");
+        }
+    }
+    /**
+     * 削除フラグを関連づける
+     */
+    public function on_read_colDelFlg_600($query, $col_name)
+    {
+        if ($query->getDelete() !== "hard") {
+            $query->where($query->getTableName().".".$col_name, 0);
+        }
+    }
+    public function on_update_colDelFlg($query, $col_name)
+    {
+        if ($query->getDelete() && $query->getDelete() !== "hard") {
+            $query->removeDelete();
             $query->setValue($col_name, 1);
         }
     }
@@ -75,13 +85,17 @@ class StdQueryModifierProvider extends BasePluginProvider
      * @hook on_write
      * id_initの値からIDを生成
      */
-    public function on_write_colGeneratorIdInit_100($query, $col_name)
+    public function pre_on_write_colGenerator_100_idInit($query, $col_name)
+    {
+        return $query->getDef()->getColAttr($col_name, "generator")==="id_init";
+    }
+    public function on_write_colGenerator_100_idInit($query, $col_name)
     {
         $id_init_col_name = $query->getDef()->getColAttr($col_name, "id_init_col") ?: "id_init";
         $value = $query->getValue($id_init_col_name);
         $query->removeValue($id_init_col_name);
-        if ($query->getType() == "update") return;
-        elseif ($query->getValue($col_name) !== null) return;
+        if ($query->getType() !== "insert") return false;
+        elseif ($query->getValue($col_name) !== null) return false;
         else $query->setValue($col_name, $value);
     }
 
@@ -119,7 +133,7 @@ class StdQueryModifierProvider extends BasePluginProvider
             }
         }
     }
-    public function on_afterSelect_geometryType_300($result, $col_name)
+    public function on_afterSelect_colGeometryType_300($result, $col_name)
     {
         foreach ($result as $record) {
             if ($record[$col_name]) {

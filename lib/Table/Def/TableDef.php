@@ -33,9 +33,9 @@ class TableDef
     /**
      * QueryBuilderインスタンスの作成
      */
-    public function makeQueryBuilder()
+    public function makeQuery()
     {
-        return app()->make("table.query_builder", array($this->def_attr_set["app_table_name"]));
+        return app()->make("table.query_payload", array($this->def_attr_set["app_table_name"]));
     }
     /**
      * DBConnectionインスタンスの取得
@@ -70,6 +70,13 @@ class TableDef
     public function getColAttr($col_name, $attr)
     {
         return $this->def_attr_set["cols"][$col_name][$attr];
+    }
+    /**
+     * カラム属性をすべて取得
+     */
+    public function getColAttrs($col_name)
+    {
+        return $this->def_attr_set["cols"][$col_name];
     }
     /**
      * カラム名をすべて取得
@@ -111,5 +118,24 @@ class TableDef
     {
         $col_names = $this->getColNamesByAttr($attr, $value);
         return $col_names ? $col_names[0] : null;
+    }
+
+    // -- Mock
+
+    /**
+     * SQLを発行せずにResultを生成
+     * result_res=false, sql=""である他は通常のResultと同様
+     */
+    public function makeMockResult()
+    {
+        $query = $this->makeQuery();
+        $statement = app()->make("table.query_statement", array("", $query));
+        $result = app()->make("table.query_result", array(false, $statement));
+        return $result;
+    }
+
+    public function __report()
+    {
+        return $this->def_attr_set;
     }
 }

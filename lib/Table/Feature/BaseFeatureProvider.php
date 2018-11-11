@@ -1,14 +1,14 @@
 <?php
-namespace R\Lib\Table\Plugin;
+namespace R\Lib\Table\Feature;
 
-abstract class BasePluginProvider implements PluginProvider
+abstract class BaseFeatureProvider implements FeatureProvider
 {
     protected $hook_points = array();
     protected $features = array();
     /**
      * @inheritdoc
      */
-    public function registerPlugin($features)
+    public function register($features)
     {
         $this->registerHookPoints($features);
         $this->retreiveFeatures($features);
@@ -26,6 +26,9 @@ abstract class BasePluginProvider implements PluginProvider
             if (method_exists($this, $method_name="filter_".$hook_point)) {
                 $hook_point_def["filters"][] = array($this, $method_name);
             }
+            if ( ! $hook_point_def["callback"]) {
+                $hook_point_def["callback"] = array($this, "defaultHookPointCallback");
+            }
             $features->registerHookPoint($hook_point, $hook_point_def);
         }
     }
@@ -36,26 +39,33 @@ abstract class BasePluginProvider implements PluginProvider
     {
         $ats = implode('|', array("after", "before"));
         $types = implode('|', array("select", "insert", "update", "delete", "read", "write"));
-        $hooks = implode('|', array("chain", "result", "record", "form", "search"));
+        $hooks = implode('|', array("chain", "result", "record", "form", "search", "alias"));
         $mods = implode('|', array("end"));
         foreach (get_class_methods($this) as $method_name) {
             $feature = array();
             // on_afterWrite_colDelFlg_attach
-            if (preg_match('!^on_('.$ats.')?('.$types.')(?:_col([^_]+))?(_.+)?!i', $method_name, $_)) {
-                list($name, $at, $type, $by_col_attr, ) = $_;
+            if (preg_match('!^on_('.$ats.')?('.$types.')(?:_col([^_]+))?(?:_(\d+))?.*$!i', $method_name, $_)) {
+                list($name, $at, $type, $by_col_attr, $priority) = $_;
                 $hook = ($at==="after") ? "after_exec" : "before_render";
                 $feature["query_type"] = snake_case($type);
                 if ($by_col_attr) $feature["by_col_attr"] = snake_case($by_col_attr);
-            } elseif (preg_match('!^on_([^_]+)(_.+)?$!i', $method_name, $_)) {
-                list($name, $hook, ) = $_;
+                if ($priority) $feature["priority"] = $priority;
+            } elseif (preg_match('!^on_([^_]+)(?:_(\d+))?.*$!i', $method_name, $_)) {
+                list($name, $hook, $priority) = $_;
+                $hook = snake_case($hook);
+                if ($priority) $feature["priority"] = $priority;
             } elseif (preg_match('!^('.$hooks.')('.$mods.')?_(.+)$!i', $method_name, $_)) {
                 list(, $hook, $mod, $name) = $_;
+                $hook = snake_case($hook);
                 if ($mod) $feature[snake_case($mod)] = true;
             } else {
                 continue;
             }
             // Callback含めて登録されていないパラメータを補完
             $feature["callback"] = array($this, $method_name);
+            if (method_exists($this, "pre_".$method_name)) {
+                $feature["pre_callback"] = array($this, "pre_".$method_name);
+            }
             $hook_point = snake_case($hook);
             $feature_name = $name;
             foreach ($feature as $k=>$v) {
@@ -75,5 +85,28 @@ abstract class BasePluginProvider implements PluginProvider
                 $features->registerFeature($hook_point, $feature_name, $feature_def);
             }
         }
+    }
+    /**
+     * 基本Feature呼び出し処理
+     */
+    public function defaultHookPointCallback($feature_defs, $args)
+    {
+        foreach ($feature_defs as $feature_def) {
+            $return = $this->defaultHookPointCallbackEach($feature_def, $args);
+        }
+        return $return;
+    }
+    /**
+     * 基本Feature呼び出しの個別処理
+     */
+    protected function defaultHookPointCallbackEach($feature_def, $args)
+    {
+        // pre_callback処理
+        if ($feature_def["pre_callback"]) {
+            $pre_return = call_user_func_array($feature_def["pre_callback"], $args);
+            if ($pre_return===false) return null;
+            $args[] = $pre_return;
+        }
+        return call_user_func_array($feature_def["callback"], $args);
     }
 }

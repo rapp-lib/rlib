@@ -40,4 +40,10 @@ class Result extends \ArrayObject
         array_unshift($args, $this);
         return app("table.features")->call("result", $method_name, $args);
     }
+    public function appendRecord()
+    {
+        $record = app()->make("table.query_record", array($this));
+        $this[] = $record;
+        return $record;
+    }
 }

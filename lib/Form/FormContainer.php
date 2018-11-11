@@ -579,7 +579,11 @@ class FormContainer extends ArrayObject
      */
     public function getRecord ()
     {
-        $record = $this->getTable()->createResult()->createRecord();
+        if (app()->config["app.switch.new_table"]) {
+            $record = app()->tables[$this->def["table"]]->makeMockResult()->appendRecord();
+        } else {
+            $record = $this->getTable()->createResult()->createRecord();
+        }
         $this->convertRecord($record, "record_values");
         return $record;
     }
@@ -589,7 +593,11 @@ class FormContainer extends ArrayObject
      */
     public function getTableWithValues ()
     {
-        $record = $this->getTable()->createResult()->createRecord();
+        if (app()->config["app.switch.new_table"]) {
+            $record = app()->tables[$this->def["table"]]->makeMockResult()->appendRecord();
+        } else {
+            $record = $this->getTable()->createResult()->createRecord();
+        }
         $this->convertRecord($record, "values_clause");
         return $this->getTable()->values($record->getArrayCopy());
     }
@@ -701,11 +709,20 @@ class FormContainer extends ArrayObject
                         $table_def = app()->table->getTableDef($this->def["table"]);
                         $assoc_table_name = $table_def["cols"][$assoc_col_name]["assoc"]["table"];
                         if ($assoc_table_name) {
-                            $assoc_table_result = table($assoc_table_name)->createResult();
-                            foreach ($values as $k=>$v) {
-                                $assoc_table_record = $assoc_table_result->createRecord($v);
-                                $assoc_table_result[] = $assoc_table_record;
-                                $values[$k] = $assoc_table_record;
+                            if (app()->config["app.switch.new_table"]) {
+                                $assoc_table_result = app()->tables[$this->def["table"]]->makeMockResult();
+                                foreach ($values as $k=>$v) {
+                                    $assoc_table_record = $assoc_table_result->appendRecord();
+                                    $assoc_table_record->exchangeArray($v);
+                                    $values[$k] = $assoc_table_record;
+                                }
+                            } else {
+                                $assoc_table_result = table($assoc_table_name)->createResult();
+                                foreach ($values as $k=>$v) {
+                                    $assoc_table_record = $assoc_table_result->createRecord($v);
+                                    $assoc_table_result[] = $assoc_table_record;
+                                    $values[$k] = $assoc_table_record;
+                                }
                             }
                         }
                     }

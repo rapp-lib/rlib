@@ -1,20 +1,21 @@
 <?php
-namespace R\Lib\Table\Plugin;
+namespace R\Lib\Table\Feature\Provider;
+use R\Lib\Table\Feature\BaseFeatureProvider;
 
-class StdHookPointProvider extends BasePluginProvider
+class HookPoint extends BaseFeatureProvider
 {
     protected $hook_points = array(
         "before_render"=>array(),
         "after_exec"=>array(),
         "after_fetch_each"=>array(),
         "after_fetch_all"=>array(),
-        "read_blank_col"=>array(),
+        "blank_col"=>array(),
         "chain"=>array("require_feature"=>true),
         "result"=>array("require_feature"=>true),
         "record"=>array("require_feature"=>true),
         "form"=>array("require_feature"=>true),
         "search"=>array("require_feature"=>true),
-        "retreive_alias"=>array(),
+        "alias"=>array(),
         "affect_alias"=>array(),
     );
 
@@ -24,11 +25,17 @@ class StdHookPointProvider extends BasePluginProvider
 
     public function filter_before_render($feature_def, $args)
     {
-        $query = $args[0];
+        if ($args[0] instanceof \R\Lib\Table\Query\Result) {
+            $query = $args[0]->getStatement()->getQuery();
+        } elseif ($args[0] instanceof \R\Lib\Table\Query\Payload) {
+            $query = $args[0];
+        } else {
+            report_error("無効な引数", array("args"=>$args));
+        }
         $query_type = $query->getType();
         if ($feature_def["query_type"] === $query_type) return true;
         if ($feature_def["query_type"] === "write"
-            && in_array($query_type, array("update", "insert"))) {
+            && in_array($query_type, array("update", "insert", "delete"))) {
             return true;
         }
         if ($feature_def["query_type"] === "read"
@@ -56,15 +63,10 @@ class StdHookPointProvider extends BasePluginProvider
                 foreach ($col_names as $col_name) {
                     $args_copy = $args;
                     $args_copy[] = $col_name;
-                    $args_copy[] = $feature_def;
-                    $args_copy[] = $return;
-                    $return = call_user_func_array($feature_def["callback"], $args_copy);
+                    $return = $this->defaultHookPointCallbackEach($feature_def, $args_copy);
                 }
             } else {
-                $args_copy = $args;
-                $args_copy[] = $feature_def;
-                $args_copy[] = $return;
-                $return = call_user_func_array($feature_def["callback"], $args_copy);
+                $return = $this->defaultHookPointCallbackEach($feature_def, $args);
             }
         }
         return $return;
@@ -90,14 +92,21 @@ class StdHookPointProvider extends BasePluginProvider
         $return = null;
         // 戻り値をQueryBuilder、第1引数をQueryPayloadに揃える
         if ($args[0] instanceof \R\Lib\Table\Def\TableDef) {
-            $return = $args[0]->makeQueryBuilder();
-            $args[0] = $return->getQuery();
-        } elseif ($args[0] instanceof \R\Lib\Table\Query\QueryBuilder) {
-            $return = $args[0];
-            $args[0] = $args[0]->getQuery();
+            $args[0] = $query = $args[0]->makeQuery();
+            $return = $builder = $query->makeBuilder();
+        } elseif ($args[0] instanceof \R\Lib\Table\Query\Builder) {
+            $return = $builder = $args[0];
+            $args[0] = $query = $builder->getQuery();
+        } elseif ($args[0] instanceof \R\Lib\Table\Query\Payload) {
+            $args[0] = $query = $args[0];
+            $return = $builder = $args[0]->makeBuilder();
+        } else {
+            report_error("不正なChainの呼び出し", array(
+                "args"=>$args,
+            ));
         }
         // 基本処理呼び出し
-        $return_tmp = app("table.features")->defaultHookPointCallback($feature_defs, $args);
+        $return_tmp = $this->defaultHookPointCallback($feature_defs, $args);
         // chain_endの指定があればQueryBuilderではなく、戻り値をそのまま返す
         $feature_def = head($feature_defs);
         if ($feature_def["end"]) $return = $return_tmp;
@@ -116,9 +125,9 @@ class StdHookPointProvider extends BasePluginProvider
 
     // -- 値読み込みフック・Alias処理
 
-    // -- read_blank_col : nop
+    // -- blank_col : nop
 
-    // -- retreive_alias : nop
+    // -- alias : nop
 
     // -- affect_alias : nop
 }

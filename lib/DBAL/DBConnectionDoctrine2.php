@@ -56,17 +56,28 @@ class DBConnectionDoctrine2 implements DBConnection
     public function transaction ($callback, $args=array(), $retry=0)
     {
         try {
-            $current_transaction_nest = $this->transaction_nest;
-            $this->transaction_nest++;
-            $this->begin();
+            if ($this->transaction_nest === 0) {
+                $this->getDS()->beginTransaction();
+            }
+            $current_transaction_nest = $this->transaction_nest++;
             $result = call_user_func_array($callback, $args);
             $this->transaction_nest--;
-            if ($this->transaction_nest < 1) $this->commit();
+            if ($this->transaction_nest === 0) {
+                $this->getDS()->commit();
+            }
             return $result;
         } catch (\Exception $e) {
-            if ($this->transaction_nest > 0) $this->rollback();
-            if ( ! $e instanceof \R\Lib\DBAL\DBRollbackException) throw $e;
-            elseif ($current_transaction_nest > 0) throw $e;
+            // DBRollbackException以外の発行で抜けている場合は、Rollbackする
+            if ($this->transaction_nest > 0) {
+                $this->getDS()->rollback();
+                $this->transaction_nest = 0;
+            }
+            // 最外殻のDBRollbackException以外であればExceptionを再発行
+            if ( ! $e instanceof \R\Lib\DBAL\DBRollbackException) {
+                throw $e;
+            } elseif ($current_transaction_nest > 0) {
+                throw $e;
+            }
             return false;
         }
     }
@@ -78,14 +89,13 @@ class DBConnectionDoctrine2 implements DBConnection
     {
         $this->getDS()->commit();
     }
-    public function rollback ($raise_exception=false)
+    public function rollback ()
     {
         $this->getDS()->rollback();
+        // Transactionネスト内であればException発行で抜ける
         if ($this->transaction_nest > 0) {
-            $this->transaction_nest--;
-            if ($raise_exception) {
-                throw new DBRollbackException("Rollback transaction ".$this->transaction_nest);
-            }
+            $this->transaction_nest = 0;
+            throw new DBRollbackException("Rollback transaction");
         }
     }
 

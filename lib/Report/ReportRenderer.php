@@ -262,7 +262,7 @@ class ReportRenderer
                 $value = method_exists($value,"__report") ? (array)$value->__report() : get_object_vars($value);
             }
             // 省略
-            if (count($value) > ($limit=25)*2) {
+            if (count($value) > ($limit=200)*2) {
                 $value_copy = array();
                 foreach(array_slice((array)$value, 0, $limit, true) as $k=>$v) $value_copy[$k] = $v;
                 $value_copy[] = "... shortened into ".($limit*2)." / ".count($value)." ...";

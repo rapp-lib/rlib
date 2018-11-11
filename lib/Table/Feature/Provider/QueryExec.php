@@ -1,7 +1,8 @@
 <?php
-namespace R\Lib\Table\Plugin;
+namespace R\Lib\Table\Feature\Provider;
+use R\Lib\Table\Feature\BaseFeatureProvider;
 
-class StdQueryExecProvider extends BasePluginProvider
+class QueryExec extends BaseFeatureProvider
 {
 
 // -- SELECT文の発行
@@ -19,7 +20,7 @@ class StdQueryExecProvider extends BasePluginProvider
      */
     public function chainEnd_selectOne($query)
     {
-        $result = $query->select($query);
+        $result = $this->chainEnd_select($query);
         if (count($result) > 1) {
             report_warning("selectOneで複数件取得する処理は値を返しません",array(
                 "query"=>$query,
@@ -33,8 +34,7 @@ class StdQueryExecProvider extends BasePluginProvider
      */
     public function chainEnd_selectById($query, $id)
     {
-        $query->findById($id);
-        return $this->chainEnd_selectOne($query);
+        return $query->makeBuilder()->findById($id)->selectOne();
     }
     /**
      * 件数のみ取得するSELECT文を発行
@@ -42,7 +42,7 @@ class StdQueryExecProvider extends BasePluginProvider
     public function chainEnd_selectCount($query)
     {
         $query->setFields(array("count"=>"COUNT(*)"));
-        $record = $this->chainEnd_selectOne($query);
+        $record = $query->makeBuilder()->selectOne();
         return (int)$record["count"];
     }
     /**
@@ -51,7 +51,7 @@ class StdQueryExecProvider extends BasePluginProvider
     public function chainEnd_selectCol($query, $col_name)
     {
         $query->setFields(array($col_name));
-        $record = $this->chainEnd_selectOne($query);
+        $record = $query->makeBuilder()->selectOne();
         return $record ? $record[$col_name] : null;
     }
 
@@ -76,30 +76,29 @@ class StdQueryExecProvider extends BasePluginProvider
         return app("table.query_executer")->exec($query);
     }
     /**
-     * DELETE文の発行
-     */
-    public function chainEnd_deleteAll($query)
-    {
-        $query->setDelete(true);
-        $query->setType("update");
-        return app("table.query_executer")->exec($query);
-    }
-
-    /**
      * idを指定してUPDATE文の発行
      */
     public function chainEnd_updateById($query, $id, $values=array())
     {
-        $query->findById($id);
+        $query->makeBuilder()->findById($id);
         return $this->chainEnd_updateAll($query, $values);
     }
     /**
      * DELETE文の発行
      */
-    public function chainEnd_deleteById($query, $id)
+    public function chainEnd_deleteAll($query, $delete_type="soft")
     {
-        $query->findById($id);
-        return $this->chainEnd_deleteAll($query);
+        $query->setDelete($delete_type);
+        $query->setType("update");
+        return app("table.query_executer")->exec($query);
+    }
+    /**
+     * idを指定してDELETE文の発行
+     */
+    public function chainEnd_deleteById($query, $id, $delete_type="soft")
+    {
+        $query->makeBuilder()->findById($id);
+        return $this->chainEnd_deleteAll($query, $delete_type);
     }
     /**
      * idの指定の有無によりINSERT/UPDATE文の発行
@@ -123,9 +122,10 @@ class StdQueryExecProvider extends BasePluginProvider
     /**
      * 指定したCallbackをトランザクション制御
      */
-    public function chainEnd_transaction($query, $callback)
+    public function chainEnd_transaction($query, $callback, $args=array())
     {
-        $query->getDef()->getConnection()->transaction($callback);
+        app("events")->fire("table.transaction", array("begin"));
+        $query->getDef()->getConnection()->transaction($callback, $args);
     }
     /**
      * ROLLBACKの発行
@@ -133,6 +133,7 @@ class StdQueryExecProvider extends BasePluginProvider
      */
     public function chainEnd_rollback($query)
     {
+        app("events")->fire("table.transaction", array("rollback"));
         $query->getDef()->getConnection()->rollback();
     }
 
@@ -144,13 +145,13 @@ class StdQueryExecProvider extends BasePluginProvider
     public function chainEnd_selectHashedBy($query, $key_col_name, $key_col_name_sub=false, $col_name_sub_ex=false)
     {
         if ($key_col_name_sub === false) {
-            return $this->fields(array($key_col_name))
+            return $query->setFields(array($key_col_name))
                 ->select()->getHashedBy($key_col_name);
         } elseif ($col_name_sub_ex === false) {
-            return $this->fields(array($key_col_name, $key_col_name_sub))
+            return $query->setFields(array($key_col_name, $key_col_name_sub))
                 ->select()->getHashedBy($key_col_name, $key_col_name_sub);
         } else {
-            return $this->fields(array($key_col_name, $key_col_name_sub, $col_name_sub_ex))
+            return $query->setFields(array($key_col_name, $key_col_name_sub, $col_name_sub_ex))
                 ->select()->getHashedBy($key_col_name, $key_col_name_sub, $col_name_sub_ex);
         }
     }
@@ -160,10 +161,10 @@ class StdQueryExecProvider extends BasePluginProvider
     public function chainEnd_selectSummary($query, $summary_field, $key_col_name, $key_col_name_sub=false)
     {
         if ($key_col_name_sub === false) {
-            return $this->fields(array("summary"=>$summary_field, $key_col_name))->groupBy($key_col_name)
+            return $query->setFields(array("summary"=>$summary_field, $key_col_name))->groupBy($key_col_name)
                 ->select()->getHashedBy($key_col_name, "summary");
         } else {
-            return $this->fields(array(
+            return $query->setFields(array(
                 "summary" => $summary_field, $key_col_name, $key_col_name_sub))
                 ->groupBy($key_col_name)->groupBy($key_col_name_sub)
                 ->select()->getHashedBy($key_col_name, $key_col_name_sub, "summary");

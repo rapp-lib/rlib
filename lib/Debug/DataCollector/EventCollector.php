@@ -77,6 +77,9 @@ class EventCollector extends TimeDataCollector
                     ), "SQL");
                 }
             }
+        } elseif ($name==="table.transaction") {
+            list($state) = $args;
+            report_info("SQL Transaction ".$state, array(), "SQL");
         } elseif ($name==="table.fetch_end") {
             list($table, $statement, $result) = $args;
             report_info("Fetch End ".$table->getAppTableName()."[".count($result)."] : ".$statement, array(
