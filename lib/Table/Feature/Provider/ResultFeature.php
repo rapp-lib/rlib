@@ -13,8 +13,10 @@ class ResultFeature extends BaseFeatureProvider
     {
         // 件数取得用にSQL再発行
         $query = clone($result->getStatement()->getQuery());
-        $query->removePagenation();
-        return $query->selectCount();
+        $query->removeOffset();
+        $query->removeLimit();
+        $query->setSkipBeforeRender(true);
+        return $query->makeBuilder()->selectCount();
     }
     /**
      * Pagerの取得

@@ -82,8 +82,9 @@ class Record extends \ArrayObject
         $query_table_name = $this->getResult()->getStatement()->getQuery()->getTableName();
         foreach ($data as $table_name => $values) {
             foreach ($values as $col_name => $value) {
-                if ($query_table_name === $table_name) $this[$col_name] = $value;
-                else $this[$table_name.".".$col_name] = $value;
+                if ($query_table_name === $table_name || $table_name === 0) {
+                    $this[$col_name] = $value;
+                } else $this[$table_name.".".$col_name] = $value;
             }
         }
     }

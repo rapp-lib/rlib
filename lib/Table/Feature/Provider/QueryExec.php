@@ -4,6 +4,14 @@ use R\Lib\Table\Feature\BaseFeatureProvider;
 
 class QueryExec extends BaseFeatureProvider
 {
+    /**
+     * Query組み立て
+     */
+    public function chainEnd_renderSelect($query)
+    {
+        $query->setType("select");
+        return $query->render();
+    }
 
 // -- SELECT文の発行
 
@@ -169,13 +177,5 @@ class QueryExec extends BaseFeatureProvider
                 ->groupBy($key_col_name)->groupBy($key_col_name_sub)
                 ->select()->getHashedBy($key_col_name, $key_col_name_sub, "summary");
         }
-    }
-    /**
-     * Query組み立て
-     * @deprecated
-     */
-    public function chainEnd_buildQuery($query)
-    {
-        return $query->render("select");
     }
 }

@@ -17,4 +17,12 @@ class Builder
     {
         return $this->query;
     }
+    public function getDef()
+    {
+        return $this->query->getDef();
+    }
+    public function __report()
+    {
+        return $this->query->__report();
+    }
 }

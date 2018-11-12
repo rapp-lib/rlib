@@ -30,6 +30,10 @@ class TableDef
 
     // -- 関係インスタンスの取得
 
+    public function makeBuilder()
+    {
+        return $this->makeQuery()->makeBuilder();
+    }
     /**
      * QueryBuilderインスタンスの作成
      */

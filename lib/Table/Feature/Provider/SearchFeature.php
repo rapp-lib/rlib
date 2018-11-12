@@ -10,8 +10,6 @@ class SearchFeature extends BaseFeatureProvider
      */
     public function chain_findBySearchFields ($query, $form, $search_fields)
     {
-        // 適用済みフラグ
-        $applied = false;
         // Yield集約対象
         $yields = array();
         foreach ($search_fields as $search_field) {
@@ -28,14 +26,8 @@ class SearchFeature extends BaseFeatureProvider
             $field_def = $search_field["field_def"];
             $value = $search_field["value"];
             // search_typeXxx($form, $field_def, $value)メソッドを呼び出す
-            $search_method_name = "search_type".str_camelize($search_type);
-            if ( ! method_exists($this, $search_method_name)) {
-                report_error("検索メソッドが定義されていません",array(
-                    "search_method_name" => $search_method_name, "table" => $this,
-                ));
-            }
-            $result = call_user_func(array($this,$search_method_name), $query, $form, $field_def, $value);
-            if ($result!==false) $applied = true;
+            app("table.features")->call("search", camel_case($search_type),
+                array($query, $form, $field_def, $value));
         }
         foreach ($yields as $yield) {
             // search_yieldXxx($form, $yield)メソッドを呼び出す
@@ -45,10 +37,9 @@ class SearchFeature extends BaseFeatureProvider
                     "search_method_name" => $search_method_name, "table" => $this,
                 ));
             }
-            $result = call_user_func(array($this,$search_method_name), $query, $form, $yield);
-            if ($result!==false) $applied = true;
+            app("table.features")->call("searchYield", camel_case($search_type),
+                array($query, $form, $yield));
         }
-        return $applied;
     }
 
 // -- 基本的なsearch hookの定義
@@ -57,7 +48,7 @@ class SearchFeature extends BaseFeatureProvider
      * @hook search where
      * 一致、比較、IN（値を配列指定）
      */
-    public function search_typeWhere ($query, $form, $field_def, $value)
+    public function search_where ($query, $form, $field_def, $value)
     {
         if ( ! isset($value)) return false;
         // 対象カラムは複数指定に対応
@@ -77,7 +68,7 @@ class SearchFeature extends BaseFeatureProvider
     /**
      * @hook search word
      */
-    public function search_typeWord ($query, $form, $field_def, $value)
+    public function search_word ($query, $form, $field_def, $value)
     {
         if ( ! isset($value)) return false;
         // 対象カラムは複数指定に対応
@@ -102,22 +93,9 @@ class SearchFeature extends BaseFeatureProvider
         else $query->addWhere($conditions_or);
     }
     /**
-     * @deprecated search_yieldExists
-     * @hook search exists
-     * 別Tableをサブクエリとして条件指定する
-     */
-    public function search_typeExists ($query, $form, $field_def, $value)
-    {
-        if ( ! isset($value)) return false;
-        $table = $this->releasable(table($field_def["search_table"]));
-        $table->findBy($this->getQueryTableName().".".$this->getIdColName()."=".$table->getQueryTableName().".".$field_def["fkey"]);
-        $table->findBySearchFields($form, $field_def["search_fields"]);
-        $query->where("EXISTS(".$table->buildQuery("select").")");
-    }
-    /**
      * @hook search sort
      */
-    public function search_typeSort ($query, $form, $field_def, $value)
+    public function search_sort ($query, $form, $field_def, $value)
     {
         $cols = array();
         // @deprecated 旧仕様との互換処理
@@ -150,7 +128,7 @@ class SearchFeature extends BaseFeatureProvider
     /**
      * @hook search page
      */
-    public function search_typePage ($query, $form, $field_def, $value)
+    public function search_page ($query, $form, $field_def, $value)
     {
         // 1ページの表示件数
         $volume = $field_def["volume"];
@@ -165,7 +143,7 @@ class SearchFeature extends BaseFeatureProvider
      * @hook search_yield exists
      * 別Tableをサブクエリとして条件指定する
      */
-    public function search_yieldExists ($query, $form, $yield)
+    public function searchYield_exists ($query, $form, $yield)
     {
         $table = $this->releasable(table($yield["table"]));
         if ($yield["on"]) {

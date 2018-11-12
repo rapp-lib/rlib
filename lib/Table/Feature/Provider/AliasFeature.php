@@ -48,7 +48,7 @@ class AliasFeature extends BaseFeatureProvider
         // }
         if ($src_col_name==="*") {
             // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
-            $dest_values = self::mapReduce($result, $alias);
+            $dest_values = self::mapReduce($result, $result, $alias);
             // 結果を統合する
             foreach ($result as $key=>$record) {
                 $record[$alias_col_name] = $dest_values[$key];
@@ -56,7 +56,7 @@ class AliasFeature extends BaseFeatureProvider
         } else {
             // 値を引数に呼び出し f({i=>v1})=>{v1=>v2}
             $src_values = $result->getHashedBy($src_col_name);
-            $dest_values = self::mapReduce($src_values, $alias);
+            $dest_values = self::mapReduce($result, $src_values, $alias);
             // 結果を統合する
             foreach ($result as $record) {
                 $key = self::encodeKey($record->getColValue($src_col_name));
@@ -64,7 +64,7 @@ class AliasFeature extends BaseFeatureProvider
             }
         }
     }
-    protected static function mapReduce ($src_values, $alias)
+    protected static function mapReduce ($result, $src_values, $alias)
     {
         // checklistのように対象の値が複数となっている
         if ($alias["array"] || $alias["glue"]) {
@@ -72,7 +72,8 @@ class AliasFeature extends BaseFeatureProvider
                 return array_merge($reduced, array_values((array)$src_value));
             }, array());
             // $map = call_user_func($callback, $reduced, $alias);
-            $map = app("table.features")->call("alias", $alias["type"], array($reduced, $alias));
+            $map = app("table.features")->call("alias",
+                camel_case($alias["type"]), array($result, $reduced, $alias));
             $dest_values = array();
             foreach ($src_values as $src_value) {
                 $key = self::encodeKey($src_value);
@@ -83,7 +84,8 @@ class AliasFeature extends BaseFeatureProvider
             return $dest_values;
         } else {
             // $dest_values = call_user_func($callback, $src_values, $alias);
-            $dest_values = app("table.features")->call("alias", $alias["type"], array($src_values, $alias));
+            $dest_values = app("table.features")->call("alias",
+                camel_case($alias["type"]), array($result, $src_values, $alias));
             return $dest_values;
         }
     }
@@ -94,7 +96,7 @@ class AliasFeature extends BaseFeatureProvider
     /**
      * aliasにenum指定がある場合の処理
      */
-    public function alias_enum ($src_values, $alias)
+    public function alias_enum ($result, $src_values, $alias)
     {
         // 指定が不正
         if ( ! $alias["enum"] || ! app()->enum[$alias["enum"]]) {
@@ -107,7 +109,7 @@ class AliasFeature extends BaseFeatureProvider
     /**
      * hasMany関係先テーブルの情報を1件のみ取得
      */
-    public function alias_hasOne ($src_values, $alias)
+    public function alias_hasOne ($result, $src_values, $alias)
     {
         $alias["single"] = true;
         return $this->alias_hasMany($src_values, $alias);
@@ -115,16 +117,17 @@ class AliasFeature extends BaseFeatureProvider
     /**
      * hasMany関係先テーブルの情報を取得
      */
-    public function alias_hasMany ($src_values, $alias)
+    public function alias_hasMany ($result, $src_values, $alias)
     {
         if ( ! $alias["table"]) {
             report_error("aliasで指定されるtableがありません",array(
                 "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
             ));
         }
-        $assoc_table = app()->tables[$alias["table"]];
+        $assoc_table = app()->tables[$alias["table"]]->makeBuilder();
+        $table = $result->getStatement()->getQuery()->getDef();
         $assoc_fkey = $alias["fkey"]
-            ?: $assoc_table->getColNameByAttr("fkey_for", $assoc_table->getAppTableName());
+            ?: $assoc_table->getDef()->getColNameByAttr("fkey_for", $table->getAppTableName());
         if ( ! $assoc_fkey) {
             report_error("Table間にHasMany関係がありません",array(
                 "table"=>$this, "assoc_table"=>$assoc_table, "alias"=>$alias,
@@ -144,7 +147,7 @@ class AliasFeature extends BaseFeatureProvider
      * hasMany関係先テーブルの情報をLIMIT付きで取得する
      * 最新n件を取得する、など件数分のSQL発行が必要な場合の処理
      */
-    public function alias_hasManyEach ($src_values, $alias)
+    public function alias_hasManyEach ($result, $src_values, $alias)
     {
         if ( ! $alias["table"]) {
             report_error("aliasで指定されるtableがありません",array(
@@ -175,28 +178,27 @@ class AliasFeature extends BaseFeatureProvider
     /**
      * belongsTo関係先テーブルの情報を取得
      */
-    public function alias_belongsTo ($src_values, $alias)
+    public function alias_belongsTo ($result, $src_values, $alias)
     {
         if ( ! $alias["table"]) {
             report_error("aliasで指定されるtableがありません",array(
                 "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
             ));
         }
-        $assoc_table = $this->releasable(table($alias["table"]));
-        $assoc_table->findBy($assoc_table->getIdColName(), $src_values);
+        $assoc_table = app()->tables[$alias["table"]]->makeBuilder();
+        $assoc_table->findBy($assoc_table->getDef()->getIdColName(), $src_values);
         if ($alias["mine"]) $assoc_table->findMine();
         if ($alias["where"]) $assoc_table->findBy($alias["where"]);
-        return $assoc_table->select()->getMappedBy($assoc_table->getIdColName());
+        return $assoc_table->select()->getMappedBy($assoc_table->getDef()->getIdColName());
     }
     /**
      * alias type=summaryの処理 集計結果を対応づける
      *      - required table, key, value
      *      - optional joins, where, key_sub
      */
-    public function alias_summary ($src_values, $alias)
+    public function alias_summary($result, $src_values, $alias)
     {
-        $q = $this->releasable(table($alias["table"]));
-        $q->findBy($alias["key"], $src_values);
+        $q = app()->tables[$alias["table"]]->findBy($alias["key"], $src_values);
         foreach ((array)$alias["joins"] as $join) $q->join($join);
         if ($alias["where"]) $q->findBy($alias["where"]);
         return $q->selectSummary($alias["value"], $alias["key"], $alias["key_sub"] ?: false);
