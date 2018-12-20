@@ -34,7 +34,7 @@ class AuthFeature extends BaseFeatureProvider
      * @hook chain
      * 現在のRoleのTableに対して所有関係があることを条件として指定する
      */
-    public function chain_findMine ($query)
+    public function chain_findMine($query)
     {
         $role = app()->user->getCurrentRole();
         $result = app()->user->onFindMine($role, $query);
@@ -46,7 +46,7 @@ class AuthFeature extends BaseFeatureProvider
     /**
      * 現在のRoleのTableに対して所有関係があることを前提にsaveを実行する
      */
-    public function chainEnd_saveMine ()
+    public function chainEnd_saveMine($query)
     {
         $role = app()->user->getCurrentRole();
         $result = app()->user->onSaveMine($role, $query);

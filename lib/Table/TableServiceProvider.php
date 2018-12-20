@@ -23,8 +23,7 @@ class TableServiceProvider extends ServiceProvider
     }
     public function boot()
     {
-        $providers = (array)$this->app->config["table.feature_providers"];
-        array_unshift($providers, $this->app["table.feature_std_provider"]);
-        foreach ($providers as $provider) $this->app["table.features"]->registerProvider($provider);
+        $provider = $this->app["table.feature_std_provider"];
+        $this->app["table.features"]->registerProvider($provider);
     }
 }

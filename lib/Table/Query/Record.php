@@ -40,6 +40,13 @@ class Record extends \ArrayObject
         // 添え字が存在しなければblank_colを呼んでから返す
         } else {
             app("table.features")->emit("blank_col", array($this, $key));
+            if ( ! parent::offsetExists($key)) {
+                foreach ($this->getResult() as $record) $record[$key] = null;
+                report_warning("値の設定されないColの参照", array(
+                    "query"=>$this->getResult()->getStatement()->getQuery(),
+                    "col"=>$key,
+                ));
+            }
             return parent::offsetGet($key);
         }
     }

@@ -153,13 +153,13 @@ class QueryExec extends BaseFeatureProvider
     public function chainEnd_selectHashedBy($query, $key_col_name, $key_col_name_sub=false, $col_name_sub_ex=false)
     {
         if ($key_col_name_sub === false) {
-            return $query->setFields(array($key_col_name))
+            return $query->makeBuilder()->fields(array($key_col_name))
                 ->select()->getHashedBy($key_col_name);
         } elseif ($col_name_sub_ex === false) {
-            return $query->setFields(array($key_col_name, $key_col_name_sub))
+            return $query->makeBuilder()->fields(array($key_col_name, $key_col_name_sub))
                 ->select()->getHashedBy($key_col_name, $key_col_name_sub);
         } else {
-            return $query->setFields(array($key_col_name, $key_col_name_sub, $col_name_sub_ex))
+            return $query->makeBuilder()->fields(array($key_col_name, $key_col_name_sub, $col_name_sub_ex))
                 ->select()->getHashedBy($key_col_name, $key_col_name_sub, $col_name_sub_ex);
         }
     }
@@ -169,10 +169,10 @@ class QueryExec extends BaseFeatureProvider
     public function chainEnd_selectSummary($query, $summary_field, $key_col_name, $key_col_name_sub=false)
     {
         if ($key_col_name_sub === false) {
-            return $query->setFields(array("summary"=>$summary_field, $key_col_name))->groupBy($key_col_name)
+            return $query->makeBuilder()->fields(array("summary"=>$summary_field, $key_col_name))->groupBy($key_col_name)
                 ->select()->getHashedBy($key_col_name, "summary");
         } else {
-            return $query->setFields(array(
+            return $query->makeBuilder()->fields(array(
                 "summary" => $summary_field, $key_col_name, $key_col_name_sub))
                 ->groupBy($key_col_name)->groupBy($key_col_name_sub)
                 ->select()->getHashedBy($key_col_name, $key_col_name_sub, "summary");

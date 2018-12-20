@@ -205,14 +205,22 @@ class AssocFeature extends BaseFeatureProvider
         $query->removeValue($col_name);
     }
     /**
-     * assoc処理 insert/updateの発行後
+     * assoc処理 insert/updateの発行後（前処理）
      */
-    public function on_afterWrite_colAssoc ($result, $col_name)
+    public function pre_on_afterWrite_colAssoc ($result, $col_name)
     {
+        // 設定された値が全件削除も含め、配列であれば処理を実行する
         $query = $result->getStatement()->getQuery();
         $value = $query->getAssocValues($col_name);
+        return is_array($value) ? $value : false;
+    }
+    /**
+     * assoc処理 insert/updateの発行後
+     */
+    public function on_afterWrite_colAssoc ($result, $col_name, $value)
+    {
+        $query = $result->getStatement()->getQuery();
         $assoc = $query->getDef()->getColAttr($col_name, "assoc");
-        return $result->affectAssoc($col_name, $assoc, $value);
+        $result->affectAssoc($col_name, $assoc, $value);
     }
 }
-
