@@ -27,7 +27,7 @@ class ViewServiceProvider extends IlluminateViewServiceProvider
             return $resolver;
         });
 		$this->app->bindShared('view.finder', function($app){
-			return new FileViewFinder($app['files']);
+			return new FileViewFinder($app['files'], array());
 		});
 		$this->app->bindShared('view', function($app)
 		{
