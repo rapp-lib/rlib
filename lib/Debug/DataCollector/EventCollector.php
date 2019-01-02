@@ -49,10 +49,8 @@ class EventCollector extends TimeDataCollector
             ), "App");
         } elseif ($name==="http.create_response") {
             list($type, $data, $params) = $args;
-            if ($type=="html") $data = "...";
             report_info("Create Response", array(
                 "type" => $type,
-                "data" => $data,
                 "params" => $params,
             ), "App");
         } elseif ($name==="http.emit_response") {
