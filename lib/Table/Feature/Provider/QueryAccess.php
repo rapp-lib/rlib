@@ -131,7 +131,7 @@ class QueryAccess extends BaseFeatureProvider
     {
         // 経路を取得
         $self_table_name = $query->getDef()->getAppTableName();
-        $route = app("table.resolver")->getFkeyRoute($self_table_name, $target_table_name);
+        $route = app("table.relation_resolver")->getFkeyRoute($self_table_name, $target_table_name);
         // 経路が存在しない場合は処理を行わない
         if ( ! $route) {
             report_warning("無効なfindByRoute, 有効な経路がありません", array(
@@ -176,7 +176,7 @@ class QueryAccess extends BaseFeatureProvider
         if (is_array($target_table_name)) list($target_table_name, $target_as) = $target_table_name;
         // 経路を取得
         $self_table_name = $query->getDef()->getAppTableName();
-        $route = app("table.resolver")->getFkeyRoute($self_table_name, $target_table_name);
+        $route = app("table.relation_resolver")->getFkeyRoute($self_table_name, $target_table_name);
         // 経路が存在しない場合は処理を行わない
         if ( ! $route) return false;
         // 目的関係先に近い順に登録する

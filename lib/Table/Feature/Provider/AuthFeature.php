@@ -92,7 +92,7 @@ class AuthFeature extends BaseFeatureProvider
         if ($role_table_name == $query->getDef()->getAppTableName()) {
             $query->setValue($id_col_name, $user_id);
         // 関係がある場合
-        } elseif (app("table.resolver")->getFkeyRoute($query->getDef()->getAppTableName(), $role_table_name)) {
+        } elseif (app("table.relation_resolver")->getFkeyRoute($query->getDef()->getAppTableName(), $role_table_name)) {
             // 直接関係があればValueを上書き
             if ($fkey_col_name) $query->setValue($fkey_col_name, $user_id);
             // Updateが発行される場合、関係先を探索して条件に追加

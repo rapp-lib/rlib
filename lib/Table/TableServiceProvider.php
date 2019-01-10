@@ -9,6 +9,7 @@ class TableServiceProvider extends ServiceProvider
         $ns = '\R\Lib\Table';
         $this->app->singleton("tables", $ns.'\Def\TableDefCollection');
         $this->app->singleton("table.def_resolver", $ns.'\Def\TableDefResolver');
+        $this->app->singleton("table.relation_resolver", $ns.'\Def\TableRelationResolver');
         $this->app->bind("table.def", $ns.'\Def\TableDef');
         $this->app->bind("table.query_builder", $ns.'\Query\Builder');
         $this->app->bind("table.query_payload", $ns.'\Query\Payload');
