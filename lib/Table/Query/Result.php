@@ -15,10 +15,15 @@ class Result extends \ArrayObject
             $def = $statement->getQuery()->getDef();
             $id_col_name = $def->getIdColName();
             if ($def->getColAttr($id_col_name, "autoincrement")) {
-                $this->last_insert_id = $def->getConnection()->lastInsertId($def, $id_col_name);
+                $this->last_insert_id = $def->getConnection()
+                    ->lastInsertId($statement->getQuery()->getTableName(), $id_col_name);
             } else {
                 $this->last_insert_id = $statement->getQuery()->getValue($id_col_name);
             }
+            report(
+                $def->getColAttr($id_col_name, "autoincrement"),
+                $this->last_insert_id
+            );
         } else {
             $this->last_insert_id = null;
         }
