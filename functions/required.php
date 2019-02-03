@@ -17,6 +17,7 @@
     {
         return app("i18n")->getMessage($key, $values, $locale);
     }
+if ( ! function_exists("report")) {
     function report ()
     {
         $vars = array();
@@ -24,6 +25,7 @@
         $vars["__"]["category"] = "Debug";
         app("log")->write("debug", "DEBUG", $vars);
     }
+}
     function report_info ($message, array $vars=array(), $category=null)
     {
         $vars["__"]["category"] = strlen($category) ? $category : "Info";

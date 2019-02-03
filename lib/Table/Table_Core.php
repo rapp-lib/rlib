@@ -98,7 +98,7 @@ class Table_Core
      */
     public function getConnection ()
     {
-        return app()->db(static::$ds_name);
+        return app()->db->getConnection(static::$ds_name);
     }
 
 // -- 関連オブジェクトのFactory

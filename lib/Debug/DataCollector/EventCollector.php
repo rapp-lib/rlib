@@ -13,7 +13,7 @@ class EventCollector extends TimeDataCollector
     public function __construct($requestStartTime = null)
     {
         parent::__construct($requestStartTime);
-        $this->exporter = new ValueExporter();
+        // $this->exporter = new ValueExporter();
     }
     public function subscribe(Dispatcher $events)
     {

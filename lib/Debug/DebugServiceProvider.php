@@ -17,7 +17,10 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
         $this->app->singleton('memory_usage', "R\Lib\Debug\MemoryUsageTracer");
         // Loggerに関連付け
         $this->app->singleton("debug.logging_handler", "R\Lib\Debug\LoggingHandler");
-        $this->app["log"]->getMonolog()->pushHandler($this->app["debug.logging_handler"]);
+        $logger = (method_exists($this->app["log"], "driver"))
+            ? $this->app["log"]->driver()->getLogger()
+            : $this->app["log"]->getMonolog();
+        $logger->pushHandler($this->app["debug.logging_handler"]);
         // Http Global Injection
         if ( ! $this->app->runningInConsole()) {
             $this->app->config->push("http.global.response_filters", function($response){

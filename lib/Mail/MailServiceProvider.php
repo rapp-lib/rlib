@@ -8,7 +8,7 @@ class MailServiceProvider extends IlluminateMailServiceProvider
 	public function register()
 	{
 		$me = $this;
-		$this->app->bindShared('mailer', function($app) use ($me)
+		$this->app->singleton('mailer', function($app) use ($me)
 		{
 			$me->registerSwiftMailer();
 			$mailer = new Mailer(

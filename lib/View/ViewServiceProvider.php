@@ -19,17 +19,17 @@ class ViewServiceProvider extends IlluminateViewServiceProvider
             $assets->addRepo($repo_uri);
             return $assets;
         });
-		$this->app->bindShared('view.engine.resolver', function(){
+		$this->app->singleton('view.engine.resolver', function(){
             $resolver = new EngineResolver;
             $this->registerPhpEngine($resolver);
             $this->registerBladeEngine($resolver);
             $resolver->register('smarty', function() { return new SmartyEngine; });
             return $resolver;
         });
-		$this->app->bindShared('view.finder', function($app){
+		$this->app->singleton('view.finder', function($app){
 			return new FileViewFinder($app['files'], array());
 		});
-		$this->app->bindShared('view', function($app)
+		$this->app->singleton('view', function($app)
 		{
             $class = class_exists('\Illuminate\View\Factory') ? '\Illuminate\View\Factory' : '\Illuminate\View\Environment';
 			$factory = new $class($app['view.engine.resolver'], $app['view.finder'], $app['events']);
