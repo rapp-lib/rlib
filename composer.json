@@ -1,5 +1,5 @@
 {
-    "name": "rapp-lib/rlib-laravel",
+    "name": "rapp-lib/rlib",
     "description": "RLIB essesials for Laravel.",
     "type": "library",
     "license": "MIT",
