@@ -113,7 +113,9 @@ class AssocFeature extends BaseFeatureProvider
             return;
         }
         // 対象のIDに関係する関係先のレコードを差分削除
-        $table = app()->tables[$assoc_table_name]->findBy($assoc_fkey, $id);
+        $table = app()->tables[$assoc_table_name]
+            ->setParentQuery($result->getStatement()->getQuery())
+            ->findBy($assoc_fkey, $id);
         // ExtraValueを条件に設定
         if ($assoc_extra_values) $table->findBy($assoc_extra_values);
         $assoc_result = $table->select();
@@ -130,7 +132,9 @@ class AssocFeature extends BaseFeatureProvider
                     $record[$assoc_id_col] = current($delete_assoc_ids);
                     unset($delete_assoc_ids[key($delete_assoc_ids)]);
                 }
-                app()->tables[$assoc_table_name]->save($record);
+                app()->tables[$assoc_table_name]
+                    ->setParentQuery($result->getStatement()->getQuery())
+                    ->save($record);
                 $values = array();
             } else {
                 foreach ((array)$values as $value) {
@@ -141,13 +145,16 @@ class AssocFeature extends BaseFeatureProvider
                     } else {
                         $record = array($assoc_fkey=>$id, $assoc_value_col=>$value);
                         foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                        app()->tables[$assoc_table_name]->save($record);
+                        app()->tables[$assoc_table_name]
+                            ->setParentQuery($result->getStatement()->getQuery())
+                            ->save($record);
                     }
                 }
             }
             // 削除
             if ($delete_assoc_ids) {
                 app()->tables[$assoc_table_name]
+                    ->setParentQuery($result->getStatement()->getQuery())
                     ->findBy($assoc_fkey, $id)
                     ->findById($delete_assoc_ids)
                     ->deleteAll();
@@ -168,11 +175,14 @@ class AssocFeature extends BaseFeatureProvider
                 // 新規/上書き
                 $record[$assoc_fkey] = $id;
                 foreach ((array)$assoc_extra_values as $k=>$v) $record[$k] = $v;
-                app()->tables[$assoc_table_name]->save($record);
+                app()->tables[$assoc_table_name]
+                    ->setParentQuery($result->getStatement()->getQuery())
+                    ->save($record);
             }
             // 削除
             if ($delete_assoc_ids) {
                 app()->tables[$assoc_table_name]
+                    ->setParentQuery($result->getStatement()->getQuery())
                     ->findBy($assoc_fkey, $id)
                     ->findById($delete_assoc_ids)
                     ->deleteAll();

@@ -7,6 +7,13 @@ class QueryAccess extends BaseFeatureProvider
 // -- 基本的なchain hookの定義
 
     /**
+     * QueryChain内部でQueryを生成する際に生成元Queryの情報を引き継ぐ
+     */
+    public function chain_setParentQuery($query, $parent_query)
+    {
+        $query->setAttrs($parent_query->getAttrs());
+    }
+    /**
      * Insert/Update文のValues部を設定する
      */
     public function chain_values($query, $values)
@@ -148,7 +155,7 @@ class QueryAccess extends BaseFeatureProvider
                 $query->where($edge[0].".".$edge[1], $value);
             // 経由関係先への参照は、JOINを指定する
             } else {
-                $join_table = app()->tables[$edge[2]];
+                $join_table = app()->tables[$edge[2]]->setParentQuery($query);
                 // ASの解決
                 if ($edge["as"]) $join_table->alias($edge["as"]);
                 $join_table_name = $join_table->getQuery()->getTableName();
@@ -181,7 +188,7 @@ class QueryAccess extends BaseFeatureProvider
         if ( ! $route) return false;
         // 目的関係先に近い順に登録する
         foreach (array_reverse($route) as $edge) {
-            $join_table = app()->tables[$edge[2]];
+            $join_table = app()->tables[$edge[2]]->setParentQuery($query);
             // 関係元からの参照であれば、テーブルの名前はクエリ内のものを使用する
             if ($edge[0] == $self_table_name) $edge[0] = $query->getTableName();
             // ASの解決

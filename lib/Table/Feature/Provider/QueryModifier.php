@@ -33,7 +33,7 @@ class QueryModifier extends BaseFeatureProvider
 
     public function on_update_toDelete_999($query)
     {
-        if ($query->getDelete()) {
+        if ($query->getDelete() === "hard") {
             $query->setDelete(false);
             $query->setType("delete");
         }
