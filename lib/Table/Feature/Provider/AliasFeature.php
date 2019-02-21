@@ -124,7 +124,7 @@ class AliasFeature extends BaseFeatureProvider
                 "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
             ));
         }
-        $assoc_table = app()->tables[$alias["table"]]->makeBuilder();
+        $assoc_table = app()->tables[$alias["table"]]->makeBuilder()->setParentQuery($result->getStatement()->getQuery());
         $table = $result->getStatement()->getQuery()->getDef();
         $assoc_fkey = $alias["fkey"]
             ?: $assoc_table->getDef()->getColNameByAttr("fkey_for", $table->getAppTableName());
@@ -164,7 +164,7 @@ class AliasFeature extends BaseFeatureProvider
                     "table"=>$this, "assoc_table"=>$assoc_table, "alias"=>$alias,
                 ));
             }
-            $assoc_table->findBy($assoc_fkey, $src_value);
+            $assoc_table->setParentQuery($result->getStatement()->getQuery())->findBy($assoc_fkey, $src_value);
             if ($alias["mine"]) $assoc_table->findMine();
             if ($alias["where"]) $assoc_table->findBy($alias["where"]);
             if ($alias["order"]) $assoc_table->orderBy($alias["order"]);
@@ -185,7 +185,8 @@ class AliasFeature extends BaseFeatureProvider
                 "table"=>$this, "assoc_table"=>$alias["table"], "alias"=>$alias
             ));
         }
-        $assoc_table = app()->tables[$alias["table"]]->makeBuilder();
+        $assoc_table = app()->tables[$alias["table"]]->makeBuilder()
+            ->setParentQuery($result->getStatement()->getQuery());
         $assoc_table->findBy($assoc_table->getDef()->getIdColName(), $src_values);
         if ($alias["mine"]) $assoc_table->findMine();
         if ($alias["where"]) $assoc_table->findBy($alias["where"]);
@@ -198,7 +199,9 @@ class AliasFeature extends BaseFeatureProvider
      */
     public function alias_summary($result, $src_values, $alias)
     {
-        $q = app()->tables[$alias["table"]]->findBy($alias["key"], $src_values);
+        $q = app()->tables[$alias["table"]]
+            ->setParentQuery($result->getStatement()->getQuery())
+            ->findBy($alias["key"], $src_values);
         foreach ((array)$alias["joins"] as $join) $q->join($join);
         if ($alias["where"]) $q->findBy($alias["where"]);
         return $q->selectSummary($alias["value"], $alias["key"], $alias["key_sub"] ?: false);

@@ -113,7 +113,9 @@ class ResultFeature extends BaseFeatureProvider
             ));
         }
         $assoc_ids = $result->getHashedBy($assoc_fkey);
-        return $assoc_table->findById($assoc_ids);
+        return $assoc_table
+            ->setParentQuery($result->getStatement()->getQuery())
+            ->findById($assoc_ids);
     }
     /**
      * 主キーを対象の外部キーでの検索条件に設定した状態で、HasMany関係にあるTableを取得する
@@ -132,7 +134,9 @@ class ResultFeature extends BaseFeatureProvider
             ));
         }
         $assoc_ids = $result->getHashedBy($table->getIdColName());
-        return $assoc_table->findBy($assoc_fkey, $assoc_ids);
+        return $assoc_table
+            ->setParentQuery($result->getStatement()->getQuery())
+            ->findBy($assoc_fkey, $assoc_ids);
     }
     /**
      * @hook result
@@ -147,6 +151,8 @@ class ResultFeature extends BaseFeatureProvider
         } elseif ($query->getType()=="insert") {
             $id = $result->getLastInsertId();
         }
-        return $id ? $query->getDef()->selectById($id) : null;
+        return $id ? $query->getDef()
+            ->setParentQuery($result->getStatement()->getQuery())
+            ->selectById($id) : null;
     }
 }

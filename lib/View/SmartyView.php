@@ -116,6 +116,10 @@ class SmartyView
         }
         return $glue===false ? $res : implode($glue, $res);
     }
+    public static function smarty_modifier_ignore ($value)
+    {
+        return null;
+    }
 
 // -- フォーム構築プラグイン
 
