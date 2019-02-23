@@ -44,7 +44,7 @@ class Arr
             if (\R\Lib\Util\Arr::is_arraylike($value)) {
                 $ref_sub = & \R\Lib\Util\Arr::array_get_ref($ref, $key);
                 // 連番添え字の場合上書きせず追加
-                if (\R\Lib\Util\Arr::is_seqarray($value)) {
+                if ($ref_sub && \R\Lib\Util\Arr::is_seqarray($value)) {
                     $offset = count($ref_sub)==0 ? 0 : (int)max(array_keys($ref_sub))+1;
                     for ($i=0; $i<count($value); $i++) {
                         \R\Lib\Util\Arr::array_add($ref_sub, $offset+$i, $value[$i]);
