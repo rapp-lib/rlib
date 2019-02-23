@@ -20,10 +20,6 @@ class Result extends \ArrayObject
             } else {
                 $this->last_insert_id = $statement->getQuery()->getValue($id_col_name);
             }
-            report(
-                $def->getColAttr($id_col_name, "autoincrement"),
-                $this->last_insert_id
-            );
         } else {
             $this->last_insert_id = null;
         }

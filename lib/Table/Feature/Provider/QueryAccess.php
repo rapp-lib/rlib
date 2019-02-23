@@ -179,7 +179,7 @@ class QueryAccess extends BaseFeatureProvider
      * JOIN句の設定 主テーブル側が持つ外部キーでJOIN
      */
     public function chain_joinBelongsTo ($query, $target_table_name, $fkey=false)
-    {
+    {report($query, $target_table_name);
         if (is_array($target_table_name)) list($target_table_name, $target_as) = $target_table_name;
         // 経路を取得
         $self_table_name = $query->getDef()->getAppTableName();
