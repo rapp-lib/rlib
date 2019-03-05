@@ -385,8 +385,8 @@ class ReportRenderer
                     $r .= get_class($arg);
                 } elseif (is_array($arg)) {
                     $r .= "array[".count($arg)."]";
-                } elseif (strlen($arg) > 1000) {
-                    $r = '"...'.strlen($arg).'bytes..."';
+                } elseif (strlen((string)$arg) > 1000) {
+                    $r = '"...'.strlen((string)$arg).'bytes..."';
                 } else {
                     $r .= '"'.self::str_truncate((string)$arg,20,'...').'"';
                 }
