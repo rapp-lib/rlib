@@ -113,7 +113,7 @@ class QueryModifier extends BaseFeatureProvider
     public function on_afterSelect_colJsonFormat_300($result, $col_name)
     {
         foreach ($result as $record) {
-            if (strlen($value = $record[$col_name])) {
+            if (isset($record[$col_name]) && strlen($value = $record[$col_name])) {
                 $record[$col_name] = (array)json_decode($record[$col_name]);
             }
         }

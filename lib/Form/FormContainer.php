@@ -173,9 +173,7 @@ class FormContainer extends ArrayObject
      */
     public function clearSaved ()
     {
-        if (isset($this->tmp_storage)) {
-            $this->getTmpStorage()->delete("values");
-        }
+        $this->getTmpStorage()->delete("values");
     }
 
     /**
