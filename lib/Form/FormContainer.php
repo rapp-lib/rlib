@@ -277,8 +277,9 @@ class FormContainer extends ArrayObject
         // formタグの仕様により混入する非正規な空データを削除してからデータを登録
         \R\Lib\Util\Arr::array_clean($input_values);
         $this->setValues($input_values);
+        $form = $this;
         // 入力変換処理
-        $this->mapFields(function($value, $field_name, $field_def){
+        $this->mapFields(function($value, $field_name, $field_def)use($form){
             // ファイルアップロード
             if ($value instanceof \Psr\Http\Message\UploadedFileInterface) {
                 $storage_name = $field_def["storage"];
@@ -291,7 +292,7 @@ class FormContainer extends ArrayObject
                         "field_name" => $field_name,
                         "field_def" => $field_def,
                     ), "FileUpload");
-                } elseif ($file = app()->file->getStorage($storage_name)->upload($value)) {
+                } elseif ($file = app()->file->getStorage($storage_name)->upload($value, array("form"=>$form, "field_def"=>$field_def, "field_name"=>$field_name))) {
                     $value = new UploadedFile($file->getUri(), $value);
                     report_info("File Uploaded",array(
                         "field_name" => $field_name,

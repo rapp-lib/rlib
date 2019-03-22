@@ -43,9 +43,10 @@ class UserFileStorage
     /**
      * ファイルアップロード
      */
-    public function upload($uploaded_file)
+    public function upload($uploaded_file, $params=array())
     {
-        $file = $this->getFile(array("filename"=>$uploaded_file->getClientFilename()));
+        $params["filename"] = $uploaded_file->getClientFilename();
+        $file = $this->getFile($params);
         $stream = $file->getSource();
         if (preg_match('!^(file:/)?/!', $stream)) {
             if ( ! file_exists(dirname($stream))) mkdir(dirname($stream), 0777, true);
