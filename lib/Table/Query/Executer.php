@@ -22,7 +22,7 @@ class Executer
                 ));
             }
             // Resultの作成
-            $result = app()->make("table.query_result", array($result_res, $statement));
+            $result = app()->make("table.query_result", array("result_res"=>$result_res, "statement"=>$statement));
             // SQL発行後処理
             if ($after_exec) call_user_func($after_exec, $result);
             app("table.features")->emit("after_exec", array($result));

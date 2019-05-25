@@ -16,9 +16,10 @@ use Dotenv\Dotenv;
 class LaravelizeServiceProvider extends ServiceProvider
 {
     protected $base_singletons = array(
+        'laravelizer' => '\R\Lib\Laravel\Support\Laravelizer',
         // 5.0
         // 'url' => '\R\Lib\Http\UrlGenerator',
-        'table.resolver' => '\R\Lib\Table\TableResolver',
+        // 'table.resolver' => '\R\Lib\Table\TableResolver',
         'debug' => 'R\Lib\Core\Debug',
         // 'report' => 'R\Lib\Report\ReportDriver',
         'table' => '\R\Lib\Table\TableFactory',
@@ -26,13 +27,13 @@ class LaravelizeServiceProvider extends ServiceProvider
         // "session" => 'R\Lib\Session\SessionDriver',
         // 4.1
         // "i18n" => 'R\Lib\I18n\I18nDriver',
-        // "security" => 'R\Lib\Core\Security',
+        "security" => 'R\Lib\Laravel\Support\Security',
         "enum" => 'R\Lib\Enum\EnumRepositry',
         // 4.0
         // "http" => 'R\Lib\Http\HttpDriver',
-        "user" => 'R\Lib\Auth\UserLoginDriver',
+        "user" => 'R\Lib\Laravel\Auth\UserLoginDriver',
         // "file" => 'R\Lib\File\UserFileDriver',
-        // "db" => 'R\Lib\DBAL\DBDriver',
+        "db" => 'R\Lib\Laravel\Database\DatabaseManager',
         // 3.0
         "form" => 'R\Lib\Form\FormFactory',
     );
@@ -41,16 +42,17 @@ class LaravelizeServiceProvider extends ServiceProvider
         'farm.publish'=>'\R\Lib\Farm\Command\FarmPublishCommand',
     );
     protected $base_providers = array(
-        '\R\Lib\Test\TestServiceProvider',
+        // '\R\Lib\Test\TestServiceProvider',
         '\R\Lib\Doc\DocServiceProvider',
-        '\R\Lib\View\ViewServiceProvider',
-        '\R\Lib\Mail\MailServiceProvider',
+        // '\R\Lib\View\ViewServiceProvider',
+        // '\R\Lib\Mail\MailServiceProvider',
         '\R\Lib\Table\TableServiceProvider',
     );
     public function register()
     {
         error_reporting(E_ALL ^ E_WARNING ^ E_NOTICE);
         define("R_APP_ROOT_DIR", base_path("rapp"));
+        app()->config["app.switch.new_table"] = true;
         // パス設定
         // $this->app->instance('path', constant("R_APP_ROOT_DIR")."/app");
         // $this->app->instance('path.app', constant("R_APP_ROOT_DIR")."/app");
@@ -63,13 +65,8 @@ class LaravelizeServiceProvider extends ServiceProvider
         // }
         // bindings設定
         // $this->app->singleton('config', 'R\Lib\Core\Config');
-        $singletons = /*(array)$this->app->config['app.singletons'] + */$this->base_singletons;
-        foreach ($singletons as $k=>$v) $this->app->singleton($k, $v);
-        if (is_array($this->app->config["db.connections"])) {
-            $this->app->singleton("db", '\R\Lib\DBAL\DBDriver');
-        } else {
-            $this->app->singleton("db", '\R\Lib\DBAL\DatabaseManager');
-        }
+        // $singletons = (array)$this->app->config['app.singletons'] +
+        foreach ($this->base_singletons as $k=>$v) $this->app->singleton($k, $v);
         // 環境名を設定
         // $this->app->instance('env', $this->app->config["app.env"] ?: "");
         // Debug設定の検証
@@ -106,6 +103,25 @@ class LaravelizeServiceProvider extends ServiceProvider
         foreach ((array)$this->base_providers as $provider_name) {
             $this->app->register($provider_name);
         }
+
+        // ViewServiceProvider
+        $this->app['view.engine.resolver']->register('rlib_smarty', function(){
+            return new \R\Lib\View\Engines\SmartyEngine;
+        });
+        $this->app["view"]->addExtension("html", "rlib_smarty");
+		$this->app->singleton('view.finder', function($app){
+			return new \R\Lib\View\FileViewFinder($app['files'], array());
+		});
+        $this->app->singleton("view.smarty", function($app){
+            return new \R\App\View\View_App;
+        });
+        $this->app->singleton("view.assets", function($app){
+            $assets = new \R\Lib\Laravel\View\FrontAssets();
+            // $repo_uri = $app["request"]->getUri()->getWebroot()->uri("path://.assets");
+            $assets->addRepo(null);
+            return $assets;
+        });
+
         // foreach ((array)$this->app->config['app.providers'] as $provider) {
         //     $this->app->register($provider);
         // }
@@ -127,12 +143,16 @@ class LaravelizeServiceProvider extends ServiceProvider
     {
         $this->commands($this->base_commands);
         // $this->commands((array)$this->app->config["app.commands"]);
-
-        Route::middleware('web')->group(function(){
-            Route::get("/", function(){
-                return view()->file(R_APP_ROOT_DIR."/public/test.html");
-            });
-        });
+        // Route::middleware('web')->group(function(){
+        //     $action = '\R\App\Controller\IndexController@act_index';
+        //     $name = "index.index";
+        //     Route::any('/', $action)->name($name);
+        //     // Route::get("/", function(){
+        //     //     return view()->file(R_APP_ROOT_DIR."/public/test.html");
+        //     // });
+        // });
+        app("laravelizer")->loadAuthConfig();
+        app("laravelizer")->loadRoutingConfig();
     }
 
     // /**

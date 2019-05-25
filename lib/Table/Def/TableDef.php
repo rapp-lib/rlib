@@ -39,7 +39,7 @@ class TableDef
      */
     public function makeQuery()
     {
-        return app()->make("table.query_payload", array($this->def_attr_set["app_table_name"]));
+        return app()->make("table.query_payload", array("table_name"=>$this->def_attr_set["app_table_name"]));
     }
     /**
      * DBConnectionインスタンスの取得
@@ -133,8 +133,8 @@ class TableDef
     public function makeMockResult()
     {
         $query = $this->makeQuery();
-        $statement = app()->make("table.query_statement", array("", $query));
-        $result = app()->make("table.query_result", array(false, $statement));
+        $statement = app()->make("table.query_statement", array("sql"=>"", "query"=>$query));
+        $result = app()->make("table.query_result", array("result_res"=>false, "statement"=>$statement));
         return $result;
     }
 

@@ -15,6 +15,9 @@
     }
     function ___ ($key, $values=array(), $locale=null)
     {
+        if (app()->bound("laravelizer")) {
+            return trans($key, $values);
+        }
         return app("i18n")->getMessage($key, $values, $locale);
     }
 if ( ! function_exists("report")) {
@@ -28,11 +31,17 @@ if ( ! function_exists("report")) {
 }
     function report_info ($message, array $vars=array(), $category=null)
     {
+        if (app()->bound("laravelizer")) {
+            return app("log")->write("info", $message, $vars);
+        }
         $vars["__"]["category"] = strlen($category) ? $category : "Info";
         app("log")->write("info", $message, $vars);
     }
     function report_warning ($message, array $vars=array(), $category=null)
     {
+        if (app()->bound("laravelizer")) {
+            return app("log")->write("message", $message, $vars);
+        }
         $vars["__"]["category"] = strlen($category) ? $category : "Warning";
         app("log")->write("warning", $message, $vars);
     }

@@ -154,14 +154,11 @@ class InputField
             $this->html = tag("input",$attrs).$hidden_html;
         // type=checkbox,radioであれば、checkedに値を反映
         } elseif ($this->attrs["type"]=="checkbox" || $this->attrs["type"]=="radio") {
-            if ( ! strlen($attrs["value"])) {
-                $attrs["value"] = "1";
-            }
-            if ($attrs["value"] == $this->field_value) {
-                $attrs["checked"] = "checked";
-            } else {
-                unset($attrs["checked"]);
-            }
+            $value = isset($this->field_value)
+                ? $this->field_value : $attrs["preset_value"];
+            if ( ! strlen($attrs["value"])) $attrs["value"] = "1";
+            if ($attrs["value"] == $value) $attrs["checked"] = "checked";
+            else unset($attrs["checked"]);
             $this->html = tag("input",$attrs);
         // type=dateであれば、入力値の形式を日付型に整形
         } elseif ($this->attrs["type"]=="date") {

@@ -21,6 +21,10 @@ class DBConnectionDoctrine2 implements DBConnection
     {
         return $this->config["dbname"];
     }
+    public function getHost()
+    {
+        return $this->config["host"];
+    }
     public function getConfig($key)
     {
         return \R\Lib\Util\Arr::array_get($this->config, $key);
@@ -204,7 +208,9 @@ class DBConnectionDoctrine2 implements DBConnection
     private $ds;
     private function getDS()
     {
-        if ( ! $this->ds) {
+        if ( ! $this->ds && $this->config["ds"]) {
+            $this->ds = $this->config["ds"];
+        } elseif ( ! $this->ds) {
             // データ型の登録
             $this->setTypes($this->config["types"]);
             unset($this->config["types"]);

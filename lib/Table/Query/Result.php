@@ -20,10 +20,6 @@ class Result extends \ArrayObject
             } else {
                 $this->last_insert_id = $statement->getQuery()->getValue($id_col_name);
             }
-            report(
-                $def->getColAttr($id_col_name, "autoincrement"),
-                $this->last_insert_id
-            );
         } else {
             $this->last_insert_id = null;
         }
@@ -47,7 +43,7 @@ class Result extends \ArrayObject
     }
     public function appendRecord()
     {
-        $record = app()->make("table.query_record", array($this));
+        $record = app()->make("table.query_record", array("result"=>$this));
         $this[] = $record;
         return $record;
     }
