@@ -56,7 +56,7 @@ class TableDefCollection implements ArrayAccess, IteratorAggregate
     {
         if ( ! $this->table_defs[$table_name]) {
             $def_attr_set = app("table.def_resolver")->getTableDefAttrSet($table_name);
-            $this->table_defs[$table_name] = app()->make("table.def", array($def_attr_set));
+            $this->table_defs[$table_name] = app()->make("table.def", array("def_attr_set"=>$def_attr_set));
         }
         return $this->table_defs[$table_name];
     }

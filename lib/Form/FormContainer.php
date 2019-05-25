@@ -173,7 +173,9 @@ class FormContainer extends ArrayObject
      */
     public function clearSaved ()
     {
-        if (isset($this->tmp_storage)) {
+        if (app()->bound("laravelizer")) {
+            \Session::pull("forms.".$this->getTmpStorageName());
+        } elseif (isset($this->tmp_storage)) {
             $this->getTmpStorage()->delete("values");
         }
     }
@@ -205,7 +207,11 @@ class FormContainer extends ArrayObject
     public function save ()
     {
         $values = $this->getValues();
-        $this->getTmpStorage()->set("values" ,$values);
+        if (app()->bound("laravelizer")) {
+            \Session::put("forms.".$this->getTmpStorageName() ,$values);
+        } else {
+            $this->getTmpStorage()->set("values" ,$values);
+        }
     }
 
     /**
@@ -213,7 +219,11 @@ class FormContainer extends ArrayObject
      */
     public function restore ()
     {
-        $values = $this->getTmpStorage()->get("values");
+        if (app()->bound("laravelizer")) {
+            $values = \Session::get("forms.".$this->getTmpStorageName());
+        } else {
+            $values = $this->getTmpStorage()->get("values");
+        }
         $this->setValues($values);
     }
 
@@ -234,7 +244,11 @@ class FormContainer extends ArrayObject
      */
     public function getSavedValues ()
     {
-        return (array)$this->getTmpStorage()->get("values");
+        if (app()->bound("laravelizer")) {
+            return \Session::get("forms.".$this->getTmpStorageName());
+        } else {
+            return (array)$this->getTmpStorage()->get("values");
+        }
     }
 
 // -- Request/HTML関連処理
@@ -247,7 +261,9 @@ class FormContainer extends ArrayObject
     {
         if ( ! isset($this->received)) {
             // csrf_checkの指定があればCSRF対策キーを確認する
-            if ($this->def["csrf_check"]) {
+            if (app()->bound("laravelizer")) {
+                // Laravel側のCSRFチェック機構が動く場合は無効
+            } elseif ($this->def["csrf_check"]) {
                 if ($input[app()->security->getCsrfTokenName()] != app()->security->getCsrfToken()) {
                     return $this->received = false;
                 }
@@ -256,7 +272,9 @@ class FormContainer extends ArrayObject
             $form_name = $this->getFormName();
             // form_param_nameに自分のform_nameが設定されていれば受け取り状態
             if ($this->def["receive_all"] || ($form_name && $input[$form_param_name]==$form_name)) {
-                foreach ($input as $k => $v) {
+                $input_itr = $input;
+                if (app()->bound("laravelizer")) $input_itr = $input->request;
+                foreach ($input_itr as $k => $v) {
                     if ($k==$form_param_name || $k=="__token") continue;
                     $values[$k] = $v;
                 }
@@ -327,7 +345,7 @@ class FormContainer extends ArrayObject
             ));
         }
         // csrf_checkの指定があればCSRF対策キーを埋め込む
-        if ($this->def["csrf_check"]) {
+        if ($this->def["csrf_check"] || app()->bound("laravelizer")) {
             $content .= tag("input",array(
                 "type" => "hidden",
                 "name" => app()->security->getCsrfTokenName(),
@@ -336,14 +354,9 @@ class FormContainer extends ArrayObject
         }
         // form_page/search_pageでactionのURLを補完
         if ( ! isset($attrs["action"])) {
-            if (isset($this->def["form_page"])) {
-                $attrs["action"] = "id://".$this->def["form_page"];
-            } elseif (isset($this->def["search_page"])) {
-                $attrs["action"] = "id://".$this->def["search_page"];
-            }
-            $attrs["action"] = "".app()->http->getServedRequest()->getUri()
-                ->getRelativeUri($attrs["action"])
-                ->withoutAuthorityInWebroot();
+            if (isset($this->def["form_page"])) $page = $this->def["form_page"];
+            elseif (isset($this->def["search_page"])) $page = $this->def["search_page"];
+            $attrs["action"] = $this->convertPageToUrl($page);
         }
         return tag("form",$attrs,$content);
     }
@@ -561,9 +574,7 @@ class FormContainer extends ArrayObject
                 }
             }
         }
-        $uri = app()->http->getServedRequest()->getUri()
-            ->getRelativeUri("id://".$this->def["search_page"], $params)
-            ->withoutAuthority();
+        $uri = $this->convertPageToUrl($this->def["search_page"], $params);
         return $uri;
     }
 
@@ -949,5 +960,15 @@ class FormContainer extends ArrayObject
             "errors" => $this->getErrors(),
             "forms" => $this->sub_forms,
         );
+    }
+
+    protected function convertPageToUrl($page, $params=array())
+    {
+        if (app()->bound("laravelizer")) {
+            return app("laravelizer")->convertPageToUrl($page, $params);
+        }
+        return "".app()->http->getServedRequest()->getUri()
+            ->getRelativeUri("id://".$page, $params)
+            ->withoutAuthorityInWebroot();
     }
 }

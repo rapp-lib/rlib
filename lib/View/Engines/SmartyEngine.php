@@ -9,8 +9,8 @@ if ( ! interface_exists('\Illuminate\Contracts\View\Engine')) {
 
 class SmartyEngine implements EngineInterface
 {
-	public function get($path, array $data = array())
-	{
+    public function get($path, array $data = array())
+    {
         return app("view.smarty")->fetch($path, $data);
-	}
+    }
 }

@@ -1,5 +1,6 @@
 <?php
-namespace R\Lib\DBAL;
+namespace R\Lib\Laravel\Database;
+
 use Illuminate\Database\DatabaseManager as IlluminateDatabaseManager;
 
 class DatabaseManager extends IlluminateDatabaseManager
@@ -19,9 +20,16 @@ class DatabaseManager extends IlluminateDatabaseManager
         if ( ! $this->_connections[$name]) {
             $conn = $this->connection($name);
             $doctrine = $conn->getDoctrineConnection();
-            $this->_connections[$name] = new DBConnectionDoctrine2($doctrine, array(
-                "dbname"=>$conn->getConfig('database'),
-                "driver"=>$conn->getDoctrineDriver()->getName(),
+            $config = app()->config["database.connections.".$name];
+            $ds_name = $name===$this->getDefaultConnection() ? "default" : $name;
+            $this->_connections[$name] = new DBConnectionDoctrine2($ds_name, array(
+                "dbname"=>$config["database"],
+                "host"=>$config["host"],
+                "port"=>$config["port"],
+                "user"=>$config["username"],
+                "password"=>$config["password"],
+                "driver"=>$doctrine->getDriver()->getName(),
+                "ds"=>$doctrine,
             ));
         }
         return $this->_connections[$name];

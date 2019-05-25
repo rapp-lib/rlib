@@ -20,7 +20,7 @@ class Payload
     }
     public function makeBuilder()
     {
-        return app()->make("table.query_builder", array($this));
+        return app()->make("table.query_builder", array("query"=>$this));
     }
     public function render()
     {
@@ -29,7 +29,7 @@ class Payload
             app("table.features")->emit("before_render", array($query));
         }
         $req = $query->getDef()->getConnection()->getRenderer()->render($query->getPayload());
-        $statement = app()->make("table.query_statement", array($req, $query));
+        $statement = app()->make("table.query_statement", array("sql"=>$req, "query"=>$query));
         return $statement;
     }
 

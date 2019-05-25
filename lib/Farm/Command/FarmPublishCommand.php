@@ -16,6 +16,10 @@ class FarmPublishCommand extends Command
             array('flags', "-f", InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Free flag options.'),
         );
     }
+    public function handle()
+    {
+        return $this->fire();
+    }
     public function fire()
     {
         // 設定ファイルの読み込み
