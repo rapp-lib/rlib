@@ -128,7 +128,8 @@ class Controller extends LaravelAppController implements FormRepositry
         list(,$action_name) = explode('.', $this->request->route()->getName(), 2);
         $result = $this->callActionMethod($action_name);
         $result["vars"] = $this->vars;
-        app("events")->fire('http.invoke_action', array($this->request->route(), $this->vars, $this->forms));
+        $_push = method_exists(app("events"),"push") ? "push" : "fire";
+        app("events")->$_push('http.invoke_action', array($this->request->route(), $this->vars, $this->forms));
         return $result;
     }
     public function callActionMethod ($action_name)

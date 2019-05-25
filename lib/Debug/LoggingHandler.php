@@ -61,10 +61,11 @@ class LoggingHandler extends AbstractProcessingHandler
             static::$records[] = ReportRenderer::compactRecord($record);
         // CLI実行時にはオプションに応じてエラー出力する
         } else {
-            if ($record["level"] >= Logger::ERROR) $format = "console";
-            elseif (in_array('-vvv', $GLOBALS["argv"])) $format = "console";
-            elseif (in_array('-vv', $GLOBALS["argv"])) $format = "console_middle";
-            elseif (in_array('-v', $GLOBALS["argv"])) $format = "console_short";
+            if (in_array('-vv', $GLOBALS["argv"])) $format = "console";
+            elseif (in_array('-v', $GLOBALS["argv"])) {
+                if ($record["level"] >= Logger::ERROR) $format = "console";
+                else $format = "console_short";
+            }
             else return;
             $record = ReportRenderer::compactRecord($record);
             $text = ReportRenderer::renderAll(array($record), $format);

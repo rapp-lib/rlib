@@ -2,6 +2,7 @@
 namespace R\Lib\Laravel\Database;
 
 use Illuminate\Database\DatabaseManager as IlluminateDatabaseManager;
+use R\Lib\DBAL\DBConnectionDoctrine2;
 
 class DatabaseManager extends IlluminateDatabaseManager
 {

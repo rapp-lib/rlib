@@ -22,7 +22,7 @@
         },
         "deploy_callback"=>function($deploy_name, $source, $config_entry, $vars, $farm){
             $deploy_name = preg_replace('!^/!', '', $deploy_name);
-            $deploy_file = $farm->getConfig("work_root_dir")."/".$deploy_name;
+            $deploy_file = $farm->getConfig("work_root_dir").$farm->getConfig("deply_dirname")."/".$deploy_name;
             // 差分チェック
             $status = "create";
             $current_source = $farm->cmdWork(array("git", "cat-file", "-p",

@@ -24,6 +24,8 @@ class FarmEngine
         $this->gitWork = new FarmGitRepositry($this->getConfig("work_root_dir"), array(
             "prompt" => "WORK ",
         ));
+        $this->config["repo_dir"] = $this->cmdApp(["git","rev-parse","--show-toplevel"]);
+        $this->config["deply_dirname"] = str_replace($this->config["repo_dir"], "", $this->config["app_root_dir"]);
     }
     public function getConfig($key)
     {
@@ -78,7 +80,7 @@ class FarmEngine
 
         // # WORK環境をAPP環境から同期
         // WORK環境でAPP環境からDEVELOPブランチを取り込む
-        $this->cmdWork(array("git", "fetch", "-f", $this->getConfig("app_root_dir"),
+        $this->cmdWork(array("git", "fetch", "-f", $this->getConfig("repo_dir"),
             "+".$this->getConfig("develop_branch").":".$this->getConfig("develop_branch")));
         //  事後確認、DEVELOPブランチが作成できていなければエラー
         if ( ! $this->cmdWork(array("git", "branch", "--list", $this->getConfig("develop_branch")))) {
