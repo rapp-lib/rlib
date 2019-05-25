@@ -130,6 +130,7 @@ class LaravelizeServiceProvider extends ServiceProvider
 
         Route::middleware('web')->group(function(){
             Route::get("/", function(){
+                return response()->json(['result' => 'ok']);
                 return view()->file(R_APP_ROOT_DIR."/public/test.html");
             });
         });

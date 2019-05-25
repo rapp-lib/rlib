@@ -1,7 +1,11 @@
 <?php
 namespace R\Lib\View\Engines;
 
-use Illuminate\View\Engines\EngineInterface;
+if ( ! interface_exists('\Illuminate\Contracts\View\Engine')) {
+    interface EngineInterface extends \Illuminate\Contracts\View\Engine {}
+} else {
+    interface EngineInterface extends \Illuminate\Contracts\View\Engine {}
+}
 
 class SmartyEngine implements EngineInterface
 {

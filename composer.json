@@ -14,5 +14,12 @@
         "files": [
             "functions/required.php"
         ]
-    }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "R\\Lib\\Laravel\\Providers\\LaravelizeServiceProvider"
+            ]
+        }
+    },
 }

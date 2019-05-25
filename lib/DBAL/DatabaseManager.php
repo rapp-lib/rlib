@@ -8,6 +8,7 @@ class DatabaseManager extends IlluminateDatabaseManager
     {
         $this->app = app();
         $this->factory = app("db.factory");
+        parent::__construct($this->app, $this->factory);
     }
     protected $_connections = array();
     public function getConnection($name=null)
