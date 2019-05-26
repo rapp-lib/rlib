@@ -14,7 +14,8 @@ class ConsoleApplication extends Application
             include $include_file;
         }
 		if (isset($this->laravel['events'])) {
-			$this->laravel['events']->fire('artisan.start', array($this));
+			$_push = method_exists(app("events"),"push") ? "push" : "fire";
+			$this->laravel['events']->$_pish('artisan.start', array($this));
 		}
 		return $this;
 	}

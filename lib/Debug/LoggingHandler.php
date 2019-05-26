@@ -59,6 +59,8 @@ class LoggingHandler extends AbstractProcessingHandler
         // HTTP実行時にはRecordは一旦記録する
         if ( ! app()->runningInConsole()) {
             static::$records[] = ReportRenderer::compactRecord($record);
+        // Laravel側で実装する場合は不要
+        } elseif (true) {
         // CLI実行時にはオプションに応じてエラー出力する
         } else {
             if (in_array('-vv', $GLOBALS["argv"])) $format = "console";

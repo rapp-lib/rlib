@@ -43,12 +43,14 @@ class Controller extends LaravelAppController implements FormRepositry
     }
     protected function response ($type, $data=null)
     {
-        error("deprecated");
-        // return app()->http->response($type, $data);
+        if ($type=="json") return response()->json($data);
+        if ($type=="notfound") return response()->json(["error"=>"notfound"], 404);
+        if ($type=="error") return response()->json(["error"=>"error"], 500);
+        throw new \Exception("error");
     }
     protected function uri ($uri, $query_params=array(), $fragment=null)
     {
-        error("deprecated");
+        throw new \Exception("deprecated");
         // return $this->uri->getRelativeUri($uri, $query_params, $fragment)->withToken();
     }
 

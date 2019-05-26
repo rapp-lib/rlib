@@ -1,0 +1,278 @@
+Auth/UserLoginDriver.php:        // $this->role = $role;
+Auth/UserLoginDriver.php:        if ($this->getRequestRole() !== $role) return null;
+Auth/UserLoginDriver.php:        return $this->getGuard()->id();
+Auth/UserLoginDriver.php:        //return $this->priv($role, "id");
+Auth/UserLoginDriver.php:        // return $this->getCurrentPriv($role, $priv_id);
+Auth/UserLoginDriver.php:// --
+Auth/UserLoginDriver.php:        // if ($this->getRequestRole() != $role) return null;
+Auth/UserLoginDriver.php:        // return $this->getGuard()->user()->__get($priv_id);
+Auth/UserLoginDriver.php:        // if ($role!==$this->role) return false;
+Auth/UserLoginDriver.php:        // return $this->getPriv($role, $priv_id);
+Auth/UserLoginDriver.php:        // if ($role!==$this->role) return false;
+Auth/UserLoginDriver.php:        // return $this->checkPriv($role, $priv_req);
+Auth/UserLoginDriver.php:        // return $this->getPriv($this->role, "id") ? $this->role : "guest";
+Auth/UserLoginDriver.php:// -- LoginProviderの処理
+Auth/UserLoginDriver.php:        // return $this->getLoginProvider($role)->getPriv($priv_id);
+Auth/UserLoginDriver.php:        if ($priv===false) \Auth::guard($role)->logout();
+Auth/UserLoginDriver.php:        // $this->getLoginProvider($role)->setPriv($priv);
+Auth/UserLoginDriver.php:        // return $this->getLoginProvider($role)->checkPriv($priv_req);
+Auth/UserLoginDriver.php:        // return $this->getLoginProvider($role)->getAuthTable();
+Auth/UserLoginDriver.php:        if ($callback = $this->config["on_find_mine"]) {
+Auth/UserLoginDriver.php:        // return $this->getLoginProvider($role)->onFindMine($table);
+Auth/UserLoginDriver.php:        if ($callback = $this->config["on_save_mine"]) {
+Auth/UserLoginDriver.php:        // return $this->getLoginProvider($role)->onSaveMine($table);
+Auth/UserLoginDriver.php:        return \Auth::guard($role)->attempt($params);
+Auth/UserLoginDriver.php:        // return $this->getLoginProvider($role)->authenticate($params);
+Auth/UserLoginDriver.php:        // return $this->getLoginProvider($role)->firewall($request, $next);
+Auth/UserLoginDriver.php:// -- LoginProviderの管理
+Auth/UserLoginDriver.php:        $provider = $this->getGuard()->getProvider();
+Auth/UserLoginDriver.php:        return app("laravelizer")->getRouteRole(app("request")->route());
+Auth/UserProvider/RoleUserProvider.php:        $this->role_name = $role_name;
+Auth/UserProvider/RoleUserProvider.php:        $this->role_config = $role_config;
+Auth/UserProvider/RoleUserProvider.php:        $user = $this->conn->table($this->table)->find($identifier);
+Auth/UserProvider/RoleUserProvider.php:        return $this->getGenericUser($user);
+Auth/UserProvider/RoleUserProvider.php:        $user = $this->getGenericUser(
+Auth/UserProvider/RoleUserProvider.php:            $this->conn->table($this->table)->find($identifier)
+Auth/UserProvider/RoleUserProvider.php:        return $user && $user->getRememberToken() && hash_equals($user->getRememberToken(), $token)
+Auth/UserProvider/RoleUserProvider.php:        $this->conn->table($this->table)
+Auth/UserProvider/RoleUserProvider.php:                ->where($user->getAuthIdentifierName(), $user->getAuthIdentifier())
+Auth/UserProvider/RoleUserProvider.php:                ->update([$user->getRememberTokenName() => $token]);
+Auth/UserProvider/RoleUserProvider.php:        $query = $this->conn->table($this->table);
+Auth/UserProvider/RoleUserProvider.php:                $query->where($key, $value);
+Auth/UserProvider/RoleUserProvider.php:        $user = $query->first();
+Auth/UserProvider/RoleUserProvider.php:        return $this->getGenericUser($user);
+Auth/UserProvider/RoleUserProvider.php:        return $this->hasher->check(
+Auth/UserProvider/RoleUserProvider.php:            $credentials['password'], $user->getAuthPassword()
+Database/DatabaseManager.php:        $this->app = app();
+Database/DatabaseManager.php:        $this->factory = app("db.factory");
+Database/DatabaseManager.php:        parent::__construct($this->app, $this->factory);
+Database/DatabaseManager.php:            $name = $this->getDefaultConnection();
+Database/DatabaseManager.php:        if ( ! $this->_connections[$name]) {
+Database/DatabaseManager.php:            $conn = $this->connection($name);
+Database/DatabaseManager.php:            $doctrine = $conn->getDoctrineConnection();
+Database/DatabaseManager.php:            $config = app()->config["database.connections.".$name];
+Database/DatabaseManager.php:            $ds_name = $name===$this->getDefaultConnection() ? "default" : $name;
+Database/DatabaseManager.php:            $this->_connections[$name] = new DBConnectionDoctrine2($ds_name, array(
+Database/DatabaseManager.php:                "driver"=>$doctrine->getDriver()->getName(),
+Database/DatabaseManager.php:        return $this->_connections[$name];
+Http/Controller.php:        $this->request = \Request::getFacadeRoot();
+Http/Controller.php:        $this->route = \Route::getFacadeRoot();
+Http/Controller.php:        $this->parameters = $parameters;
+Http/Controller.php:        $response = $this->run($this->request);
+Http/Controller.php:    //     $this->uri = $uri;
+Http/Controller.php:// -- act実装向け機能
+Http/Controller.php:            $url = app("laravelizer")->convertPageToUrl($_[1], $query_params, $fragment);
+Http/Controller.php:        // return app()->http->response("redirect", $this->uri($uri, $query_params, $fragment));
+Http/Controller.php:        // return app()->http->response($type, $data);
+Http/Controller.php:        // return $this->uri->getRelativeUri($uri, $query_params, $fragment)->withToken();
+Http/Controller.php:// -- Form系実装
+Http/Controller.php:            foreach ($ref_class->getProperties() as $ref_property) {
+Http/Controller.php:                $var_name = $ref_property->getName();
+Http/Controller.php:                $is_static = $ref_property->isStatic();
+Http/Controller.php:                    $dec_class = $ref_property->getDeclaringClass()->getName();
+Http/Controller.php:                    if (preg_match('!([a-zA-Z0-9]+)Controller$!',$dec_class,$match)) {
+Http/Controller.php:// -- Http系実装
+Http/Controller.php:        $result = $this->invokeAction($request);
+Http/Controller.php:            report_warning("URLに対応するActionがありません",array("uri"=>$this->uri));
+Http/Controller.php:        return $this->makeResponse();
+Http/Controller.php:        $this->request = $request;
+Http/Controller.php:        $this->input = $request;
+Http/Controller.php:        $this->forms = app()->form->addRepositry($this);
+Http/Controller.php:        // $this->flash = app()->session->getFlash();
+Http/Controller.php:        list(,$action_name) = explode('.', $this->request->route()->getName(), 2);
+Http/Controller.php:        $result = $this->callActionMethod($action_name);
+Http/Controller.php:        $result["vars"] = $this->vars;
+Http/Controller.php:        app("events")->$_push('http.invoke_action', array($this->request->route(), $this->vars, $this->forms));
+Http/Controller.php:        // $isAjaxRoute = $this->uri->getRoute("ajax");
+Http/Controller.php:        // $isAjaxRequest = $this->request->isAjax() || $this->request->wantsJson();
+Http/Controller.php:        //     return app()->http->response('json', $this->vars);
+Http/Controller.php:        $file = $this->getTemplateFile();
+Http/Controller.php:        // $vars = $this->getTemplateVars();
+Http/Controller.php:        // $html = app("view")->make($file, $vars)->render();
+Http/Controller.php:        // return app()->http->response("html", $html);
+Http/Controller.php:        return app("view")->file($file, $this->getTemplateVars());
+Http/Controller.php:        $path = $this->request->route()->uri();
+Http/Controller.php:        $file = app("laravelizer")->convertPathToFile($path);
+Http/Controller.php:        $file = app("laravelizer")->completeDirectoryIndex($file);
+Http/Controller.php:        $vars = $this->vars;
+Http/Controller.php:        $vars["forms"] = $this->forms;
+Http/Controller.php:        $vars["input"] = $this->input;
+Http/Controller.php:        $vars["request"] = $this->request;
+Http/Controller.php:        $vars["enum"] = app()->enum;
+Http/Controller.php:        $vars["auth"] = app()->user;
+Providers/LaravelizeServiceProvider.php:        app()->config["app.switch.new_table"] = true;
+Providers/LaravelizeServiceProvider.php:        // $this->app->instance('path', constant("R_APP_ROOT_DIR")."/app");
+Providers/LaravelizeServiceProvider.php:        // $this->app->instance('path.app', constant("R_APP_ROOT_DIR")."/app");
+Providers/LaravelizeServiceProvider.php:        // $this->app->instance('path.base', constant("R_APP_ROOT_DIR"));
+Providers/LaravelizeServiceProvider.php:        // $this->app->instance('path.storage', constant("R_APP_ROOT_DIR")."/tmp");
+Providers/LaravelizeServiceProvider.php:        //$this->app->instance('path.public', constant("R_APP_ROOT_DIR")."/public");
+Providers/LaravelizeServiceProvider.php:        //     with(new Dotenv(constant("R_APP_ROOT_DIR"),".env"))->overload();
+Providers/LaravelizeServiceProvider.php:        // $this->app->singleton('config', 'R\Lib\Core\Config');
+Providers/LaravelizeServiceProvider.php:        // $singletons = (array)$this->app->config['app.singletons'] +
+Providers/LaravelizeServiceProvider.php:        foreach ($this->base_singletons as $k=>$v) $this->app->singleton($k, $v);
+Providers/LaravelizeServiceProvider.php:        // $this->app->instance('env', $this->app->config["app.env"] ?: "");
+Providers/LaravelizeServiceProvider.php:        $this->app->debug->check();
+Providers/LaravelizeServiceProvider.php:        // $this->app->singleton('request.fallback', function($app){
+Providers/LaravelizeServiceProvider.php:        //     if ($app->bound("request")) return $app["request"];
+Providers/LaravelizeServiceProvider.php:        //     $webroot = $app->http->webroot("_fallback", array());
+Providers/LaravelizeServiceProvider.php:        //     return $app->http->createServerRequest(array(), $webroot);
+Providers/LaravelizeServiceProvider.php:        // $this->app->register(new EventServiceProvider($this->app));
+Providers/LaravelizeServiceProvider.php:        // $this->app->register(new LogServiceProvider($this->app));
+Providers/LaravelizeServiceProvider.php:        // $this->app->register(new FilesystemServiceProvider($this->app));
+Providers/LaravelizeServiceProvider.php:        // $this->app->register(new ExceptionServiceProvider($this->app));
+Providers/LaravelizeServiceProvider.php:        // $this->app['exception']->register($this->app["env"]);
+Providers/LaravelizeServiceProvider.php:        // $this->app['exception']->setDebug($this->app['config']['app.debug']);
+Providers/LaravelizeServiceProvider.php:        $this->app->register(new DebugServiceProvider($this->app));
+Providers/LaravelizeServiceProvider.php:        // if ( ! $this->app->runningInConsole() && ! $this->app->config["session.prevent_auto_start"]) {
+Providers/LaravelizeServiceProvider.php:        //     $this->app->session->start();
+Providers/LaravelizeServiceProvider.php:        // AliasLoader::getInstance((array)$this->app->config['app.aliases'])->register();
+Providers/LaravelizeServiceProvider.php:        $this->registerDefaultProviders();
+Providers/LaravelizeServiceProvider.php:        foreach ((array)$this->base_providers as $provider_name) {
+Providers/LaravelizeServiceProvider.php:            $this->app->register($provider_name);
+Providers/LaravelizeServiceProvider.php:        $this->app['view.engine.resolver']->register('rlib_smarty', function(){
+Providers/LaravelizeServiceProvider.php:        $this->app["view"]->addExtension("html", "rlib_smarty");
+Providers/LaravelizeServiceProvider.php:		$this->app->singleton('view.finder', function($app){
+Providers/LaravelizeServiceProvider.php:        $this->app->singleton("view.smarty", function($app){
+Providers/LaravelizeServiceProvider.php:        $this->app->singleton("view.assets", function($app){
+Providers/LaravelizeServiceProvider.php:            // $repo_uri = $app["request"]->getUri()->getWebroot()->uri("path://.assets");
+Providers/LaravelizeServiceProvider.php:            $assets->addRepo(null);
+Providers/LaravelizeServiceProvider.php:        // foreach ((array)$this->app->config['app.providers'] as $provider) {
+Providers/LaravelizeServiceProvider.php:        //     $this->app->register($provider);
+Providers/LaravelizeServiceProvider.php:        //         $this->app->register($provider);
+Providers/LaravelizeServiceProvider.php:        // if ($deffered_providers = $this->app->config['app.deffered_providers']) {
+Providers/LaravelizeServiceProvider.php:        //     $this->app->config['app.manifest'] = $this->app["path.storage"]."/meta";
+Providers/LaravelizeServiceProvider.php:        //     if ( ! file_exists($this->app->config['app.manifest'])) {
+Providers/LaravelizeServiceProvider.php:        //         mkdir($this->app->config['app.manifest'], 0775, true);
+Providers/LaravelizeServiceProvider.php:        //     $this->app->getProviderRepository()->load($this->app, $deffered_providers);
+Providers/LaravelizeServiceProvider.php:        $this->commands($this->base_commands);
+Providers/LaravelizeServiceProvider.php:        // $this->commands((array)$this->app->config["app.commands"]);
+Providers/LaravelizeServiceProvider.php:        // Route::middleware('web')->group(function(){
+Providers/LaravelizeServiceProvider.php:        //     Route::any('/', $action)->name($name);
+Providers/LaravelizeServiceProvider.php:        //     //     return view()->file(R_APP_ROOT_DIR."/public/test.html");
+Providers/LaravelizeServiceProvider.php:        app("laravelizer")->loadAuthConfig();
+Providers/LaravelizeServiceProvider.php:        app("laravelizer")->loadRoutingConfig();
+Providers/LaravelizeServiceProvider.php:    //     Route::middleware('web')->group(function(){
+Support/Laravelizer.php:    request()->path()でRequestPathが取れる("/"は削除済み)
+Support/Laravelizer.php:    request()->url()でRequestUriが取れる
+Support/Laravelizer.php:    request()->route()->uri()でRouteに指定したパターンが取れる
+Support/Laravelizer.php:            return \Route::getRoutes()->match($request);
+Support/Laravelizer.php:            $parts = explode('.', app()->request->route()->getName(), 2);
+Support/Laravelizer.php:        return app('router')->getRoutes()->getByName($page);
+Support/Laravelizer.php:        $route = $this->convertPathToRoute($path);
+Support/Laravelizer.php:        // if ($route && in_array('csrf_check', $route->middleware())) {
+Support/Laravelizer.php:        //     $key = app()->security->getCsrfTokenName();
+Support/Laravelizer.php:        //     $value = app()->security->getCsrfToken();
+Support/Laravelizer.php:        $route = $this->convertPageToRoute($page);
+Support/Laravelizer.php:        return $this->convertPathToUrl($route->uri());
+Support/Laravelizer.php:        $shorthands = $route->getMiddleware();
+Support/Laravelizer.php:                $action = $this->convertPageToAction($name);
+Support/Laravelizer.php:                $route = \Route::any($route_uri, $action)->name($name);
+Support/Laravelizer.php:                $route->middleware('web');
+Support/Laravelizer.php:                if ($priv_req) $route->middleware('auth:'.$role);
+Support/Laravelizer.php:                elseif ($priv_req) $route->middleware('noauth:'.$role);
+Support/Laravelizer.php:            app()->config["auth.providers.role_".$role_name] = array(
+Support/Laravelizer.php:            app()->config["auth.guards.".$role_name] = array(
+Support/Laravelizer.php:            $uri = $this->getWebrootBaseUri().'/'.$uri;
+Support/Laravelizer.php:        return $this->getWebrootBaseDir()."/".trim($uri, '/');
+Support/Security.php:        // return $this->hash(mt_rand());
+View/FrontAssets.php:        //     $base_dir = $repo_uri->getPageFile();
+View/FrontAssets.php:        //     $base_uri = "".$repo_uri->withoutAuthorityInWebroot();
+View/FrontAssets.php:            $base_dir = app("laravelizer")->getAssetBaseDir();
+View/FrontAssets.php:            $base_uri = app("laravelizer")->getAssetBaseUri();
+View/FrontAssets.php:            $this->addRepo(array("uri"=>$base_uri."/".$path, "dir"=>$base_dir."/".$path));
+View/FrontAssets.php:            $this->def($mod_name, $ext[0], $ext[1]);
+View/FrontAssets.php:            $this->def($mod_name, $base_uri."/".$def[0], $def[1]);
+View/FrontAssets.php:        $this->def_mods[$mod_name] = array("uri"=>$uri, "deps"=>$dep_mod_names);
+View/FrontAssets.php:            if ($this->buffer[$mod_name]) continue;
+View/FrontAssets.php:            $mod = $this->def_mods[$mod_name];
+View/FrontAssets.php:            $this->load($mod["deps"]);
+View/FrontAssets.php:            $this->buffer[$mod_name] = array("type"=>"js_uri", "uri"=>$mod["uri"]);
+View/FrontAssets.php:        $this->buffer[$mod_name] = array("type"=>"external");
+View/FrontAssets.php:        $this->load($dep_mod_names);
+View/FrontAssets.php:        $this->buffer[] = array("type"=>"js_code", "code"=>$code);
+View/FrontAssets.php:        $this->load($dep_mod_names);
+View/FrontAssets.php:        $this->buffer[] = array("type"=>"js_uri", "uri"=>$uri);
+View/FrontAssets.php:        $html = "<!-- assets-loading -->"."\n";
+View/FrontAssets.php:        foreach ($this->buffer as $data) {
+View/FrontAssets.php:        $html .= "<!-- /assets-loading -->"."\n";
+View/FrontAssets.php:        if ($o["clear"]) $this->buffer = array();
+View/SmartyView.php:        $smarty = $this->makeSmarty();
+View/SmartyView.php:        $cache_dir = $smarty->getCompileDir();
+View/SmartyView.php:        $smarty->assign((array)$vars);
+View/SmartyView.php:        return $smarty->fetch($template_file);
+View/SmartyView.php:// -- Smarty
+View/SmartyView.php:        $smarty->left_delimiter = '{{';
+View/SmartyView.php:        $smarty->right_delimiter = '}}';
+View/SmartyView.php:        $smarty->use_include_path = false;
+View/SmartyView.php:        $smarty->php_handling = SmartyBC::PHP_ALLOW;
+View/SmartyView.php:        $smarty->allow_php_templates = true;
+View/SmartyView.php:        $smarty->escape_html = true;
+View/SmartyView.php:        $smarty->registerDefaultPluginHandler(array($this,"pluginHandler"));
+View/SmartyView.php:        $smarty->registerPlugin("modifier", "date", "str_date");
+View/SmartyView.php:        $smarty->registerPlugin("modifier", "url", get_class($this)."::smarty_modifier_url");
+View/SmartyView.php:        $smarty->setCacheDir($cache_dir);
+View/SmartyView.php:        $smarty->setCompileDir($cache_dir);
+View/SmartyView.php:        foreach ($smarty->smarty->_cache['_tag_stack'] as $block) {
+View/SmartyView.php:        $request_uri = app()->http->getServedRequest()->getUri();
+View/SmartyView.php:            return $request_uri->getRelativeUri($uri);
+View/SmartyView.php:        return $request_uri->getRelativeUri();
+View/SmartyView.php:// -- Asset
+View/SmartyView.php:        // if ( ! $this->assets) {
+View/SmartyView.php:        //     $this->assets = new FrontAssets();
+View/SmartyView.php:        //     $uri = app()->http->getServedRequest()->getUri()->getWebroot()->uri($this->repo_path);
+View/SmartyView.php:        //     $this->assets->addRepo($uri);
+View/SmartyView.php:        // return $this->assets;
+View/SmartyView.php:// -- 基本処理プラグイン
+View/SmartyView.php:        if (mb_strlen($value,"UTF-8")>$length) $value = mb_substr($value,0,$length,"UTF-8").$append;
+View/SmartyView.php:            if ($values instanceof \R\Lib\Enum\EnumValueRepositry) $values = (array)$values->getIterator();
+View/SmartyView.php:            if (is_string($array)) $array = app()->enum[$array];
+View/SmartyView.php:            if ($array instanceof \R\Lib\Enum\EnumValueRepositry) $res = $array->map($values);
+View/SmartyView.php:// -- フォーム構築プラグイン
+View/SmartyView.php:        $html = $form->getFormHtml($attrs, $content);
+View/SmartyView.php:        $input_field = $form->getInputField($attrs);
+View/SmartyView.php:        if ($assign) $smarty->assign($assign, $input_field);
+View/SmartyView.php:        else return $input_field->getHtml();
+View/SmartyView.php:        $stack_last_index = end($keys = array_keys($smarty->smarty->_cache['_tag_stack']));
+View/SmartyView.php:        $tag = & $smarty->smarty->_cache['_tag_stack'][$stack_last_index];
+View/SmartyView.php:            if ($length) $tag["keys"] = range(0,$length-1);
+View/SmartyView.php:                $smarty->assign($key_assign, $tmpl);
+View/SmartyView.php:                $smarty->assign($key_assign, $tag["current"] = array_shift($tag["keys"]));
+View/SmartyView.php:                $smarty->assign($assign, $tag["assign"]);
+View/SmartyView.php:// -- Include処理プラグイン
+View/SmartyView.php:        $file = app("laravelizer")->convertPathToFile($params["path"]);
+View/SmartyView.php:        //     $request = app()->http->getServedRequest();
+View/SmartyView.php:        //     $uri = $request->getUri()->getRelativeUri($uri);
+View/SmartyView.php:        //     $file = $uri->getPageFile();
+View/SmartyView.php:        // if ($uri && $uri->getPageId() && $uri->getRouteParam("include")) {
+View/SmartyView.php:        //     $result = $uri->getPageController()->invokeAction($request);
+View/SmartyView.php:        //     $smarty_sub->assign((array)$result["vars"]);
+View/SmartyView.php:        // if ($params["vars"]) $smarty_sub->assign((array)$params["vars"]);
+View/SmartyView.php:        // return $smarty_sub->fetch($file);
+View/SmartyView.php:        return $smarty->fetch($file);
+View/SmartyView.php:// -- URL解決プラグイン
+View/SmartyView.php:        // return "".app()->http->getServedRequest()->getUri()
+View/SmartyView.php:        //     ->getRelativeUri($url, $query_params, $anchor)
+View/SmartyView.php:        //     ->withToken()->withoutAuthorityInWebroot();
+View/SmartyView.php:        return app("laravelizer")->convertPageToUrl($page_id, $query_params, $anchor);
+View/SmartyView.php:        return app("laravelizer")->convertPathToUrl($path, $query_params, $anchor);
+View/SmartyView.php:// -- 認証解決プラグイン
+View/SmartyView.php:        return app("laravelizer")->getPageIsAccessible($page);
+View/SmartyView.php:        // $page_auth = app()->http->getServedRequest()->getUri()
+View/SmartyView.php:        //     ->getRelativeUri($uri)->getPageAuth();
+View/SmartyView.php:        // return app()->user->checkCurrentPriv($page_auth->getRole(), $page_auth->getPrivReq());
+View/SmartyView.php:        return app("laravelizer")->getPriv($role, $priv_id);
+View/SmartyView.php:        // if ( ! $role) $role = app()->http->getServedRequest()->getUri()->getPageAuth()->getRole();
+View/SmartyView.php:        // return app()->user->priv($role, $priv_id);
+View/SmartyView.php:// -- Assets処理プラグイン
+View/SmartyView.php:            if ($attrs["require"]) app("view.assets")->load($attrs["require"]);
+View/SmartyView.php:            if ($attrs["src"]) app("view.assets")->scriptUri($attrs["src"]);
+View/SmartyView.php:            if ($attrs["loaded"]) app("view.assets")->loaded($attrs["loaded"]);
+View/SmartyView.php:            if (strlen($content)) app("view.assets")->script($content);
+View/SmartyView.php:        return app("view.assets")->render(array("clear"=>true));
+View/SmartyView.php:// -- FlashMessageプラグイン
+View/SmartyView.php:        // $flash = app()->session->getFlash()->get($options);
+View/SmartyView.php:// -- SwiftMailer処理プラグイン
+View/SmartyView.php:        $message = $smarty->getTemplateVars("message");
+View/SmartyView.php:        if (is_string($params["to"])) $message->to($params["to"]);
+View/SmartyView.php:        if (is_array($params["tos"])) foreach ($params["tos"] as $to) $message->to($to);
+View/SmartyView.php:        if (is_string($params["subject"])) $message->subject($params["subject"]);
