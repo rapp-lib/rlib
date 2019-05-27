@@ -64,10 +64,10 @@ class DebugServiceProvider extends IlluminateDebugServiceProvider
             } else {
                 $this->app['config']["debug.enabled"] = false;
             }
-            $this->app->singleton('command.debugbar.clear', function ($app) {
-                return new Console\ClearCommand($app['debugbar']);
-            });
-            $this->commands(array('command.debugbar.clear'));
+            // $this->app->singleton('command.debugbar.clear', function ($app) {
+            //     return new Console\ClearCommand($app['debugbar']);
+            // });
+            // $this->commands(array('command.debugbar.clear'));
         }
         if ($this->app['config']["debug.enabled"]) {
             $this->app["debugbar"]->boot();
