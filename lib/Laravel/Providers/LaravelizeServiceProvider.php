@@ -151,8 +151,8 @@ class LaravelizeServiceProvider extends ServiceProvider
         //     //     return view()->file(R_APP_ROOT_DIR."/public/test.html");
         //     // });
         // });
-        app("laravelizer")->loadAuthConfig();
-        app("laravelizer")->loadRoutingConfig();
+        // app("laravelizer")->loadAuthConfig();
+        // app("laravelizer")->loadRoutingConfig();
     }
 
     // /**
