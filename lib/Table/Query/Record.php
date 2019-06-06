@@ -57,7 +57,10 @@ class Record extends \ArrayObject
     {
         $values = array();
         foreach (parent::getIterator() as $k=>$v) {
-            if ($k !== static::RESULT_INDEX) $values[$k] = $v;
+            if ($k !== static::RESULT_INDEX) {
+                if ($v instanceof \ArrayObject) $v = $v->getArrayCopy();
+                $values[$k] = $v;
+            }
         }
         return $values;
     }

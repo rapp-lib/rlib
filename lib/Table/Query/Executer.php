@@ -12,7 +12,8 @@ class Executer
             // SQL発行
             $result_res = $query->getDef()->getConnection()->exec($statement);
             // SQL発行イベント（Logging等）
-            app("events")->fire("table.executed", array($statement, $result_res, $start_ms));
+            $_push = method_exists(app("events"),"push") ? "push" : "fire";
+            app("events")->$_push("table.executed", array($statement, $result_res, $start_ms));
             // エラー制御
             if ( ! $result_res) {
                 $error = $query->getDef()->getConnection()->getErrorInfo();

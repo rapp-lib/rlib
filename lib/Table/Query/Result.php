@@ -47,4 +47,13 @@ class Result extends \ArrayObject
         $this[] = $record;
         return $record;
     }
+    public function getArrayCopy()
+    {
+        $arr = array();
+        foreach ($this as $k=>$v) {
+            if ($v instanceof \ArrayObject) $v = $v->getArrayCopy();
+            $arr[$k] = $v;
+        }
+        return $arr;
+    }
 }

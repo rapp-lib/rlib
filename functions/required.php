@@ -47,7 +47,10 @@ if ( ! function_exists("report")) {
     }
     function report_error ($message, array $vars=array())
     {
-        foreach ($vars as $k=>$v) $message .= " (".$k."=".(string)$v.")";
+        foreach ($vars as $k=>$v) {
+            if (is_object($v)) $v = method_exists($v, "__toString") ? $v->__toString() : get_class($v);
+            $message .= " (".$k."=".(string)$v.")";
+        }
         throw \R\Lib\Report\ReportRenderer::createHandlableError(array(
             "message"=>$message,
             "params"=>$vars,

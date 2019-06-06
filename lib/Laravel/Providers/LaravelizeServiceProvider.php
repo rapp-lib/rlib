@@ -88,7 +88,7 @@ class LaravelizeServiceProvider extends ServiceProvider
         // $this->app['exception']->register($this->app["env"]);
         // $this->app['exception']->setDebug($this->app['config']['app.debug']);
         // デバッグ処理セットアップ
-        $this->app->register(new DebugServiceProvider($this->app));
+        // $this->app->register(new DebugServiceProvider($this->app));
         // Session自動Start
         // if ( ! $this->app->runningInConsole() && ! $this->app->config["session.prevent_auto_start"]) {
         //     $this->app->session->start();
@@ -151,8 +151,8 @@ class LaravelizeServiceProvider extends ServiceProvider
         //     //     return view()->file(R_APP_ROOT_DIR."/public/test.html");
         //     // });
         // });
-        app("laravelizer")->loadAuthConfig();
-        app("laravelizer")->loadRoutingConfig();
+        // app("laravelizer")->loadAuthConfig();
+        // app("laravelizer")->loadRoutingConfig();
     }
 
     // /**

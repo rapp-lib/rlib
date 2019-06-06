@@ -75,10 +75,12 @@ class QueryModifier extends BaseFeatureProvider
     public function on_insert_colGeneratorRandString_100($query, $col_name)
     {
         if ($query->getValue($col_name) !== null) return false;
-        $length = $query->getDef()->getColAttr($col_name, "length") ?: 16;
-        $chars = str_split('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-        $value = "";
-        for ($i=0; $i<$length; $i++) $value .= $chars[array_rand($chars)];
+        $length = $query->getDef()->getColAttr($col_name, "length");
+        if ( ! $length || $length > 16) $length = 16;
+        // $chars = str_split('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+        // $value = "";
+        // for ($i=0; $i<$length; $i++) $value .= $chars[array_rand($chars)];
+        $value = str_random($length);
         $query->setValue($col_name, $value);
     }
     /**

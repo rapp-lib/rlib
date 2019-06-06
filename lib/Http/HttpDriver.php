@@ -41,7 +41,8 @@ class HttpDriver
                 $response = app('events')->until('illuminate.app.down');
                 if ( ! is_null($response)) return app()->prepareResponse($response, $request);
             }
-            app("events")->fire('http.dispatch_request', array($request));
+            $_push = method_exists(app("events"),"push") ? "push" : "fire";
+            app("events")->$_push('http.dispatch_request', array($request));
             $stack = $request->getUri()->getWebroot()->getMiddlewareStack();
             $stack[] = $next;
             $dispatcher = new \mindplay\middleman\Dispatcher($stack);
@@ -101,7 +102,8 @@ class HttpDriver
 
     public function response ($type, $data=null, $params=array())
     {
-        app("events")->fire('http.create_response', array($type, $data, $params));
+        $_push = method_exists(app("events"),"push") ? "push" : "fire";
+        app("events")->$_push('http.create_response', array($type, $data, $params));
         return ResponseFactory::factory($type, $data, $params);
     }
     public function responseException ($type, $data=null, $params=array())

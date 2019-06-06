@@ -90,7 +90,7 @@ class Laravelizer
                 $route_uri = $record[1];
                 $action = $this->convertPageToAction($name);
                 $route = \Route::any($route_uri, $action)->name($name);
-                $route->middleware('web');
+                $route->middleware('api');
                 // auth
                 $role = $set[2]["auth.role"];
                 $priv_req_1 = $set[2]["auth.priv_req"];

@@ -8,6 +8,8 @@ class Payload
     public function __construct($table_name)
     {
         $this->table_name = $table_name;
+        $def_table_name = table($table_name)->getDefAttr("table_name");
+        if ($def_table_name != $table_name) $table_name = [$def_table_name, $table_name];
         $this->data["table"] = $table_name;
     }
     public function getDef()
@@ -28,6 +30,7 @@ class Payload
         if ( ! $query->getSkipBeforeRender()) {
             app("table.features")->emit("before_render", array($query));
         }
+        debug($query->getPayload());
         $req = $query->getDef()->getConnection()->getRenderer()->render($query->getPayload());
         $statement = app()->make("table.query_statement", array("sql"=>$req, "query"=>$query));
         return $statement;
