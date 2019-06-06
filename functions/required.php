@@ -40,7 +40,7 @@ if ( ! function_exists("report")) {
     function report_warning ($message, array $vars=array(), $category=null)
     {
         if (app()->bound("laravelizer")) {
-            return app("log")->write("message", $message, $vars);
+            return app("log")->write("warning", $message, $vars);
         }
         $vars["__"]["category"] = strlen($category) ? $category : "Warning";
         app("log")->write("warning", $message, $vars);
