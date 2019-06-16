@@ -343,11 +343,11 @@ class ReportRenderer
      */
     private static function compactBacktraceRow($bt)
     {
-        $lib_path = realpath(dirname(__FILE__)."/../..");
-        $vendor_path = realpath($lib_path."/../..");
-        $logger_path = realpath($vendor_path."/monolog/monolog");
-        $laravel_path = realpath($vendor_path."/laravel/framework");
-        $app_path = realpath($vendor_path."/..");
+        $lib_path = realpath(dirname(__FILE__)."/../..") ?: "___";
+        $vendor_path = realpath($lib_path."/../..") ?: "___";
+        $logger_path = realpath($vendor_path."/monolog/monolog") ?: "___";
+        $laravel_path = realpath($vendor_path."/laravel/framework") ?: "___";
+        $app_path = realpath($vendor_path."/..") ?: "___";
         $r = "";
         $bt['file'] = realpath($bt['file']);
         if (is_dir($bt['file'])) {
