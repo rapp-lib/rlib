@@ -26,8 +26,8 @@ class EnumValueRepositry implements ArrayAccess, IteratorAggregate
     {
         if ( ! $this->offsetExists($key)) return null;
         $value = $this->values[self::encodeKey($key)];
-        $i18n_enum_key = $this->repositry_name.".".$this->values_name.".".self::encodeKey($key);
-        $value = app()->i18n->getEnumValue($i18n_enum_key, $value);
+        // $i18n_enum_key = $this->repositry_name.".".$this->values_name.".".self::encodeKey($key);
+        // $value = app()->i18n->getEnumValue($i18n_enum_key, $value);
         return $value;
     }
     public function offsetSet($key, $value)

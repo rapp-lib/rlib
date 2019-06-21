@@ -6,7 +6,7 @@ use \Illuminate\Auth\GenericUser;
 
 class JwtAuth
 {
-  public function handle($request, $next, $required)
+  public function handle($request, $next, $required=false)
   {
     $claims = $this->captureJwt($request);
     if ($required && ! $claims) return abort(403);

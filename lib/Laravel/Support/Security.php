@@ -47,6 +47,6 @@ class Security
      */
     public function passwordVerify ($strPassword, $strHash)
     {
-        return Hash::check($strPassword, $strHash);
+        return \Hash::check($strPassword, $strHash);
     }
 }

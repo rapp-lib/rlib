@@ -3,7 +3,7 @@ namespace R\Lib\Laravel\Http\Middleware;
 
 class TagRegistry
 {
-  public function handle($request, $next, $tags)
+  public function handle($request, $next, $tags="")
   {
     $tags = explode(":", $tags);
     if ( ! $request->tags) $request->tags = array();
