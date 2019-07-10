@@ -8,15 +8,21 @@ class DBSchemaDoctrine2
     /**
      * 対象のDB接続先について、Tableでの定義との差分をMigrateするSQLを取得する
      */
-    public static function getMigrateSql($ds_name, $table_dirs)
+    public static function getMigrateSql($ds_name, $table_dirs, $reverse=false)
     {
         $db_schema = self::getDbSchema($ds_name);
         // Tableクラスの定義取得
-        $table_defs = app()->table->collectTableDefs($table_dirs);
+        // $table_defs = app()->table->collectTableDefs($table_dirs);
+        $table_defs = array_map(function($def){
+            return $def->getDefAttrs();
+        }, app("tables")->retreive());
         $class_schema = self::getSchemaFromTableDefs($table_defs, $db_schema);
         // 差分抽出
         $doctrine = app()->db->getConnection($ds_name)->getDoctrineConnection();
-        return $class_schema->getMigrateFromSql($db_schema, $doctrine->getDatabasePlatform());
+        $cmp = array($db_schema, $doctrine->getDatabasePlatform());
+        // 比較方向の逆転
+        if ($reverse) $cmp = [ $cmp[1], $cmp[0] ];
+        return $class_schema->getMigrateFromSql($cmp[0], $cmp[1]);
     }
     /**
      * 対象のDB接続先について、DbSchemaを取得する

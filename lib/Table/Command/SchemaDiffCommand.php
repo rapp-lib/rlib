@@ -15,13 +15,22 @@ class SchemaDiffCommand extends Command
     public function fire()
     {
         $apply = $this->option("apply");
+        $drop = $this->option("drop");
         $ds_name = $this->option("ds");
         // 差分の取得
         $sqls = DBSchemaDoctrine2::getMigrateSql($ds_name, array(constant("R_APP_ROOT_DIR")."/app/Table"));
+        // DROP TABLEの除外
+        if ( ! $drop){
+            $sqls = array_filter($sqls, function($sql){
+                return ! preg_match('!^DROP TABLE!i', $sql);
+            });
+        }
         // 差分の表示
         $db = app()->db->getConnection($ds_name);
         $this->line("-- ".count($sqls)." differences from ".$db->getDbName()." on ".$db->getHost());
-        foreach ($sqls as $sql) $this->line($sql.";");
+        foreach ($sqls as $sql) {
+            $this->line($sql.";");
+        }
         // 差分の適応
         if ($sqls && $apply) {
             $dump_dir = constant("R_APP_ROOT_DIR")."/tmp/dump";
@@ -49,6 +58,7 @@ class SchemaDiffCommand extends Command
         return array(
             array('ds', "-d", InputOption::VALUE_OPTIONAL, 'Datasource name.', "default"),
             array('apply', null, InputOption::VALUE_NONE, 'To apply to DB-real-schema.', null),
+            array('drop', null, InputOption::VALUE_NONE, 'include DROP difference.', null),
         );
     }
 }

@@ -35,12 +35,12 @@ class TableDefCollection implements ArrayAccess, IteratorAggregate
         return new ArrayIterator($this->retreive());
     }
 
-    protected $retreived = true;
+    protected $retreived = false;
     protected $table_defs = array();
     /**
      * 参照可能な全Table定義を収集して取得
      */
-    protected function retreive()
+    public function retreive()
     {
         if ( ! $this->retreived) {
             $table_names = app("table.def_resolver")->getAllTableNames();
@@ -52,7 +52,7 @@ class TableDefCollection implements ArrayAccess, IteratorAggregate
     /**
      * 指定されたTable定義を収集して取得
      */
-    protected function find($table_name)
+    public function find($table_name)
     {
         if ( ! $this->table_defs[$table_name]) {
             $def_attr_set = app("table.def_resolver")->getTableDefAttrSet($table_name);

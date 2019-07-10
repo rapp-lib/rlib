@@ -1,7 +1,7 @@
 <?php
 namespace R\Lib\Table\Def;
 
-class TableDefResolver
+class OldTableDefResolver
 {
     /**
      * 参照可能な全Table名の配列を取得する
@@ -12,12 +12,8 @@ class TableDefResolver
         foreach ($this->getFinders() as $finder) {
             if ($finder["dir"]) {
                 foreach (glob($finder["dir"]."/*.php") as $file) {
-                    if (preg_match('!([\w\d]+)\.php$!', $file, $_)) {
-                        $table_name = $finder["prefix"].$_[1];
-                        $class = $this->getTableClassByTableName($table_name);
-                        if ($class::$_def) {
-                            $table_names[] = $table_name;
-                        }
+                    if (preg_match('!([\w\d]+)Table\.php$!', $file, $_)) {
+                        $table_names[] = $finder["prefix"].$_[1];
                     }
                 }
             }
@@ -36,12 +32,9 @@ class TableDefResolver
                 "class"=>$class,
             ));
         }
-        $def_attr_set = $class::$_def;
+        $def_attr_set = $class::getDef();
         $def_attr_set["class"] = $class;
-        $def_attr_set["table_name"] = with(new $class)->getTable();
         $def_attr_set["app_table_name"] = $table_name;
-        $def_attr_set["def"]["comment"] = $def_attr_set["comment"];
-        $def_attr_set["def"]["indexes"] = $def_attr_set["indexes"];
         return $def_attr_set;
     }
     /**
@@ -52,7 +45,7 @@ class TableDefResolver
     {
         foreach ($this->getFinders() as $finder) {
             if ( ! $finder["prefix"] || strpos($table_name, $finder["prefix"])===0) {
-                return $finder["namespace"].'\\'.$table_name;
+                return $finder["namespace"].'\\'.$table_name.'Table';
             }
         }
         return null;
@@ -65,7 +58,7 @@ class TableDefResolver
     {
         foreach ($this->getFinders() as $finder) {
             if (strpos($class, $finder["namespace"])===0) {
-                if (preg_match('!([\w\d]+)$!', $class, $_)) {
+                if (preg_match('!([\w\d]+)Table^!', $class, $_)) {
                     return $finder["prefix"].$_[1];
                 }
             }
@@ -104,8 +97,8 @@ class TableDefResolver
         // 最後にデフォルトFinderを追加
         $finders[] = array(
             "prefix"=>"",
-            "dir"=>app_path(),
-            "namespace"=>'\App',
+            "dir"=>constant("R_APP_ROOT_DIR")."/app/Table",
+            "namespace"=>'\R\App\Table',
         );
         return $finders;
     }

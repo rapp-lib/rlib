@@ -23,6 +23,13 @@ class TableDef
     /**
      * getter
      */
+    public function getDefAttrs()
+    {
+        return $this->def_attr_set;
+    }
+    /**
+     * getter
+     */
     public function getDefAttr($key)
     {
         return $this->def_attr_set[$key];
