@@ -6,7 +6,7 @@
             "underscore" => array("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
             //"underscore" => array('//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js'),
             "axios" => array("https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.min.js"),
-            "ckeditor" => array("//cdn.ckeditor.com/4.10.0/standard-all/ckeditor.js"),
+            "ckeditor" => array("//cdn.ckeditor.com/4.11.2/standard-all/ckeditor.js"),
 
             "toastr" => array("//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.3/toastr.min.js", array("jquery")),
             "spinjs" => array("https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"),
