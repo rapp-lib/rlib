@@ -18,6 +18,7 @@
     }
     function report ()
     {
+        if(!app()->config["app.debug"]) return;
         $vars = array();
         foreach (func_get_args() as $k=>$v) $vars["value #".$k] = $v;
         $vars["__"]["category"] = "Debug";
@@ -25,16 +26,19 @@
     }
     function report_info ($message, array $vars=array(), $category=null)
     {
+        if(!app()->config["app.debug"]) return;
         $vars["__"]["category"] = strlen($category) ? $category : "Info";
         app("log")->getMonolog()->info($message, $vars);
     }
     function report_warning ($message, array $vars=array(), $category=null)
     {
+        if(!app()->config["app.debug"]) return;
         $vars["__"]["category"] = strlen($category) ? $category : "Warning";
         app("log")->getMonolog()->warn($message, $vars);
     }
     function report_error ($message, array $vars=array())
     {
+        // if(app()->config["app.debug"]) return;
         throw \R\Lib\Report\ReportRenderer::createHandlableError(array(
             "message"=>$message,
             "params"=>$vars,

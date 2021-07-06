@@ -105,7 +105,7 @@ class ReportLoggingHandler extends AbstractProcessingHandler
     {
         if (app()->runningInConsole()) {
             $text = ReportRenderer::renderAll(self::$buffer, "console");
-            file_put_contents("php://stderr", $text);
+            // file_put_contents("php://stderr", $text);
         } else {
             $html = ReportRenderer::renderAll(self::$buffer, "html");
             print $html;

@@ -286,7 +286,7 @@ class CSVFilterLoader
             }
         // CSV書き込み時
         } else {
-            foreach (app()->enum[$filter["enum"]] as $k=>$v) ;
+            // foreach (app()->enum[$filter["enum"]] as $k=>$v) ;
             return app()->enum[$filter["enum"]][$value];
         }
     }
