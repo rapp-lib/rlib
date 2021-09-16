@@ -20,7 +20,7 @@
         "phpmailer/phpmailer": "~5",
         "airmanbzh/php-html-generator": "~1",
         "rapp-lib/zend-diactoros": "~1",
-        "rapp-lib/laravel-debugbar": "~1",
+        "barryvdh/laravel-debugbar": "~1",
         "rapp-lib/middleman": "~2"
     },
     "autoload": {
